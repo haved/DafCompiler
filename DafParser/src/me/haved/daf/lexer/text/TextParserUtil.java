@@ -14,41 +14,31 @@ public class TextParserUtil {
 		return false;
 	}
 	
-	public static boolean isNormalWhitespace(char c) {
-		return c == ' ' | c == '\t';
-	}
+	public static boolean isNormalWhitespace(char c) { return c == ' ' | c == '\t'; }
 	
-	public static boolean isAnyWhitespace(char c) {
-		return c == ' ' || c == '\n' || c == '\t' || c == '\r';
-	}
+	public static boolean isAnyWhitespace(char c) { return c == ' ' || c == '\n' || c == '\t' || c == '\r'; }
 	
-	public static boolean isNewlineChar(char c) {
-		return c == '\n';
-	}
+	public static boolean isNewlineChar(char c) { return c == '\n'; }
 	
-	public static boolean isIdentifierChar(char c) {
-		return (c >= 'a' && c<='z') || (c >= 'A' && c<='Z') || (c >= '0' && c<='9') || c == '_';
-	}
+	public static boolean isDigit(char c) { return c>='0' && c<='9'; }
 	
-	public static boolean isStartOfIdentifier(char c) {
-		return (c >= 'a' && c<='z') || (c >= 'A' && c<='Z') || c == '_';
-	}
+	public static boolean isIdentifierChar(char c) { return isStartOfIdentifier(c) || isDigit(c); }
 	
-	public static boolean isPoundSymbol(char c) {
-		return c=='#';
-	}
+	public static boolean isStartOfIdentifier(char c) { return (c >= 'a' && c<='z') || (c >= 'A' && c<='Z') || c == '_'; }
 	
-	public static boolean isBackslash(char c) {
-		return c=='\\';
-	}
+	public static boolean isPoundSymbol(char c) { return c=='#'; }
 	
-	public static boolean isStartOfMacroParameters(char c) {
-		return c == START_OF_MACRO_PARAMETER;
-	}
+	public static boolean isBackslash(char c) { return c=='\\'; }
+	
+	public static boolean isStartOfMacroParameters(char c) { return c == START_OF_MACRO_PARAMETER; }
 
-	public static boolean isEndOfMacroParameters(char c) {
-		return c == END_OF_MACRO_PARAMETER;
-	}
+	public static boolean isEndOfMacroParameters(char c) { return c == END_OF_MACRO_PARAMETER; }
+	
+	public static boolean isMinusSign(char c) { return c == '-'; }
+	
+	public static boolean isDecimalChar(char c) { return c == '.'; }
+	
+	public static boolean isFloatLetter(char c) { return c == 'f' || c == 'F'; }
 	
 	/** Returns true if the char is a legal char, but not a letter, number, underscore or whitespace
 	 * 
@@ -66,11 +56,7 @@ public class TextParserUtil {
 				!isStartOfMacroParameters(c) && c!=ENCLOSE_MACRO;
 	}
 
-	public static boolean isDoubleQuoteChar(char c) {
-		return c == '"';
-	}
+	public static boolean isDoubleQuoteChar(char c) { return c == '"'; }
 	
-	public static boolean isSingleQuoteChar(char c) {
-		return c == '\'';
-	}
+	public static boolean isSingleQuoteChar(char c) { return c == '\''; }
 }
