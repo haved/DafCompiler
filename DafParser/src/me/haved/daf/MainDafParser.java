@@ -16,21 +16,23 @@ import me.haved.daf.lexer.tokens.Token;
 
 public class MainDafParser {
 	
-	private static boolean developer = true;	
+	private static final boolean developer = true;
+	private static final boolean defaultArgs = true;
 	public  static void main(String[] args) {
 		if(args.length == 0)
 			if(developer) {
-				LogHelper.startSummaryTime();
-				log(SUPER_DEBUG, "Enter arguments:");
-				String line;
-				try (Scanner in = new Scanner(System.in)) {
-					line = in.nextLine();
+				
+				String line = null;
+				
+				if(!defaultArgs) {
+					log(SUPER_DEBUG, "Enter arguments:");
+					try (Scanner in = new Scanner(System.in)) {
+						line = in.nextLine();
+					}
 				}
 				
-				if(line.isEmpty())
+				if(line == null || line.isEmpty())
 					line = "TestFile.daf .";
-				else if(line.trim().isEmpty())
-					log(FATAL_ERROR, "Give me somethig to work with, man!");
 				
 				ArrayList<String> myArgs = new ArrayList<>();
 				int start = 0;
