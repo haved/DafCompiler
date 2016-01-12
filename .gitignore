@@ -1,0 +1,7 @@
+*.swp
+.metadata/
+/**/bin/
+/**/.settings*.swp
+.metadata/
+/**/bin/
+/**/.settings/
