@@ -3,5 +3,6 @@
 /**/bin/
 /**/.settings*.swp
 .metadata/
+.recommenders/
 /**/bin/
 /**/.settings/
