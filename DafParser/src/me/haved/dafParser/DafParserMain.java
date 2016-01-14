@@ -1,17 +1,24 @@
 package me.haved.dafParser;
 
+import java.util.Scanner;
+
 public class DafParserMain {
+	
+	private static boolean DEV = true;
+	
 	public static void main(String[] args) {
-		System.out.println("The daf parser!");
 		if(args.length==0) {
 			System.out.println("You need to pass arguments. -h for help");
-			return;
+			if(!DEV)
+				return;
+			System.out.println("You get another chance! Enter your args:");
+			Scanner in = new Scanner(System.in);
+			String line = in.nextLine();
+			in.close();
+			args = line.split(" ");
 		}
-		if(args[0].equals("-h") | args[0].equals("--help") | args[0].equals("?")) {
-			System.out.println("Help file for the daf parser.\n"
-					+ "Turns .daf files into .h and .cpp files\n"
-					+ "daf inputDafFile\n"
-					+ "daf inputDafFile outputDir");
-		}
+		
+		DafParser mainParser = new DafParser();
+		mainParser.parseFromLine(args);
 	}
 }
