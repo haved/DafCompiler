@@ -7,6 +7,8 @@ import me.haved.dafParser.args.HelpTextOption;
 import me.haved.dafParser.args.Option;
 import me.haved.dafParser.args.VerboseOption;
 
+import static me.haved.dafParser.LogHelper.*;
+
 public class DafParser {
 	private ArrayList<Option> options;
 	
@@ -24,6 +26,7 @@ public class DafParser {
 		
 		int i = 0;
 		boolean parsed;
+		log(DEBUG, "Arguments supplied: %d", args.length);
 		while(i < args.length) {
 			parsed = false;
 			for(Option option:options) {
@@ -31,14 +34,14 @@ public class DafParser {
 					parsed = true;
 					int returned = option.parseOption(this, args, i);
 					if(returned==0) {
-						LogHelper.Info("Parsing stopped by option '%s', (%s)%n", option.getOptionName(), args[i]);
-						return;
+						log(MESSAGE, "Parsing stopped by option '%s', (%s)", option.getOptionName(), args[i]);
 					}
 					i+=returned;
+					break;
 				}
 			}
 			if(!parsed && args[i].startsWith("-")) {
-				LogHelper.Error("%s was not recogniced as an option!%n", args[i]);
+				log(FATAL_ERROR, "%s was not recogniced as an option!", args[i]);
 				return;
 			}
 			if(!parsed) {
@@ -51,34 +54,33 @@ public class DafParser {
 			}
 		}
 		if(i>args.length) {
-			System.out.println("Oh shit, man. An option said it used two args, but there were not 'nuff");
-			return;
+			log(FATAL_ERROR, "Oh shit, man. An option said it used two args, but there were not 'nuff");
 		}
-		if(lineSteps!=2) {
-			System.out.printf("Too %s arguments were given. -h for help%n", lineSteps<2?"few":"many");
-			return;
+		else if(lineSteps<2) {
+			log(FATAL_ERROR, "Expecting the argument: %s.", lineSteps==0?"inputFile":"outputDir");
 		}
+		else if(lineSteps!=2)
+			log(FATAL_ERROR, "Too may arguments were supplied!");
 		
 		executeParsing(inputFile, outputDir);
 	}
 	
 	public void executeParsing(String inputFilePath, String outputDirPath){
-		LogHelper.Info("Parsing file %s and storing .cpp and .h files in %s%n", inputFilePath, outputDirPath);
+		log(INFO, "Parsing file %s and storing .cpp and .h files in %s", inputFilePath, outputDirPath);
 		
 		try {
 			File inputFile = new File(inputFilePath);
-			if(!inputFile.exists()) {
-				LogHelper.Error("The input file '%s' does not exist.%n", inputFile.getName());
-			}
+			if(!inputFile.exists())
+				log(FATAL_ERROR, "The input file '%s' does not exist.", inputFile.getName());
 		}
 		catch(Exception e) {
-			LogHelper.Println("Aborting due to %d previous error(s)", );
+			e.printStackTrace(out);
 		}
 	}
 	
 	public void printHelpText() {
-		System.out.println("The help text for the daf parser.");
-		System.out.println("daf inputFile outputDir");
+		println("The help text for the daf parser.");
+		println("daf <inputFile> <outputDir> [options]");
 		ArrayList<String> optionNames = new ArrayList<String>();
 		ArrayList<String> optionText  = new ArrayList<String>();
 		
@@ -93,7 +95,7 @@ public class DafParser {
 		
 		for(int i = 0; i < optionNames.size(); i++) {
 			String name = optionNames.get(i);
-			System.out.printf("%1$s : %2$"+(maxLength-name.length()+1)+"s       %3$s%n", name, "", optionText.get(i));
+			println("%1$s : %2$"+(maxLength-name.length()+1)+"s       %3$s", name, "", optionText.get(i));
 		}
 	}
 }

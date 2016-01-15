@@ -1,7 +1,8 @@
 package me.haved.dafParser.args;
 
 import me.haved.dafParser.DafParser;
-import me.haved.dafParser.LogHelper;
+
+import static me.haved.dafParser.LogHelper.*;
 
 public class VerboseOption implements Option {
 
@@ -12,8 +13,8 @@ public class VerboseOption implements Option {
 
 	@Override
 	public int parseOption(DafParser parser, String[] args, int arg) {
-		LogHelper.LOGS = true;
-		LogHelper.INFOS = true;
+		setMaxLogCount(INFO, 20);
+		setMaxLogCount(MESSAGE, 20);
 		return 1;
 	}
 

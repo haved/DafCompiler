@@ -3,86 +3,78 @@ package me.haved.dafParser;
 import java.io.PrintStream;
 
 public class LogHelper {
+	public static PrintStream out = System.out;
 	
-	private static PrintStream out = System.out;
+	public static final String COMPILER_NAME = "daf";
 	
-	public static boolean ERRORS = true;
-	public static boolean WARNINGS = true;
-	public static boolean LOGS = false;
-	public static boolean INFOS = false;
+	public static final int INFO = 0;
+	public static final int MESSAGE = 1;
+	public static final int WARNING = 2;
+	public static final int ERROR = 3;
+	public static final int FATAL_ERROR = 4;
+	public static final int DEBUG = 5;
 	
-	public  static int errorCount = 0;
-	private static int maxErrorCount = 20;
+	public static final String[] logLevels = {"info", "message", "warning", "error", "fatal error", "debug"};
 	
-	public static void Error(String s) {
-		if(!ERRORS || errorCount > maxErrorCount)
-			return;
-		
-		if(errorCount==maxErrorCount)
-			Println("Max ERROR count (%d) reached.", maxErrorCount);
-		else
-			out.printf("EROOR: %s%n", s);
-		errorCount++;
+	private static int[] logCounts = new int[logLevels.length];
+	private static int[] maxLogCounts = new int[logLevels.length];
+	
+	private static boolean summarizeOnFatalError=false;
+	
+	static {
+		maxLogCounts[WARNING] = 20;
+		maxLogCounts[ERROR]   = 20;
+		maxLogCounts[FATAL_ERROR] = 20; //Should only ever happen once, but just in case it happens more.
 	}
 	
-	public static void Error(String format, Object... args) {
-		Error(String.format(format, args));
+	public static void log(String system, int logLevel, String message) {
+		logCounts[logLevel]++;
+		if(logCounts[logLevel]<maxLogCounts[logLevel])
+			out.printf("%s: %s: %s%n", system, logLevels[logLevel], message);
+		if(logLevel == FATAL_ERROR) {
+			if(summarizeOnFatalError)
+				printLoggingInfo();
+			System.exit(1);
+		}
 	}
 	
-	public static void LineError(String inputFile, int line, String format, Object... args) {
-		Error(String.format("ERROR(%s:%d): %s%n", inputFile, line, String.format(format, args)));
+	public static void log(int logLevel, String message) {
+		log(COMPILER_NAME, logLevel, message);
 	}
 	
-	public static void Warning(String s) {
-		if(WARNINGS)
-			out.printf("WARNING: %s%n", s);
+	public static void log(int logLevel, String format, Object... args) {
+		log(logLevel, String.format(format, args));
 	}
 	
-	public static void Warning(String format, Object... args) {
-		if(WARNINGS)
-			out.printf("WARNING: %s%n", String.format(format, args));
+	public static void println(String message) {
+		out.println(message);
 	}
 	
-	public static void LineWarning(String inputFile, int line, String format, Object... args) {
-		if(WARNINGS)
-			out.printf("WARNING(%s:%d): %s%n", inputFile, line, String.format(format, args));
+	public static void println(String format, Object... args) {
+		out.println(String.format(format, args));
 	}
 	
-	public static void Log(String s) {
-		if(LOGS)
-			out.printf("LOG: %s%n", s);
+	public static String getLogSystem(String systemName, int lineNumber, int lineChar) {
+		return String.format("%s:%d:%d", systemName, lineNumber, lineChar);
 	}
 	
-	public static void Log(String format, Object... args) {
-		if(LOGS)
-			out.printf("LOG: %s%n", String.format(format, args));
+	public static void setMaxLogCount(int logLevel, int max) {
+		maxLogCounts[logLevel] = max;
 	}
 	
-	public static void LineLog(String inputFile, int line, String format, Object... args) {
-		if(LOGS)
-			out.printf("LOG(%s:%d): %s%n", inputFile, line, String.format(format, args));
+	public static void setToSummarizeOnFatalError(boolean sum) {
+		summarizeOnFatalError = sum;
 	}
 	
-	public static void Info(String s) {
-		if(INFOS)
-			out.printf("INFO: %s%n", s);
+	private static long startTime;
+	
+	public static void startTime() {
+		startTime = System.currentTimeMillis();
 	}
 	
-	public static void Info(String format, Object... args) {
-		if(INFOS)
-			out.printf("INFO: %s%n", String.format(format, args));
-	}
-	
-	public static void LineInfo(String inputFile, int line, String format, Object... args) {
-		if(INFOS)
-			out.printf("INFO(%s:%d): %s%n", inputFile, line, String.format(format, args));
-	}
-	
-	public static void Println(String line) {
-		out.println(line);
-	}
-	
-	public static void Println(String format, Object... args) {
-		out.printf("%s%n", String.format(format, args));
+	public static void printLoggingInfo() {
+		out.printf("Execution finished with %d infos, %d messages, %d warnings, %d errors and %d fatal errors%n",
+				logCounts[0], logCounts[1], logCounts[2], logCounts[3], logCounts[4]);
+		out.printf("Execution time: %d%n", System.currentTimeMillis()-startTime);
 	}
 }
