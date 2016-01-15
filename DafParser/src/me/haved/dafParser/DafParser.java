@@ -1,15 +1,18 @@
 package me.haved.dafParser;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import me.haved.dafParser.args.HelpTextOption;
 import me.haved.dafParser.args.Option;
+import me.haved.dafParser.args.VerboseOption;
 
 public class DafParser {
 	private ArrayList<Option> options;
 	
 	public DafParser() {
 		options = new ArrayList<>();
+		options.add(new VerboseOption());
 		options.add(new HelpTextOption());
 	}
 	
@@ -28,14 +31,14 @@ public class DafParser {
 					parsed = true;
 					int returned = option.parseOption(this, args, i);
 					if(returned==0) {
-						System.out.printf("Parsing stopped by option '%s', (%s)%n", option.getOptionName(), args[i]);
+						LogHelper.Info("Parsing stopped by option '%s', (%s)%n", option.getOptionName(), args[i]);
 						return;
 					}
 					i+=returned;
 				}
 			}
 			if(!parsed && args[i].startsWith("-")) {
-				System.out.printf("%s was not recogniced as an option!%n", args[i]);
+				LogHelper.Error("%s was not recogniced as an option!%n", args[i]);
 				return;
 			}
 			if(!parsed) {
@@ -59,8 +62,18 @@ public class DafParser {
 		executeParsing(inputFile, outputDir);
 	}
 	
-	public void executeParsing(String inputFile, String outputDir){
-		System.out.printf("Parsing file %s and storing .cpp and .h files in %s%n", inputFile, outputDir);
+	public void executeParsing(String inputFilePath, String outputDirPath){
+		LogHelper.Info("Parsing file %s and storing .cpp and .h files in %s%n", inputFilePath, outputDirPath);
+		
+		try {
+			File inputFile = new File(inputFilePath);
+			if(!inputFile.exists()) {
+				LogHelper.Error("The input file '%s' does not exist.%n", inputFile.getName());
+			}
+		}
+		catch(Exception e) {
+			LogHelper.Println("Aborting due to %d previous error(s)", );
+		}
 	}
 	
 	public void printHelpText() {
@@ -80,7 +93,7 @@ public class DafParser {
 		
 		for(int i = 0; i < optionNames.size(); i++) {
 			String name = optionNames.get(i);
-			System.out.printf("%1$s : %2$"+(maxLength-name.length()+1)+"s%3$s%n", name, "", optionText.get(i));
+			System.out.printf("%1$s : %2$"+(maxLength-name.length()+1)+"s       %3$s%n", name, "", optionText.get(i));
 		}
 	}
 }
