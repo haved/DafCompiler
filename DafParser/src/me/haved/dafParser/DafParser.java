@@ -35,6 +35,7 @@ public class DafParser {
 					int returned = option.parseOption(this, args, i);
 					if(returned==0) {
 						log(MESSAGE, "Parsing stopped by option '%s', (%s)", option.getOptionName(), args[i]);
+						return;
 					}
 					i+=returned;
 					break;
@@ -66,7 +67,7 @@ public class DafParser {
 	}
 	
 	public void executeParsing(String inputFilePath, String outputDirPath){
-		log(INFO, "Parsing file %s and storing .cpp and .h files in %s", inputFilePath, outputDirPath);
+		log(INFO, "Parsing file '%s' and storing .cpp and .h files in '%s'", inputFilePath, outputDirPath);
 		
 		try {
 			File inputFile = new File(inputFilePath);

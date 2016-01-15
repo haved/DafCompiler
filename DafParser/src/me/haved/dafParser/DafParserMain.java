@@ -8,20 +8,21 @@ public class DafParserMain {
 	private static boolean DEV = true;
 	
 	public static void main(String[] args) {
-		if(DEV)
+		LogHelper.startTime();
+		if(DEV) {
 			LogHelper.setMaxLogCount(LogHelper.DEBUG, 200);
+			LogHelper.setToSummarize(true);
+		}
 		if(args.length==0) {
 			LogHelper.println("You need to pass arguments. -h for help");
 			if(!DEV)
 				return;
-			
-			LogHelper.println("You get another chance! Enter your args:");
+			LogHelper.println("You, as a dev, get another chance! Enter your args:");
 			Scanner in = new Scanner(System.in);
 			String line = in.nextLine();
 			in.close();
-			ArrayList<String> argslist = new ArrayList<>();
+			ArrayList<String> argslist = new ArrayList<>(Arrays.asList(line.trim().split(" ")));
 			
-			argslist.addAll(Arrays.asList(line.trim().split(" ")));
 			for(int i = 0; i < argslist.size(); i++) {
 				if(argslist.get(i).trim().length()==0) {
 					argslist.remove(i);
@@ -33,9 +34,12 @@ public class DafParserMain {
 				args = new String[argslist.size()];
 			
 			argslist.toArray(args);
+			
+			LogHelper.startTime(); //Just to avoid the text input from slowing it down
 		}
 		
 		DafParser mainParser = new DafParser();
 		mainParser.parseFromLine(args);
+		LogHelper.trySummarize();
 	}
 }

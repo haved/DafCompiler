@@ -19,7 +19,7 @@ public class LogHelper {
 	private static int[] logCounts = new int[logLevels.length];
 	private static int[] maxLogCounts = new int[logLevels.length];
 	
-	private static boolean summarizeOnFatalError=false;
+	private static boolean summarize = false;
 	
 	static {
 		maxLogCounts[WARNING] = 20;
@@ -32,8 +32,7 @@ public class LogHelper {
 		if(logCounts[logLevel]<maxLogCounts[logLevel])
 			out.printf("%s: %s: %s%n", system, logLevels[logLevel], message);
 		if(logLevel == FATAL_ERROR) {
-			if(summarizeOnFatalError)
-				printLoggingInfo();
+			trySummarize();
 			System.exit(1);
 		}
 	}
@@ -62,8 +61,13 @@ public class LogHelper {
 		maxLogCounts[logLevel] = max;
 	}
 	
-	public static void setToSummarizeOnFatalError(boolean sum) {
-		summarizeOnFatalError = sum;
+	public static void setToSummarize(boolean sum) {
+		summarize = sum;
+	}
+	
+	public static void trySummarize() {
+		if(summarize)
+			printLoggingInfo();
 	}
 	
 	private static long startTime;
@@ -75,6 +79,6 @@ public class LogHelper {
 	public static void printLoggingInfo() {
 		out.printf("Execution finished with %d infos, %d messages, %d warnings, %d errors and %d fatal errors%n",
 				logCounts[0], logCounts[1], logCounts[2], logCounts[3], logCounts[4]);
-		out.printf("Execution time: %d%n", System.currentTimeMillis()-startTime);
+		out.printf("Execution time: %.2fs%n", (System.currentTimeMillis()-startTime)/1000f);
 	}
 }
