@@ -88,12 +88,18 @@ public class DafParser {
 				log(FATAL_ERROR, "The output directory '%s' is not a directory!", outputDir.getAbsolutePath());
 			}
 			
-			ParsedInputFile parsedInputFile = new ParsedInputFile(inputFile);
+			ParsedInputFile parsedInputFile = new ParsedInputFile(inputFile, inputFilePath);
+			
+			parsedInputFile.parse();
+			
 			String outputFilesPath = outputDir.getAbsolutePath() + "/" 
 						+ (subfolderOutput?inputFilePath:inputFile.getName()).split("\\.")[0]; //Not pretty, I know.
 			
 			File cppFile =    new File(outputFilesPath+".cpp");
 			File headerFile = new File(outputFilesPath+".h");
+			
+			if(subfolderOutput)
+				cppFile.getParentFile().mkdirs();
 			
 			log(INFO, "In diretctory '%s', making '%s' and '%s'", cppFile.getParent(), cppFile.getName(), headerFile.getName());
 			parsedInputFile.writeToCppAndHeader(cppFile, headerFile);

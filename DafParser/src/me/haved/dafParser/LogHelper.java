@@ -38,6 +38,10 @@ public class LogHelper {
 		}
 	}
 	
+	public static void log(String system, int logLevel, String format, Object... args) {
+		log(system, logLevel, String.format(format, args));
+	}
+	
 	public static void log(int logLevel, String message) {
 		log(COMPILER_NAME, logLevel, message);
 	}
@@ -72,6 +76,12 @@ public class LogHelper {
 	}
 	
 	public static void trySummarize() {
+		if(!summarize)
+			for(int i = 0; i < logCounts.length; i++)
+				if(maxLogCounts[i] > 0 && logCounts[i]>maxLogCounts[i]) {
+					log(WARNING, "Number of %s log entries exceeded the max number (%d)", logLevels[i], maxLogCounts[i]);
+					summarize = true;
+				}
 		if(summarize)
 			printLoggingInfo();
 	}
