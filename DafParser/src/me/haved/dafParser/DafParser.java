@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import me.haved.dafParser.args.HelpTextOption;
 import me.haved.dafParser.args.Option;
+import me.haved.dafParser.args.SubfolderOutputOption;
 import me.haved.dafParser.args.SummarizeOption;
 import me.haved.dafParser.args.VerboseOption;
 
@@ -14,11 +15,14 @@ public class DafParser {
 	private ArrayList<Option> options;
 	
 	private HeaderMaker headerMaker;
+
+	public boolean subfolderOutput = false;
 	
 	public DafParser() {
 		options = new ArrayList<>();
 		options.add(new VerboseOption());
 		options.add(new SummarizeOption());
+		options.add(new SubfolderOutputOption());
 		options.add(new HelpTextOption());
 		
 		headerMaker = new HeaderMaker(this);

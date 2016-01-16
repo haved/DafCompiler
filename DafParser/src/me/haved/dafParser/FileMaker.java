@@ -21,7 +21,7 @@ public abstract class FileMaker {
 		logAssert(outputDir.isDirectory(), "The output directory passed to the file maker didn't exist!");
 		
 		log(INFO, "FileMaker running in the folder '%s' taking the input file '%s'", outputDir.getAbsolutePath(), inputFileName);
-		String outputFileName = getOutputFileName(inputFileName);
+		String outputFileName = getOutputFileName(parser.subfolderOutput ? inputFileName : inputFile.getName());
 		log(MESSAGE, "Making the file '%s' in the output dir", outputFileName);
 		File outputFile = new File(outputDir.getAbsolutePath()+"/"+outputFileName);
 		outputFile.getParentFile().mkdirs(); //Make directories. If input is folder/file.daf, it will create outputFolder/folder/
