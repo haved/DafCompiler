@@ -13,8 +13,6 @@ import static me.haved.dafParser.LogHelper.*;
 
 public class DafParser {
 	private ArrayList<Option> options;
-	
-	private HeaderMaker headerMaker;
 
 	public boolean subfolderOutput = false;
 	
@@ -24,8 +22,6 @@ public class DafParser {
 		options.add(new SummarizeOption());
 		options.add(new SubfolderOutputOption());
 		options.add(new HelpTextOption());
-		
-		headerMaker = new HeaderMaker(this);
 	}
 	
 	public void parseFromLine(String[] args) {
@@ -76,7 +72,7 @@ public class DafParser {
 	}
 	
 	public void executeParsing(String inputFilePath, String outputDirPath){
-		log(INFO, "Parsing file '%s' and storing .cpp and .h files in '%s'", inputFilePath, outputDirPath);
+		log(INFO, "Thinking of parsing file '%s' and storing .cpp and .h files in '%s'", inputFilePath, outputDirPath);
 		
 		try {
 			File inputFile = new File(inputFilePath);
@@ -92,7 +88,15 @@ public class DafParser {
 				log(FATAL_ERROR, "The output directory '%s' is not a directory!", outputDir.getAbsolutePath());
 			}
 			
-			headerMaker.readFile(inputFilePath, inputFile, outputDir);
+			ParsedInputFile parsedInputFile = new ParsedInputFile(inputFile);
+			String outputFilesPath = outputDir.getAbsolutePath() + "/" 
+						+ (subfolderOutput?inputFilePath:inputFile.getName()).split("\\.")[0]; //Not pretty, I know.
+			
+			File cppFile =    new File(outputFilesPath+".cpp");
+			File headerFile = new File(outputFilesPath+".h");
+			
+			log(INFO, "In diretctory '%s', making '%s' and '%s'", cppFile.getParent(), cppFile.getName(), headerFile.getName());
+			parsedInputFile.writeToCppAndHeader(cppFile, headerFile);
 		}
 		catch(Exception e) {
 			e.printStackTrace(out);
