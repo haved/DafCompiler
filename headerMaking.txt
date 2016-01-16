@@ -1,0 +1,5 @@
+This file shows how the header maker turns lines from daf to a c++ header
+
+Line-by-line checks:
+Syntax: boolean from 'line' --->>> PrintWriter method for .h file
+line.startsWith("#include") --->>> println(line);

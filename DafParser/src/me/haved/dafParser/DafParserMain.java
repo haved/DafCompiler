@@ -30,6 +30,8 @@ public class DafParserMain {
 				}
 			}
 			
+			argslist.add("--verbose");
+			
 			if(args.length < argslist.size())
 				args = new String[argslist.size()];
 			

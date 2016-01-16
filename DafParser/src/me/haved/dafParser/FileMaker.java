@@ -30,7 +30,7 @@ public abstract class FileMaker {
 			if(outputFile.exists())
 				outputFile.delete();
 			try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
-				try (PrintWriter writer = new PrintWriter(new FileWriter(inputFile, false))) {
+				try (PrintWriter writer = new PrintWriter(new FileWriter(outputFile, false))) {
 					readWriteFileStream(inputFileName, reader, writer);
 					reader.close();
 					writer.flush(); //Just to be sure
@@ -49,7 +49,7 @@ public abstract class FileMaker {
 		}
 	}
 	
-	protected abstract void readWriteFileStream(String inputFileName, BufferedReader reader, PrintWriter writer);
+	protected abstract void readWriteFileStream(String inputFileName, BufferedReader reader, PrintWriter writer) throws Exception;
 	
 	protected abstract String getOutputFileName(String fileName);
 }

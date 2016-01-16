@@ -1,0 +1,156 @@
+#include "DartPlayer.daf"
+#include <vector>
+
+pub class DartGame {
+	m_startScore:uint32;
+	m_rounds:uint32;
+	
+	m_participants<DartParticipant>;
+
+	m_currentPlayer:uint32;
+	m_roundWinner:int64;
+	m_hitWinner:int64;
+
+	pub DartGame(startScore:uint32, rounds:uint32) {
+		m_startScore = startScore;
+		m_rounds = rounds;
+		m_participants:vector<DartParticipant>();
+		m_currentPlayer=-1;
+		m_roundWinner=-1;
+		m_hitWinner=-1;
+	}
+	
+	pub method AddPlayer(player:&mut DartPlayer) {
+		m_participants.push_back(DartParticipant(0, 0, player));
+	}
+
+	pub method AddPlayer(players:DartPlayer[mut], count:uint32) {
+		for(let mut i:uint32=0; i < count; i++) {
+			m_participants.push_back(DartParticipant(0, 0, &players[i]));
+		}
+	}
+	
+	pub method StartHit() {
+		m_hitWinner=-1;
+		for(let i:uint32=0; i < m_participants.size(); i++) {
+			m_participants[i].PointsLeft = m_startScore;
+		}
+	}
+
+	pub method HitInProgress() -> bool {
+		return m_hitWinner == -1;
+	}
+
+	pub method PrintHitWinner() {
+		printf("Player %d, %s, won the hit!", m_hitWinner+1, m_participants[m_hitWinner].PlayerOfDart->Name);
+	}	
+
+	pub method StartRound() {
+		m_currentPlayer = 0;
+		m_roundWinner=-1;
+		for(let i:uint32=0; i < m_participants.size(); i++) {
+			m_participants[i].PointsLeft = m_startScore;
+		}
+	}
+	
+	pub method RoundInProgress() -> bool {
+		return m_roundWinner == -1;
+	}
+
+	pub method PrintRoundWinner() {
+		printf("Player %d, %s, won the round! Round win: %d/%d", m_roundWinner+1, m_participants[m_roundWinner].PlayerOfDart->Name, m_participants[m_roundWinner].RoundsWon, m_rounds);
+	}
+
+	pub method PrintGameStatus() {
+		printf("Playing dart! Beginning points: %d, Rounds to win: %d\n", m_startScore, m_rounds);
+		for(let i:uint32=0; i< m_participants.size(); i++) {
+			let dartP:=&m_participants[i];
+			printf("Player %d: %s, Age %d. Rating: %d, %d Points, %d Sets won\n", 
+				i+1, dartP->PlayerOfDart->Name, dartP->PlayerOfDart->Age, 
+				 dartP->PlayerOfDart->GetRating(), dartP->PointsLeft,
+				  dartP->RoundsWon);
+		}
+		printf("It is player %d's Turn (%s)\n", m_currentPlayer+1, 
+			m_participants[m_currentPlayer].PlayerOfDart->Name);
+	}
+
+	pub method PromptForInput() {
+		let mut roundPoints : uint32 = 0;
+		let pointsLeft = m_participants[m_currentPlayer].PointsLeft;
+		for(let i:uint32=0; i < 3; i++) {
+			while(true) {
+				printf("Player %d has %d points left\n", m_currentPlayer+1,
+					pointsLeft-roundPoints);
+				if(roundPoints>=pointsLeft) {
+					printf("Player needs to hit 0 exactly on double! Aborting!");
+					return;
+				}
+				printf("Throw number %d. What kind of hit? (s|d|t|r|b|m): ", i+1);
+				let letter:char;
+				input(&mut letter, 1);
+				if(letter=='b')
+					roundPoints+=50;
+					if(roundPoints==pointsLeft) {
+						PlayerWonRound(m_currentPlayer);
+						return;
+					}
+				else if(leter=='r')
+					roundPoints+=25;
+				else if(letter=='m') {}
+				else if(letter=='s') {
+					roundPoints+=InputNumber();
+				}
+				else if(letter=='d') {
+					roundPoints+=InputNumber()*2:
+					if(roundPoints==pointsLeft) {
+						PlayerWonRound(m_currentPlayer);
+						return;
+					}
+				}
+				else if(letter=='t') {
+					roundPoints+=InputNumber()*3;
+				}
+				else
+					printf("Not a valid hit type!\n");
+				elselse { break; }
+			}
+		}
+	}
+
+	method PlayerWonRound(player:uint32) {
+		roundWinner = player;
+		m_participants[player].RoundsWon+;
+		if(m_participants[player].RoundsWon>=m_rounds) {
+			hitWinner = player;
+		}
+	}
+
+	pub method UpdateRatings() {
+		for(let mut i:uint32=0; i < m_participants.size(); i++) {
+			def iP:=m_participants[i];
+			for(let mut j:uint32=0; j < m_paricipants.size(); i++) {
+				if(i==j)
+					continue;
+				def jP:=m_participants[j];
+				iP.PlayerOfDart->UpdateRating(iP.RoundsWon>jP.RoundsWon,iP.RoundsWon<jP.RoundsWon,jP.PlayerOfDart->GetRating());
+			}
+		}
+	}
+}
+
+pub class DartParticipant {
+	pub PointsLeft:uint32;
+	pub RoundsWon :uint32;
+	pub PlayerOfDart:&mut DartPlayer;
+
+	pub DartParticipant(pointsLeft:uint32, roundsWon:uint32, dartPlayer:DartPlayer) {
+		PointsLeft = pointsLeft;
+		RoundsWon  = roundsWon;
+		PlayerOfDart = dartPlayer;
+	}
+}
+
+pub func InputNumber() -> uint32 {
+	printf("Enter the number hit (not double or triple): ");
+	return GodKnowsWhat;
+}

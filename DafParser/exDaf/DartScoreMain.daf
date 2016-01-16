@@ -1,0 +1,32 @@
+#include "DartGame.daf"
+
+pub func Main(args:string[]) {
+	let mut dartGame:DartGame(501, 3);
+	
+	let mut olePer:DartPlayer("Ole Per", 45, 35604);
+	let mut jensStoltenber:DartPlayer("Jens Stoltenberg", 55, 20567);
+	let mut jolleGregor:DartPlayer("Jölle Gregor", 49, 15602);
+	
+	let mut pellerBrule:DartPlayer[2];
+	pellerBrule[0]:DartPlayer("Pelle Nese", 36, 35666);
+	pellerBrule[1]:DartPlayer("Brule Gloppen", 87, 36195);
+	dartGame.AddPlayer(&mut olePer);
+	dartGame.AddPlayer(&mut jensStoltenber);
+	dartGame.AddPlayer(&mut jolleGregor);
+	dartGame.AddPlayer(pellerBrule, 2);
+
+	dartGame.StartHit();
+	while(dartGame.HitInProgress()) {
+		dartGame.StartRound();
+		while(dartGame.RoundInProgress()) {
+			dartGame.PrintGameStatus();
+			dartGame.PromptForInput();
+		}
+		dartGame.PrintRoundWinner();
+	}
+	dartGame.PrintHitWinner();
+	printf("Updating ratings!\n");
+	dartGame.UpdateRatings();
+	printf("New ratings:\n");
+	dartGame.PrintGameStatus();
+}

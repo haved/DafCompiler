@@ -13,11 +13,15 @@ import static me.haved.dafParser.LogHelper.*;
 public class DafParser {
 	private ArrayList<Option> options;
 	
+	private HeaderMaker headerMaker;
+	
 	public DafParser() {
 		options = new ArrayList<>();
 		options.add(new VerboseOption());
 		options.add(new SummarizeOption());
 		options.add(new HelpTextOption());
+		
+		headerMaker = new HeaderMaker(this);
 	}
 	
 	public void parseFromLine(String[] args) {
@@ -84,6 +88,7 @@ public class DafParser {
 				log(FATAL_ERROR, "The output directory '%s' is not a directory!", outputDir.getAbsolutePath());
 			}
 			
+			headerMaker.readFile(inputFilePath, inputFile, outputDir);
 		}
 		catch(Exception e) {
 			e.printStackTrace(out);
