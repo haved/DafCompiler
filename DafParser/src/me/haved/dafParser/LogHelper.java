@@ -34,6 +34,7 @@ public class LogHelper {
 		if(logLevel == FATAL_ERROR) {
 			trySummarize();
 			System.exit(1);
+			assert(false); //Just to be sure the program doesn't get past System.exit()
 		}
 	}
 	
@@ -51,6 +52,11 @@ public class LogHelper {
 	
 	public static void println(String format, Object... args) {
 		out.println(String.format(format, args));
+	}
+	
+	public static void logAssert(boolean p_assert, String error) {
+		if(!p_assert)
+			log(FATAL_ERROR, "Assertion failed: %s", error);
 	}
 	
 	public static String getLogSystem(String systemName, int lineNumber, int lineChar) {

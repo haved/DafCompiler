@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import me.haved.dafParser.args.HelpTextOption;
 import me.haved.dafParser.args.Option;
+import me.haved.dafParser.args.SummarizeOption;
 import me.haved.dafParser.args.VerboseOption;
 
 import static me.haved.dafParser.LogHelper.*;
@@ -15,6 +16,7 @@ public class DafParser {
 	public DafParser() {
 		options = new ArrayList<>();
 		options.add(new VerboseOption());
+		options.add(new SummarizeOption());
 		options.add(new HelpTextOption());
 	}
 	
@@ -26,7 +28,6 @@ public class DafParser {
 		
 		int i = 0;
 		boolean parsed;
-		log(DEBUG, "Arguments supplied: %d", args.length);
 		while(i < args.length) {
 			parsed = false;
 			for(Option option:options) {
@@ -71,8 +72,18 @@ public class DafParser {
 		
 		try {
 			File inputFile = new File(inputFilePath);
-			if(!inputFile.exists())
-				log(FATAL_ERROR, "The input file '%s' does not exist.", inputFile.getName());
+			if(inputFile.exists()==false) {
+				log(FATAL_ERROR, "The input file '%s' does not exist!", inputFile.getAbsolutePath());
+			} else if(inputFile.isFile()==false) {
+				log(FATAL_ERROR, "The input '%s' is not a file!", inputFile.getAbsolutePath());
+			}
+			File outputDir = new File(outputDirPath);
+			if(outputDir.exists()==false) {
+				log(FATAL_ERROR, "The output directory '%s' does not exist!", outputDir.getAbsolutePath());
+			} else if(outputDir.isDirectory()==false) {
+				log(FATAL_ERROR, "The output directory '%s' is not a directory!", outputDir.getAbsolutePath());
+			}
+			
 		}
 		catch(Exception e) {
 			e.printStackTrace(out);
@@ -96,7 +107,7 @@ public class DafParser {
 		
 		for(int i = 0; i < optionNames.size(); i++) {
 			String name = optionNames.get(i);
-			println("%1$s : %2$"+(maxLength-name.length()+1)+"s       %3$s", name, "", optionText.get(i));
+			println("%1$s %2$"+(maxLength-name.length()+1)+"s       %3$s", name, "", optionText.get(i));
 		}
 	}
 }
