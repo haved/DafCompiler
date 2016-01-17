@@ -1,3 +1,5 @@
+#cppInclude <string>
+
 pub interface CounterListener {
 	OnCounterFinish(id:usize);
 }
@@ -5,19 +7,23 @@ pub interface CounterListener {
 pub class Counter {
 	m_listener:&mut CounterListener;
 	m_max:int;
-	m_id:int;
+	m_id:usize;
 	m_count:int;
-	pub Counter(max:int) : m_max(max), m_listener(null), m_id(0), m_count(0) {}
+	m_name:std::string;
+	pub Counter(max:int, &name:std::string) : m_max(max), m_name(name), m_listener(null), m_id(0), m_count(0) {}
 	pub method SetFinishListener(listener:&mut CounterListener) {
 		m_listener = listener;
 	}	
-	pub method SetId(id:int) {
+	pub method SetId(id:usize) {
 		m_id = id;
 	}
-	pub method Count() {
-		m_count++;
+	pub method Count(n:int) {
+		m_count+=n;
 		if(m_count>m_max & m_listener)
 			m_listener->OnCounterFinish(m_id);
+	}
+	pub &std:string GetName() {
+		return &m_name;
 	}
 }
 
