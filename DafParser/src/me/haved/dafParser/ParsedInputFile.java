@@ -14,7 +14,7 @@ public class ParsedInputFile {
 	}
 	
 	public void parse() {
-		logAssert(inputFile.isFile(), "ParsedInputFile git a file that doesn't exist! Should never happen!");
+		logAssert(inputFile.isFile(), "ParsedInputFile got a file that doesn't exist! Should never happen!");
 		parsed = true;
 	}
 	
