@@ -1,0 +1,23 @@
+pub interface CounterListener {
+	OnCounterFinish(id:usize);
+}
+
+pub class Counter {
+	m_listener:&mut CounterListener;
+	m_max:int;
+	m_id:int;
+	m_count:int;
+	pub Counter(max:int) : m_max(max), m_listener(null), m_id(0), m_count(0) {}
+	pub method SetFinishListener(listener:&mut CounterListener) {
+		m_listener = listener;
+	}	
+	pub method SetId(id:int) {
+		m_id = id;
+	}
+	pub method Count() {
+		m_count++;
+		if(m_count>m_max & m_listener)
+			m_listener->OnCounterFinish(m_id);
+	}
+}
+
