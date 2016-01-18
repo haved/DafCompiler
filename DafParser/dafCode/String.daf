@@ -1,0 +1,40 @@
+#cpp
+#include <string>
+#endcpp
+
+#include "Memory.daf"
+
+class String {
+	m_text:char[mut];
+	m_text_length:usize;
+	m_length:usize;
+	pub String(text:&char) {
+		m_length = strlen(text);
+		m_text_length = m_length+1;
+		m_text = new char[m_text_length];
+		memcpy(m_text, text, m_text_length);
+	}
+
+	pub ~String() {
+		delete m_text;
+	}
+
+	pub inline method c_str() -> &char {
+		return m_text;
+	}
+
+	pub inline method length() -> usize {
+		return m_length;
+	}
+}
+
+pub func strlen(text:&char) -> usize {
+	let mut index:usize=0;
+	for(;text[index]!=0;index++);
+	return index;
+}
+
+
+/*
+(masterScope, (include, "file.daf"), (cppCode, "#include <string>"), (class, non-abstract, (extends, "Object"), no-implementations), (pub, (name, "c_str", (method, (paramlist, (param, (type, "usize"), "")))))))
+*/
