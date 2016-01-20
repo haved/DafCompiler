@@ -35,7 +35,7 @@ This is a list of all the keywords you find in daf. The file ParsingNodes.md sho
 * **const**								Lets a method take an immutable pointer to **this**
 
 #### Control Statements
-* **if***
+* **if**
 * **else**
 * **while**
 * **do**
