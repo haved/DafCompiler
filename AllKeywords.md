@@ -32,7 +32,7 @@ This is a list of all the keywords you find in daf. The file ParsingNodes.md sho
 * **func** FunctionName(arg1:type1)		Makes a function
 * **method** GetSize()					Makes a method (in classes only)
 * **this** 								Pointer to class method belongs to. Passed implicitly.
-* **const**								Lets a method take an immutable pointer to *this*
+* **const**								Lets a method take an immutable pointer to **this**
 
 #### Control Statements
 * **if***
@@ -42,7 +42,7 @@ This is a list of all the keywords you find in daf. The file ParsingNodes.md sho
 * **for**
 * **break**
 * **continue**
-* **retry**								Just like *continue*, only the iterator isn't iterated
+* **retry**								Just like **continue**, only the iterator isn't iterated
 * **elselse**							Called if the else wasn't called.
 
 #### Values
