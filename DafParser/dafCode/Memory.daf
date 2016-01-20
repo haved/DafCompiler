@@ -1,5 +1,0 @@
-pub func memcpy(destination:&mut uint8, source:&mut uint8, length:usize) {
-	for(let mut i:=0; i < length; i++) {
-		destination[i] = source[i];
-	}
-}
