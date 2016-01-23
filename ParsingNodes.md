@@ -1,26 +1,32 @@
 ## Parsing Nodes
-This is a list of all nodes that the daf parser will parse a daf into. The node structure is used when importing .daf files or creating .h and .cpp files.
+This is a list of all nodes used when parsing the .daf files.
+The node structure provides all the data needed to make both a source file and a header,
+as well as checking for errors.
+It is designed to be simple to read from, but to to be memory efficiant or particularly fast.
+This compiler is written in Java, after all.  
+The syntax of this file is as follows:  
+* **node name** = **Function**|**Option2**|**Option3**:**Type**
+* **Function** = name:String, list of Param, returns:Type
+* **Param** = Type, reference:int, name:String
 
-#### Main nodes
-* **(rootNode, ...)**	The root node. Contains all the file
-* **(import, fileName:String, file:ParsedFile)**	Temporary
-* **(using, fileName:String, file:ParsedFile)**	Just like import
-* **(cpp, text:String)** Inline cpp code for the .cpp file
-* **(header, text:String)** Inline cpp code for the .h file
+When typing the node system to a text file, a lisp like format is used.  
+'''
+(nodeName, value, (subNodeName, type, something, "Some text"))
+'''
 
-#### Main nodes
-* **(pub, whatever)**
-* **(prot, whatever)**
-* **(type, name:String)**
-* **(extern func, funcName:String, returnType:type)**
+#### The Root Node
+Each file has one root node. The root node is a list of definitions. 
+These include class, function, static variable definitions, external definitions and inclusions.
+* **Root Node** = list of **Definition**
+* **Definition** = **Class** | **Function** | **StaticLet** | **Extern** | **Import** | **Inline**
 
-#### Scope nodes
-* **(scope, ...)**
-
-#### Variable nodes
-* **(let, mut|non-mut, fieldType:type, value:String)**
-* **(def, defType:type, value:String)**
-
-#### Class nodes
-* **(class, name:String, fieldList, methodList)**
-* **
+#### Statements and Expressions
+Statements are just pieces of code.
+To run multiple pieces of code, you use a scope, which both is a statement and contains them.
+Control statements such as "if" are also statements that contain a statement.
+That is why "else {if(a){}}" is the same as "else if(a){}", only in a scope.
+Scopes that only contain one statement are optimized away, and a suggestion is given to remove the scope.  
+Expressions have a value. "2+4" is an example of an expression.
+Most expressions are in statements, and expressions can contain statements with return values.
+* **Statement** = **FunctionCall** | **Let** | ***Assignment** | **If** | **For** | **While** | **Do** | **Break** | **Continue** | **Return**
+* **Expression** = 1+2
