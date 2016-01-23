@@ -6,8 +6,8 @@ It is designed to be simple to read from, but to to be memory efficiant or parti
 This compiler is written in Java, after all.  
 The syntax of this file is as follows:  
 * **node name** = **Function**|**Option2**|**Option3**:**Type**
-* **Function** = name:String, list of Param, returns:Type
-* **Param** = Type, reference:int, name:String
+* **Function** = name:string, list of **Param**, returns:Type
+* **Param** = **Type**, reference:int, name:string
 
 When typing the node system to a text file, a lisp like format is used.  
 '''
