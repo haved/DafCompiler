@@ -4,10 +4,12 @@ The node structure provides all the data needed to make both a source file and a
 as well as checking for errors.
 It is designed to be simple to read from, but to to be memory efficiant or particularly fast.
 This compiler is written in Java, after all.  
-The syntax of this file is as follows:  
+The syntax of this file is based on how the programming language looks.
+Everything that is not in **bold** is based on how the node would appear in code.
+The '|' sign means *or* and means a node can be any of the options.  
 * **node name** = **Function**|**Option2**|**Option3**:**Type**
-* **Function** = name:string, list of **Param**, returns:Type
-* **Param** = **Type**, reference:int, name:string
+* **Function** = frunctionName(**Param**,**Param**,**...**) -> **Type** {**Statement**}
+* **Param** = **ReferenceEnum** paramName:**Type**
 
 When typing the node system to a text file, a lisp like format is used.  
 '''
