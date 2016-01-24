@@ -13,8 +13,7 @@ public class VerboseOption implements Option {
 
 	@Override
 	public int parseOption(DafParser parser, String[] args, int arg) {
-		setMaxLogCount(INFO, 20);
-		setMaxLogCount(MESSAGE, 20);
+		enableVerboseLogging();
 		return 1;
 	}
 

@@ -1,5 +1,9 @@
 package me.haved.dafParser;
 
+import static me.haved.dafParser.LogHelper.INFO;
+import static me.haved.dafParser.LogHelper.MESSAGE;
+import static me.haved.dafParser.LogHelper.setMaxLogCount;
+
 import java.io.PrintStream;
 
 public class LogHelper {
@@ -70,6 +74,12 @@ public class LogHelper {
 	
 	public static void setMaxLogCount(int logLevel, int max) {
 		maxLogCounts[logLevel] = max;
+	}
+	
+	public static void enableVerboseLogging() {
+		setMaxLogCount(INFO, 20);
+		setMaxLogCount(MESSAGE, 20);
+		setMaxLogCount(SUGGESTION, 20);
 	}
 	
 	public static void setToSummarize(boolean sum) {

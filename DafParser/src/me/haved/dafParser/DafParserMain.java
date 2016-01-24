@@ -32,9 +32,7 @@ public class DafParserMain {
 			
 			argslist.add("--verbose");
 			
-			if(args.length < argslist.size())
-				args = new String[argslist.size()];
-			
+			args = new String[argslist.size()];
 			argslist.toArray(args);
 			
 			LogHelper.startTime(); //Just to avoid the text input from slowing it down
