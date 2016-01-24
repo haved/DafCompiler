@@ -35,10 +35,14 @@ The token stores information about its meaning, its location in the file, and it
 #### Control Statemets
 * **if**
 * **else**
+* **elselse**
 * **for**
 * **while**
 * **do**
-
+* **continue**
+* **break**
+* **retry**
+* **return**
 
 #### Types
 * **char**
@@ -77,17 +81,24 @@ The token stores information about its meaning, its location in the file, and it
 * **false**
 
 #### Operator tokens
-* **plus**
-* **minus**
-* **mult**
-* **divide**
-* **modulo**
-* **qMark**
-* **equals**
-* **not-equals**
-* **lower**
-* **lowerOrEquals**
-* **greater**
-* **greaterOrEquals**
-* **not**
-
+* **plus** +
+* **minus** -
+* **mult** *
+* **divide** /
+* **modulo** %
+* **qMark** ?
+* **shiftLeft** <<
+* **arithShiftRight** >>
+* **logicShiftRight** >>>
+* **bitwise and** &
+* **logical and** &&
+* **bitwise or** |
+* **logical or** ||
+* **xor** ^
+* **equals** ==
+* **not-equals** !=
+* **lower** <
+* **lowerOrEquals** <=
+* **greater** >
+* **greaterOrEquals** >=
+* **not** !
