@@ -9,12 +9,13 @@ public class LogHelper {
 	
 	public static final int INFO = 0;
 	public static final int MESSAGE = 1;
-	public static final int WARNING = 2;
-	public static final int ERROR = 3;
-	public static final int FATAL_ERROR = 4;
-	public static final int DEBUG = 5;
+	public static final int SUGGESTION = 2;
+	public static final int WARNING = 3;
+	public static final int ERROR = 4;
+	public static final int FATAL_ERROR = 5;
+	public static final int DEBUG = 6;
 	
-	public static final String[] logLevels = {"info", "message", "warning", "error", "fatal error", "debug"};
+	public static final String[] logLevels = {"info", "message", "suggestion", "warning", "error", "fatal error", "debug"};
 	
 	private static int[] logCounts = new int[logLevels.length];
 	private static int[] maxLogCounts = new int[logLevels.length];
