@@ -2,7 +2,7 @@ package me.haved.dafParser;
 
 import java.io.File;
 
-import me.haved.dafParsed.node.RootNode;
+import me.haved.dafParser.node.RootNode;
 
 import static me.haved.dafParser.LogHelper.*;
 
@@ -19,6 +19,7 @@ public class ParsedInputFile {
 	public void parse() {
 		logAssert(inputFile.isFile(), "ParsedInputFile got a file that doesn't exist! Should never happen!");
 		root = new RootNode();
+		
 	}
 	
 	public void writeToCppAndHeader(File cppFile, File headerFile) {

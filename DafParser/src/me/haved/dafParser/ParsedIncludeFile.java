@@ -2,7 +2,7 @@ package me.haved.dafParser;
 
 import java.util.HashMap;
 
-import me.haved.dafParsed.node.RootNode;
+import me.haved.dafParser.node.RootNode;
 
 public class ParsedIncludeFile {
 	private static HashMap<String, RootNode> parsedIncludeNodes = new HashMap<String, RootNode>();

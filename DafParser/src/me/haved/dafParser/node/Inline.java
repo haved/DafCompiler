@@ -1,4 +1,4 @@
-package me.haved.dafParsed.node;
+package me.haved.dafParser.node;
 
 public class Inline extends Node implements Definition {
 	
