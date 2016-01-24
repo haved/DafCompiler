@@ -14,7 +14,17 @@ The token stores information about its meaning, its location in the file, and it
 * **pub**
 * **prot**
 * **let**
+* **mut**
 * **def**
+* **assign** As in '='
+* **colonAssign** As in ':='
+* **colon**
+* **semicolon**
+* **func**
+* **leftParen**
+* **rightParen**
+
+#### Classes
 * **class**
 * **abstract**
 * **extends**
@@ -22,11 +32,49 @@ The token stores information about its meaning, its location in the file, and it
 * **interface**
 * **method**
 
+#### Control Statemets
+* **if**
+* **else**
+* **for**
+* **while**
+* **do**
+
+
+#### Types
+* **char**
+* **ubyte**
+* **short**
+* **ushort**
+* **int**
+* **uint**
+* **long**
+* **ulong**
+* **int8**
+* **uint8**
+* **int16**
+* **uint16**
+* **int32**
+* **uint32**
+* **int64**
+* **uint64**
+* **boolean**
+* **float**
+* **double**
+
+#### Pointers
+* **pointer**
+* **mut-pointer**
+* **shared-pointer**
+* **reference**
+* **mut-reference**
+
 #### Value tokes
 * **identifier**
-* **numeric value**
-* **string value**
-* ****
+* **integer_literal**
+* **real_literal**
+* **string_literal**
+* **true**
+* **false**
 
 #### Operator tokens
 * **plus**
@@ -35,6 +83,11 @@ The token stores information about its meaning, its location in the file, and it
 * **divide**
 * **modulo**
 * **qMark**
-* **optionSep**
-
+* **equals**
+* **not-equals**
+* **lower**
+* **lowerOrEquals**
+* **greater**
+* **greaterOrEquals**
+* **not**
 
