@@ -23,6 +23,9 @@ The token stores information about its meaning, its location in the file, and it
 * **func**
 * **leftParen**
 * **rightParen**
+* **uncertain**
+* **new**
+* **delete**
 
 #### Classes
 * **class**
