@@ -16,8 +16,8 @@ The token stores information about its meaning, its location in the file, and it
 * **let**
 * **mut**
 * **def**
-* **assign** As in '='
-* **colonAssign** As in ':='
+* **assign** =
+* **colonAssign** :=
 * **colon**
 * **semicolon**
 * **func**
@@ -34,6 +34,7 @@ The token stores information about its meaning, its location in the file, and it
 * **implements**
 * **interface**
 * **method**
+* **destructor** ~
 
 #### Control Statemets
 * **if**
