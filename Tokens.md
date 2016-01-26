@@ -24,11 +24,9 @@ The token stores information about its meaning, its location in the file, and it
 * **colon** :
 * **semicolon** ;
 * **uncertain** uncertain
-* **func**
-* **leftParen**
-* **rightParen**
-* **new**
-* **delete**
+* **func** func
+* **leftParen** (
+* **rightParen** )
 
 #### Classes
 * **class**
@@ -75,14 +73,18 @@ The token stores information about its meaning, its location in the file, and it
 #### Pointers
 * **address** &
 * **shared** shared
+* **new** new
+* **delete** delete
+* **leftBracket** \[
+* **rightBracket** \]
 
 #### Value tokes
-* **identifier**
-* **integer_literal**
-* **real_literal**
-* **string_literal**
-* **true**
-* **false**
+* **identifier** special, any text starting in 'a-z' or 'A-Z' with or without '0-9', '-' and '_'
+* **integer_literal** special
+* **real_literal** special
+* **string_literal** special
+* **true** true
+* **false** false
 
 #### Operator tokens
 * **plus** +
