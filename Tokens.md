@@ -11,7 +11,7 @@ The token stores information about its meaning, its location in the file, and it
 * **extern class**
 
 #### Main tokens
-* **pub**
+* **pub** pub
 * **prot**
 * **let**
 * **mut**
@@ -65,16 +65,13 @@ The token stores information about its meaning, its location in the file, and it
 * **uint32**
 * **int64**
 * **uint64**
-* **boolean**
-* **float**
-* **double**
+* **boolean** boolean
+* **float** float
+* **double** double
 
 #### Pointers
-* **pointer**
-* **mut-pointer**
-* **shared-pointer**
-* **reference**
-* **mut-reference**
+* **address** &
+* **shared** shared
 
 #### Value tokes
 * **identifier**
