@@ -29,25 +29,25 @@ The token stores information about its meaning, its location in the file, and it
 * **rightParen** )
 
 #### Classes
-* **class**
-* **abstract**
-* **extends**
-* **implements**
-* **interface**
-* **method**
+* **class** class
+* **abstract** abstract
+* **extends** extends
+* **implements** implements
+* **interface** interface
+* **method** method
 * **destructor** ~
 
 #### Control Statemets
-* **if**
-* **else**
-* **elselse**
-* **for**
-* **while**
-* **do**
-* **continue**
-* **break**
-* **retry**
-* **return**
+* **if** if
+* **else** else
+* **elselse** elselse
+* **for** for
+* **while** while
+* **do** do
+* **continue** continue
+* **break** break
+* **retry** retry
+* **return** return
 
 #### Types
 * **char** char
@@ -79,7 +79,7 @@ The token stores information about its meaning, its location in the file, and it
 * **rightBracket** \]
 
 #### Value tokes
-* **identifier** special, any text starting in 'a-z' or 'A-Z' with or without '0-9', '-' and '_'
+* **identifier** special, any text starting in 'a-z', 'A-Z' or '_', with or without '0-9'
 * **integer_literal** special
 * **real_literal** special
 * **string_literal** special
