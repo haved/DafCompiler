@@ -5,8 +5,8 @@ The token stores information about its meaning, its location in the file, and it
 #### Compiler keyword tokens
 * **#import** #import, special
 * **#using** #export, special
-* **#cpp** #cpp, special
-* **#header**, #header, special
+* **##cpp** ##cpp, special
+* **##header**, ##header, special
 * **extern** extern
 * **type** type
 * **field** field

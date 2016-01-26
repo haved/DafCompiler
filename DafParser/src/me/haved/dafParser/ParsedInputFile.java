@@ -2,6 +2,7 @@ package me.haved.dafParser;
 
 import java.io.File;
 
+import me.haved.dafParser.lexical.LexicalParser;
 import me.haved.dafParser.node.RootNode;
 
 import static me.haved.dafParser.LogHelper.*;
@@ -9,17 +10,19 @@ import static me.haved.dafParser.LogHelper.*;
 public class ParsedInputFile {
 	private File inputFile;
 	private String infileName;
+	private LexicalParser parser;
 	private RootNode root;
 	
 	public ParsedInputFile(File inputFile, String infileName) {
 		this.inputFile = inputFile;
 		this.infileName = infileName;
+		parser = new LexicalParser(inputFile, infileName);
 	}
 	
 	public void parse() {
 		logAssert(inputFile.isFile(), "ParsedInputFile got a file that doesn't exist! Should never happen!");
+		parser.parse();
 		root = new RootNode();
-		
 	}
 	
 	public void writeToCppAndHeader(File cppFile, File headerFile) {

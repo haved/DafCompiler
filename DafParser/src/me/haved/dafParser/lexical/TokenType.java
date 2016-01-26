@@ -8,7 +8,7 @@ public enum TokenType {
 	UNCERTAIN("uncertain"), NEW("new"), DELETE("delete"),
 	
 	DAF_IMPORT("#import", true), DAF_USING("#using", true),
-	DAF_CPP("#cpp", true), DAF_HEADER("#header", true);
+	DAF_CPP("##cpp", true), DAF_HEADER("##header", true);
 	
 	private String keyword;
 	private boolean special;

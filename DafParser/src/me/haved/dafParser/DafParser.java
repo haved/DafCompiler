@@ -92,6 +92,7 @@ public class DafParser {
 			
 			parsedInputFile.parse();
 			
+			//TODO: Use length-2 instead of 0;
 			String outputFilesPath = outputDir.getAbsolutePath() + "/" 
 						+ (subfolderOutput?inputFilePath:inputFile.getName()).split("\\.")[0]; //Not pretty, I know.
 			
