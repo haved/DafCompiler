@@ -6,6 +6,7 @@ This file contains both possible features and small things that would be cool.
 #### Important qirks of language
 * In c++, the delete keyword only works on polymoripic pointers if the destructor is virtual!
 * There is a difference between delete and delete[]
+* The tokens for templates are **lower** **identifier** **greater**
 
 #### Small things that would be cool
 * Have scopes with only one statement log a "Suggestion" for you to remove the scope.

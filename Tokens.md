@@ -3,27 +3,30 @@ When reading the daf file, every word and special character is turned into a tok
 The token stores information about its meaning, its location in the file, and its text, if it's not a keyword.
 
 #### Compiler keyword tokens
-* **#import**
-* **#using**
-* **extern type**
-* **extern field**
-* **extern func**
-* **extern class**
+* **#import** #import, special
+* **#using** #export, special
+* **#cpp** #cpp, special
+* **#header**, #header, special
+* **extern** extern
+* **type** type
+* **field** field
+* **func** func
+* **class** class
 
 #### Main tokens
 * **pub** pub
-* **prot**
-* **let**
-* **mut**
-* **def**
+* **prot** prot
+* **let** let
+* **mut** mut
+* **def** def
 * **assign** =
 * **colonAssign** :=
-* **colon**
-* **semicolon**
+* **colon** :
+* **semicolon** ;
+* **uncertain** uncertain
 * **func**
 * **leftParen**
 * **rightParen**
-* **uncertain**
 * **new**
 * **delete**
 
@@ -49,22 +52,22 @@ The token stores information about its meaning, its location in the file, and it
 * **return**
 
 #### Types
-* **char**
-* **ubyte**
-* **short**
-* **ushort**
-* **int**
-* **uint**
-* **long**
-* **ulong**
-* **int8**
-* **uint8**
-* **int16**
-* **uint16**
-* **int32**
-* **uint32**
-* **int64**
-* **uint64**
+* **char** char
+* **ubyte** byte
+* **short** short
+* **ushort** ushort
+* **int** int
+* **uint** uint
+* **long** long
+* **ulong** ulong
+* **int8** int8
+* **uint8** uint8
+* **int16** int16
+* **uint16** uint16
+* **int32** int32
+* **uint32** uint32
+* **int64** int64
+* **uint64** uint64
 * **boolean** boolean
 * **float** float
 * **double** double
