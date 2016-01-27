@@ -50,14 +50,15 @@ public class LexicalParser {
 	private void parseFromReader(BufferedReader reader) throws Exception {
 		StringBuilder word = new StringBuilder();
 		int wordType = UNKOWN_TYPE;
-		char[] in = new char[1];
-		while(reader.ready()) {
-			//int i = reader.read(in);
-			log(WARNING, reader.readLine());
-			//log(infileName, MESSAGE, "i: %d, char: %c", i, in[0]);
-			//if(i<1)
-				//break;
+		char in;
+		while(true) {
+			int i = reader.read();
+			if(i==-1)
+				break;
+			in = (char) i;
+			word.append(in);
 		}
+		log(infileName, MESSAGE, "Parsed text: %n%s", word.toString());
 	}
 	
 	private static void fillTypes() {
