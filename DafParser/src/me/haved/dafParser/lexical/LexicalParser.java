@@ -56,9 +56,35 @@ public class LexicalParser {
 			if(i==-1)
 				break;
 			in = (char) i;
-			word.append(in);
+			
+			if(wordType==UNKOWN_TYPE) {
+				if(isLetterOrUnderscore(in)) {
+					wordType = KEYWORD_TYPE;
+					word.append(in);
+				}
+				continue;
+			}
+			
+			if(wordType==KEYWORD_TYPE) {
+				if(isIdentifierChar(in))
+					word.append(in);
+				else {
+					String keyword = word.toString();
+					wordType = UNKOWN_TYPE;
+					word.setLength(0); //Clear the word
+					log(String.format("%s:%d:%d",infileName,0,0), MESSAGE, "Picked out keyword: %s", keyword);
+				}
+			}
 		}
 		log(infileName, MESSAGE, "Parsed text: %n%s", word.toString());
+	}
+	
+	private static boolean isLetterOrUnderscore(char c) {
+		return (c >= 'A' && c<='Z') || (c >='a' && c<='z') || c == '_';
+	}
+	
+	private static boolean isIdentifierChar(char c) {
+		return (c >= 'A' && c<='Z') || (c >='a' && c<='z') || c == '_' || (c >= '0' && c <= '9');
 	}
 	
 	private static void fillTypes() {
