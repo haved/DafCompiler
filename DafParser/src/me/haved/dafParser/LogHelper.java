@@ -1,9 +1,5 @@
 package me.haved.dafParser;
 
-import static me.haved.dafParser.LogHelper.INFO;
-import static me.haved.dafParser.LogHelper.MESSAGE;
-import static me.haved.dafParser.LogHelper.setMaxLogCount;
-
 import java.io.PrintStream;
 
 public class LogHelper {
@@ -68,8 +64,18 @@ public class LogHelper {
 			log(FATAL_ERROR, "Assertion failed: %s", error);
 	}
 	
+	public static void terminateIfErrorsLogged() {
+		if(logCounts[ERROR]!=0) {
+			log(FATAL_ERROR, "Aborting du to previous %d errors!", logCounts[ERROR]);
+		}
+	}
+	
 	public static String getLogSystem(String systemName, int lineNumber, int lineChar) {
 		return String.format("%s:%d:%d", systemName, lineNumber, lineChar);
+	}
+	
+	public static String fileLocation(String fileName, int line, int col) {
+		return String.format("%s:%d:%d", fileName, line, col);
 	}
 	
 	public static void setMaxLogCount(int logLevel, int max) {

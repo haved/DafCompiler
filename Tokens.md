@@ -10,8 +10,6 @@ The token stores information about its meaning, its location in the file, and it
 * **extern** extern
 * **type** type
 * **field** field
-* **func** func
-* **class** class
 
 #### Main tokens
 * **pub** pub

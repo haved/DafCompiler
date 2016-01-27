@@ -52,42 +52,76 @@ public class LexicalParser {
 		StringBuilder word = new StringBuilder();
 		int wordType = UNKOWN_TYPE;
 		char in;
+		int line = 1;
+		int col = 0;
 		while(true) {
 			int i = reader.read();
 			if(i==-1)
 				break;
 			in = (char) i;
+			col++;
 			
-			if(wordType==UNKOWN_TYPE) {
-				if(in == '#') {
-					wordType = COMPILER_TYPE_1;
-					word.append(in);
-				}
-				if(isLetterOrUnderscore(in)) {
-					wordType = KEYWORD_TYPE;
-					word.append(in);
-				}
-				continue;
-			}
-			
-			if(wordType==KEYWORD_TYPE) {
+			if(wordType==UNKOWN_TYPE); //Just to skip to the bottom if it's 0
+			else if(wordType==KEYWORD_TYPE) {
 				if(isIdentifierChar(in))
 					word.append(in);
 				else {
 					String keyword = word.toString();
 					wordType = UNKOWN_TYPE;
 					word.setLength(0); //Clear the word
-					log(String.format("%s:%d:%d",infileName,0,0), MESSAGE, "Picked out keyword: %s", keyword);
-					//TODO: Use standard for formating file error
+					log(fileLocation(infileName, line, col), MESSAGE, "Picked out keyword: %s", keyword);
+					//if(!tryAddingTokenToList(keyword))
+						//tokens.add(new Token(TokenType.IDENTIFIER, new TokenFileLocation(infileName, line, col), keyword));
 				}
 			}
-			if(wordType==COMPILER_TYPE_1) {
-				if(in!='#') {
-					log(String.format("%s:%d:%d",infileName,0,0),ERROR,""); //TODO: Use standard for formating file error
+			else if(wordType==COMPILER_TYPE_1) {
+				if(!isCharCompilerPound(in)) {
+					log(fileLocation(infileName, line, col), ERROR, "Single compiler flag sign!");
+				} else {
+					log(fileLocation(infileName, line, col), MESSAGE, "Found compiler message!");
+					word.append(in);
+					while(true) {
+						i = reader.read();
+						if(i == -1)
+							break;
+						in = (char) i;
+						col++;
+						if(!isWhitespace(in))
+							word.append(in);
+						else {
+							log(fileLocation(infileName, line, col), MESSAGE, "Compiler message: %s found.", word.toString());
+							word.setLength(0);
+							wordType = 0;
+						}
+					}
+					if(i == -1)
+						break;
 				}
+				word.setLength(0);
+				wordType=UNKOWN_TYPE;
+			}
+			
+			if(wordType==UNKOWN_TYPE) {
+				if(isCharCompilerPound(in)) {
+					wordType = COMPILER_TYPE_1;
+					word.append(in);
+				}
+				else if(isLetterOrUnderscore(in)) {
+					wordType = KEYWORD_TYPE;
+					word.append(in);
+				}
+				else {
+					if(!isWhitespace(in))
+						log(fileLocation(infileName, line, col), ERROR, "Unrecogniced char: %c", in);
+				}
+			}
+			if(isNewline(in)) {
+				col = 0;
+				line++;
 			}
 		}
-		log(infileName, MESSAGE, "Parsed text: %n%s", word.toString());
+		terminateIfErrorsLogged();
+		log(fileLocation(infileName, line, col), MESSAGE, "Finished Lexical Parsing with %d tokens!", tokens.size());
 	}
 	
 	private static boolean isLetterOrUnderscore(char c) {
@@ -96,6 +130,18 @@ public class LexicalParser {
 	
 	private static boolean isIdentifierChar(char c) {
 		return (c >= 'A' && c<='Z') || (c >='a' && c<='z') || c == '_' || (c >= '0' && c <= '9');
+	}
+	
+	private static boolean isCharCompilerPound(char c) {
+		return c == '#';
+	}
+	
+	private static boolean isWhitespace(char c) {
+		return c == ' ' || c == '\t' || c=='\n' || c=='\r';
+	}
+	
+	private static boolean isNewline(char c) {
+		return c == '\n';
 	}
 	
 	private static void fillTypes() {
