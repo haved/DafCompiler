@@ -46,7 +46,8 @@ public class LexicalParser {
 	private static final int REAL_LIT_TYPE = 3;
 	private static final int FLOAT_LIT_TYPE = 4;
 	private static final int STRING_LIT_TYPE = 5;
-	private static final int COMPILER_TYPE = 6;
+	private static final int COMPILER_TYPE_1 = 6;
+	private static final int COMPILER_TYPE_2 = 7;
 	private void parseFromReader(BufferedReader reader) throws Exception {
 		StringBuilder word = new StringBuilder();
 		int wordType = UNKOWN_TYPE;
@@ -58,6 +59,10 @@ public class LexicalParser {
 			in = (char) i;
 			
 			if(wordType==UNKOWN_TYPE) {
+				if(in == '#') {
+					wordType = COMPILER_TYPE_1;
+					word.append(in);
+				}
 				if(isLetterOrUnderscore(in)) {
 					wordType = KEYWORD_TYPE;
 					word.append(in);
@@ -73,6 +78,12 @@ public class LexicalParser {
 					wordType = UNKOWN_TYPE;
 					word.setLength(0); //Clear the word
 					log(String.format("%s:%d:%d",infileName,0,0), MESSAGE, "Picked out keyword: %s", keyword);
+					//TODO: Use standard for formating file error
+				}
+			}
+			if(wordType==COMPILER_TYPE_1) {
+				if(in!='#') {
+					log(String.format("%s:%d:%d",infileName,0,0),ERROR,""); //TODO: Use standard for formating file error
 				}
 			}
 		}
