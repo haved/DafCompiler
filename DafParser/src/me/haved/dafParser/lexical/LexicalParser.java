@@ -47,7 +47,6 @@ public class LexicalParser {
 	private static final int FLOAT_LIT_TYPE = 4;
 	private static final int STRING_LIT_TYPE = 5;
 	private static final int COMPILER_TYPE_1 = 6;
-	private static final int COMPILER_TYPE_2 = 7;
 	private void parseFromReader(BufferedReader reader) throws Exception {
 		StringBuilder word = new StringBuilder();
 		int wordType = UNKOWN_TYPE;
@@ -70,16 +69,14 @@ public class LexicalParser {
 					String keyword = word.toString();
 					wordType = UNKOWN_TYPE;
 					word.setLength(0); //Clear the word
-					log(fileLocation(infileName, line, col), MESSAGE, "Picked out keyword: %s", keyword);
-					//if(!tryAddingTokenToList(keyword))
-						//tokens.add(new Token(TokenType.IDENTIFIER, new TokenFileLocation(infileName, line, col), keyword));
+					if(tryAddingTokenToList(keyword, infileName, line, col))
+						tokens.add(new Token(TokenType.IDENTIFIER, new TokenFileLocation(infileName, line, col), keyword));
 				}
 			}
 			else if(wordType==COMPILER_TYPE_1) {
 				if(!isCharCompilerPound(in)) {
 					log(fileLocation(infileName, line, col), ERROR, "Single compiler flag sign!");
 				} else {
-					log(fileLocation(infileName, line, col), MESSAGE, "Found compiler message!");
 					word.append(in);
 					while(true) {
 						i = reader.read();
@@ -130,6 +127,14 @@ public class LexicalParser {
 		}
 		terminateIfErrorsLogged();
 		log(fileLocation(infileName, line, col), MESSAGE, "Finished Lexical Parsing with %d tokens!", tokens.size());
+	}
+	
+	private boolean tryAddingTokenToList(String keyword, String infileName, int line, int col) {
+		if(LexicalParser.types.containsKey(keyword))
+			tokens.add(new Token(LexicalParser.types.get(keyword), new TokenFileLocation(infileName, line, col), null));
+		else
+			return false;
+		return true;
 	}
 	
 	private static boolean isLetterOrUnderscore(char c) {

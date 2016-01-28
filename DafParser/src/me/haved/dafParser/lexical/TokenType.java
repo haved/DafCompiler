@@ -7,6 +7,8 @@ public enum TokenType {
 	FUNC("func"), LEFT_PAREN("("), RIGHT_PAREN(")"),
 	UNCERTAIN("uncertain"), NEW("new"), DELETE("delete"),
 	
+	IDENTIFIER("identifier", true),
+	
 	DAF_IMPORT("#import", true), DAF_USING("#using", true),
 	DAF_CPP("##cpp", true), DAF_HEADER("##header", true);
 	
