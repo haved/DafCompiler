@@ -66,7 +66,7 @@ public class LogHelper {
 	
 	public static void terminateIfErrorsLogged() {
 		if(logCounts[ERROR]!=0) {
-			log(FATAL_ERROR, "Aborting du to previous %d errors!", logCounts[ERROR]);
+			log(FATAL_ERROR, "Aborting due to previous %d errors!", logCounts[ERROR]);
 		}
 	}
 	
