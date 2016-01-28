@@ -57,8 +57,9 @@ public class LexicalParser {
 		while(true) {
 			int i = reader.read();
 			if(i==-1)
-				break;
-			in = (char) i;
+				in='\n';
+			else
+				in = (char) i;
 			col++;
 			
 			if(wordType==UNKOWN_TYPE); //Just to skip to the bottom if it's 0
@@ -83,8 +84,9 @@ public class LexicalParser {
 					while(true) {
 						i = reader.read();
 						if(i == -1)
-							break;
-						in = (char) i;
+							in='\n';
+						else
+							in = (char) i;
 						col++;
 						if(!isWhitespace(in))
 							word.append(in);
@@ -92,7 +94,10 @@ public class LexicalParser {
 							log(fileLocation(infileName, line, col), MESSAGE, "Compiler message: %s found.", word.toString());
 							word.setLength(0);
 							wordType = 0;
+							break;
 						}
+						if(i==-1)
+							break;
 					}
 					if(i == -1)
 						break;
@@ -100,6 +105,9 @@ public class LexicalParser {
 				word.setLength(0);
 				wordType=UNKOWN_TYPE;
 			}
+			
+			if(i == -1)
+				break;
 			
 			if(wordType==UNKOWN_TYPE) {
 				if(isCharCompilerPound(in)) {
