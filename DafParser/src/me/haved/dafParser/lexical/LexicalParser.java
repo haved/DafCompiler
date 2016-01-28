@@ -53,9 +53,12 @@ public class LexicalParser {
 			if(parser!=null) {
 				int status = parser.parse(character, line, col);
 				if(status==0) {
-					tokens.add(parser.getReturnedToken());
-					Token token = tokens.get(tokens.size()-1);
-					log(token.getLocation().getErrorString(), MESSAGE, "Token of type '%s' added: %s", token.getType().name(), token.getText());
+					Token token = parser.getReturnedToken();
+					if(token != null) {
+						log(token.getLocation().getErrorString(), MESSAGE, "Token of type '%s' added: %s", token.getType().name(), token.getText());
+						tokens.add(token);
+					} else
+						log(fileLocation(infileName, line, col), INFO, "No token returned!");
 					parser = null;
 				}
 				else if(status == -1) {

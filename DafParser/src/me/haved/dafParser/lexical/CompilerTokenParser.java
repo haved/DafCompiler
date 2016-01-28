@@ -29,7 +29,7 @@ public class CompilerTokenParser extends TokenParser {
 			return 1;
 		}
 		
-		if(TokenParser.isWhitespace(c)) {
+		if(TokenParser.isWhitespace(c)) { //The type of compiler message is decided
 			return 0;
 		}
 		word.append(c);
