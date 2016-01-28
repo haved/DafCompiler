@@ -67,6 +67,7 @@ All types should be obvoius as to sign and bit count. Think java.
 * **long**
 * **usize**
 * **boolean**
+* **cast** Used to cast one type to another
 
 #### Special character words
 * **=** assignment
