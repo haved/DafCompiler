@@ -33,6 +33,7 @@ This is a list of all the keywords you find in daf. The file ParsingNodes.md sho
 * **method** *MethodName()*	Makes a method (in classes only)
 * **this**	Pointer to class method belongs to. Passed implicitly.
 * **const**	Lets a method take an immutable pointer to **this**
+* **inline** Marks a function to be inlined
 
 #### Control Statements
 * **if**
@@ -67,12 +68,38 @@ All types should be obvoius as to sign and bit count. Think java.
 * **usize**
 * **boolean**
 
+#### Special character words
+* **=** assignment
+* **:=** autoDecl assignment
+* **.** accessing class fields
+* **^** dereference
+* **->** accessing fields in pointer
+* **;** semicolon between statements
+* **:** colon between identifier and type, as well as in **? :**
+* **?** quesiton sytnax like in java
+* **(** function paramerters start, left parameter
+* **)** function paramerters end, right parameter
+* **[** left bracket
+* **]** right bracket
+* **+** plus
+* **-** minus
+* **/** division
+* **\*** multiplication
+* **%** modulo
+* **<** less than as well as template types
+* **>** greater than as well as template types
+* **<=** less than or equals
+* **>=** greater than or equals
+* **==** equals
+* **!=** not equals
+* **!** not
+
 #### Pointers
 Putting '&' in front of the type makes a const pointer.
 Putting '&mut' makes a mutable pointer.
 Putting these in front of a paramter name passes the parameter by reference.
 Examples:
-'''
+```
 let mut i:=0; //Type int32
 let mut iPtr:=&mut i; //Get the address of i
 let mut intPointer:&mut int32; //Define a mutable int32 pointer
@@ -82,5 +109,5 @@ intPointer=&mut i; //or just iPtr for that matter
 //name is a const referance to a string
 //ref is a mutable reference to a mutable int pointer. (Why even do that??)
 func MyFunc(times:&mut int, &name:String, &mut ref:&mut int) {}
-'''
+```
 
