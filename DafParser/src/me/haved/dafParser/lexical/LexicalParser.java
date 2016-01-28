@@ -157,6 +157,8 @@ public class LexicalParser {
 			return;
 		types = new HashMap<>();
 		for(TokenType type:TokenType.values()) {
+			if(type.isSpecial())
+				continue;
 			String keyword = type.getKeyword();
 			logAssert(types.containsKey(keyword) == false, 
 					String.format("The keyword %s is registered twice in Lexical Parser.", keyword));	
