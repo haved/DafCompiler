@@ -20,21 +20,13 @@ public abstract class TokenParser {
 	 * @param c The character
 	 * @param line The line of the char
 	 * @param col The column of the char
-	 * @return true if it managed to parse it, false if it's done.
+	 * @return 1 if parsing should continue, 0 if it's done, and -1 if it's broken
 	 */
-	public abstract boolean parse(char c, int line, int col);
+	public abstract int parse(char c, int line, int col);
 	public abstract Token getReturnedToken();
 	
-	public static boolean isLetterOrUnderscore(char c) {
-		return (c >= 'A' && c<='Z') || (c >='a' && c<='z') || c == '_';
-	}
-	
-	public static boolean isIdentifierChar(char c) {
-		return (c >= 'A' && c<='Z') || (c >='a' && c<='z') || c == '_' || (c >= '0' && c <= '9');
-	}
-	
-	public static boolean isCharCompilerPound(char c) {
-		return c == '#';
+	protected TokenFileLocation getTokenFileLocation() {
+		return new TokenFileLocation(infileName, startLine, startCol);
 	}
 	
 	public static boolean isWhitespace(char c) {

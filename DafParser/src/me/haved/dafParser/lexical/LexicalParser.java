@@ -1,17 +1,14 @@
 package me.haved.dafParser.lexical;
 
-import java.awt.DefaultFocusTraversalPolicy;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import static me.haved.dafParser.LogHelper.*;
 
 public class LexicalParser {
-	private static HashMap<String, TokenType> types;
-	private static TokenParser[] defaultParsers = new TokenParser[] {CompilerTokenParser.instance};
+	private static TokenParser[] defaultParsers = new TokenParser[] {WordTokenParser.instance, CompilerTokenParser.instance};
 	
 	private File inputFile;
 	private String infileName;
@@ -24,7 +21,6 @@ public class LexicalParser {
 	}
 	
 	public void parse() {
-		LexicalParser.fillTypes();
 		logAssert(inputFile.isFile(), "File given to LexicalParser doesn't exist");
 		
 		try {
@@ -55,9 +51,14 @@ public class LexicalParser {
 			character = input==-1?'\n':(char) input;
 			
 			if(parser!=null) {
-				boolean status = parser.parse(character, line, col);
-				if(!status) {
+				int status = parser.parse(character, line, col);
+				if(status==0) {
 					tokens.add(parser.getReturnedToken());
+					Token token = tokens.get(tokens.size()-1);
+					log(token.getLocation().getErrorString(), MESSAGE, "Token of type '%s' added: %s", token.getType().name(), token.getText());
+					parser = null;
+				}
+				else if(status == -1) {
 					parser = null;
 				}
 			}
@@ -78,27 +79,5 @@ public class LexicalParser {
 		}
 		terminateIfErrorsLogged();
 		log(fileLocation(infileName, line, col), MESSAGE, "Finished Lexical Parsing with %d tokens!", tokens.size());
-	}
-	
-	private boolean tryAddingTokenToList(String keyword, String infileName, int line, int col) {
-		if(LexicalParser.types.containsKey(keyword))
-			tokens.add(new Token(LexicalParser.types.get(keyword), new TokenFileLocation(infileName, line, col), null));
-		else
-			return false;
-		return true;
-	}
-	
-	private static void fillTypes() {
-		if(types!=null)
-			return;
-		types = new HashMap<>();
-		for(TokenType type:TokenType.values()) {
-			if(type.isSpecial())
-				continue;
-			String keyword = type.getKeyword();
-			logAssert(types.containsKey(keyword) == false, 
-					String.format("The keyword %s is registered twice in Lexical Parser.", keyword));	
-			types.put(keyword, type);
-		}
 	}
 }

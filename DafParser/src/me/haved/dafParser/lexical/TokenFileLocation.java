@@ -1,17 +1,19 @@
 package me.haved.dafParser.lexical;
 
+import me.haved.dafParser.LogHelper;
+
 public class TokenFileLocation implements TokenLocation {
 	String fileName;
 	int lineNumber;
-	int linePosition;
+	int columnNumber;
 	
-	public TokenFileLocation(String fileName, int lineNumber, int linePosition) {
+	public TokenFileLocation(String fileName, int line, int column) {
 		this.fileName = fileName;
-		this.lineNumber = lineNumber;
-		this.linePosition = linePosition;
+		this.lineNumber = line;
+		this.columnNumber = column;
 	}
 	
 	public String getErrorString() {
-		return String.format("%s:%d:%d", fileName, lineNumber, linePosition);
+		return LogHelper.fileLocation(fileName, lineNumber, columnNumber);
 	}
 }

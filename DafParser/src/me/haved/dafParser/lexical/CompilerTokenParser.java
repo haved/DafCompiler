@@ -10,35 +10,38 @@ public class CompilerTokenParser extends TokenParser {
 	
 	@Override
 	protected boolean tryStartParsing(char c) {
-		if(c=='#') {
-			word.setLength(0);
-			word.append(c);
+		if(isCharCompilerPound(c)) {
+			word.setLength(1);
+			word.setCharAt(0, c);
 			return true;
 		}
 		return false;
 	}
 
 	@Override
-	public boolean parse(char c, int line, int col) {
+	public int parse(char c, int line, int col) {
 		if(word.length()==1) {
-			if(c!='#') {
-				log(fileLocation(infileName, line, col), ERROR, "Only one pound symbol found.");
-				return false;
+			if(!isCharCompilerPound(c)) {
+				log(fileLocation(infileName, line, col), ERROR, "Only one pound symbol found. Daf uses double!");
+				return -1;
 			}
 			word.append(c);
-			return true;
+			return 1;
 		}
 		
 		if(TokenParser.isWhitespace(c)) {
-			log(fileLocation(infileName, startLine, startCol), INFO, "Found compiler message: %s", word.toString());
-			return false;
+			return 0;
 		}
 		word.append(c);
-		return true;
+		return 1;
 	}
 
 	@Override
 	public Token getReturnedToken() {
-		return new Token(TokenType.DAF_CPP, new TokenFileLocation(infileName, startLine, startCol), word.toString());
+		return new Token(TokenType.DAF_CPP, getTokenFileLocation(), word.toString());
+	}
+	
+	public static boolean isCharCompilerPound(char c) {
+		return c == '#';
 	}
 }
