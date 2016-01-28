@@ -98,17 +98,22 @@ All types should be obvoius as to sign and bit count. Think java.
 * **new**
 * **delete**
 * **delete[]**
+* **shared** For shared pointers. Always **mut**
+* **dumb** A built in func for making a dumb &shared
 * **&**
 
 Putting '&' in front of the type makes a const pointer.
 Putting '&mut' makes a mutable pointer.
 Putting these in front of a paramter name passes the parameter by reference.
+Putting '&shared' makes a shared mutable pointer.
 Examples:
 ```
 let mut i:=0; //Type int32
 let mut iPtr:=&mut i; //Get the address of i
 let mut intPointer:&mut int32; //Define a mutable int32 pointer
 intPointer=&mut i; //or just iPtr for that matter
+let myShared:&shared int32=intPointer; //Auto conversion from mutable pointer to shared pointer
+let dumbPointer:&shared int32=dumb(myShared); //When deleted, nothing happens.
 
 //times is a mutable int pointer
 //name is a const referance to a string
