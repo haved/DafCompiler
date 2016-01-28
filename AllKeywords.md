@@ -95,6 +95,11 @@ All types should be obvoius as to sign and bit count. Think java.
 * **!** not
 
 #### Pointers
+* **new**
+* **delete**
+* **delete[]**
+* **&**
+
 Putting '&' in front of the type makes a const pointer.
 Putting '&mut' makes a mutable pointer.
 Putting these in front of a paramter name passes the parameter by reference.
