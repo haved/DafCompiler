@@ -6,7 +6,7 @@ public enum TokenType {
 	PUB("pub"), PROT("prot"), LET("let"), 
 	MUT("mut"), DEF("def"), UNCERTAIN("uncertain"),
 	ASSIGN("="), COLON_ASSIGN(":="), COLON(":"), SEMICOLON(";"),
-	FUNC("func"), LEFT_PAREN("("), RIGHT_PAREN(")"),
+	FUNC("func"), LEFT_PAREN("("), COMMA(","), RIGHT_PAREN(")"),
 	SCOPE_START("{"), SCOPE_END("}"),
 	
 	CLASS("class"), ABSTRACT("abstract"), EXTENDS("extends"),
