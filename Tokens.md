@@ -25,6 +25,7 @@ The token stores information about its meaning, its location in the file, and it
 * **func** func
 * **inline** inline
 * **leftParen** \(
+* **comma** ,
 * **rightParen** \)
 * **scopeStart** \{
 * **scopeEnd** \}

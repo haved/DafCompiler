@@ -27,6 +27,7 @@ This is a list of all the keywords you find in daf. The file ParsingNodes.md sho
 * **;** Semicolon after statements and declarations.
 * **func** A function definition.
 * **\(**
+* **,**
 * **\)**
 * **\{** Start scope.
 * **\}** End scope.
@@ -105,7 +106,7 @@ This is a list of all the keywords you find in daf. The file ParsingNodes.md sho
 * **<<** left shift
 * **>>** arithmetic shift right
 * **>>>** logical shift right
-* **&** bitwise and
+* **&nd** bitwise and
 * **&&** logical and
 * **|** bitwise or
 * **||** logical or
