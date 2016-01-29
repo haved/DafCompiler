@@ -69,8 +69,11 @@ public class LexicalParser {
 				for(int i = 0; i < defaultParsers.length; i++) {
 					if(defaultParsers[i].tryStartParsing(character, infileName, line, col)) {
 						parser = defaultParsers[i];
+						break;
 					}
 				}
+				if(parser==null)
+					log(fileLocation(infileName, line, col), ERROR, "Couldn't parse character: '%c'", character);
 			}
 			
 			if(input==-1)

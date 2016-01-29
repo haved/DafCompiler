@@ -36,9 +36,9 @@ public enum TokenType {
 	CLASS_ACCESS("."), DEREFERENCE("@"), POINTER_ACCESS("->"),
 	PLUS("+"), MINUS("-"), MULT("*"), DIVIDE("/"), MODULO("%"),
 	Q_MARK("?"), SHIFT_LEFT("<<"), ARITHMETIC_SHIFT_RIGHT(">>"), 
-	LOGICAL_SHIFT_RIGHT(">>>"), BITWISE_AND("&"), LOGICAL_AND("&&"),
+	LOGICAL_SHIFT_RIGHT(">>>"), BITWISE_AND("&nd"), LOGICAL_AND("&&"),
 	BITWISE_OR("|"), LOGICAL_OR("||"), XOR("^"), EQUALS("=="),
-	NOT_EQUALS("!="),, LOWER("<"), LOWER_OR_EQUAL("<="), 
+	NOT_EQUALS("!="), LOWER("<"), LOWER_OR_EQUAL("<="), 
 	GREATER(">"), GREATER_OR_EQUAL(">="), NOT("!"),
 	
 	DAF_IMPORT("#import", true), DAF_USING("#using", true),
