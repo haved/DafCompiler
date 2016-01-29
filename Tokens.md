@@ -108,7 +108,7 @@ The token stores information about its meaning, its location in the file, and it
 * **shiftLeft** <<
 * **arithShiftRight** >>
 * **logicShiftRight** >>>
-* **bitwise and** &
+* **bitwise and** &nd
 * **logical and** &&
 * **bitwise or** |
 * **logical or** ||
