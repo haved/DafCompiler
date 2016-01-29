@@ -83,6 +83,7 @@ The token stores information about its meaning, its location in the file, and it
 * **delete** delete
 * **leftBracket** \[
 * **rightBracket** \]
+* **bracketPair** \[\]
 * **dumb**
 
 #### Value tokes
