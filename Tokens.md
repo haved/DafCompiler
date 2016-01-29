@@ -11,20 +11,23 @@ The token stores information about its meaning, its location in the file, and it
 * **type** type
 * **field** field
 
-#### Main tokens
+#### Declaration Tokens
 * **pub** pub
 * **prot** prot
 * **let** let
 * **mut** mut
 * **def** def
+* **uncertain** uncertain
 * **assign** =
 * **colonAssign** :=
 * **colon** :
 * **semicolon** ;
-* **uncertain** uncertain
 * **func** func
-* **leftParen** (
-* **rightParen** )
+* **inline** inline
+* **leftParen** \(
+* **rightParen** \)
+* **scopeStart** \{
+* **scopeEnd** \}
 
 #### Classes
 * **class** class
@@ -33,6 +36,10 @@ The token stores information about its meaning, its location in the file, and it
 * **implements** implements
 * **interface** interface
 * **method** method
+* **this** this
+* **const** const
+* **virtual** virtual
+* **override** override
 * **destructor** ~
 
 #### Control Statemets
@@ -64,6 +71,7 @@ The token stores information about its meaning, its location in the file, and it
 * **uint32** uint32
 * **int64** int64
 * **uint64** uint64
+* **usize** usize
 * **boolean** boolean
 * **float** float
 * **double** double
@@ -75,16 +83,21 @@ The token stores information about its meaning, its location in the file, and it
 * **delete** delete
 * **leftBracket** \[
 * **rightBracket** \]
+* **dumb**
 
 #### Value tokes
-* **identifier** special, any text starting in 'a-z', 'A-Z' or '_', with or without '0-9'
-* **integer_literal** special
-* **real_literal** special
-* **string_literal** special
+* **identifier** *special*, any text starting in 'a-z', 'A-Z' or '_', with or without '0-9'
+* **integer_literal** *special*
+* **real_literal** *special*
+* **string_literal** *special*
 * **true** true
 * **false** false
+* **null** null
 
 #### Operator tokens
+* **classAccess** .
+* **dereference** @
+* **pointerAccess** ->
 * **plus** +
 * **minus** -
 * **mult** *

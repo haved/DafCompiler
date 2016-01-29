@@ -18,8 +18,18 @@ This is a list of all the keywords you find in daf. The file ParsingNodes.md sho
 * **pub**	Makes something public, either in a class or a header.
 * **prot**	Makes something in a class protected.
 * **let**	Sets a value. Either a static one or in scope.
+* **mut**	Marks a veriable as mutable.
 * **def**	Defines a value. Compile time.
 * **uncertain**	A value can be declared without being set.
+* **=** 	Assignment.
+* **:=**	Type deducting asignment.
+* **:**	Colon, between identifier and type, also in ?: statements.
+* **;** Semicolon after statements and declarations.
+* **func** A function definition.
+* **\(**
+* **\)**
+* **\{** Start scope.
+* **\}** End scope.
 
 #### Classes
 * **class** *MyClass*	Makes a new class "MyClass".
@@ -27,82 +37,89 @@ This is a list of all the keywords you find in daf. The file ParsingNodes.md sho
 * **extends**	Makes the class extend from another
 * **interface** *MyInterface*	Makes an interface "MyInterface".
 * **implements**	Makes a class implement an interface
-
-#### Functions
-* **func** *FunctionName(arg1:type1)*	Makes a function
-* **method** *MethodName()*	Makes a method (in classes only)
-* **this**	Pointer to class method belongs to. Passed implicitly.
-* **const**	Lets a method take an immutable pointer to **this**
-* **inline** Marks a function to be inlined
+* **method** In classes only
+* **this**	Pointer to class.
+* **const**	**this** is not mutable.
+* **virtual** Makes a method overrideable.
+* **override** Marks an override as such.
+* **~** A Destructor.
 
 #### Control Statements
 * **if**
 * **else**
+* **elselse**	Called if the else wasn't called.
+* **for**
 * **while**
 * **do**
-* **for**
-* **break**
 * **continue**
+* **break**
 * **retry**	Just like **continue**, only the iterator isn't iterated
-* **elselse**	Called if the else wasn't called.
+* **return**
+
+#### Types
+* **char** char
+* **ubyte** byte
+* **short** short
+* **ushort** ushort
+* **int** int
+* **uint** uint
+* **long** long
+* **ulong** ulong
+* **int8** int8
+* **uint8** uint8
+* **int16** int16
+* **uint16** uint16
+* **int32** int32
+* **uint32** uint32
+* **int64** int64
+* **uint64** uint64
+* **usize** usize
+* **boolean** boolean
+* **float** float
+* **double** double
+
+#### Pointers
+* **&**
+* **shared** For shared pointers. Always **mut**
+* **new**
+* **delete**
+* **delete[]**
+* **[ n ]** used to access the 'n'th element of an array
+* **dumb** A built in func for making a dumb &shared
 
 #### Values
 * **true**
 * **false**
-* **null**	Null pointer
+* **null**	Null pointer.
 
-#### Types
-All types should be obvoius as to sign and bit count. Think java.
-
-* **uint8** - **uint64**
-* **int8**  - **int64**
-* **char**
-* **ubyte**
-* **sbyte**
-* **ushort**
-* **short**
-* **uint**
-* **int**
-* **ulong**
-* **long**
-* **usize**
-* **boolean**
-* **cast** Used to cast one type to another
-
-#### Special character words
-* **=** assignment
-* **:=** autoDecl assignment
-* **.** accessing class fields
-* **^** dereference
-* **->** accessing fields in pointer
-* **;** semicolon between statements
-* **:** colon between identifier and type, as well as in **? :**
-* **?** quesiton sytnax like in java
-* **(** function paramerters start, left parameter
-* **)** function paramerters end, right parameter
-* **[** left bracket
-* **]** right bracket
+#### Operators
+* **.** access public fields and methods from classes.
+* **@** dereference a pointer.
+* **->** access public fields and methods from pointers.
 * **+** plus
 * **-** minus
-* **/** division
 * **\*** multiplication
+* **/** division
 * **%** modulo
-* **<** less than as well as template types
-* **>** greater than as well as template types
-* **<=** less than or equals
-* **>=** greater than or equals
+* **?** question mark for ?: syntax
+* **<<** left shift
+* **>>** arithmetic shift right
+* **>>>** logical shift right
+* **&** bitwise and
+* **&&** logical and
+* **|** bitwise or
+* **||** logical or
+* **^** xor
 * **==** equals
 * **!=** not equals
+* **<** lower
+* **<=** lower than or equals
+* **>** greater
+* **>=** greater than or equals
 * **!** not
 
-#### Pointers
-* **new**
-* **delete**
-* **delete[]**
-* **shared** For shared pointers. Always **mut**
-* **dumb** A built in func for making a dumb &shared
-* **&**
 
+#### Using pointers:
 Putting '&' in front of the type makes a const pointer.
 Putting '&mut' makes a mutable pointer.
 Putting these in front of a paramter name passes the parameter by reference.
