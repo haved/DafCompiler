@@ -2,15 +2,12 @@ package me.haved.dafParser.lexical;
 
 public abstract class TokenParser {
 	
-	protected String infileName;
-	protected int startLine, startCol;
+	protected TokenFileLocation location;
 	
 	public boolean tryStartParsing(char c, String infileName, int line, int col) {
 		if(!tryStartParsing(c))
 			return false;
-		this.infileName = infileName;
-		this.startLine = line;
-		this.startCol = col;
+		location = new TokenFileLocation(infileName, line, col);
 		return true;
 	}
 	
@@ -24,9 +21,10 @@ public abstract class TokenParser {
 	 */
 	public abstract int parse(char c, int line, int col);
 	public abstract Token getReturnedToken();
+	public abstract String getParserName();
 	
 	protected TokenFileLocation getTokenFileLocation() {
-		return new TokenFileLocation(infileName, startLine, startCol);
+		return location;
 	}
 	
 	public static boolean isWhitespace(char c) {

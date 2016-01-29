@@ -65,7 +65,7 @@ public class LexicalParser {
 					parser = null;
 				}
 			}
-			if(parser==null) {
+			if(parser==null & !TokenParser.isWhitespace(character)) {
 				for(int i = 0; i < defaultParsers.length; i++) {
 					if(defaultParsers[i].tryStartParsing(character, infileName, line, col)) {
 						parser = defaultParsers[i];
@@ -76,8 +76,11 @@ public class LexicalParser {
 					log(fileLocation(infileName, line, col), ERROR, "Couldn't parse character: '%c'", character);
 			}
 			
-			if(input==-1)
+			if(input==-1) {
+				if(parser!=null)
+					log(fileLocation(infileName, line, col), ERROR, "Parsing of %s was interruped by sudden end of file", parser.getParserName());
 				break;
+			}
 			if(TokenParser.isNewline(character)) {
 				col = 0;
 				line++;

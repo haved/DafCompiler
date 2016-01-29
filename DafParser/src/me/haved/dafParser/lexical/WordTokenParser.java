@@ -19,6 +19,9 @@ public class WordTokenParser extends TokenParser {
 			specialChars = false;
 			return true;
 		}
+		else if(isNumberOrDot(c)) {
+			return false;
+		}
 		else if(isLegalKeywordChar(c)) {
 			word.setLength(1);
 			word.setCharAt(0, c);
@@ -54,7 +57,7 @@ public class WordTokenParser extends TokenParser {
 			return new Token(types.get(keyword), getTokenFileLocation(), null);
 		else if(!specialChars)
 			return new Token(TokenType.IDENTIFIER, getTokenFileLocation(), keyword);
-		log(fileLocation(infileName, startLine, startCol), ERROR, "String '%s' not a valid identifier.", keyword);
+		log(getTokenFileLocation().getErrorString(), ERROR, "String '%s' not a valid identifier.", keyword);
 		return null;
 	}
 
@@ -82,11 +85,20 @@ public class WordTokenParser extends TokenParser {
 		return (c >= 'A' && c<='Z') || (c >='a' && c<='z') || c == '_';
 	}
 	
+	public static boolean isNumberOrDot(char c) {
+		return (c>='0' && c<='9') | c == '.';
+	}
+	
 	public static boolean isLegalKeywordChar(char c) {
 		return (c>='$' && c<='_' && c!='"' && c!='#' && c!='\'') || c=='!';
 	}
 	
 	public static boolean isIdentifierChar(char c) {
 		return (c >= 'A' && c<='Z') || (c >='a' && c<='z') || c == '_' || (c >= '0' && c <= '9');
+	}
+	
+	@Override
+	public String getParserName() {
+		return "Keyword, Operator and Identifier Token Parser";
 	}
 }
