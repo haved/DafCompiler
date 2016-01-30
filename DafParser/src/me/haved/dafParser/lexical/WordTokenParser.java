@@ -37,16 +37,16 @@ public class WordTokenParser extends TokenParser {
 		if(!specialChars) {
 			if(idfChar) {
 				word.append(c);
-				return 1;
+				return COUNTINUE_PARSING;
 			}
-			return 0;
+			return DONE_PARSING;
 		}
 		else {
 			if(!idfChar && isLegalKeywordChar(c)) {
 				word.append(c);
-				return 1;
+				return COUNTINUE_PARSING;
 			}
-			return 0;
+			return DONE_PARSING;
 		}
 	}
 

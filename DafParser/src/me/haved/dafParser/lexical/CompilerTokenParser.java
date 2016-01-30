@@ -38,10 +38,10 @@ public class CompilerTokenParser extends TokenParser {
 			if(word.length()==1) {
 				if(!isCharCompilerPound(c)) {
 					log(getTokenFileLocation().getErrorString(), ERROR, "Only one pound symbol found. Daf uses double!");
-					return -1;
+					return ERROR_PARSING;
 				}
 				word.append(c);
-				return 1;
+				return COUNTINUE_PARSING;
 			}
 			
 			if(TokenParser.isWhitespace(c)) { //The type of compiler message is decided
@@ -60,22 +60,22 @@ public class CompilerTokenParser extends TokenParser {
 				}
 				else {
 					log(getTokenFileLocation().getErrorString(), ERROR, "'%s' Not a valid compiler message at this point.", keyword);
-					return -1;
+					return ERROR_PARSING;
 				}
 			}
 			word.append(c);
-			return 1;
+			return COUNTINUE_PARSING;
 		} else if(parseStyle == INLINE_PARSE) {
 			if(inlineParseEnd >= INLINE_PARSE_END.length())
-				return 0;
+				return DONE_PARSING;
 			word.append(c);
 			if(INLINE_PARSE_END.charAt(inlineParseEnd) == c) {
 				inlineParseEnd++;
 			} else
 				inlineParseEnd = 0;
-			return 1; //If we quit as soon as the 'd' in '##end' is met, it is parsed as an identifier.
+			return COUNTINUE_PARSING; //If we quit as soon as the 'd' in '##end' is met, it is parsed as an identifier.
 		}
-		return -1; //Why are you here??
+		return ERROR_PARSING; //Why are you here??
 	}
 
 	@Override

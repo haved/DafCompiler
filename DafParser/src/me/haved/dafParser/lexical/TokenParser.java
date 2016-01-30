@@ -19,9 +19,17 @@ public abstract class TokenParser {
 	 * @param col The column of the char
 	 * @return 1 if parsing should continue, 0 if it's done, and -1 if it's broken
 	 */
+	public static final int COUNTINUE_PARSING = 1;
+	public static final int DONE_PARSING = 0;
+	public static final int ERROR_PARSING = -1;
+	public static final int NEW_PARSER = 2;
 	public abstract int parse(char c, int line, int col);
 	public abstract Token getReturnedToken();
 	public abstract String getParserName();
+	
+	public TokenParser getWantedTokenParser() {
+		return this;
+	}
 	
 	protected TokenFileLocation getTokenFileLocation() {
 		return location;
