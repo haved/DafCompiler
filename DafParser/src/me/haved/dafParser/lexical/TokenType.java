@@ -28,8 +28,8 @@ public enum TokenType {
 	ADDRESS("&"), SHARED("shared"), NEW("new"), DELETE("delete"),
 	LEFT_BRACKET("["),RIGHT_BRACKET("]"),BRACKET_PAIR("[]"), DUMB("dumb"),
 	
-	IDENTIFIER("identifier", true), INTEGER_LITTERAL("integer_litteral", true),
-	REAL_LITTERAL("real_litteral", true), STRING_LITERAL("string_litteral", true),
+	IDENTIFIER("identifier", true), INTEGER_LITERAL("integer_literal", true),
+	FLOAT_LITERAL("float_literal", true), DOUBLE_LITERAL("double_literal", true), STRING_LITERAL("string_literal", true),
 	
 	TRUE("true"), FALSE("false"), NULL("null"),
 	

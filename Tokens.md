@@ -90,7 +90,8 @@ The token stores information about its meaning, its location in the file, and it
 #### Value tokes
 * **identifier** *special*, any text starting in 'a-z', 'A-Z' or '_', with or without '0-9'
 * **integer_literal** *special*
-* **real_literal** *special*
+* **float_literal** *special*
+* **double_literal** *special*
 * **string_literal** *special*
 * **true** true
 * **false** false
