@@ -110,8 +110,8 @@ public class LogHelper {
 	}
 	
 	public static void printLoggingInfo() {
-		out.printf("Execution finished with %d infos, %d messages, %d warnings, %d errors and %d fatal errors%n",
-				logCounts[0], logCounts[1], logCounts[2], logCounts[3], logCounts[4]);
+		out.printf("Execution finished with %d infos, %d messages, %d suggestions, %d warnings, %d errors and %d fatal errors%n",
+				logCounts[0], logCounts[1], logCounts[2], logCounts[3], logCounts[4], logCounts[5]);
 		out.printf("Execution time: %.2fs%n", (System.currentTimeMillis()-startTime)/1000f);
 	}
 }

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import static me.haved.dafParser.LogHelper.*;
 
 public class LexicalParser {
-	private static TokenParser[] defaultParsers = new TokenParser[] {WordTokenParser.instance, CompilerTokenParser.instance};
+	private static TokenParser[] defaultParsers = new TokenParser[] {NumberTokenParser.instance, WordTokenParser.instance, CompilerTokenParser.instance};
 	
 	private File inputFile;
 	private String infileName;
@@ -52,7 +52,10 @@ public class LexicalParser {
 			
 			if(parser!=null) {
 				int status = parser.parse(character, line, col);
-				if(status==0) {
+				if(status==TokenParser.NEW_PARSER) {
+					parser = parser.getWantedTokenParser();
+				}
+				else if(status==TokenParser.DONE_PARSING) {
 					Token token = parser.getReturnedToken();
 					if(token != null) {
 						log(token.getLocation().getErrorString(), MESSAGE, "Token of type '%s' added: %s", token.getType().name(), token.getText());
@@ -61,7 +64,7 @@ public class LexicalParser {
 						log(fileLocation(infileName, line, col), INFO, "No token returned!");
 					parser = null;
 				}
-				else if(status == -1) {
+				else if(status == TokenParser.ERROR_PARSING) {
 					parser = null;
 				}
 			}

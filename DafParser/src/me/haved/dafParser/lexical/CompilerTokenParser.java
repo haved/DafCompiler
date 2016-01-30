@@ -41,7 +41,7 @@ public class CompilerTokenParser extends TokenParser {
 					return ERROR_PARSING;
 				}
 				word.append(c);
-				return COUNTINUE_PARSING;
+				return CONTINUE_PARSING;
 			}
 			
 			if(TokenParser.isWhitespace(c)) { //The type of compiler message is decided
@@ -64,7 +64,7 @@ public class CompilerTokenParser extends TokenParser {
 				}
 			}
 			word.append(c);
-			return COUNTINUE_PARSING;
+			return CONTINUE_PARSING;
 		} else if(parseStyle == INLINE_PARSE) {
 			if(inlineParseEnd >= INLINE_PARSE_END.length())
 				return DONE_PARSING;
@@ -73,7 +73,7 @@ public class CompilerTokenParser extends TokenParser {
 				inlineParseEnd++;
 			} else
 				inlineParseEnd = 0;
-			return COUNTINUE_PARSING; //If we quit as soon as the 'd' in '##end' is met, it is parsed as an identifier.
+			return CONTINUE_PARSING; //If we quit as soon as the 'd' in '##end' is met, it is parsed as an identifier.
 		}
 		return ERROR_PARSING; //Why are you here??
 	}
