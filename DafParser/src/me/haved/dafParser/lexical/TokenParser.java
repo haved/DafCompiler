@@ -42,4 +42,8 @@ public abstract class TokenParser {
 	public static boolean isNewline(char c) {
 		return c == '\n';
 	}
+	
+	public static boolean isNumber(char c) {
+		return (c>='0' && c<='9');
+	}
 }

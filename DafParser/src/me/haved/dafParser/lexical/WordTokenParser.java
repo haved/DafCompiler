@@ -19,7 +19,7 @@ public class WordTokenParser extends TokenParser {
 			specialChars = false;
 			return true;
 		}
-		else if(isNumberOrDot(c)) {
+		else if(isNumber(c)) {
 			return false;
 		}
 		else if(isLegalKeywordChar(c)) {
@@ -60,7 +60,6 @@ public class WordTokenParser extends TokenParser {
 		log(getTokenFileLocation().getErrorString(), ERROR, "String '%s' not a valid identifier.", keyword);
 		return null;
 	}
-
 	
 	private static HashMap<String, TokenType> types;
 	static {
@@ -83,10 +82,6 @@ public class WordTokenParser extends TokenParser {
 	
 	public static boolean isLetterOrUnderscore(char c) {
 		return (c >= 'A' && c<='Z') || (c >='a' && c<='z') || c == '_';
-	}
-	
-	public static boolean isNumberOrDot(char c) {
-		return (c>='0' && c<='9') | c == '.';
 	}
 	
 	public static boolean isLegalKeywordChar(char c) {
