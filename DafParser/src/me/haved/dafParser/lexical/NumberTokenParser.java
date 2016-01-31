@@ -47,6 +47,8 @@ public class NumberTokenParser extends TokenParser {
 				return ERROR_PARSING;
 			}
 			word.append(c);
+			parseStyle = DOUBLE;
+			return CONTINUE_PARSING;
 		}
 		else if(isF(c)) {
 			if(parseStyle==FLOAT) {
@@ -59,6 +61,7 @@ public class NumberTokenParser extends TokenParser {
 			}
 			word.append(c);
 			parseStyle = FLOAT;
+			return CONTINUE_PARSING;
 		}
 		else if(isWhitespace(c)) {
 			return DONE_PARSING;

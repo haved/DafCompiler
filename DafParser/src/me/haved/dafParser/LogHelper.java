@@ -83,9 +83,9 @@ public class LogHelper {
 	}
 	
 	public static void enableVerboseLogging() {
-		setMaxLogCount(INFO, 20);
-		setMaxLogCount(MESSAGE, 20);
-		setMaxLogCount(SUGGESTION, 20);
+		setMaxLogCount(INFO, 200);
+		setMaxLogCount(MESSAGE, 200);
+		setMaxLogCount(SUGGESTION, 200);
 	}
 	
 	public static void setToSummarize(boolean sum) {

@@ -1,4 +1,8 @@
-let mut ball:=0;
+let mut ball:= 0;
+let test:= 1.2;
+let test2:= .1;
+let test3:= .4f;
+let test4:= 2.f;
 let pallPointer:=&mut ball;
 
 ##cpp
