@@ -9,9 +9,29 @@ public class WordTokenParser extends TokenParser {
 	public static final WordTokenParser instance = new WordTokenParser();
 	
 	private static final HashSet<String> instantWords = new HashSet<>();
+	private static final HashMap<String, String> requiredFollowups = new HashMap<>();
 	static {
 		instantWords.add(":=");
 		instantWords.add("=");
+		instantWords.add("<=");
+		instantWords.add(">=");
+		instantWords.add("==");
+		instantWords.add("!=");
+		instantWords.add("+=");
+		instantWords.add("-=");
+		instantWords.add("*=");
+		instantWords.add("/=");
+		instantWords.add("%=");
+		
+		requiredFollowups.put("+", "=");
+		requiredFollowups.put("-", "=");
+		requiredFollowups.put("*", "=");
+		requiredFollowups.put("/", "=");
+		requiredFollowups.put("%", "=");
+		requiredFollowups.put(":", "=");
+		requiredFollowups.put("!", "=");
+		requiredFollowups.put("<", "<=");
+		requiredFollowups.put(">", ">=");
 	}
 	
 	private StringBuilder word = new StringBuilder();
@@ -39,8 +59,23 @@ public class WordTokenParser extends TokenParser {
 
 	@Override
 	public int parse(char c, int line, int col) {
-		if(instantWords.contains(word.toString()))
+		String wordS = word.toString();
+		if(instantWords.contains(wordS))
 			return DONE_PARSING;
+		if(requiredFollowups.containsKey(wordS)) {
+			boolean found = false;
+			String required = requiredFollowups.get(wordS);
+			for(int i = 0; i < required.length(); i++) {
+				if(c==required.charAt(i)) {
+					found=true;
+					break;
+				}
+			}
+			if(!found) {
+				log(fileLocation(getTokenFileLocation().fileName, line, col), INFO, "The char '%c' was found after '%s'. Starting new token.", c, wordS);
+				return DONE_PARSING;
+			}
+		}
 		boolean idfChar = isIdentifierChar(c);
 		if(!specialChars) {
 			if(idfChar) {

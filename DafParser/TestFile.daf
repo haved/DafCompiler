@@ -1,14 +1,11 @@
 let mut ball:= 0;
-let test:= 1.2;
-let test2:= .1;
-let test3:= .4f;
-let test4:= 2.f;
+let test:= 1.2f;
 let pallPointer:=&mut ball;
 let strTest:="Halla";
 let balle:='c';
-let trall:='\'';
-let joho:="\"Heil\", sa han!";
-let bulle:='c';
+let mut trall:=0;
+trall+=1;
+trall=trall+&trall;
 
 ##cpp
 #include <iostream>
