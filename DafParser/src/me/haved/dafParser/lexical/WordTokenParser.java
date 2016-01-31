@@ -3,12 +3,18 @@ package me.haved.dafParser.lexical;
 import static me.haved.dafParser.LogHelper.*;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class WordTokenParser extends TokenParser {
-
 	public static final WordTokenParser instance = new WordTokenParser();
 	
-	StringBuilder word = new StringBuilder();
+	private static final HashSet<String> instantWords = new HashSet<>();
+	static {
+		instantWords.add(":=");
+		instantWords.add("=");
+	}
+	
+	private StringBuilder word = new StringBuilder();
 	boolean specialChars = false;
 	
 	@Override
@@ -33,6 +39,8 @@ public class WordTokenParser extends TokenParser {
 
 	@Override
 	public int parse(char c, int line, int col) {
+		if(instantWords.contains(word.toString()))
+			return DONE_PARSING;
 		boolean idfChar = isIdentifierChar(c);
 		if(!specialChars) {
 			if(idfChar) {
