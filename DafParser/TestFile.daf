@@ -8,7 +8,7 @@ let strTest:="Halla";
 let balle:='c';
 let trall:='\'';
 let joho:="\"Heil\", sa han!";
-let bulle:='cc';
+let bulle:='c';
 
 ##cpp
 #include <iostream>
