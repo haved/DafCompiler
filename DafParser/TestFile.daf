@@ -4,6 +4,11 @@ let test2:= .1;
 let test3:= .4f;
 let test4:= 2.f;
 let pallPointer:=&mut ball;
+let strTest:="Halla";
+let balle:='c';
+let trall:='\'';
+let joho:="\"Heil\", sa han!";
+let bulle:='cc';
 
 ##cpp
 #include <iostream>

@@ -29,7 +29,8 @@ public enum TokenType {
 	LEFT_BRACKET("["),RIGHT_BRACKET("]"),BRACKET_PAIR("[]"), DUMB("dumb"),
 	
 	IDENTIFIER("identifier", true), INTEGER_LITERAL("integer_literal", true),
-	FLOAT_LITERAL("float_literal", true), DOUBLE_LITERAL("double_literal", true), STRING_LITERAL("string_literal", true),
+	FLOAT_LITERAL("float_literal", true), DOUBLE_LITERAL("double_literal", true),
+	STRING_LITERAL("string_literal", true), CHAR_LITERAL("char_literal", true),
 	
 	TRUE("true"), FALSE("false"), NULL("null"),
 	

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import static me.haved.dafParser.LogHelper.*;
 
 public class LexicalParser {
-	private static TokenParser[] defaultParsers = new TokenParser[] {NumberTokenParser.instance, WordTokenParser.instance, CompilerTokenParser.instance};
+	private static TokenParser[] defaultParsers = new TokenParser[] {NumberTokenParser.instance, TextTokenParser.instance, WordTokenParser.instance, CompilerTokenParser.instance};
 	
 	private File inputFile;
 	private String infileName;

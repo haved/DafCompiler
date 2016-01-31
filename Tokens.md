@@ -93,6 +93,7 @@ The token stores information about its meaning, its location in the file, and it
 * **float_literal** *special*
 * **double_literal** *special*
 * **string_literal** *special*
+* **char_literal** *special*
 * **true** true
 * **false** false
 * **null** null
