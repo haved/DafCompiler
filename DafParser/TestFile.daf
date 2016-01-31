@@ -5,7 +5,7 @@ let strTest:="Halla";
 let balle:='c';
 let mut trall:=0;
 trall+=1;
-trall=trall+&trall;
+trall=trall/&trall;
 
 ##cpp
 #include <iostream>

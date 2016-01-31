@@ -12,7 +12,6 @@ public class WordTokenParser extends TokenParser {
 	private static final HashMap<String, String> requiredFollowups = new HashMap<>();
 	static {
 		instantWords.add(":=");
-		instantWords.add("=");
 		instantWords.add("<=");
 		instantWords.add(">=");
 		instantWords.add("==");
@@ -23,6 +22,7 @@ public class WordTokenParser extends TokenParser {
 		instantWords.add("/=");
 		instantWords.add("%=");
 		
+		requiredFollowups.put("=", "=");
 		requiredFollowups.put("+", "=");
 		requiredFollowups.put("-", "=");
 		requiredFollowups.put("*", "=");
