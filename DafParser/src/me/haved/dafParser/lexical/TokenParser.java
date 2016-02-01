@@ -31,6 +31,14 @@ public abstract class TokenParser {
 		return this;
 	}
 	
+	public String getNewParserWord() {
+		return "";
+	}
+	
+	public TokenFileLocation getNewParserTokenFileLocation() {
+		return getTokenFileLocation();
+	}
+	
 	protected TokenFileLocation getTokenFileLocation() {
 		return location;
 	}

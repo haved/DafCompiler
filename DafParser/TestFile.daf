@@ -6,6 +6,7 @@ let balle:='c';
 let mut trall:=0;
 trall+=1;
 trall=trall/&trall;
+let mut bull=shit.shat;
 
 ##cpp
 #include <iostream>

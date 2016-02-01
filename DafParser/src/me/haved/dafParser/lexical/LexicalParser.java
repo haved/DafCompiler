@@ -40,6 +40,9 @@ public class LexicalParser {
 	
 	private void parseFromReader(BufferedReader reader) throws Exception {
 		TokenParser parser=null;
+		String previousChars = null;
+		int previousCharsRead = 0;
+		
 		int input;
 		char character;
 		int line = 1;
@@ -47,13 +50,27 @@ public class LexicalParser {
 		
 		while(true) {
 			col++;
-			input = reader.read();
-			character = input==-1?'\n':(char) input;
+			if(previousChars!=null && previousCharsRead < previousChars.length()) {
+				character = previousChars.charAt(previousCharsRead);
+				input = character;
+				previousCharsRead++;
+			} else {
+				previousChars = null;
+				input = reader.read();
+				character = input==-1?'\n':(char) input;
+			}
 			
 			if(parser!=null) {
 				int status = parser.parse(character, line, col);
 				if(status==TokenParser.NEW_PARSER) {
+					previousChars = parser.getNewParserWord();
+					TokenFileLocation prevLoc = parser.getNewParserTokenFileLocation();
+					line = prevLoc.lineNumber;
+					col = prevLoc.columnNumber;
 					parser = parser.getWantedTokenParser();
+					logAssert(parser.tryStartParsing(previousChars.charAt(0), infileName, line, col), "New parser didn't start");
+					previousCharsRead = 1;
+					println("PrevChar: %s", previousChars);
 				}
 				else if(status==TokenParser.DONE_PARSING) {
 					Token token = parser.getReturnedToken();

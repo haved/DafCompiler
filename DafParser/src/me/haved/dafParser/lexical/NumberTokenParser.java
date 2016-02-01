@@ -63,28 +63,20 @@ public class NumberTokenParser extends TokenParser {
 			parseStyle = FLOAT;
 			return CONTINUE_PARSING;
 		}
-		else if(isWhitespace(c)) {
+		else if(isWhitespace(c) && numbersFound) {
 			return DONE_PARSING;
 		}
-		else if(!numbersFound) { //Trying to parse previous text as word token
+		else if(!numbersFound) {
 			logAssert(word.length()>0, "NumberTokenParsrer.parse() called before tryStartParsing()");
-			TokenFileLocation location = getTokenFileLocation();
-			if(WordTokenParser.instance.tryStartParsing(word.charAt(0), location.fileName, location.lineNumber, location.columnNumber)) {
-				String text = word.toString()+c;
-				for(int i = 1; i < word.length(); i++) {
-					if(WordTokenParser.instance.parse(word.charAt(i), location.lineNumber, location.columnNumber+i) == CONTINUE_PARSING)
-						if(i==text.length()-1)
-							return NEW_PARSER;
-					else
-						break;
-				}
-			}
+			word.append(c);
+			return NEW_PARSER;
 		}
 		return DONE_PARSING;
 	}
 
 	@Override
 	public Token getReturnedToken() {
+		logAssert(numbersFound, "NumberTokenParser.getReturnedToken() called with no numbers!");
 		return new Token(TOKEN_TYPES[parseStyle], getTokenFileLocation(), word.toString());
 	}
 
@@ -96,6 +88,11 @@ public class NumberTokenParser extends TokenParser {
 	@Override
 	public TokenParser getWantedTokenParser() {
 		return WordTokenParser.instance;
+	}
+	
+	@Override
+	public String getNewParserWord() {
+		return word.toString();
 	}
 	
 	public static boolean isNumberSignOrDot(char c) {
