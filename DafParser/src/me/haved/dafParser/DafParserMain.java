@@ -10,7 +10,7 @@ public class DafParserMain {
 	public static void main(String[] args) {
 		LogHelper.startTime();
 		if(DEV) {
-			LogHelper.setMaxLogCount(LogHelper.DEBUG, 200);
+			LogHelper.enableDebugLogging();
 			LogHelper.setToSummarize(true);
 		}
 		if(args.length==0) {

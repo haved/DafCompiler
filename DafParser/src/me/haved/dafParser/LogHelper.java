@@ -14,8 +14,9 @@ public class LogHelper {
 	public static final int ERROR = 4;
 	public static final int FATAL_ERROR = 5;
 	public static final int DEBUG = 6;
+	public static final int TOKEN_DEBUG = 7;
 	
-	public static final String[] logLevels = {"info", "message", "suggestion", "warning", "error", "fatal error", "debug"};
+	public static final String[] logLevels = {"info", "message", "suggestion", "warning", "error", "fatal error", "debug", "token_debug"};
 	
 	private static int[] logCounts = new int[logLevels.length];
 	private static int[] maxLogCounts = new int[logLevels.length];
@@ -26,6 +27,11 @@ public class LogHelper {
 		maxLogCounts[WARNING] = 20;
 		maxLogCounts[ERROR]   = 20;
 		maxLogCounts[FATAL_ERROR] = 20; //Should only ever happen once, but just in case it happens more.
+		maxLogCounts[INFO] = 0;
+		maxLogCounts[MESSAGE] = 0;
+		maxLogCounts[SUGGESTION] = 0;
+		maxLogCounts[DEBUG] = 0;
+		maxLogCounts[TOKEN_DEBUG] = 0;
 	}
 	
 	public static void log(String system, int logLevel, String message) {
@@ -88,6 +94,11 @@ public class LogHelper {
 		setMaxLogCount(SUGGESTION, 200);
 	}
 	
+	public static void enableDebugLogging() {
+		setMaxLogCount(DEBUG, 200);
+		setMaxLogCount(TOKEN_DEBUG, 200);
+	}
+	
 	public static void setToSummarize(boolean sum) {
 		summarize = sum;
 	}
@@ -111,7 +122,7 @@ public class LogHelper {
 	
 	public static void printLoggingInfo() {
 		out.printf("Execution finished with %d infos, %d messages, %d suggestions, %d warnings, %d errors and %d fatal errors%n",
-				logCounts[0], logCounts[1], logCounts[2], logCounts[3], logCounts[4], logCounts[5]);
+				logCounts[INFO], logCounts[MESSAGE], logCounts[SUGGESTION], logCounts[WARNING], logCounts[ERROR], logCounts[FATAL_ERROR]);
 		out.printf("Execution time: %.2fs%n", (System.currentTimeMillis()-startTime)/1000f);
 	}
 }

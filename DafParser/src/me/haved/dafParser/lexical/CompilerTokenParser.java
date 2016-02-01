@@ -47,13 +47,13 @@ public class CompilerTokenParser extends TokenParser {
 			if(TokenParser.isWhitespace(c)) { //The type of compiler message is decided
 				String keyword = word.toString();
 				if(keyword.equals(TokenType.DAF_CPP.getKeyword())) {
-					log(getTokenFileLocation().getErrorString(), MESSAGE, "Started inline cpp.");
+					log(getTokenFileLocation().getErrorString(), TOKEN_DEBUG, "Started inline cpp.");
 					word.setLength(0);
 					parseStyle = INLINE_PARSE;
 					inlineParseType = INLINE_TYPE_CPP;
 				}
 				else if(keyword.equals(TokenType.DAF_HEADER.getKeyword())) {
-					log(getTokenFileLocation().getErrorString(), MESSAGE, "Started inline header code.");
+					log(getTokenFileLocation().getErrorString(), TOKEN_DEBUG, "Started inline header code.");
 					word.setLength(0);
 					parseStyle = INLINE_PARSE;
 					inlineParseType = INLINE_TYPE_HEADER;
