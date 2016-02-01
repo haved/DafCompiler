@@ -75,7 +75,7 @@ public class LexicalParser {
 				else if(status==TokenParser.DONE_PARSING) {
 					Token token = parser.getReturnedToken();
 					if(token != null) {
-						log(token.getLocation().getErrorString(), TOKEN_DEBUG, "Token of type '%s' added: %s", token.getType().name(), token.getText());
+						//log(token.getLocation().getErrorString(), TOKEN_DEBUG, "Token of type '%s' added: %s", token.getType().name(), token.getText());
 						tokens.add(token);
 					} else
 						log(fileLocation(infileName, line, col), WARNING, "No token returned from %s!", parser.getParserName());
