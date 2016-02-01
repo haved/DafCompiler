@@ -71,10 +71,8 @@ public class WordTokenParser extends TokenParser {
 					break;
 				}
 			}
-			if(!found) {
-				log(fileLocation(getTokenFileLocation().fileName, line, col), INFO, "The char '%c' was found after '%s'. Starting new token.", c, wordS);
+			if(!found)
 				return DONE_PARSING;
-			}
 		}
 		boolean idfChar = isIdentifierChar(c);
 		if(!specialChars) {
