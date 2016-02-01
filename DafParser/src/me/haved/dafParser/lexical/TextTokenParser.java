@@ -58,7 +58,7 @@ public class TextTokenParser extends TokenParser {
 	@Override
 	public Token getReturnedToken() {
 		if(parseStyle == CHAR) {
-			if(word.length()==1 || (word.length()==2 && word.charAt(0)=='\\')) 
+			if(word.length()==1 || (word.length()==2 && word.charAt(0)=='\\') || (word.charAt(1)=='u')) 
 				return new Token(TokenType.CHAR_LITERAL, getTokenFileLocation(), word.toString());
 			log(getTokenFileLocation().getErrorString(), ERROR, "A char data type can only store ONE character: '%s'", word.toString());
 		} else if(parseStyle == STRING) {

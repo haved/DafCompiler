@@ -71,7 +71,7 @@ public class WordTokenParser extends TokenParser {
 					break;
 				}
 			}
-			if(!found)
+			if(!found) //If the required char isn't found, start parsing it as a new token
 				return DONE_PARSING;
 		}
 		boolean idfChar = isIdentifierChar(c);
