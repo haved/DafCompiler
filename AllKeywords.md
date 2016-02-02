@@ -102,7 +102,6 @@ This is a list of all the keywords you find in daf. The file ParsingNodes.md sho
 * **\*** multiplication
 * **/** division
 * **%** modulo
-* **?** question mark for ?: syntax
 * **<<** left shift
 * **>>** arithmetic shift right
 * **>>>** logical shift right
@@ -111,13 +110,27 @@ This is a list of all the keywords you find in daf. The file ParsingNodes.md sho
 * **|** bitwise or
 * **||** logical or
 * **^** xor
-* **==** equals
+* **!** not
+* **+=** plus equals
+* **-=** minus equals
+* **\*=** multiplication equals
+* **/=** division equals
+* **%=** modulo equals
+* **<<=** left shift equals
+* **>>=** arithmetic shift right equals
+* **>>>=** logical shift right equals
+* **&nd=** bitwise and equals
+* **&&=** logical and equals
+* **|=** bitwise or equals
+* **||=** logical or equals
+* **^=** xor equals
 * **!=** not equals
+* **==** equals
 * **<** lower
 * **<=** lower than or equals
 * **>** greater
 * **>=** greater than or equals
-* **!** not
+* **?** question mark for ?: syntax
 
 
 #### Using pointers:
