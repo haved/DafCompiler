@@ -39,7 +39,6 @@ public class LexicalParser {
 			e.printStackTrace(out);
 			log(FATAL_ERROR, "LexicalParser.parse(): exception thrown");
 		}
-		log(INFO, "Finished Lexical Parsing...");
 	}
 	
 	private void parseFromReader(BufferedReader reader) throws Exception {

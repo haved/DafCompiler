@@ -93,7 +93,7 @@ public class DafParser {
 			parsedInputFile.parse();
 			
 			String outputFilesPath = outputDir.getAbsolutePath() + "/" + (subfolderOutput?inputFilePath:inputFile.getName());
-			outputFilesPath=outputFilesPath.substring(0, outputFilesPath.length()-2);
+			outputFilesPath=outputFilesPath.substring(0, outputFilesPath.lastIndexOf('.'));
 			
 			File cppFile =    new File(outputFilesPath+".cpp");
 			File headerFile = new File(outputFilesPath+".h");
