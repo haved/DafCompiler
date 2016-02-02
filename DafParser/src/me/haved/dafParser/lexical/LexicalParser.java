@@ -74,7 +74,6 @@ public class LexicalParser {
 					parser = parser.getWantedTokenParser();
 					logAssert(parser.tryStartParsing(previousChars.charAt(0), infileName, line, col), "New parser didn't start");
 					previousCharsRead = 1;
-					println("PrevChar: %s", previousChars);
 				}
 				else if(status==TokenParser.DONE_PARSING) {
 					Token token = parser.getReturnedToken();
