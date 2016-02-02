@@ -107,7 +107,6 @@ The token stores information about its meaning, its location in the file, and it
 * **mult** *
 * **divide** /
 * **modulo** %
-* **qMark** ?
 * **shiftLeft** <<
 * **arithShiftRight** >>
 * **logicShiftRight** >>>
@@ -116,10 +115,24 @@ The token stores information about its meaning, its location in the file, and it
 * **bitwise or** |
 * **logical or** ||
 * **xor** ^
-* **equals** ==
+* **not** !
+* **plusEquals** +=
+* **minusEquals** -=
+* **multEquals** *=
+* **divideEquals** /=
+* **moduloEquals** %=
+* **shiftLeftEquals** <<=
+* **arithShiftRightEquals** >>=
+* **logicShiftRightEquals** >>>=
+* **bitwise andEquals** &nd=
+* **logical andEquals** &&=
+* **bitwise orEquals** |=
+* **logical orEquals** ||=
+* **xorEquals** ^=
 * **not-equals** !=
+* **equals** ==
 * **lower** <
 * **lowerOrEquals** <=
 * **greater** >
 * **greaterOrEquals** >=
-* **not** !
+* **qMark** ?
