@@ -35,12 +35,18 @@ public enum TokenType {
 	TRUE("true"), FALSE("false"), NULL("null"),
 	
 	CLASS_ACCESS("."), DEREFERENCE("@"), POINTER_ACCESS("->"),
+	
 	PLUS("+"), MINUS("-"), MULT("*"), DIVIDE("/"), MODULO("%"),
-	Q_MARK("?"), SHIFT_LEFT("<<"), ARITHMETIC_SHIFT_RIGHT(">>"), 
+	SHIFT_LEFT("<<"), ARITHMETIC_SHIFT_RIGHT(">>"), 
 	LOGICAL_SHIFT_RIGHT(">>>"), BITWISE_AND("&nd"), LOGICAL_AND("&&"),
-	BITWISE_OR("|"), LOGICAL_OR("||"), XOR("^"), EQUALS("=="),
-	NOT_EQUALS("!="), LOWER("<"), LOWER_OR_EQUAL("<="), 
-	GREATER(">"), GREATER_OR_EQUAL(">="), NOT("!"),
+	BITWISE_OR("|"), LOGICAL_OR("||"), XOR("^"), NOT("!"), 
+	
+	PLUS_EQUALS("+="), MINUS_EQUALS("-="), MULT_EQUALS("*="), DIVIDE_EQUALS("/="), MODULO_EQUALS("%="),
+	SHIFT_LEFT_EQUALS("<<="), ARITHMETIC_SHIFT_RIGHT_EQUALS(">>="), 
+	LOGICAL_SHIFT_RIGHT_EQUALS(">>>="), BITWISE_AND_EQUALS("&nd="), LOGICAL_AND_EQUALS("&&="),
+	BITWISE_OR_EQUALS("|="), LOGICAL_OR_EQUALS("||="), XOR_EQUALS("^="), NOT_EQUALS("!="),
+	EQUALS("=="), LOWER("<"), LOWER_OR_EQUAL("<="), 
+	GREATER(">"), GREATER_OR_EQUAL(">="), Q_MARK("?"),
 	
 	DAF_IMPORT("#import", true), DAF_USING("#using", true),
 	DAF_CPP("##cpp", true), DAF_HEADER("##header", true);

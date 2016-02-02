@@ -20,6 +20,10 @@ public class LexicalParser {
 		tokens = new ArrayList<>();
 	}
 	
+	public ArrayList<Token> getTokens() {
+		return tokens;
+	}
+	
 	public void parse() {
 		logAssert(inputFile.isFile(), "File given to LexicalParser doesn't exist");
 		

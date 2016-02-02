@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import me.haved.dafParser.lexical.LexicalParser;
 import me.haved.dafParser.node.RootNode;
+import me.haved.dafParser.semantic.SemanticParser;
 
 import static me.haved.dafParser.LogHelper.*;
 
@@ -22,6 +23,7 @@ public class ParsedInputFile {
 	}
 	
 	public void parse() throws Exception {
+		logAssert(root == null, "Trying to parse an already parsed file!");
 		logAssert(inputFile.isFile(), "ParsedInputFile got a file that doesn't exist! Should never happen!");
 		String fileId = inputFile.getCanonicalPath();
 		if(parsedNodes.containsKey(fileId)) {
@@ -30,9 +32,11 @@ public class ParsedInputFile {
 			return;
 		}
 		
-		LexicalParser parser = new LexicalParser(inputFile, infileName);
-		parser.parse();
-		root = new RootNode();
+		LexicalParser lexer = new LexicalParser(inputFile, infileName);
+		lexer.parse();
+		SemanticParser semantic = new SemanticParser(lexer.getTokens());
+		semantic.parse();
+		root = semantic.getRootNode();
 		
 		parsedNodes.put(fileId, root);
 	}
