@@ -27,9 +27,9 @@ public class RootNode extends Node {
 		for(; i < tokens.size(); i++) {
 			Token t = tokens.get(i);
 			if(t.getType()==TokenType.DAF_CPP)
-				definitions.add(new Inline(false, t.getText()));
-			else if(t.getType()==TokenType.DAF_CPP)
-				definitions.add(new Inline(false, t.getText()));
+				definitions.add(new Inline(Inline.SOURCE, t.getText()));
+			else if(t.getType()==TokenType.DAF_HEADER)
+				definitions.add(new Inline(Inline.HEADER, t.getText()));
 		}
 		
 		return i;

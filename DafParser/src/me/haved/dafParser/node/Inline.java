@@ -2,6 +2,9 @@ package me.haved.dafParser.node;
 
 public class Inline extends Node implements Definition {
 	
+	public static final boolean HEADER = true;
+	public static final boolean SOURCE = false;
+	
 	private boolean header;
 	private String text;
 	
@@ -21,11 +24,11 @@ public class Inline extends Node implements Definition {
 	}
 	
 	public boolean isHeader() {
-		return header;
+		return header==HEADER; // I know
 	}
 	
 	public boolean isSource() {
-		return !header;
+		return header==SOURCE;
 	}
 	
 	public String getText() {
