@@ -1,9 +1,13 @@
 package me.haved.dafParser;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.util.HashMap;
 
 import me.haved.dafParser.lexical.LexicalParser;
+import me.haved.dafParser.node.Definition;
+import me.haved.dafParser.node.Inline;
 import me.haved.dafParser.node.RootNode;
 import me.haved.dafParser.semantic.SemanticParser;
 
@@ -41,8 +45,42 @@ public class ParsedInputFile {
 		parsedNodes.put(fileId, root);
 	}
 	
-	public void writeToCppAndHeader(File cppFile, File headerFile) {
+	public void writeToCppAndHeader(File cppFile, File headerFile) throws Exception {
 		logAssert(root != null, "Trying to write a non parsed daf file to .cpp and .h");
-		log(infileName, INFO, "ParsedInputFile writing to files '%s' and '%s'", cppFile.getName(), headerFile.getName());
+		log(infileName, MESSAGE, "ParsedInputFile writing to files '%s' and '%s'", cppFile.getName(), headerFile.getName());
+		
+		try (PrintWriter headerOut = new PrintWriter(new FileOutputStream(headerFile))) {
+			writeToHeader(headerOut);
+			headerOut.flush();
+			headerOut.close();
+		}
+		
+		try (PrintWriter cppOut = new PrintWriter(new FileOutputStream(cppFile))) {
+			writeToCpp(cppOut, headerFile.getName());
+			cppOut.flush();
+			cppOut.close();
+		}
+	}
+	
+	private void writeToHeader(PrintWriter out) {
+		out.println("#pragma once");
+		for(Definition definition:root.getDefinitions()) {
+			if(definition instanceof Inline) {
+				Inline code = (Inline) definition;
+				if(code.isHeader())
+					out.print(code.getText());
+			}
+		}
+	}
+	
+	private void writeToCpp(PrintWriter out, String headerName) {
+		out.printf("#include \"%s\"%n", headerName);
+		for(Definition definition:root.getDefinitions()) {
+			if(definition instanceof Inline) {
+				Inline code = (Inline) definition;
+				if(code.isSource())
+					out.print(code.getText());
+			}
+		}
 	}
 }

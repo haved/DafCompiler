@@ -19,4 +19,16 @@ public class Inline extends Node implements Definition {
 	public String compileSubnodesToString() {
 		return String.format("%s, %s", header?"Header":"Source", text);
 	}
+	
+	public boolean isHeader() {
+		return header;
+	}
+	
+	public boolean isSource() {
+		return !header;
+	}
+	
+	public String getText() {
+		return text;
+	}
 }

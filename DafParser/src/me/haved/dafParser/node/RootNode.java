@@ -1,6 +1,7 @@
 package me.haved.dafParser.node;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import me.haved.dafParser.lexical.Token;
 import me.haved.dafParser.lexical.TokenType;
@@ -49,5 +50,9 @@ public class RootNode extends Node {
 		}
 		builder.append(" )");
 		return builder.toString();
+	}
+
+	public Collection<Definition> getDefinitions() {
+		return definitions;
 	}
 }
