@@ -6,8 +6,6 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 
 import me.haved.dafParser.lexical.LexicalParser;
-import me.haved.dafParser.node.Definition;
-import me.haved.dafParser.node.Inline;
 import me.haved.dafParser.node.RootNode;
 import me.haved.dafParser.semantic.SemanticParser;
 
@@ -64,23 +62,11 @@ public class ParsedInputFile {
 	
 	private void writeToHeader(PrintWriter out) {
 		out.println("#pragma once");
-		for(Definition definition:root.getDefinitions()) {
-			if(definition instanceof Inline) {
-				Inline code = (Inline) definition;
-				if(code.isHeader())
-					out.print(code.getText());
-			}
-		}
+		root.PrintToHeaderWriter(out);
 	}
 	
 	private void writeToCpp(PrintWriter out, String headerName) {
 		out.printf("#include \"%s\"%n", headerName);
-		for(Definition definition:root.getDefinitions()) {
-			if(definition instanceof Inline) {
-				Inline code = (Inline) definition;
-				if(code.isSource())
-					out.print(code.getText());
-			}
-		}
+		root.PrintToCppWriter(out);
 	}
 }

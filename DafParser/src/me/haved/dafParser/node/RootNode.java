@@ -1,5 +1,6 @@
 package me.haved.dafParser.node;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -33,6 +34,22 @@ public class RootNode extends Node {
 		}
 		
 		return i;
+	}
+	
+	@Override
+	public void PrintToCppWriter(PrintWriter writer) {
+		for(Definition definition:definitions) {
+			definition.PrintToCppWriter(writer);
+			writer.println();
+		}
+	}
+	
+	@Override
+	public void PrintToHeaderWriter(PrintWriter writer) {
+		for(Definition definition:definitions) {
+			definition.PrintToHeaderWriter(writer);
+			writer.println();
+		}
 	}
 	
 	@Override

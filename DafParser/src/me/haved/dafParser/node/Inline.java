@@ -1,5 +1,7 @@
 package me.haved.dafParser.node;
 
+import java.io.PrintWriter;
+
 public class Inline extends Node implements Definition {
 	
 	public static final boolean HEADER = true;
@@ -11,6 +13,20 @@ public class Inline extends Node implements Definition {
 	public Inline(boolean header, String text) {
 		this.header = header;
 		this.text = text;
+	}
+	
+	@Override
+	public void PrintToCppWriter(PrintWriter writer) {
+		if(isSource()) {
+			writer.println(text);
+		}
+	}
+	
+	@Override
+	public void PrintToHeaderWriter(PrintWriter writer) {
+		if(isHeader()) {
+			writer.println(text);
+		}
 	}
 	
 	@Override
