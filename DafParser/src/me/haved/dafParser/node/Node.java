@@ -1,9 +1,8 @@
 package me.haved.dafParser.node;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
 
-import me.haved.dafParser.lexical.Token;
+import me.haved.dafParser.semantic.TokenPosition;
 
 public abstract class Node implements NodeInterface {
 	
@@ -15,8 +14,8 @@ public abstract class Node implements NodeInterface {
 		return String.format("(%s, %s)", getName(), compileSubnodesToString());
 	}
 	
-	public int FillFromTokens(ArrayList<Token> tokens, int start) {
-		return start;
+	public void FillFromTokens(TokenPosition tokens) {
+		
 	}
 	
 	public void PrintToCppWriter(PrintWriter writer) {

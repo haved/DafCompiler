@@ -22,4 +22,8 @@ public class Token {
 	public String getText() {
 		return text;
 	}
+
+	public Object getTextOrName() {
+		return text==null?type.getKeyword():text;
+	}
 }

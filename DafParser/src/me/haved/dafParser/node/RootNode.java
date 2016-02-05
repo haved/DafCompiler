@@ -2,10 +2,9 @@ package me.haved.dafParser.node;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collection;
 
-import me.haved.dafParser.lexical.Token;
-import me.haved.dafParser.lexical.TokenType;
+import me.haved.dafParser.semantic.DefinitionMaker;
+import me.haved.dafParser.semantic.TokenPosition;
 
 import static me.haved.dafParser.LogHelper.*;
 
@@ -18,22 +17,15 @@ public class RootNode extends Node {
 	}
 	
 	@Override
-	public int FillFromTokens(ArrayList<Token> tokens, int start) {
-		if(start >= tokens.size()) {
-			log(WARNING, "Node asked to look at tokens outside of list");
-			return start;
+	public void FillFromTokens(TokenPosition tokens) {
+		for (;tokens.hasMore();) {
+			Definition definition = DefinitionMaker.MakeDefinition(tokens);
+			if(definition == null)
+				log(DEBUG, "Definition returned from DefinitionMaker was null");
+			else
+				definitions.add(definition);
+			tokens.next();
 		}
-		
-		int i = start;
-		for(; i < tokens.size(); i++) {
-			Token t = tokens.get(i);
-			if(t.getType()==TokenType.DAF_CPP)
-				definitions.add(new Inline(Inline.SOURCE, t.getText()));
-			else if(t.getType()==TokenType.DAF_HEADER)
-				definitions.add(new Inline(Inline.HEADER, t.getText()));
-		}
-		
-		return i;
 	}
 	
 	@Override
@@ -69,7 +61,7 @@ public class RootNode extends Node {
 		return builder.toString();
 	}
 
-	public Collection<Definition> getDefinitions() {
+	public ArrayList<Definition> getDefinitions() {
 		return definitions;
 	}
 }

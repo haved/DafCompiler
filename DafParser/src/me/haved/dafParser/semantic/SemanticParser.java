@@ -20,8 +20,9 @@ public class SemanticParser {
 		logAssert(tokens != null, "The tokens passed to the Semantic Parser were null");
 		log(MESSAGE, "Starting semantic parsing with %d tokens", tokens.size());
 		node = new RootNode();
-		int end = node.FillFromTokens(tokens, 0);
-		if(end < tokens.size()) {
+		TokenPosition position = new TokenPosition(tokens);
+		node.FillFromTokens(position);
+		if(position.position < tokens.size()) {
 			log(WARNING, "It would seem not all tokens were read!");
 		}
 		
