@@ -50,4 +50,14 @@ public class Inline extends Node implements Definition {
 	public String getText() {
 		return text;
 	}
+
+	@Override
+	public boolean isPublic() {
+		return false;
+	}
+
+	@Override
+	public String getDefinitionName() {
+		return null; //Only used to make sure identifiers are unique.
+	}
 }

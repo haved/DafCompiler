@@ -23,7 +23,11 @@ public class Token {
 		return text;
 	}
 
-	public Object getTextOrName() {
+	public String getTextOrName() {
 		return text==null?type.getKeyword():text;
+	}
+	
+	public String getErrorLoc() {
+		return location.getErrorString();
 	}
 }

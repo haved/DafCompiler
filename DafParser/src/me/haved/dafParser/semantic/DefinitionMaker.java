@@ -15,16 +15,26 @@ public class DefinitionMaker {
 			return null;
 		}
 		
+		boolean pub = false;
+		
 		for(; tokens.hasMore(); tokens.next()) {
 			Token t = tokens.current();
 			if(t.getType()==TokenType.DAF_CPP)
 				return new Inline(Inline.SOURCE, t.getText());
 			else if(t.getType()==TokenType.DAF_HEADER)
 				return new Inline(Inline.HEADER, t.getText());
+			else if(t.getType()==TokenType.PUB) {
+				if(pub) {
+					log(t.getErrorLoc(), ERROR, "The word pub was found twice in a definition");
+					return null;
+				} else {
+					pub = true;
+				}
+			}
 		}
 		
 		Token finalToken = tokens.get(tokens.count()-1);
-		log(finalToken.getLocation().getErrorString(), ERROR, "Expected something after '%s'", finalToken.getTextOrName());
+		log(finalToken.getErrorLoc(), ERROR, "Expected something after '%s'", finalToken.getTextOrName());
 		return null;
 	}
 }
