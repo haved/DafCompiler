@@ -17,7 +17,8 @@ public class ParsedInputFile {
 	private String infileName;
 	
 	private RootNode root;
-	private ArrayList<ParsedInputFile> includedFiles; 
+	private ArrayList<ParsedInputFile> importedFiles;
+	private ArrayList<ParsedInputFile> usedFiles;
 	
 	public ParsedInputFile() {
 		logAssert(false, "Empty ParsedInputFile constructor called");
@@ -35,7 +36,9 @@ public class ParsedInputFile {
 		LexicalParser lexer = new LexicalParser(inputFile, infileName);
 		lexer.parse();
 		SemanticParser semantic = new SemanticParser(lexer.getTokens());
-		includedFiles = semantic.parseIncludedFiles(inputFile.getParent());
+		semantic.parseIncludedFiles(inputFile.getParent());
+		importedFiles = semantic.getImportedFiles();
+		usedFiles = semantic.getUsedFiles();
 		semantic.parse();
 		root = semantic.getRootNode();
 	}
@@ -63,6 +66,14 @@ public class ParsedInputFile {
 	
 	public boolean isParsed() {
 		return root != null;
+	}
+	
+	public ArrayList<ParsedInputFile> getImportedFiles() {
+		return importedFiles;
+	}
+	
+	public ArrayList<ParsedInputFile> getUsedFiles() {
+		return usedFiles;
 	}
 	
 	private void writeToHeader(PrintWriter out) {

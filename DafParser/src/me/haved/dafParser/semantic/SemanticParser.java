@@ -15,13 +15,14 @@ public class SemanticParser {
 	private ArrayList<Token> tokens;
 	private RootNode node;
 	
+	private ArrayList<ParsedInputFile> importedFiles = new ArrayList<>();
+	private ArrayList<ParsedInputFile> usedFiles	 = new ArrayList<>();
+
 	public SemanticParser(ArrayList<Token> tokens) {
 		this.tokens = tokens;
 	}
 	
-	public ArrayList<ParsedInputFile> parseIncludedFiles(String folderName) {
-		ArrayList<ParsedInputFile> includedFiles = new ArrayList<>();
-		
+	public void parseIncludedFiles(String folderName) throws Exception {
 		for(int i = 0; i < tokens.size(); i++) {
 			TokenType type = tokens.get(i).getType();
 			if(type==TokenType.DAF_IMPORT | type==TokenType.DAF_USING) {
@@ -29,12 +30,18 @@ public class SemanticParser {
 				ParsedInputFile file = ParsedInputFile.makeInputFileInstance(new File(String.format("%s/%s", folderName, token.getText())), token.getText());
 				if(file==null)
 					continue;
-				
+				file.parse();
 				
 			}
 		}
-		
-		return includedFiles;
+	}
+	
+	public ArrayList<ParsedInputFile> getImportedFiles() {
+		return importedFiles;
+	}
+	
+	public ArrayList<ParsedInputFile> getUsedFiles() {
+		return usedFiles;
 	}
 	
 	public void parse() {
