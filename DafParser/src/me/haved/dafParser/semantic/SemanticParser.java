@@ -1,8 +1,11 @@
 package me.haved.dafParser.semantic;
 
+import java.io.File;
 import java.util.ArrayList;
 
+import me.haved.dafParser.ParsedInputFile;
 import me.haved.dafParser.lexical.Token;
+import me.haved.dafParser.lexical.TokenType;
 import me.haved.dafParser.node.RootNode;
 
 import static me.haved.dafParser.LogHelper.*;
@@ -14,6 +17,24 @@ public class SemanticParser {
 	
 	public SemanticParser(ArrayList<Token> tokens) {
 		this.tokens = tokens;
+	}
+	
+	public ArrayList<ParsedInputFile> parseIncludedFiles(String folderName) {
+		ArrayList<ParsedInputFile> includedFiles = new ArrayList<>();
+		
+		for(int i = 0; i < tokens.size(); i++) {
+			TokenType type = tokens.get(i).getType();
+			if(type==TokenType.DAF_IMPORT | type==TokenType.DAF_USING) {
+				Token token = tokens.get(i);
+				ParsedInputFile file = ParsedInputFile.makeInputFileInstance(new File(String.format("%s/%s", folderName, token.getText())), token.getText());
+				if(file==null)
+					continue;
+				
+				
+			}
+		}
+		
+		return includedFiles;
 	}
 	
 	public void parse() {

@@ -17,6 +17,7 @@ public class ParsedInputFile {
 	private String infileName;
 	
 	private RootNode root;
+	private ArrayList<ParsedInputFile> includedFiles; 
 	
 	public ParsedInputFile() {
 		logAssert(false, "Empty ParsedInputFile constructor called");
@@ -34,20 +35,13 @@ public class ParsedInputFile {
 		LexicalParser lexer = new LexicalParser(inputFile, infileName);
 		lexer.parse();
 		SemanticParser semantic = new SemanticParser(lexer.getTokens());
+		includedFiles = semantic.parseIncludedFiles(inputFile.getParent());
 		semantic.parse();
 		root = semantic.getRootNode();
-		ArrayList<ParsedInputFile> includedFiles = root.getIncludedFiles();
-		for(int i = 0; i < includedFiles.size(); i++) {
-			ParsedInputFile file = includedFiles.get(i); //Every included file
-			if(!file.isParsed()) {
-				file.parse();
-			}
-			for(ParsedInputFile subFile:file.root.getIncludedFiles()) { //Every file included by every included file in this file
-				if(!includedFiles.contains(subFile)) { //If the included file's included file isn't included by this file, add it
-					includedFiles.add(subFile);
-				}
-			}
-		}
+	}
+	
+	public void checkSyntax() {
+		
 	}
 	
 	public void writeToCppAndHeader(File cppFile, File headerFile) throws Exception {
