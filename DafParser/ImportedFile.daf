@@ -1,0 +1,6 @@
+pub let tralle:=5
+
+let hei:=4;
+pub func testFunc() -> int{
+	return hei;
+}

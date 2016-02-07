@@ -3,6 +3,7 @@ package me.haved.dafParser.node;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import me.haved.dafParser.ParsedInputFile;
 import me.haved.dafParser.semantic.DefinitionMaker;
 import me.haved.dafParser.semantic.TokenPosition;
 
@@ -11,9 +12,11 @@ import static me.haved.dafParser.LogHelper.*;
 public class RootNode extends Node {
 
 	private ArrayList<Definition> definitions;
+	private ArrayList<ParsedInputFile> includedFiles;
 	
 	public RootNode() {
 		definitions = new ArrayList<>();
+		includedFiles = new ArrayList<>();
 	}
 	
 	@Override
@@ -60,7 +63,11 @@ public class RootNode extends Node {
 		builder.append(" )");
 		return builder.toString();
 	}
-
+	
+	public ArrayList<ParsedInputFile> getIncludedFiles() {
+		return includedFiles;
+	}
+	
 	public ArrayList<Definition> getDefinitions() {
 		return definitions;
 	}

@@ -1,3 +1,5 @@
+#import "ImportedFile.daf"
+
 let mut ball:= 0;
 let test:= 1.2f;
 let pallPointer:=&mut ball;
