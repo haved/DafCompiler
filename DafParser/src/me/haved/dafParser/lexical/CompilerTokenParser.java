@@ -84,6 +84,7 @@ public class CompilerTokenParser extends TokenParser {
 		} else if(parseStyle == FILENAME_PARSE) {
 			if(isNewline(c))
 				return DONE_PARSING;
+			word.append(c);
 			return CONTINUE_PARSING;
 		}
 		return ERROR_PARSING; //Why are you here??
@@ -95,10 +96,25 @@ public class CompilerTokenParser extends TokenParser {
 			String inline = word.toString().substring(0, word.length()-INLINE_PARSE_END.length());
 			return new Token(parseSubType == INLINE_TYPE_CPP ? TokenType.DAF_CPP : TokenType.DAF_HEADER, getTokenFileLocation(), inline);
 		} else if(parseStyle == FILENAME_PARSE) {
-			String file = word.toString();
-			int firstLetter = file.indexOf('\"')+1;
-			int lastLetter = file.indexOf('\"', firstLetter);
-			String name = file.substring(firstLetter, lastLetter);
+			String file = word.toString().trim();
+			int firstH = file.indexOf('\"');
+			if(firstH < 0) {
+				log(getTokenFileLocation().getErrorString(), ERROR, "No \"quote\" symbol was found in import/using statement!");
+				return null;
+			}
+			if(firstH > 0) {
+				log(getTokenFileLocation().getErrorString(), WARNING, "Junk found before file in import/using statement");
+			}
+			int nextH = file.indexOf('\"', firstH);
+			if(nextH < 0) {
+				log(getTokenFileLocation().getErrorString(), ERROR, "Only one \"quote\" symbol was found in import/using statement!");
+				return null;
+			}
+			if(nextH<file.length()-1) {
+				log(getTokenFileLocation().getErrorString(), WARNING, "Junk found after import/using statement");
+			}
+			
+			String name = file.substring(firstH+1, nextH);
 			log(getTokenFileLocation().getErrorString(), INFO, "Parsed file name: '%s'", name);
 			return new Token(parseSubType == FILE_TYPE_IMPORT ? TokenType.DAF_IMPORT : TokenType.DAF_USING, getTokenFileLocation(), name);
 		}
