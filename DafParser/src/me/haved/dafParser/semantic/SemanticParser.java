@@ -27,11 +27,15 @@ public class SemanticParser {
 			TokenType type = tokens.get(i).getType();
 			if(type==TokenType.DAF_IMPORT | type==TokenType.DAF_USING) {
 				Token token = tokens.get(i);
-				ParsedInputFile file = ParsedInputFile.makeInputFileInstance(new File(String.format("%s/%s", folderName, token.getText())), token.getText());
+				ParsedInputFile file = ParsedInputFile.makeInputFileInstance(new File(String.format("%s/%s", folderName, token.getText())), token.getText(), false);
 				if(file==null)
 					continue;
+				if(file.isParsing() && type==TokenType.DAF_IMPORT) { //Oh shit! (TM)
+					log(token.getErrorLoc(), ERROR, "The file %s is already parsing when imported. Not good, man");
+					continue;
+				}
 				file.parse();
-				
+				//Add the file and all sub-files to the thing.
 			}
 		}
 	}

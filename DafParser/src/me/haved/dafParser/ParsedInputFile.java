@@ -13,26 +13,31 @@ import me.haved.dafParser.semantic.SemanticParser;
 import static me.haved.dafParser.LogHelper.*;
 
 public class ParsedInputFile {
+	
+	private static final int NOT_STARTED = 0;
+	private static final int STARTED = 1;
+	private static final int DONE = 0;
+	
 	private File inputFile;
 	private String infileName;
 	
 	private RootNode root;
 	private ArrayList<ParsedInputFile> importedFiles;
 	private ArrayList<ParsedInputFile> usedFiles;
+	private boolean parseItAll;
 	
-	public ParsedInputFile() {
-		logAssert(false, "Empty ParsedInputFile constructor called");
-	}
+	private int parseProgress = NOT_STARTED;
 	
-	private ParsedInputFile(File inputFile, String infileName) {
+	private ParsedInputFile(File inputFile, String infileName, boolean parseItAll) {
 		this.inputFile = inputFile;
 		this.infileName = infileName;
 	}
 	
 	public void parse() throws Exception {
-		logAssert(!isParsed(), "Trying to parse an already parsed file!");
+		logAssert(parseProgress!=NOT_STARTED, "Trying to parse an already parsing/parsed file!");
 		logAssert(inputFile.isFile(), "ParsedInputFile.parse() got a file that doesn't exist! Should never happen!");
 		
+		parseProgress = STARTED;
 		LexicalParser lexer = new LexicalParser(inputFile, infileName);
 		lexer.parse();
 		SemanticParser semantic = new SemanticParser(lexer.getTokens());
@@ -41,6 +46,7 @@ public class ParsedInputFile {
 		usedFiles = semantic.getUsedFiles();
 		semantic.parse();
 		root = semantic.getRootNode();
+		parseProgress = DONE;
 	}
 	
 	public void checkSyntax() {
@@ -64,8 +70,12 @@ public class ParsedInputFile {
 		}
 	}
 	
+	public boolean isParsing() {
+		return parseProgress == STARTED;
+	}
+	
 	public boolean isParsed() {
-		return root != null;
+		return parseProgress == DONE;
 	}
 	
 	public ArrayList<ParsedInputFile> getImportedFiles() {
@@ -89,14 +99,14 @@ public class ParsedInputFile {
 	
 	private static final HashMap<String, ParsedInputFile> parsedFiles = new HashMap<String, ParsedInputFile>();
 	
-	public static ParsedInputFile makeInputFileInstance(File inputFile, String infileName) {
+	public static ParsedInputFile makeInputFileInstance(File inputFile, String infileName, boolean parseItAll) {
 		try {
 			String infileId = inputFile.getCanonicalPath();
 			if(parsedFiles.containsKey(infileId)) {
 				return parsedFiles.get(infileId);
 			}
 			else {
-				ParsedInputFile instance = new ParsedInputFile(inputFile, infileName);
+				ParsedInputFile instance = new ParsedInputFile(inputFile, infileName, parseItAll);
 				parsedFiles.put(infileId, instance);
 				return instance;
 			}

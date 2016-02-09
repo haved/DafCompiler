@@ -26,7 +26,7 @@ public enum TokenType {
 	USIZE("usize"), BOOLEAN("boolean"), FLOAT("float"), DOUBLE("double"),
 	
 	ADDRESS("&"), SHARED("shared"), NEW("new"), DELETE("delete"),
-	LEFT_BRACKET("["),RIGHT_BRACKET("]"),BRACKET_PAIR("[]"), DUMB("dumb"),
+	LEFT_BRACKET("["),RIGHT_BRACKET("]"), DUMB("dumb"),
 	
 	IDENTIFIER("identifier", true), INTEGER_LITERAL("integer_literal", true),
 	FLOAT_LITERAL("float_literal", true), DOUBLE_LITERAL("double_literal", true),

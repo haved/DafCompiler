@@ -21,6 +21,10 @@ public class WordTokenParser extends TokenParser {
 		instantWords.add("*=");
 		instantWords.add("/=");
 		instantWords.add("%=");
+		instantWords.add("(");
+		instantWords.add(")");
+		instantWords.add("[");
+		instantWords.add("]");
 		
 		requiredFollowups.put("=", "=");
 		requiredFollowups.put("+", "=");
