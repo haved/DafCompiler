@@ -88,7 +88,7 @@ public class DafParser {
 				log(FATAL_ERROR, "The output directory '%s' is not a directory!", outputDir.getAbsolutePath());
 			}
 			
-			ParsedInputFile parsedInputFile = ParsedInputFile.makeInputFileInstance(inputFile, inputFilePath); //file name, really
+			ParsedInputFile parsedInputFile = ParsedInputFile.makeInputFileInstance(inputFile, inputFilePath, true); //file name, really
 			
 			parsedInputFile.parse();
 			

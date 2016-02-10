@@ -31,6 +31,7 @@ public class ParsedInputFile {
 	private ParsedInputFile(File inputFile, String infileName, boolean parseItAll) {
 		this.inputFile = inputFile;
 		this.infileName = infileName;
+		this.parseItAll = parseItAll;
 	}
 	
 	public void parse() throws Exception {
@@ -44,7 +45,13 @@ public class ParsedInputFile {
 		semantic.parseIncludedFiles(inputFile.getParent());
 		importedFiles = semantic.getImportedFiles();
 		usedFiles = semantic.getUsedFiles();
-		semantic.parse();
+		if(importedFiles.contains(this))
+			log(infileName, ERROR, "This file was imported by one of it's imports. Doesn't work. Try \"#using\" instead.");
+		terminateIfErrorsLogged();
+		if(parseItAll)
+			semantic.parseAll();
+		else 
+			semantic.parsePubDefinitions();
 		root = semantic.getRootNode();
 		parseProgress = DONE;
 	}

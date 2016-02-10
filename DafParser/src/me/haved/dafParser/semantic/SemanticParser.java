@@ -20,9 +20,11 @@ public class SemanticParser {
 
 	public SemanticParser(ArrayList<Token> tokens) {
 		this.tokens = tokens;
+		importedFiles = new ArrayList<>();
+		usedFiles = new ArrayList<>();
 	}
 	
-	public void parseIncludedFiles(String folderName) throws Exception {
+	public void parseIncludedFiles(String folderName) throws Exception { //Another use for in scope functions in here :D
 		for(int i = 0; i < tokens.size(); i++) {
 			TokenType type = tokens.get(i).getType();
 			if(type==TokenType.DAF_IMPORT | type==TokenType.DAF_USING) {
@@ -30,14 +32,44 @@ public class SemanticParser {
 				ParsedInputFile file = ParsedInputFile.makeInputFileInstance(new File(String.format("%s/%s", folderName, token.getText())), token.getText(), false);
 				if(file==null)
 					continue;
-				if(file.isParsing() && type==TokenType.DAF_IMPORT) { //Oh shit! (TM)
-					log(token.getErrorLoc(), ERROR, "The file %s is already parsing when imported. Not good, man");
-					continue;
+				if(file.isParsing() & type==TokenType.DAF_IMPORT) {
+						log(token.getErrorLoc(), ERROR, "The file %s is already parsing when imported. Not good, man");
 				}
-				file.parse();
-				//Add the file and all sub-files to the thing.
+				else if(!file.isParsing())
+					file.parse();
+				if(!file.isParsed()) //Error
+					continue;
+				
+				tryAddParsedFile(file, type==TokenType.DAF_IMPORT ? IMPORT : USING); //Type says if file was imported or used
+				
+				ArrayList<ParsedInputFile> fileImports = file.getImportedFiles();
+				ArrayList<ParsedInputFile> fileUsings  = file.getUsedFiles();
+				
+				for(ParsedInputFile imported:fileImports) { //For each file the included file has imported
+					tryAddParsedFile(imported, type==TokenType.DAF_IMPORT ? IMPORT : USING);
+				}
+				for(ParsedInputFile used:fileUsings) { //For each file the included file has used
+					tryAddParsedFile(used, USING);
+				}
 			}
 		}
+	}
+	
+	private static final int IMPORT = 0;
+	private static final int USING = 1;
+	public void tryAddParsedFile(ParsedInputFile file, int includeType) {
+		if(includeType == IMPORT) {
+			if(!importedFiles.contains(file))
+				importedFiles.add(file);
+			if(usedFiles.contains(file)) // A file can't be both imported and used. Import trumps used
+				usedFiles.remove(file); 
+		}
+		else if(includeType == USING) {
+			if(!importedFiles.contains(file) && !usedFiles.contains(file))
+				usedFiles.add(file);
+		}
+		else
+			logAssert(false, "Unkown include type in Semantic Parser");
 	}
 	
 	public ArrayList<ParsedInputFile> getImportedFiles() {
@@ -48,9 +80,20 @@ public class SemanticParser {
 		return usedFiles;
 	}
 	
-	public void parse() {
+	public void parsePubDefinitions() {
 		logAssert(tokens != null, "The tokens passed to the Semantic Parser were null");
-		log(MESSAGE, "Starting semantic parsing with %d tokens", tokens.size());
+		log(MESSAGE, "Starting semantic parsing of public declarations with %d tokens", tokens.size());
+		
+		node = new RootNode();
+		
+		log(MESSAGE, node.compileSubnodesToString());
+		terminateIfErrorsLogged();
+		log(MESSAGE, "Finished semantic parsing of public declarations");
+	}
+	
+	public void parseAll() {
+		logAssert(tokens != null, "The tokens passed to the Semantic Parser were null");
+		log(MESSAGE, "Starting semantic parsing of whole file with %d tokens", tokens.size());
 		node = new RootNode();
 		TokenPosition position = new TokenPosition(tokens);
 		node.FillFromTokens(position);
@@ -59,9 +102,8 @@ public class SemanticParser {
 		}
 		
 		log(MESSAGE, node.compileSubnodesToString());
-		
 		terminateIfErrorsLogged();
-		log(MESSAGE, "Finished semantic parsing");
+		log(MESSAGE, "Finished semantic parsing of whole file");
 	}
 	
 	public RootNode getRootNode() {
