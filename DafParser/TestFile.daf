@@ -16,6 +16,10 @@ let mut bull=shit.shat;
 
 extern field BALLE;
 
+pub func test() {
+
+}
+
 ##cpp
 #include <iostream>
 int main(int argv, char** argc) {

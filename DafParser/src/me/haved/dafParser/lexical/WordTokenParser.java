@@ -129,8 +129,8 @@ public class WordTokenParser extends TokenParser {
 		return (c >= 'A' && c<='Z') || (c >='a' && c<='z') || c == '_';
 	}
 	
-	public static boolean isLegalKeywordChar(char c) {
-		return (c>='$' && c<='_' && c!='"' && c!='#' && c!='\'') || c=='!';
+	public static boolean isLegalKeywordChar(char c) { //Any char that is legal in any token. Letters and underscores are already checked
+		return (c>='$' && c<='_' && c!='"' && c!='#' && c!='\'') || c=='!' || (c>='{' && c<='~');
 	}
 	
 	public static boolean isIdentifierChar(char c) {
