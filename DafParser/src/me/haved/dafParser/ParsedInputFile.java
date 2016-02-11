@@ -35,6 +35,8 @@ public class ParsedInputFile {
 	}
 	
 	public void parse() throws Exception {
+		log(infileName, INFO, "Parsing a file!");
+		
 		if(parseProgress!=NOT_STARTED)
 			log(infileName, FATAL_ERROR, "Trying to parse an already parsing/parsed file!");
 		logAssert(inputFile.isFile(), "ParsedInputFile.parse() got a file that doesn't exist! Should never happen!");
@@ -43,7 +45,8 @@ public class ParsedInputFile {
 		LexicalParser lexer = new LexicalParser(inputFile, infileName);
 		lexer.parse();
 		SemanticParser semantic = new SemanticParser(lexer.getTokens());
-		semantic.parseIncludedFiles(inputFile.getParent());
+		String absolutePath = inputFile.getAbsolutePath();
+		semantic.parseIncludedFiles(absolutePath.substring(0, absolutePath.lastIndexOf(File.separatorChar)));
 		importedFiles = semantic.getImportedFiles();
 		usedFiles = semantic.getUsedFiles();
 		if(importedFiles.contains(this))

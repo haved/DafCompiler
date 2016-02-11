@@ -31,14 +31,12 @@ public class SemanticParser {
 				Token token = tokens.get(i);
 				File include = new File(String.format("%s/%s", folderName, token.getText()));
 				if(!include.isFile()) {
-					log(token.getErrorLoc(), ERROR, "File not found: '%s'", token.getText());
+					log(token.getErrorLoc(), ERROR, "File not found: '%s' (%s)", token.getText(), include.getPath());
+					continue;
 				}
 				ParsedInputFile file = ParsedInputFile.makeInputFileInstance(include, token.getText(), false);
 				if(file==null)
 					continue;
-				if(file.isParsing() & type==TokenType.DAF_IMPORT) {
-						log(token.getErrorLoc(), ERROR, "The file %s is already parsing when imported. Not good, man");
-				}
 				else if(!file.isParsing())
 					file.parse();
 				if(!file.isParsed()) //Error

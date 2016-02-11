@@ -115,7 +115,6 @@ public class CompilerTokenParser extends TokenParser {
 			}
 			
 			String name = file.substring(firstH+1, nextH);
-			log(getTokenFileLocation().getErrorString(), INFO, "Parsed file name: '%s'", name);
 			return new Token(parseSubType == FILE_TYPE_IMPORT ? TokenType.DAF_IMPORT : TokenType.DAF_USING, getTokenFileLocation(), name);
 		}
 		log(getTokenFileLocation().getErrorString(), ERROR, "Tried to get a token from unfinished CompilerTokenParser!");
