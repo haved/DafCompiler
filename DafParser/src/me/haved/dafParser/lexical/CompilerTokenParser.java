@@ -12,12 +12,18 @@ public class CompilerTokenParser extends TokenParser {
 	
 	private static final int WORD_SEARCH_PARSE = 0;
 	private static final int INLINE_PARSE = 1;
-	private static final int INLINE_TYPE_CPP = 0;
-	private static final int INLINE_TYPE_HEADER = 1;
+	private static final int FILENAME_PARSE = 2;
 	
+	private static final int NO_PARSE_SUB_TYPE = 0;
+	private static final int INLINE_TYPE_CPP = 1;
+	private static final int INLINE_TYPE_HEADER = 2;
+	private static final int FILE_TYPE_IMPORT = 1;
+	private static final int FILE_TYPE_USING = 2;
+	
+	//Happens later anyways
 	private int parseStyle = WORD_SEARCH_PARSE;
-	private int inlineParseType = -1;
-	private int inlineParseEnd = 0;
+	private int parseSubType = NO_PARSE_SUB_TYPE;
+	private int inlineParseEnd = 0; //How much of the ##end keyword has been parsed
 	
 	@Override
 	protected boolean tryStartParsing(char c) {
@@ -25,7 +31,7 @@ public class CompilerTokenParser extends TokenParser {
 			word.setLength(1);
 			word.setCharAt(0, c);
 			parseStyle = WORD_SEARCH_PARSE;
-			inlineParseType = -1;
+			parseSubType = NO_PARSE_SUB_TYPE;
 			inlineParseEnd = 0;
 			return true;
 		}
@@ -35,28 +41,29 @@ public class CompilerTokenParser extends TokenParser {
 	@Override
 	public int parse(char c, int line, int col) {
 		if(parseStyle == WORD_SEARCH_PARSE) {
-			if(word.length()==1) {
-				if(!isCharCompilerPound(c)) {
-					log(getTokenFileLocation().getErrorString(), ERROR, "Only one pound symbol found. Daf uses double!");
-					return ERROR_PARSING;
-				}
-				word.append(c);
-				return CONTINUE_PARSING;
-			}
-			
 			if(TokenParser.isWhitespace(c)) { //The type of compiler message is decided
 				String keyword = word.toString();
 				if(keyword.equals(TokenType.DAF_CPP.getKeyword())) {
 					log(getTokenFileLocation().getErrorString(), TOKEN_DEBUG, "Started inline cpp.");
 					word.setLength(0);
 					parseStyle = INLINE_PARSE;
-					inlineParseType = INLINE_TYPE_CPP;
+					parseSubType = INLINE_TYPE_CPP;
 				}
 				else if(keyword.equals(TokenType.DAF_HEADER.getKeyword())) {
 					log(getTokenFileLocation().getErrorString(), TOKEN_DEBUG, "Started inline header code.");
 					word.setLength(0);
 					parseStyle = INLINE_PARSE;
-					inlineParseType = INLINE_TYPE_HEADER;
+					parseSubType = INLINE_TYPE_HEADER;
+				}
+				else if(keyword.equals(TokenType.DAF_IMPORT.getKeyword())) {
+					word.setLength(0);
+					parseStyle = FILENAME_PARSE;
+					parseSubType = FILE_TYPE_IMPORT;
+				}
+				else if(keyword.equals(TokenType.DAF_USING.getKeyword())) {
+					word.setLength(0);
+					parseStyle = FILENAME_PARSE;
+					parseSubType = FILE_TYPE_USING;
 				}
 				else {
 					log(getTokenFileLocation().getErrorString(), ERROR, "'%s' Not a valid compiler message at this point.", keyword);
@@ -74,6 +81,10 @@ public class CompilerTokenParser extends TokenParser {
 			} else
 				inlineParseEnd = 0;
 			return CONTINUE_PARSING; //If we quit as soon as the 'd' in '##end' is met, it is parsed as an identifier.
+		} else if(parseStyle == FILENAME_PARSE) {
+			if(isNewline(c))
+				return DONE_PARSING;
+			return CONTINUE_PARSING;
 		}
 		return ERROR_PARSING; //Why are you here??
 	}
@@ -82,7 +93,14 @@ public class CompilerTokenParser extends TokenParser {
 	public Token getReturnedToken() {
 		if(parseStyle == INLINE_PARSE) {
 			String inline = word.toString().substring(0, word.length()-INLINE_PARSE_END.length());
-			return new Token(inlineParseType == INLINE_TYPE_CPP ? TokenType.DAF_CPP : TokenType.DAF_HEADER, getTokenFileLocation(), inline);
+			return new Token(parseSubType == INLINE_TYPE_CPP ? TokenType.DAF_CPP : TokenType.DAF_HEADER, getTokenFileLocation(), inline);
+		} else if(parseStyle == FILENAME_PARSE) {
+			String file = word.toString();
+			int firstLetter = file.indexOf('\"')+1;
+			int lastLetter = file.indexOf('\"', firstLetter);
+			String name = file.substring(firstLetter, lastLetter);
+			log(getTokenFileLocation().getErrorString(), INFO, "Parsed file name: '%s'", name);
+			return new Token(parseSubType == FILE_TYPE_IMPORT ? TokenType.DAF_IMPORT : TokenType.DAF_USING, getTokenFileLocation(), name);
 		}
 		log(getTokenFileLocation().getErrorString(), ERROR, "Tried to get a token from unfinished CompilerTokenParser!");
 		return null;

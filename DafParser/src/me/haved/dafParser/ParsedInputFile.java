@@ -35,7 +35,8 @@ public class ParsedInputFile {
 	}
 	
 	public void parse() throws Exception {
-		logAssert(parseProgress!=NOT_STARTED, "Trying to parse an already parsing/parsed file!");
+		if(parseProgress!=NOT_STARTED)
+			log(infileName, FATAL_ERROR, "Trying to parse an already parsing/parsed file!");
 		logAssert(inputFile.isFile(), "ParsedInputFile.parse() got a file that doesn't exist! Should never happen!");
 		
 		parseProgress = STARTED;

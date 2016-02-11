@@ -14,6 +14,8 @@ let mut bull=shit.shat;
 #define BALLE 5
 ##end
 
+extern field BALLE;
+
 ##cpp
 #include <iostream>
 int main(int argv, char** argc) {

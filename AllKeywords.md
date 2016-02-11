@@ -4,9 +4,9 @@ This is a list of all the keywords you find in daf. The file ParsingNodes.md sho
 #### Compiler messages
 * **#import** "File.daf"	Includes File.h in the header.
 * **#using** "File.daf"		Includes File.h in the implementation file.
-* **#cpp**		 						Starts cpp mode that will be put directly into the source file.
-* **#header**	Starts cpp mode that instead will be put in the header.
-* **#end**								Ends cpp mode for both #cpp and #header.
+* **##cpp**		 						Starts cpp mode that will be put directly into the source file.
+* **##header**	Starts cpp mode that instead will be put in the header.
+* **##end**								Ends cpp mode for both #cpp and #header.
 
 #### Extern
 * **extern func** *MyFunc* Makes use of the c++ function "MyFunc" possible.
