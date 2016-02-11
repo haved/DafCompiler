@@ -105,7 +105,7 @@ public class CompilerTokenParser extends TokenParser {
 			if(firstH > 0) {
 				log(getTokenFileLocation().getErrorString(), WARNING, "Junk found before file in import/using statement");
 			}
-			int nextH = file.indexOf('\"', firstH);
+			int nextH = file.indexOf('\"', firstH+1);
 			if(nextH < 0) {
 				log(getTokenFileLocation().getErrorString(), ERROR, "Only one \"quote\" symbol was found in import/using statement!");
 				return null;
