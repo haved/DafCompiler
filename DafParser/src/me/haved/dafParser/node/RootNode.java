@@ -3,7 +3,6 @@ package me.haved.dafParser.node;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import me.haved.dafParser.lexical.Token;
 import me.haved.dafParser.lexical.TokenType;
 import me.haved.dafParser.semantic.DefinitionMaker;
 import me.haved.dafParser.semantic.TokenPosition;
