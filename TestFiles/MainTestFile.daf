@@ -1,0 +1,24 @@
+#import "ImportedFile.daf"
+#using "UsedFile.daf"
+
+pub func Stoopid()->&mut UsedClass {
+	UsedFunction();
+	return null;
+}
+
+let a:=5;
+let uncertain klasse:ImportedClass;
+pub let mut klassePeker:&UsedClass=NULL;
+
+pub func main() -> int {
+	Stoopid();
+	ImportedFunc();
+	klasse:ImportedClass("Wat?");
+	let usedKlasse:UsedClass("WTF???");
+	klassePeker = &usedKlasse;
+}
+
+pub func DoSomething() {
+	
+}
+
