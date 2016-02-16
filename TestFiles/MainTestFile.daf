@@ -1,6 +1,8 @@
 #import "ImportedFile.daf"
 #using "UsedFile.daf"
 
+#import <iostream>
+
 pub func Stoopid()->&mut UsedClass {
 	UsedFunction();
 	return null;
@@ -9,6 +11,7 @@ pub func Stoopid()->&mut UsedClass {
 let a:=5;
 let uncertain klasse:ImportedClass;
 pub let mut klassePeker:&UsedClass=NULL;
+
 
 pub func main() -> int {
 	Stoopid();
@@ -19,6 +22,6 @@ pub func main() -> int {
 }
 
 pub func DoSomething() {
-	
+	printf("Halla, bolle");
 }
 
