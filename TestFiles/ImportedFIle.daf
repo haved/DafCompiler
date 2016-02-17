@@ -2,6 +2,9 @@
 
 pub class ImportedClass {
 	b:int;
+	pub method Hi() -> &ImportedClass {
+		
+	}
 }
 
 pub func ImportedFunction() {
