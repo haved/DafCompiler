@@ -3,7 +3,6 @@ package me.haved.dafParser;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import me.haved.dafParser.lexical.LexicalParser;
@@ -22,8 +21,6 @@ public class ParsedInputFile {
 	private String infileName;
 	
 	private RootNode root;
-	private ArrayList<ParsedInputFile> importedFiles;
-	private ArrayList<ParsedInputFile> usedFiles;
 	private boolean parseItAll;
 	
 	private int parseProgress = NOT_STARTED;
@@ -47,10 +44,6 @@ public class ParsedInputFile {
 		SemanticParser semantic = new SemanticParser(lexer.getTokens());
 		String absolutePath = inputFile.getAbsolutePath();
 		semantic.parseIncludedFiles(absolutePath.substring(0, absolutePath.lastIndexOf(File.separatorChar)));
-		importedFiles = semantic.getImportedFiles();
-		usedFiles = semantic.getUsedFiles();
-		if(importedFiles.contains(this))
-			log(infileName, ERROR, "This file was imported by one of it's imports. Doesn't work. Try \"#using\" instead.");
 		terminateIfErrorsLogged();
 		if(parseItAll)
 			semantic.parseAll();
@@ -89,14 +82,6 @@ public class ParsedInputFile {
 		return parseProgress == DONE;
 	}
 	
-	public ArrayList<ParsedInputFile> getImportedFiles() {
-		return importedFiles;
-	}
-	
-	public ArrayList<ParsedInputFile> getUsedFiles() {
-		return usedFiles;
-	}
-	
 	private void writeToHeader(PrintWriter out) {
 		out.println("#pragma once");
 		root.PrintToHeaderWriter(out);
@@ -106,7 +91,6 @@ public class ParsedInputFile {
 		out.printf("#include \"%s\"%n", headerName);
 		root.PrintToCppWriter(out);
 	}
-	
 	
 	private static final HashMap<String, ParsedInputFile> parsedFiles = new HashMap<String, ParsedInputFile>();
 	
