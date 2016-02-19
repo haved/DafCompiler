@@ -16,6 +16,7 @@ Written down do avoid later realizations of self incompetance
  * Parse the file as **IncludedFile**
  * Add all the pub definitions of the **IncludedFile** to your used definitions
  * Add the **IncludedFile**s list of defined classes from #using statements to yours, if it's not already there
+ * Also parse the file as a UsedFile, and add it's 
 * The imports and uses are turned into definitions as well, to be added as #include
 * Inline code is never imported. It stays in it's file
   
@@ -37,8 +38,10 @@ Written down do avoid later realizations of self incompetance
 * **Only one instance per file**
 * **List of pub classes defined in the file**
 * If it's already parsed, no problem
+* If it's already parsing, no problem either
 * Go through the file and find all public classes defined.
- * If an **IncludedFile** already exist for it, use its pub defintions list.
+ * If an **IncludedFile** already exist for it and is done parsing, use its pub defintions list.
+* If you find a #import, go into it as a UsedFile as well, and add it's contents to your own list
 
 
 #### When adding definitions
