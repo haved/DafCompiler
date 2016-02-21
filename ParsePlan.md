@@ -19,6 +19,7 @@ This is a plan. Hopefully it will work.
 * **has a list of known of classes in a file, plus files imported by it**
 * Only one instance per file
  * New instance has empty list, and **parsingProgress** = **UNPARSED**  
+
 ##### Parse()
 * Check if parsing already (**parsingProgress** == **PARSING**)
  * A recursive #import has occured! Error and return!
