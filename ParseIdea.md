@@ -34,7 +34,7 @@ Written down do avoid later realizations of self incompetance
  * Parse the file as a UsedFile
   * Add its classes to your own list of classes known about
 
-#####How does a UsedFile work
+#####How does a UsedFile work?
 * **Only one instance per file**
 * **List of pub classes defined in the file**
 * If it's already parsed, no problem
