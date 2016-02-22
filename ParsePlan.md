@@ -27,7 +27,16 @@ Finally the main file has a method for turning the parsed info into c++ source a
 
 ##### virtual method GoThroughTokens()
 * First add yourself as #using
-* 
+* If you find #import
+ * Get the Input file for it
+ * Add its pub definitions to your pub definitions
+* When #using is found
+ * Get the UsedFile for it and parse it; publicOnly
+  * Add the classes it knows about to your own list
+* Go through tokens and find public defintions
+ * Add them to your list without filling them with scopes
+ * Make sure the types used are imported, or pointers to known of classes
+  * This means a private class in this file isn't known about
 
 ###Main Input file
 * **Extends Input File**
@@ -43,10 +52,10 @@ Finally the main file has a method for turning the parsed info into c++ source a
 * Add yourself as #using first, getting private definitions as well
 * If you find #import
  * Get the Input file for it
- * Add it's public definitions to your imported definitions
+ * Add its public definitions to your imported definitions
 * If you find #using
  * Get the Input file for it
- * Add it's public definitions to your used definitions (private too if yourself)
+ * Add its public definitions to your used definitions (private too if yourself)
  * Get the UsedFile of it and parse it (publicOnly unless it's this file)
   * Add the classes it knows about to your own list
 * Add *all* the definitions found to your list of definitions
@@ -56,14 +65,17 @@ Finally the main file has a method for turning the parsed info into c++ source a
 ###UsedFile
 * **has a list of known of classes in a file, plus files imported by it**
 * **parsingProgress:enum**
+* **publicOnly:boolean**
 * Only one instance per file
  * New instance has empty list, and **parsingProgress** = **UNPARSED**  
 
 ##### Parse(publicOnly:boolean)
 * Check if parsing already (**parsingProgress** == **PARSING**)
  * A recursive #import has occured! Error and return!
-* Return if already parsed (**parsingProgress** == **PARSED**)
+* Return if already parsed and publicOnly implies this->publicOnly (**parsingProgress** == **PARSED** && **publicOnly ? true : this->publicOnly**)
+ * (Basically just don't parse again unless you now need private as well)
 * Set **parsingProgress** to **PARSING**;
+* Make sure the list is empty
 * The tokens are gotten for the file
 * Go through the tokens looking for #import
  * When found, make a UsedFile for that as well
