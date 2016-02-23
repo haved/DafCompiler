@@ -3,10 +3,6 @@ package me.haved.dafParser.node;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import me.haved.dafParser.lexical.TokenType;
-
-import static me.haved.dafParser.LogHelper.*;
-
 public class RootNode extends Node {
 
 	private ArrayList<Definition> definitions;
