@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import static me.haved.dafParser.LogHelper.*;
 
@@ -13,8 +14,9 @@ public class LexicalParser {
 	private File inputFile;
 	private String infileName;
 	private ArrayList<Token> tokens;
+	private boolean parsed;
 	
-	public LexicalParser(File inputFile, String infileName) {
+	private LexicalParser(File inputFile, String infileName) {
 		this.inputFile = inputFile;
 		this.infileName = infileName;
 		tokens = new ArrayList<>();
@@ -25,6 +27,9 @@ public class LexicalParser {
 	}
 	
 	public void parse() {
+		if(parsed)
+			return; //Already parsed, baby. Just sit back and relax
+		
 		logAssert(inputFile.isFile(), "File given to LexicalParser doesn't exist");
 		
 		try {
@@ -109,6 +114,24 @@ public class LexicalParser {
 			}
 		}
 		terminateIfErrorsLogged();
+		parsed = true;
 		log(fileLocation(infileName, line, col), MESSAGE, "Finished Lexical Parsing with %d tokens!", tokens.size());
+	}
+	
+	private static HashMap<String, LexicalParser> parsers = new HashMap<>();
+	
+	public static LexicalParser getInstance(File inputFile, String infileName) {
+		try {
+			String fileId = inputFile.getCanonicalPath();
+			if(parsers.containsKey(fileId))
+				return parsers.get(fileId);
+			LexicalParser instance = new LexicalParser(inputFile, infileName);
+			parsers.put(fileId, instance);
+			return instance;
+		} catch(Exception e) {
+			log(infileName, ERROR, String.format("Failed to get Canonical path of File '%s'", inputFile.getPath()));
+			terminateIfErrorsLogged();
+			return null;
+		}
 	}
 }

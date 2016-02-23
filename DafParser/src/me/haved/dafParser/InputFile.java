@@ -4,20 +4,50 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import me.haved.dafParser.lexical.LexicalParser;
 import me.haved.dafParser.lexical.Token;
+import me.haved.dafParser.semantic.Definition;
+import me.haved.dafParser.semantic.KnownOfClass;
+
+import static me.haved.dafParser.LogHelper.*;
 
 public class InputFile {
 
-	private File inputFile;
-	private String infileName;
+	protected static final int UNPARSED = 0;
+	protected static final int PARSING = 1;
+	protected static final int PARSED = 2;
+	
+	protected File inputFile;
+	protected String infileName;
+	
+	protected ArrayList<Definition> definitions;
+	protected ArrayList<KnownOfClass> knownOfClasses;
+	
+	protected int parsingProgress;
 	
 	private InputFile(File inputFile, String infileName) {
 		this.inputFile = inputFile;
 		this.infileName = infileName;
+		
+		this.definitions = new ArrayList<>();
+		this.knownOfClasses = new ArrayList<>();
+		
+		this.parsingProgress = UNPARSED;
 	}
 	
 	public void parse() {
+		if(parsingProgress==PARSING) //Already parsing!
+			throw new AlreadyParsingException(infileName);
+		if(parsingProgress==PARSED) //Already parsed
+			return;
+		parsingProgress=PARSING;
 		
+		LexicalParser lexer = LexicalParser.getInstance(inputFile, infileName);
+		lexer.parse();
+		ArrayList<Token> tokens = lexer.getTokens();
+		
+		terminateIfErrorsLogged();
+		parsingProgress = PARSED;
 	}
 	
 	protected void goThroughTokens(ArrayList<Token> tokens) {
@@ -26,11 +56,11 @@ public class InputFile {
 	
 	private static HashMap<String, InputFile> inputFiles = new HashMap<>();
 	
-	public static InputFile getInstance(File file, String infileName) throws Exception {
-		String fileId = file.getCanonicalPath();
+	public static InputFile getInstance(File inputFile, String infileName) throws Exception {
+		String fileId = inputFile.getCanonicalPath();
 		if(inputFiles.containsKey(fileId))
 			return inputFiles.get(fileId);
-		InputFile instance = new InputFile(file, infileName);
+		InputFile instance = new InputFile(inputFile, infileName);
 		inputFiles.put(fileId, instance);
 		return instance;
 	}
