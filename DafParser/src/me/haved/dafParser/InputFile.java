@@ -25,7 +25,7 @@ public class InputFile {
 	
 	protected int parsingProgress;
 	
-	private InputFile(File inputFile, String infileName) {
+	protected InputFile(File inputFile, String infileName) {
 		this.inputFile = inputFile;
 		this.infileName = infileName;
 		
@@ -46,6 +46,8 @@ public class InputFile {
 		lexer.parse();
 		ArrayList<Token> tokens = lexer.getTokens();
 		
+		goThroughTokens(tokens);
+		
 		terminateIfErrorsLogged();
 		parsingProgress = PARSED;
 	}
@@ -65,5 +67,15 @@ public class InputFile {
 		return instance;
 	}
 	
-	//TODO: Main Input File
+	public static InputFile getMainFileInstance(File inputFile, String infileName) throws Exception {
+		String fileId = inputFile.getCanonicalPath();
+		if(inputFiles.containsKey(fileId)) {
+			InputFile instance = inputFiles.get(fileId);
+			if(instance instanceof MainInputFile)
+				return (MainInputFile) instance;
+		}
+		MainInputFile instance = new MainInputFile(inputFile, infileName);
+		inputFiles.put(fileId, instance); //Overriding any previous implementation, but UF and LP remember
+		return instance;
+	}
 }
