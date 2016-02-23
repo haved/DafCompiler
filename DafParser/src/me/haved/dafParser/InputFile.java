@@ -1,7 +1,10 @@
 package me.haved.dafParser;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+
+import me.haved.dafParser.lexical.Token;
 
 public class InputFile {
 
@@ -17,14 +20,19 @@ public class InputFile {
 		
 	}
 	
+	protected void goThroughTokens(ArrayList<Token> tokens) {
+		
+	}
 	
 	private static HashMap<String, InputFile> inputFiles = new HashMap<>();
 	
-	public static InputFile GetInstance(File file, String infileName) throws Exception {
+	public static InputFile getInstance(File file, String infileName) throws Exception {
 		String fileId = file.getCanonicalPath();
 		if(inputFiles.containsKey(fileId))
 			return inputFiles.get(fileId);
-		return new InputFile(file, infileName);
+		InputFile instance = new InputFile(file, infileName);
+		inputFiles.put(fileId, instance);
+		return instance;
 	}
 	
 	//TODO: Main Input File

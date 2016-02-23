@@ -4,8 +4,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import me.haved.dafParser.lexical.TokenType;
-import me.haved.dafParser.semantic.DefinitionMaker;
-import me.haved.dafParser.semantic.TokenPosition;
 
 import static me.haved.dafParser.LogHelper.*;
 
@@ -15,23 +13,6 @@ public class RootNode extends Node {
 	
 	public RootNode() {
 		definitions = new ArrayList<>();
-	}
-	
-	@Override
-	public void FillFromTokens(TokenPosition tokens) {
-		for (;tokens.hasMore();) {
-			TokenType type = tokens.current().getType();
-			if(type == TokenType.DAF_IMPORT | type == TokenType.DAF_USING) {
-				tokens.next();
-				continue;
-			}
-			Definition definition = DefinitionMaker.MakeDefinition(tokens);
-			if(definition == null)
-				log(DEBUG, "Definition returned from DefinitionMaker was null");
-			else
-				definitions.add(definition);
-			tokens.next();
-		}
 	}
 	
 	@Override
