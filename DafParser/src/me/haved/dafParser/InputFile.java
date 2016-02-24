@@ -6,6 +6,8 @@ import java.util.HashMap;
 
 import me.haved.dafParser.lexical.LexicalParser;
 import me.haved.dafParser.lexical.Token;
+import me.haved.dafParser.lexical.TokenFileLocation;
+import me.haved.dafParser.lexical.TokenLocation;
 import me.haved.dafParser.semantic.Definition;
 import me.haved.dafParser.semantic.KnownOfClass;
 
@@ -46,14 +48,40 @@ public class InputFile {
 		lexer.parse();
 		ArrayList<Token> tokens = lexer.getTokens();
 		
+		onUsingFound(new TokenFileLocation(infileName, 0, 0), this);
 		goThroughTokens(tokens);
 		
-		terminateIfErrorsLogged();
 		parsingProgress = PARSED;
 	}
 	
 	protected void goThroughTokens(ArrayList<Token> tokens) {
 		
+	}
+	
+	protected InputFile getFileFromInclude(TokenLocation location, String includeFile) {
+		int thisFileLength = inputFile.getName().length();
+		int thisPathLength = inputFile.getPath().length();
+		String thisPath = inputFile.getPath().substring(0, thisPathLength-thisFileLength);
+		File returnFile = new File(thisPath+includeFile);
+		log(location.getErrorString(), DEBUG, "The '#include \"%s\"' in %s turned into the path %s", includeFile, inputFile.getParentFile(), returnFile.getPath());
+		try {	
+			return InputFile.getInstance(returnFile, includeFile);
+		} catch(Exception e) {
+			log(location.getErrorString(), ERROR, "Failed to get an InputFile instance for the file %s", returnFile.getPath());
+			return null;
+		}
+	}
+	
+	protected void onUsingFound(TokenLocation location, InputFile file) {
+		
+	}
+	
+	public boolean isParsed() {
+		return parsingProgress == PARSED;
+	}
+	
+	public ArrayList<Definition> getDefinitions() {
+		return definitions;
 	}
 	
 	private static HashMap<String, InputFile> inputFiles = new HashMap<>();
