@@ -71,11 +71,11 @@ public class DafParser {
 		executeParsing(inputFile, outputDir);
 	}
 	
-	public void executeParsing(String inputFilePath, String outputDirPath){
-		log(INFO, "Thinking of parsing file '%s' and storing .cpp and .h files in '%s'", inputFilePath, outputDirPath);
+	public void executeParsing(String infileName, String outputDirPath){
+		log(INFO, "Thinking of parsing file '%s' and storing .cpp and .h files in '%s'", infileName, outputDirPath);
 		
 		try {
-			File inputFile = new File(inputFilePath);
+			File inputFile = new File(infileName);
 			if(inputFile.exists()==false) {
 				log(FATAL_ERROR, "The input file '%s' does not exist!", inputFile.getAbsolutePath());
 			} else if(inputFile.isFile()==false) {
@@ -88,11 +88,10 @@ public class DafParser {
 				log(FATAL_ERROR, "The output directory '%s' is not a directory!", outputDir.getAbsolutePath());
 			}
 			
-			//ParsedInputFile parsedInputFile = ParsedInputFile.makeInputFileInstance(inputFile, inputFilePath, true); //file name, really
+			MainInputFile file = InputFile.getMainFileInstance(inputFile, infileName);
+			file.parse();
 			
-			//parsedInputFile.parse();
-			
-			String outputFilesPath = outputDir.getAbsolutePath() + "/" + (subfolderOutput?inputFilePath:inputFile.getName());
+			String outputFilesPath = outputDir.getAbsolutePath() + "/" + (subfolderOutput?infileName:inputFile.getName());
 			outputFilesPath=outputFilesPath.substring(0, outputFilesPath.lastIndexOf('.'));
 			
 			File cppFile =    new File(outputFilesPath+".cpp");
@@ -101,7 +100,7 @@ public class DafParser {
 			if(subfolderOutput)
 				cppFile.getParentFile().mkdirs();
 			
-			log(INFO, "In diretctory '%s', making '%s' and '%s'", cppFile.getParent(), cppFile.getName(), headerFile.getName());
+			log(DEBUG, "In diretctory '%s', making '%s' and '%s'", cppFile.getParent(), cppFile.getName(), headerFile.getName());
 			//parsedInputFile.writeToCppAndHeader(cppFile, headerFile);
 		}
 		catch(Exception e) {

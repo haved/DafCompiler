@@ -32,6 +32,9 @@ public class MainInputFile extends InputFile {
 	@Override
 	protected void goThroughTokens(ArrayList<Token> tokens) {
 		
+		
+		
+		terminateIfErrorsLogged();
 	}
 	
 	@Override

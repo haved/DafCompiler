@@ -55,7 +55,7 @@ public class InputFile {
 	}
 	
 	protected void goThroughTokens(ArrayList<Token> tokens) {
-		
+		log(infileName, FATAL_ERROR, "InputFile.goThroughTokens is yet to be implemented");
 	}
 	
 	protected InputFile getFileFromInclude(TokenLocation location, String includeFile) {
@@ -95,7 +95,7 @@ public class InputFile {
 		return instance;
 	}
 	
-	public static InputFile getMainFileInstance(File inputFile, String infileName) throws Exception {
+	public static MainInputFile getMainFileInstance(File inputFile, String infileName) throws Exception {
 		String fileId = inputFile.getCanonicalPath();
 		if(inputFiles.containsKey(fileId)) {
 			InputFile instance = inputFiles.get(fileId);
