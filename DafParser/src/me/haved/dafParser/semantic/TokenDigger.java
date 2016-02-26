@@ -13,7 +13,7 @@ public class TokenDigger {
 		index = 0;
 	}
 	
-	public Token currentPlus() {
+	public Token currentAndAdvance() {
 		if(index>=tokens.size())
 			return tokens.get(index++);
 		return null;
@@ -23,5 +23,9 @@ public class TokenDigger {
 		if(index<tokens.size())
 			return tokens.get(index);
 		return null;
+	}
+	
+	public void advance() {
+		index++;
 	}
 }
