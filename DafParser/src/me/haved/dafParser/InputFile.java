@@ -8,6 +8,7 @@ import me.haved.dafParser.lexical.LexicalParser;
 import me.haved.dafParser.lexical.Token;
 import me.haved.dafParser.lexical.TokenFileLocation;
 import me.haved.dafParser.lexical.TokenLocation;
+import me.haved.dafParser.semantic.AlreadyParsingException;
 import me.haved.dafParser.semantic.Definition;
 import me.haved.dafParser.semantic.KnownOfClass;
 

@@ -70,6 +70,10 @@ public class LogHelper {
 			log(FATAL_ERROR, "Assertion failed: %s", error);
 	}
 	
+	public static void fatal_error() {
+		log(FATAL_ERROR, "Assertion failed!");
+	}
+	
 	public static void terminateIfErrorsLogged() {
 		if(logCounts[ERROR]!=0) {
 			log(FATAL_ERROR, "Aborting due to previous %d errors!", logCounts[ERROR]);

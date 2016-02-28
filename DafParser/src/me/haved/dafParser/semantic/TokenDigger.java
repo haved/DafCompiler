@@ -28,4 +28,8 @@ public class TokenDigger {
 	public void advance() {
 		index++;
 	}
+	
+	public boolean hasMore() {
+		return index < tokens.size();
+	}
 }

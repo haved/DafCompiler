@@ -1,4 +1,4 @@
-package me.haved.dafParser;
+package me.haved.dafParser.semantic;
 
 public class AlreadyParsingException extends RuntimeException {
 	private static final long serialVersionUID = 8658820499688065383L;
