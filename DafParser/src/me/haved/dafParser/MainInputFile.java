@@ -78,6 +78,7 @@ public class MainInputFile extends InputFile {
 	protected void onUsingFound(TokenLocation location, InputFile file) {
 		try {
 			file.parse();
+			//UsedFile goes here
 		}
 		catch (AlreadyParsingException e) {
 			log(location.getErrorString(), ERROR, "Recursive importing discovered of file %s!", e.getInfileName());
