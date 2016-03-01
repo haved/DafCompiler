@@ -11,6 +11,7 @@ import me.haved.dafParser.lexical.TokenLocation;
 import me.haved.dafParser.semantic.AlreadyParsingException;
 import me.haved.dafParser.semantic.Definition;
 import me.haved.dafParser.semantic.KnownOfClass;
+import me.haved.dafParser.semantic.UsedFile;
 
 import static me.haved.dafParser.LogHelper.*;
 
@@ -19,6 +20,7 @@ public class InputFile {
 	protected static final int UNPARSED = 0;
 	protected static final int PARSING = 1;
 	protected static final int PARSED = 2;
+	protected static final int FAILED = 3;
 	
 	protected File inputFile;
 	protected String infileName;
@@ -41,12 +43,16 @@ public class InputFile {
 	public void parse() {
 		if(parsingProgress==PARSING) //Already parsing!
 			throw new AlreadyParsingException(infileName);
-		if(parsingProgress==PARSED) //Already parsed
+		if(parsingProgress==PARSED | parsingProgress==FAILED) //Already parsed or failed
 			return;
 		parsingProgress=PARSING;
 		
 		LexicalParser lexer = LexicalParser.getInstance(inputFile, infileName);
 		lexer.parse();
+		if(!lexer.isParsed()) {
+			parsingProgress = FAILED;
+			return; //Not parsed, mate; Give up!
+		}
 		ArrayList<Token> tokens = lexer.getTokens();
 		
 		onUsingFound(new TokenFileLocation(infileName, 0, 0), this);
@@ -83,6 +89,10 @@ public class InputFile {
 	
 	public ArrayList<Definition> getDefinitions() {
 		return definitions;
+	}
+	
+	public UsedFile getUsedFile() throws Exception {
+		return UsedFile.getInstance(inputFile, infileName);
 	}
 	
 	private static HashMap<String, InputFile> inputFiles = new HashMap<>();

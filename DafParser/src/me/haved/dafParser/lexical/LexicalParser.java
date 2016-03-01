@@ -26,11 +26,18 @@ public class LexicalParser {
 		return tokens;
 	}
 	
+	public boolean isParsed() {
+		return parsed;
+	}
+	
 	public void parse() {
 		if(parsed)
 			return; //Already parsed, baby. Just sit back and relax
 		
-		logAssert(inputFile.isFile(), "File given to LexicalParser doesn't exist");
+		if(!inputFile.exists()) {
+			log(infileName, DEBUG, "File does not exitst!");
+			return;
+		}
 		
 		try {
 			try(BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {

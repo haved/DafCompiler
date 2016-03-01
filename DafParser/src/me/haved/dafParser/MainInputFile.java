@@ -12,6 +12,7 @@ import me.haved.dafParser.semantic.DefinitionFinder;
 import me.haved.dafParser.semantic.IncludeDefinition;
 import me.haved.dafParser.semantic.KnownOfClass;
 import me.haved.dafParser.semantic.TokenDigger;
+import me.haved.dafParser.semantic.UsedFile;
 
 import static me.haved.dafParser.LogHelper.*;
 
@@ -78,7 +79,23 @@ public class MainInputFile extends InputFile {
 	protected void onUsingFound(TokenLocation location, InputFile file) {
 		try {
 			file.parse();
-			//UsedFile goes here
+			if(!file.isParsed()) {
+				log(location.getErrorString(), ERROR, "The used file was not found to be parsable!");
+				return;
+			}
+			try {
+				UsedFile usedFile = file.getUsedFile();
+				usedFile.parse(false);
+				if(!usedFile.isParsed()) {
+					log(location.getErrorString(), ERROR, "The used file was not found to be parsable as a UsedFile!");
+					return;
+				}
+			} catch(Exception e) {
+				if(e instanceof AlreadyParsingException) {
+					log(location.getErrorString(), ERROR, "Recursive importing of a used file!");
+				}
+				log(location.getErrorString(), ERROR, "Failed to get a used-file");
+			}
 		}
 		catch (AlreadyParsingException e) {
 			log(location.getErrorString(), ERROR, "Recursive importing discovered of file %s!", e.getInfileName());
