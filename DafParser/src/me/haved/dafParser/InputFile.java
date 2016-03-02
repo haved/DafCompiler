@@ -66,17 +66,7 @@ public class InputFile {
 	}
 	
 	protected InputFile getFileFromInclude(TokenLocation location, String includeFile) {
-		int thisFileLength = inputFile.getName().length();
-		int thisPathLength = inputFile.getPath().length();
-		String thisPath = inputFile.getPath().substring(0, thisPathLength-thisFileLength);
-		File returnFile = new File(thisPath+includeFile);
-		log(location.getErrorString(), DEBUG, "The '#include \"%s\"' in %s turned into the path %s", includeFile, inputFile.getParentFile(), returnFile.getPath());
-		try {	
-			return InputFile.getInstance(returnFile, includeFile);
-		} catch(Exception e) {
-			log(location.getErrorString(), ERROR, "Failed to get an InputFile instance for the file %s", returnFile.getPath());
-			return null;
-		}
+		return getFileFromInclude(location, includeFile, inputFile);
 	}
 	
 	protected void onUsingFound(TokenLocation location, InputFile file) {
@@ -116,5 +106,19 @@ public class InputFile {
 		MainInputFile instance = new MainInputFile(inputFile, infileName);
 		inputFiles.put(fileId, instance); //Overriding any previous implementation, but UF and LP remember
 		return instance;
+	}
+	
+	public static InputFile getFileFromInclude(TokenLocation location, String includeFile, File thisFile) {
+		int thisFileLength = thisFile.getName().length();
+		int thisPathLength = thisFile.getPath().length();
+		String thisPath = thisFile.getPath().substring(0, thisPathLength-thisFileLength);
+		File returnFile = new File(thisPath+includeFile);
+		log(location.getErrorString(), DEBUG, "The '#include \"%s\"' in %s turned into the path %s", includeFile, thisFile.getParentFile(), returnFile.getPath());
+		try {	
+			return InputFile.getInstance(returnFile, includeFile);
+		} catch(Exception e) {
+			log(location.getErrorString(), ERROR, "Failed to get an InputFile instance for the file %s", returnFile.getPath());
+			return null;
+		}
 	}
 }
