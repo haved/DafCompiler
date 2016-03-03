@@ -70,7 +70,33 @@ public class InputFile {
 	}
 	
 	protected void onUsingFound(TokenLocation location, InputFile file) {
-		
+		try {
+			UsedFile usedFile = file.getUsedFile();
+			usedFile.parse(file!=this); //If you are not using yourself, only parse public stuff
+			if(!usedFile.isParsed()) {
+				log(location.getErrorString(), ERROR, "The used file was not found to be parsable as a UsedFile!");
+				return;
+			}
+			addKnownOfClasses(location, usedFile.getKnownOfClasses());
+		} catch(Exception e) {
+			if(e instanceof AlreadyParsingException) {
+				log(location.getErrorString(), ERROR, "Recursive importing of a used file!");
+			}
+			log(location.getErrorString(), ERROR, "Failed to get a used-file");
+		}
+	}
+	
+	protected void addKnownOfClasses(TokenLocation include, ArrayList<KnownOfClass> newKnownOfs) {
+		start:
+		for(KnownOfClass newKnownOf:newKnownOfs) {
+			for(KnownOfClass alreadyKnownOf:knownOfClasses) {
+				if(newKnownOf.name.equals(alreadyKnownOf.name)) {
+					log(include.getErrorString(), ERROR, "Class name '%s' already defined!", newKnownOf.name);
+					continue start;
+				}
+			}
+			knownOfClasses.add(newKnownOf);
+		}
 	}
 	
 	public boolean isParsed() {
