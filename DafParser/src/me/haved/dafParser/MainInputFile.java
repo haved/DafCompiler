@@ -43,17 +43,7 @@ public class MainInputFile extends InputFile {
 			Definition def = DefinitionFinder.getDefinition(digger);
 			if(def==null)
 				continue;
-			ownDefinitions.add(def);
-			if(def instanceof IncludeDefinition) {
-				IncludeDefinition include = (IncludeDefinition) def;
-				if(include.isImporting()) {
-					onImportFound(include.getStartLocation(), getFileFromInclude(include.getStartLocation(), include.getFileName()));
-				}
-				else if(include.isUsing()) {
-					onUsingFound(include.getStartLocation(), getFileFromInclude(include.getStartLocation(), include.getFileName()));
-				} else
-					fatal_error();
-			}
+			addOwnDefinition(def);
 		}
 		
 		terminateIfErrorsLogged();
@@ -95,8 +85,24 @@ public class MainInputFile extends InputFile {
 		if(file.isParsed()) {
 			ArrayList<Definition> definitions = file.getPublicRecursiveDefinitions();
 			for(Definition def:definitions)
-				if(def.isPublic())
-					addUsedDefinition(def, location);
+				addUsedDefinition(def, location);
+		}
+	}
+	
+	protected void addOwnDefinition(Definition def) {
+		ownDefinitions.add(def);
+		if(def.isPublic())
+			pubRecDefinitions.add(def);
+		
+		if(def instanceof IncludeDefinition) {
+			IncludeDefinition include = (IncludeDefinition) def;
+			if(include.isImporting()) {
+				onImportFound(include.getStartLocation(), getFileFromInclude(include.getStartLocation(), include.getFileName()));
+			}
+			else if(include.isUsing()) {
+				onUsingFound(include.getStartLocation(), getFileFromInclude(include.getStartLocation(), include.getFileName()));
+			} else
+				fatal_error();
 		}
 	}
 	
@@ -109,6 +115,8 @@ public class MainInputFile extends InputFile {
 			log(location.getErrorString(), ERROR, "Definition from '%s' was already defined", def.getStartLocation().getErrorString());
 		} else {
 			importedDef.add(def);
+			if(def.isPublic()) //When you have imported a public definition
+				pubRecDefinitions.add(def); //Add it to your list and pretend to be an InputFile
 			takenDefinitonNames.add(def.getName());
 		}
 	}
