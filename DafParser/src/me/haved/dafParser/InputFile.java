@@ -10,6 +10,7 @@ import me.haved.dafParser.lexical.TokenFileLocation;
 import me.haved.dafParser.lexical.TokenLocation;
 import me.haved.dafParser.semantic.AlreadyParsingException;
 import me.haved.dafParser.semantic.Definition;
+import me.haved.dafParser.semantic.IncludeDefinition;
 import me.haved.dafParser.semantic.KnownOfClass;
 import me.haved.dafParser.semantic.UsedFile;
 
@@ -25,7 +26,7 @@ public class InputFile {
 	protected File inputFile;
 	protected String infileName;
 	
-	protected ArrayList<Definition> definitions;
+	protected ArrayList<Definition> pubRecDefinitions;
 	protected ArrayList<KnownOfClass> knownOfClasses;
 	
 	protected int parsingProgress;
@@ -34,7 +35,7 @@ public class InputFile {
 		this.inputFile = inputFile;
 		this.infileName = infileName;
 		
-		this.definitions = new ArrayList<>();
+		this.pubRecDefinitions = new ArrayList<>();
 		this.knownOfClasses = new ArrayList<>();
 		
 		this.parsingProgress = UNPARSED;
@@ -55,7 +56,9 @@ public class InputFile {
 		}
 		ArrayList<Token> tokens = lexer.getTokens();
 		
-		onUsingFound(new TokenFileLocation(infileName, 0, 0), this);
+		TokenLocation selfUsing = new TokenFileLocation(infileName, 0, 0);
+		addUsingDefinition(new IncludeDefinition(selfUsing, infileName, true));
+		onUsingFound(selfUsing, this);
 		goThroughTokens(tokens);
 		
 		parsingProgress = PARSED;
@@ -72,7 +75,7 @@ public class InputFile {
 	protected void onUsingFound(TokenLocation location, InputFile file) {
 		try {
 			UsedFile usedFile = file.getUsedFile();
-			usedFile.parse(file!=this); //If you are not using yourself, only parse public stuff
+			usedFile.parse(file!=this); //If you are not using yourself, only parse public stuffA
 			if(!usedFile.isParsed()) {
 				log(location.getErrorString(), ERROR, "The used file was not found to be parsable as a UsedFile!");
 				return;
@@ -84,6 +87,10 @@ public class InputFile {
 			}
 			log(location.getErrorString(), ERROR, "Failed to get a used-file");
 		}
+	}
+	
+	protected void addUsingDefinition(IncludeDefinition definition) {
+		//A normal InputFile don't care
 	}
 	
 	protected void addKnownOfClasses(TokenLocation include, ArrayList<KnownOfClass> newKnownOfs) {
@@ -103,8 +110,8 @@ public class InputFile {
 		return parsingProgress == PARSED;
 	}
 	
-	public ArrayList<Definition> getDefinitions() {
-		return definitions;
+	public ArrayList<Definition> getPublicRecursiveDefinitions() {
+		return pubRecDefinitions;
 	}
 	
 	public UsedFile getUsedFile() throws Exception {

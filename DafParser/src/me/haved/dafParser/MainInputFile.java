@@ -19,6 +19,7 @@ public class MainInputFile extends InputFile {
 
 	private HashSet<String> takenDefinitonNames;
 	
+	protected ArrayList<Definition> ownDefinitions;
 	protected ArrayList<Definition> importedDef;
 	protected ArrayList<Definition> usedDef;
 	protected ArrayList<KnownOfClass> usedClasses;
@@ -42,7 +43,7 @@ public class MainInputFile extends InputFile {
 			Definition def = DefinitionFinder.getDefinition(digger);
 			if(def==null)
 				continue;
-			definitions.add(def);
+			ownDefinitions.add(def);
 			if(def instanceof IncludeDefinition) {
 				IncludeDefinition include = (IncludeDefinition) def;
 				if(include.isImporting()) {
@@ -71,10 +72,9 @@ public class MainInputFile extends InputFile {
 			return;
 		}
 		if(file.isParsed()) {
-			ArrayList<Definition> definitions = file.getDefinitions();
+			ArrayList<Definition> definitions = file.getPublicRecursiveDefinitions();
 			for(Definition def:definitions)
-				if(def.isPublic())
-					addImportedDefinition(def, location);
+				addImportedDefinition(def, location);
 		}
 	}
 	
@@ -93,11 +93,15 @@ public class MainInputFile extends InputFile {
 			return;
 		}
 		if(file.isParsed()) {
-			ArrayList<Definition> definitions = file.getDefinitions();
+			ArrayList<Definition> definitions = file.getPublicRecursiveDefinitions();
 			for(Definition def:definitions)
 				if(def.isPublic())
 					addUsedDefinition(def, location);
 		}
+	}
+	
+	protected void addUsingDefinition(IncludeDefinition definition) {
+		ownDefinitions.add(definition);
 	}
 	
 	private void addImportedDefinition(Definition def, TokenLocation location) {

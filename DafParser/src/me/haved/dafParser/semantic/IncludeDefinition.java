@@ -7,9 +7,9 @@ public class IncludeDefinition implements Definition {
 	private String file;
 	private boolean using;
 	
-	public IncludeDefinition(TokenLocation location, String file, boolean using) {
+	public IncludeDefinition(TokenLocation location, String includedFile, boolean using) {
 		this.location = location;
-		this.file = file;
+		this.file = includedFile;
 		this.using = using;
 	}
 	
