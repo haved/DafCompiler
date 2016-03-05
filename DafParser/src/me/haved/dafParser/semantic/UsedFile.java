@@ -47,6 +47,11 @@ public class UsedFile {
 		
 		TokenDigger digger = new TokenDigger(lexer.getTokens());
 		
+		if(goThroughTokens(digger))
+			parsingProgress = PARSED;
+	}
+	
+	private boolean goThroughTokens(TokenDigger digger) {
 		while(digger.hasMore()) {
 			Token current = digger.currentAndAdvance();
 			if(current.getType() == TokenType.DAF_IMPORT) {
@@ -60,16 +65,19 @@ public class UsedFile {
 					}
 					ArrayList<KnownOfClass> importedKnownOfs = file.getKnownOfClasses();
 					for(KnownOfClass knownOf:importedKnownOfs) {
-						addKnownOfClass(knownOf);
+						if(addKnownOfClass(knownOf)) {
+							log(current.getErrorLoc(), ERROR, "The class name '%s' imported from '%s' was already taken", knownOf.name, fileName);
+							return false;
+						}
 					}
 				} catch (Exception e) {
 					log(current.getErrorLoc(), ERROR, "Failed to get a UsedFile for the import '%s'", fileName);
-					return;
+					return false;
 				}
 			}
+			
 		}
-		
-		parsingProgress = PARSED;
+		return true;
 	}
 	
 	private boolean addKnownOfClass(KnownOfClass clazz) {
