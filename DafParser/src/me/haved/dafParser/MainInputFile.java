@@ -27,6 +27,7 @@ public class MainInputFile extends InputFile {
 	public MainInputFile(File inputFile, String infileName) {
 		super(inputFile, infileName);
 		
+		ownDefinitions = new ArrayList<>();
 		importedDef = new ArrayList<>();
 		usedDef = new ArrayList<>();
 		usedClasses = new ArrayList<>();
@@ -77,8 +78,7 @@ public class MainInputFile extends InputFile {
 				return;
 			}
 			super.onUsingFound(location, file);
-		}
-		catch (AlreadyParsingException e) {
+		} catch (AlreadyParsingException e) {
 			log(location.getErrorString(), ERROR, "Recursive importing discovered of file %s!", e.getInfileName());
 			return;
 		}

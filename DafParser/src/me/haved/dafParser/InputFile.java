@@ -58,13 +58,17 @@ public class InputFile {
 		
 		TokenLocation selfUsing = new TokenFileLocation(infileName, 0, 0);
 		addUsingDefinition(new IncludeDefinition(selfUsing, infileName, true));
-		onUsingFound(selfUsing, this);
+		onUsingFoundPriv(selfUsing, this);
 		goThroughTokens(tokens);
+		
+		terminateIfErrorsLogged();
 		
 		parsingProgress = PARSED;
 	}
 	
 	protected void goThroughTokens(ArrayList<Token> tokens) {
+		//Here we will have to implement the addDefinition, as well as checking for returned include definitions.
+		//Finding uses and imports will do stuff in onUsingFound and onImportFound 
 		log(infileName, FATAL_ERROR, "InputFile.goThroughTokens is yet to be implemented");
 	}
 	
@@ -73,6 +77,10 @@ public class InputFile {
 	}
 	
 	protected void onUsingFound(TokenLocation location, InputFile file) {
+		onUsingFoundPriv(location, file);
+	}
+	
+	private void onUsingFoundPriv(TokenLocation location, InputFile file) {
 		try {
 			UsedFile usedFile = file.getUsedFile();
 			usedFile.parse(file!=this); //If you are not using yourself, only parse public stuffA
@@ -85,6 +93,7 @@ public class InputFile {
 			if(e instanceof AlreadyParsingException) {
 				log(location.getErrorString(), ERROR, "Recursive importing of a used file!");
 			}
+			e.printStackTrace();
 			log(location.getErrorString(), ERROR, "Failed to get a used-file");
 		}
 	}

@@ -54,7 +54,9 @@ public class UsedFile {
 	private boolean goThroughTokens(TokenDigger digger) {
 		while(digger.hasMore()) {
 			Token current = digger.currentAndAdvance();
-			if(current.getType() == TokenType.DAF_IMPORT) {
+			if(current == null)
+				log(infileName, ERROR, "Why is a token in the token digger null?");
+			else if(current.getType() == TokenType.DAF_IMPORT) {
 				String fileName = current.getText();
 				try {
 					UsedFile file = InputFile.getFileFromInclude(current.getLocation(), fileName, inputFile).getUsedFile();
