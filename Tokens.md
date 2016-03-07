@@ -23,6 +23,7 @@ The token stores information about its meaning, its location in the file, and it
 * **colon** :
 * **semicolon** ;
 * **func** func
+* **proc** proc
 * **inline** inline
 * **leftParen** \(
 * **comma** ,
