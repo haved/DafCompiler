@@ -26,6 +26,7 @@ This is a list of all the keywords you find in daf. The file ParsingNodes.md sho
 * **:**	Colon, between identifier and type, also in ?: statements.
 * **;** Semicolon after statements and declarations.
 * **func** A function definition.
+* **proc** Procedure
 * **\(**
 * **,**
 * **\)**
