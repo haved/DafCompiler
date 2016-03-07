@@ -30,7 +30,7 @@ public class WordTokenParser extends TokenParser {
 		
 		requiredFollowups.put("=", "=");
 		requiredFollowups.put("+", "=+");
-		requiredFollowups.put("-", "=-");
+		requiredFollowups.put("-", "=->");
 		requiredFollowups.put("*", "=");
 		requiredFollowups.put("/", "=");
 		requiredFollowups.put("%", "=");

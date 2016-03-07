@@ -6,14 +6,14 @@ public enum TokenType {
 	PUB("pub"), PROT("prot"), LET("let"), 
 	MUT("mut"), DEF("def"), UNCERTAIN("uncertain"),
 	ASSIGN("="), COLON_ASSIGN(":="), COLON(":"), SEMICOLON(";"),
-	FUNC("func"), LEFT_PAREN("("), COMMA(","), RIGHT_PAREN(")"),
+	FUNC("func"), PROC("proc"), LEFT_PAREN("("), COMMA(","), RIGHT_PAREN(")"),
 	SCOPE_START("{"), SCOPE_END("}"),
 	
 	CLASS("class"), ABSTRACT("abstract"), EXTENDS("extends"),
 	IMPLEMENTS("implements"), INTERFACE("interface"),
 	METHOD("method"), THIS("this"), CONST("const"), 
 	VIRTUAL("virtual"), OVERRIDE("override"), 
-	DESTRUCTOR("~"), 
+	DESTRUCTOR("~"),
 	
 	IF("if"), ELSE("else"), ELSELSE("elselse"),
 	FOR("for"), WHILE("while"), DO("do"), CONTINUE("continue"),
