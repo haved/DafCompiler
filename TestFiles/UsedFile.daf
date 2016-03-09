@@ -1,9 +1,0 @@
-#using "MainTestFile.daf"
-
-pub class UsedClass {
-	a:int;
-}
-
-pub func UsedFunction() {
-	DoSomething();
-}
