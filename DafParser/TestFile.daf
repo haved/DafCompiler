@@ -1,0 +1,23 @@
+pub def pointer:=(&mut a:int)->&mut int {
+	return &mut a;
+}
+
+#macro PLUS_ONE +1
+#macro CAST_TO<T> cast(T) 
+
+#macro DEBUG true
+
+#if DEBUG
+import daf.stdio;
+#endif
+
+proc main() {
+	let a:=5 PLUS_ONE;
+	let mut b:byte = 4;
+
+	b = CAST_TO<int> a;
+
+	#if DEBUG
+		printf("B is %b", b);
+	#endif
+}

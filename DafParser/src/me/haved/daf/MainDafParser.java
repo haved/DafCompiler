@@ -2,6 +2,7 @@ package me.haved.daf;
 
 import static me.haved.daf.LogHelper.*;
 
+import java.io.File;
 import java.util.Scanner;
 
 import me.haved.daf.args.CommandOption;
@@ -9,12 +10,12 @@ import me.haved.daf.args.HelpOption;
 
 public class MainDafParser {
 	
-	private static boolean developer = true;
-	
-	public static void main(String[] args) {
+	private static boolean developer = true;	
+	public  static void main(String[] args) {
 		log(SUPER_DEBUG, "Welcome to the daf parser!");
 		if(args.length == 0)
 			if(developer) {
+				LogHelper.startSummaryTime();
 				log(SUPER_DEBUG, "Enter arguments:");
 				String line;
 				try (Scanner in = new Scanner(System.in)) {
@@ -33,8 +34,8 @@ public class MainDafParser {
 		
 		LogHelper.printSummary(0);
 	}
-	
-	public static void parseInput(String[] args) {
+
+	private static void parseInput(String[] args) {
 		CommandOption[] options = new CommandOption[] {null};
 		options[0] = new HelpOption(()->printHelpMessage(options));
 		
@@ -70,9 +71,9 @@ public class MainDafParser {
 		else if(outputDirectory == null) //Never got that far!
 			log(FATAL_ERROR, "An output directory needs to be specified. -h for help");
 		
-		log(DEBUG, "Starting parsing with inputFile: '%s' and outputDir: '%s'", inputFile, outputDirectory);
+		parseFile(inputFile, outputDirectory);
 	}
-	
+
 	private static void printHelpMessage(CommandOption[] options) {
 		println("Usage: daf [options] <input file> <output directory>");
 		println("Options:");
@@ -91,5 +92,17 @@ public class MainDafParser {
 		for(int i = 0; i < options.length; i++) {
 			println(String.format("   %%%ds   %%s", -longestName), names[i], descs[i]);
 		}
+	}
+
+	private static void parseFile(String infileName, String outputDirName) {
+		File inputFile = new File(infileName);
+		File outputDir = new File(outputDirName);
+		
+		if(!inputFile.isFile())
+			log(FATAL_ERROR, "The input file '%s' doesn't exist", infileName);
+		if(!outputDir.isDirectory())
+			log(FATAL_ERROR, "The output directory '%s' doesn't exist", outputDirName);
+		
+		log(DEBUG, "Parsing %s into %s", infileName, outputDirName);
 	}
 }
