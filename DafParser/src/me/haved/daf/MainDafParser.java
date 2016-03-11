@@ -53,7 +53,9 @@ public class MainDafParser {
 				}
 			}
 			
-			if(inputFile == null)
+			if(args[i].startsWith("-"))
+				log(FATAL_ERROR, "Option '%s' not recognized!", args[i]);
+			else if(inputFile == null)
 				inputFile = args[i];
 			else if(outputDirectory == null)
 				outputDirectory = args[i];
@@ -75,5 +77,19 @@ public class MainDafParser {
 		println("Usage: daf [options] <input file> <output directory>");
 		println("Options:");
 		
+		String[] names = new String[options.length];
+		String[] descs = new String[options.length];
+		
+		int longestName = 0;
+		
+		for(int i = 0; i < options.length; i++) {
+			names[i] = options[i].getName();
+			descs[i] = options[i].getDescription();
+			longestName = Math.max(names[i].length(), longestName);
+		}
+		
+		for(int i = 0; i < options.length; i++) {
+			println(String.format("   %%%ds   %%s", -longestName), names[i], descs[i]);
+		}
 	}
 }
