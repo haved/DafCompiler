@@ -49,7 +49,11 @@ public class LogHelper {
 		}
 	}
 	
-	private static long startTime = System.currentTimeMillis();
+	private static long startTime;
+	
+	public static void startSummaryTime() {
+		startTime = System.currentTimeMillis();
+	}
 	
 	public static void printSummary(int errorStatus) {
 		println("Finished in %.2fs with error status %d",

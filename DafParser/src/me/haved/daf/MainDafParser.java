@@ -27,13 +27,14 @@ public class MainDafParser {
 			else
 				log(FATAL_ERROR, "No input files passed. -h for help");
 		
+		LogHelper.startSummaryTime();
+		
 		parseInput(args);
 		
 		LogHelper.printSummary(0);
 	}
 	
 	public static void parseInput(String[] args) {
-		
 		CommandOption[] options = new CommandOption[] {null};
 		options[0] = new HelpOption(()->printHelpMessage(options));
 		
