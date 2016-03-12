@@ -104,5 +104,7 @@ public class MainDafParser {
 			log(FATAL_ERROR, "The output directory '%s' doesn't exist", outputDirName);
 		
 		log(DEBUG, "Parsing %s into %s", infileName, outputDirName);
+	
+		
 	}
 }
