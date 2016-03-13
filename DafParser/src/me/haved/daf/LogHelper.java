@@ -2,6 +2,8 @@ package me.haved.daf;
 
 import java.io.PrintStream;
 
+import me.haved.daf.lexer.Token;
+
 public class LogHelper {
 	
 	public static final int SUPER_DEBUG = 0;
@@ -47,6 +49,13 @@ public class LogHelper {
 			System.exit(-1);
 			assert(false);
 		}
+	}
+	
+	public static void log(Token token, int logLevel, String format, Object... objects) {
+		if(token==null)
+			log(logLevel, String.format(format, objects));
+		else
+			log(String.format("%s:\"%s\"", token.getErrorLocation(), token.getTokenContents()), logLevel, String.format(format, objects));
 	}
 	
 	private static long startTime;
