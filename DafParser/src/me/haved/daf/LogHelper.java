@@ -22,6 +22,8 @@ public class LogHelper {
 	
 	public static PrintStream out = System.out;
 	
+	private static boolean errorsOccured = false;
+	
 	public static void println(String text) {
 		out.println(text);
 	}
@@ -44,7 +46,9 @@ public class LogHelper {
 	
 	public static void log(String location, int logLevel, String text) {
 		println("%s: %s: %s", location, LOG_LEVEL_NAMES[logLevel], text);
-		if(logLevel == FATAL_ERROR) {
+		if(logLevel==ERROR)
+			errorsOccured = true;
+		else if(logLevel == FATAL_ERROR) {
 			printSummary(-1);
 			System.exit(-1);
 			assert(false);
@@ -56,6 +60,11 @@ public class LogHelper {
 			log(logLevel, String.format(format, objects));
 		else
 			log(String.format("%s:\"%s\"", token.getErrorLocation(), token.getTokenContents()), logLevel, String.format(format, objects));
+	}
+	
+	public static void terminateIfErrorsOccured() {
+		if(errorsOccured)
+			log(FATAL_ERROR, "Terminating due to previous errors!");
 	}
 	
 	private static long startTime;

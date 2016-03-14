@@ -1,0 +1,24 @@
+#####Macro Test 1:
+```
+#macro Ball {5}
+printd(#Ball);
+```
+Evaluates to `printd(5);` The macro name is defined to **Ball**, and it's contents are **5**
+
+##### Macro with parameter:
+```
+#macro ToString<#value> 
+{ #if #value == "0"
+	0
+  #else
+  	#IntToString(value)
+}
+let a:=5;
+printf("%s%s", #ToString<a>, #ToString<0>);
+```
+Evaluates to printf("%s%s", IntToString(a), 0); The macro name becomes ToString<#> and it's contents are as written.
+
+##### Fancy macro?
+```
+#macro print
+```
