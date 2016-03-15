@@ -3,10 +3,14 @@ package me.haved.daf;
 import static me.haved.daf.LogHelper.*;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import me.haved.daf.args.CommandOption;
 import me.haved.daf.args.HelpOption;
+import me.haved.daf.lexer.LexicalParser;
+import me.haved.daf.lexer.MacroMap;
+import me.haved.daf.lexer.Token;
 
 public class MainDafParser {
 	
@@ -105,6 +109,12 @@ public class MainDafParser {
 		
 		log(DEBUG, "Parsing %s into %s", infileName, outputDirName);
 	
+		MacroMap macros = new MacroMap();
+		ArrayList<Token> tokens = LexicalParser.tokenizeFile(inputFile, infileName, macros);
+		if(tokens == null)
+			log(infileName, DEBUG, "tokenizeFile returned null!");
+		terminateIfErrorsOccured();
 		
+		log(DEBUG, "Finished tokenizing, got %d tokens!", tokens.size());
 	}
 }

@@ -37,6 +37,20 @@ public class LexicalParser {
 	}
 	
 	public static String evaluateMacros(String string, MacroMap map) {
-		return null;
+		StringBuilder builder = new StringBuilder();
+		
+		for(int i = 0; i < string.length(); i++) {
+			if(string.charAt(i)=='#'){
+				int start = i;
+				do //Using do - while!
+					i++;
+				while(TextParserUtil.isIdentifierChar(string.charAt(i)));
+				
+				String name = string.substring(start+1, i);
+				log(DEBUG, "Found pound symbol text: '%s'", name);
+			}
+		}
+		
+		return builder.toString();
 	}
 }
