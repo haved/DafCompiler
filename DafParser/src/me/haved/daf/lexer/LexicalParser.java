@@ -48,6 +48,19 @@ public class LexicalParser {
 				
 				String name = string.substring(start+1, i);
 				log(DEBUG, "Found pound symbol text: '%s'", name);
+				
+				if(name.equals("macro")) {
+					int indexOfMacroStart = string.indexOf('{', i);
+					
+					if(indexOfMacroStart < 0) {
+						log(ERROR, "A macro definition must be between '{' and '}'");
+						continue;
+					}
+					
+					int indexOfNameStart = i;
+					String macroName = string.substring(indexOfNameStart, indexOfMacroStart).trim(); //Not including the macro start
+					
+				}
 			}
 		}
 		
