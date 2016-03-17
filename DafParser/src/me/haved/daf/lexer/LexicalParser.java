@@ -12,12 +12,12 @@ public class LexicalParser {
 	
 	public static ArrayList<Token> tokenizeFile(File inputFile, String infileName, MacroMap map) {
 		try {
-			StringBuilder fileText = new StringBuilder();
+			StringBuilder fileText = new StringBuilder('\n'); //Start of with a newline
 			try(BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
 				String s;
 				while((s=reader.readLine())!=null) {
 					fileText.append(s);
-					fileText.append("\n");
+					fileText.append("\n"); //End with a newline for every line
 				}
 			}
 			
@@ -40,26 +40,44 @@ public class LexicalParser {
 		StringBuilder builder = new StringBuilder();
 		
 		for(int i = 0; i < string.length(); i++) {
-			if(string.charAt(i)=='#'){
+			if(TextParserUtil.isPoundSymbol(string.charAt(i))){
 				int start = i;
 				do //Using do - while!
 					i++;
-				while(TextParserUtil.isIdentifierChar(string.charAt(i)));
+				while(!TextParserUtil.isWhitespace(string.charAt(i)));
 				
 				String name = string.substring(start+1, i);
 				log(DEBUG, "Found pound symbol text: '%s'", name);
 				
 				if(name.equals("macro")) {
-					int indexOfMacroStart = string.indexOf('{', i);
-					
-					if(indexOfMacroStart < 0) {
-						log(ERROR, "A macro definition must be between '{' and '}'");
-						continue;
-					}
-					
-					int indexOfNameStart = i;
-					String macroName = string.substring(indexOfNameStart, indexOfMacroStart).trim(); //Not including the macro start
-					
+					int nameStart = -1;
+					boolean parameterList = false;
+					while(true) {
+						i++;
+						char c = string.charAt(i);
+						if(nameStart==-1) {
+							if(TextParserUtil.isStartOfIdentifier(c))
+								nameStart = i;
+						}
+						else if(parameterList && TextParserUtil.isGreaterThanChar(c)) {
+							i++;
+							break;
+						}
+						else {
+							if(TextParserUtil.isWhitespace(c)) {
+								if(TextParserUtil.isLessThanChar(string.charAt(i+1)))
+									parameterList = true;
+								else
+									break;
+							}
+							else if(TextParserUtil.isLessThanChar(c)) {
+								parameterList = true;
+							}
+							else if(!TextParserUtil.isIdentifierChar(c)) {
+								log(ERROR, "Found illegal char in macro name!");
+							}
+						}
+					} //After the loop, i is the char after the name
 				}
 			}
 		}

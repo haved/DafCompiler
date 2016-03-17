@@ -15,4 +15,20 @@ public class TextParserUtil {
 	public static boolean isIdentifierChar(char c) {
 		return (c >= 'a' & c<='z') | (c >= 'A' & c<='Z') | (c >= '0' & c<='9') | c == '_';
 	}
+	
+	public static boolean isStartOfIdentifier(char c) {
+		return (c >= 'a' & c<='z') | (c >= 'A' & c<='Z') | c == '_';
+	}
+	
+	public static boolean isPoundSymbol(char c) {
+		return c=='#';
+	}
+	
+	public static boolean isLessThanChar(char c) {
+		return c == '<';
+	}
+
+	public static boolean isGreaterThanChar(char c) {
+		return c == '>';
+	}
 }
