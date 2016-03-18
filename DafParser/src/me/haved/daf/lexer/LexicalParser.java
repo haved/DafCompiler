@@ -9,7 +9,6 @@ import static me.haved.daf.LogHelper.*;
 
 public class LexicalParser {
 	
-	
 	public static ArrayList<Token> tokenizeFile(File inputFile, String infileName, MacroMap map) {
 		try {
 			StringBuilder fileText = new StringBuilder('\n'); //Start of with a newline
