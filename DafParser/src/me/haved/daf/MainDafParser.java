@@ -78,6 +78,31 @@ public class MainDafParser {
 		parseFile(inputFile, outputDirectory);
 	}
 
+	private static void parseFile(String infileName, String outputDirName) {
+		File inputFileObject = new File(infileName);
+		File outputDir = new File(outputDirName);
+		
+		if(!inputFileObject.isFile())
+			log(FATAL_ERROR, "The input file '%s' doesn't exist", infileName);
+		if(!outputDir.isDirectory())
+			log(FATAL_ERROR, "The output directory '%s' doesn't exist", outputDirName);
+		
+		log(DEBUG, "Parsing %s into %s", infileName, outputDirName);
+	
+		RegisteredFile inputFile = RegisteredFile.registerNewFile(inputFileObject, infileName);
+		log(DEBUG, "Already registered: %s", RegisteredFile.getAlreadyRegisteredFile(inputFileObject).toString());
+		
+		MacroMap macros = new MacroMap();
+		ArrayList<Token> tokens = LexicalParser.tokenizeFile(inputFile, macros);
+		if(tokens == null)
+			log(infileName, DEBUG, "tokenizeFile returned null!");
+		terminateIfErrorsOccured();
+		
+		
+		
+		log(DEBUG, "Finished tokenizing, got %d tokens!", tokens.size());
+	}
+	
 	private static void printHelpMessage(CommandOption[] options) {
 		println("Usage: daf [options] <input file> <output directory>");
 		println("Options:");
@@ -96,25 +121,5 @@ public class MainDafParser {
 		for(int i = 0; i < options.length; i++) {
 			println(String.format("   %%%ds   %%s", -longestName), names[i], descs[i]);
 		}
-	}
-
-	private static void parseFile(String infileName, String outputDirName) {
-		File inputFile = new File(infileName);
-		File outputDir = new File(outputDirName);
-		
-		if(!inputFile.isFile())
-			log(FATAL_ERROR, "The input file '%s' doesn't exist", infileName);
-		if(!outputDir.isDirectory())
-			log(FATAL_ERROR, "The output directory '%s' doesn't exist", outputDirName);
-		
-		log(DEBUG, "Parsing %s into %s", infileName, outputDirName);
-	
-		MacroMap macros = new MacroMap();
-		ArrayList<Token> tokens = LexicalParser.tokenizeFile(inputFile, infileName, macros);
-		if(tokens == null)
-			log(infileName, DEBUG, "tokenizeFile returned null!");
-		terminateIfErrorsOccured();
-		
-		log(DEBUG, "Finished tokenizing, got %d tokens!", tokens.size());
 	}
 }

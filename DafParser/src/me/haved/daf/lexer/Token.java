@@ -23,4 +23,8 @@ public class Token {
 	public String getTokenContents() {
 		return text; //TODO: Return token keyword +? text
 	}
+	
+	public String getErrorString() {
+		return String.format("%s:\"%s\"", getErrorLocation(), getTokenContents());
+	}
 }

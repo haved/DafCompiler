@@ -14,9 +14,10 @@ public class LogHelper {
 	public static final int WARNING = 5;
 	public static final int ERROR = 6;
 	public static final int FATAL_ERROR = 7;
+	public static final int ASSERTION_FAILED = 8;
 	
 	private static final String[] LOG_LEVEL_NAMES = {"super_debug", "debug", "info", "message",
-					"suggestion", "warning", "error", "fatal_error"};
+					"suggestion", "warning", "error", "fatal_error", "assertion_failed"};
 	
 	private static final String COMPILER_NAME = "daf";
 	
@@ -48,7 +49,7 @@ public class LogHelper {
 		println("%s: %s: %s", location, LOG_LEVEL_NAMES[logLevel], text);
 		if(logLevel==ERROR)
 			errorsOccured = true;
-		else if(logLevel == FATAL_ERROR) {
+		else if(logLevel == FATAL_ERROR | logLevel == ASSERTION_FAILED) {
 			printSummary(-1);
 			System.exit(-1);
 			assert(false);
@@ -59,7 +60,14 @@ public class LogHelper {
 		if(token==null)
 			log(logLevel, String.format(format, objects));
 		else
-			log(String.format("%s:\"%s\"", token.getErrorLocation(), token.getTokenContents()), logLevel, String.format(format, objects));
+			log(token.getErrorString(), logLevel, String.format(format, objects));
+	}
+	
+	public static void log(RegisteredFile file, int logLevel, String format, Object... objects) {
+		if(file==null)
+			log(logLevel, String.format(format, objects)); //Fewer arguments is better, and shorter procedure stack
+		else
+			log(file.getErrorString(), logLevel, String.format(format, objects));
 	}
 	
 	public static void terminateIfErrorsOccured() {
