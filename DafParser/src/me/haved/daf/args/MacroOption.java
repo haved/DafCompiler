@@ -13,18 +13,18 @@ public class MacroOption implements CommandOption {
 	@Override
 	public int parseOption(String[] args, int pos) {
 		if(args[pos].equals("-m")) {
-			if(pos+2 >= args.length)
+			if(pos+1 >= args.length)
 				log(FATAL_ERROR, "-m needs two options following it!");
 			
-			println("Macro -m saying that: '%s'->'%s'", args[pos+1], args[pos+2]);
+			log(SUPER_DEBUG, "Macro -m saying that: '#macro %s'", args[pos+1]);
 			
-			if(!call.defineMacro(args[pos+1], args[pos+2]))
+			if(!call.defineMacro(args[pos+1]))
 				log(FATAL_ERROR, "-m was given illegal options for a macro definition!");
 			
-			return 3; // the -m as well as macro 
+			return 2; // the -m as well as macro 
 		}
 		
-		return 0;
+		return 0; //Not this option
 	}
 
 	@Override
@@ -38,6 +38,6 @@ public class MacroOption implements CommandOption {
 	}
 	
 	public static interface AddMacroCall {
-		public boolean defineMacro(String name, String contents);
+		public boolean defineMacro(String text);
 	}
 }

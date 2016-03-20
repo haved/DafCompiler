@@ -62,7 +62,7 @@ public class MainDafParser {
 
 	private static void parseInput(String[] args) {
 		MacroMap macros = new MacroMap();
-		CommandOption[] options = new CommandOption[] {null, new MacroOption((name, definition)->macros.tryAddMacro(name, definition))};
+		CommandOption[] options = new CommandOption[] {null, new MacroOption((text)->macros.tryAddMacro(text))};
 		options[0] = new HelpOption(()->printHelpMessage(options));
 		
 		String inputFile = null;
@@ -87,7 +87,7 @@ public class MainDafParser {
 			else if(outputDirectory == null)
 				outputDirectory = args[i];
 			else
-				log(FATAL_ERROR, "Too many arguments given. -h for help");
+				log(FATAL_ERROR, "Too many unresolved arguments given. -h for help");
 			
 			i++;
 		}
@@ -115,10 +115,8 @@ public class MainDafParser {
 		
 		ArrayList<Token> tokens = LexicalParser.tokenizeFile(inputFile, macros);
 		if(tokens == null)
-			log(infileName, DEBUG, "tokenizeFile returned null!");
+			log(infileName, DEBUG, "tokenizeFile returned null!"); //ERRORS are thrown inside of tokenizeFile
 		terminateIfErrorsOccured();
-		
-		
 		
 		log(DEBUG, "Finished tokenizing, got %d tokens!", tokens.size());
 	}
