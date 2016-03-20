@@ -10,8 +10,7 @@ public class LexicalParser {
 	
 	public static ArrayList<Token> tokenizeFile(RegisteredFile file, MacroMap map) {
 		try {
-			
-			log(DEBUG, file.toString());
+			log(DEBUG, "tokenizeFile(%s)", file.toString());
 			
 			ArrayList<Token> tokens = new ArrayList<>();
 			

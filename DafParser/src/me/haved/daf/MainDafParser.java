@@ -8,8 +8,10 @@ import java.util.Scanner;
 
 import me.haved.daf.args.CommandOption;
 import me.haved.daf.args.HelpOption;
+import me.haved.daf.args.MacroOption;
 import me.haved.daf.lexer.LexicalParser;
 import me.haved.daf.lexer.MacroMap;
+import me.haved.daf.lexer.TextParserUtil;
 import me.haved.daf.lexer.Token;
 
 public class MainDafParser {
@@ -27,7 +29,26 @@ public class MainDafParser {
 				}
 				if(line.trim().isEmpty())
 					log(FATAL_ERROR, "Give me somethig to work with, man!");
-				args = line.split(" ");
+				
+				ArrayList<String> myArgs = new ArrayList<>();
+				int start = 0;
+				boolean inQuotes = false;
+				for(int i = 0; i < line.length()+1; i++) {
+					char c = i < line.length() ? line.charAt(i) : ' ';
+					if(TextParserUtil.isNormalWhitespace(c) & !inQuotes) {
+						if(start<i)
+							myArgs.add(line.substring(start, i));
+						start = i+1;
+					} else if(TextParserUtil.isQuoteChar(c)) {
+						if(inQuotes)
+							myArgs.add(line.substring(start, i)); //Not including the quotes
+						inQuotes = !inQuotes;
+						start = i+1;
+					}
+				}
+				
+				args = new String[myArgs.size()];
+				myArgs.toArray(args);
 			}
 			else
 				log(FATAL_ERROR, "No input files passed. -h for help");
@@ -40,7 +61,8 @@ public class MainDafParser {
 	}
 
 	private static void parseInput(String[] args) {
-		CommandOption[] options = new CommandOption[] {null};
+		MacroMap macros = new MacroMap();
+		CommandOption[] options = new CommandOption[] {null, new MacroOption((name, definition)->macros.tryAddMacro(name, definition))};
 		options[0] = new HelpOption(()->printHelpMessage(options));
 		
 		String inputFile = null;
@@ -75,10 +97,10 @@ public class MainDafParser {
 		else if(outputDirectory == null) //Never got that far!
 			log(FATAL_ERROR, "An output directory needs to be specified. -h for help");
 		
-		parseFile(inputFile, outputDirectory);
+		parseFile(inputFile, outputDirectory, macros);
 	}
 
-	private static void parseFile(String infileName, String outputDirName) {
+	private static void parseFile(String infileName, String outputDirName, MacroMap macros) {
 		File inputFileObject = new File(infileName);
 		File outputDir = new File(outputDirName);
 		
@@ -90,9 +112,7 @@ public class MainDafParser {
 		log(DEBUG, "Parsing %s into %s", infileName, outputDirName);
 	
 		RegisteredFile inputFile = RegisteredFile.registerNewFile(inputFileObject, infileName);
-		log(DEBUG, "Already registered: %s", RegisteredFile.getAlreadyRegisteredFile(inputFileObject).toString());
 		
-		MacroMap macros = new MacroMap();
 		ArrayList<Token> tokens = LexicalParser.tokenizeFile(inputFile, macros);
 		if(tokens == null)
 			log(infileName, DEBUG, "tokenizeFile returned null!");
