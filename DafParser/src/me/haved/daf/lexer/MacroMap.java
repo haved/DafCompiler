@@ -92,7 +92,7 @@ public class MacroMap {
 						//We are done with the parameter name! Must check earlier names;
 						String paramName = name.substring(parameterNameStart, i); //I is the letter after the identifier
 						if(params.contains(paramName)) {
-							log(ERROR, "The macro parameter name '%s' was already taken!", name);
+							log(ERROR, "The macro parameter name '%s' was already taken!", paramName);
 							return false;
 						}
 						params.add(paramName);
