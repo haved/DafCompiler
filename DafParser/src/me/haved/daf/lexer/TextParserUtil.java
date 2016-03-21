@@ -1,6 +1,11 @@
 package me.haved.daf.lexer;
 
 public class TextParserUtil {
+	
+	public static final char END_OF_LINE = '\n';
+	public static final char OPEN_CURLY_BRACKETS = '{';
+	public static final char CLOSE_CURLY_BRACKETS = '}';
+
 	public static boolean containsAnyWhitespace(String s) {
 		for(int i = 0; i < s.length(); i++)
 			if(isAnyWhitespace(s.charAt(i)))

@@ -25,6 +25,8 @@ public class LogHelper {
 	
 	private static boolean errorsOccured = false;
 	
+	//TODO: Add stopping of long log messages, and add log level filtering
+	
 	public static void println(String text) {
 		out.println(text);
 	}
