@@ -12,11 +12,9 @@ public class MacroOption implements CommandOption {
 	
 	@Override
 	public int parseOption(String[] args, int pos) {
-		if(args[pos].equals("-m")) {
+		if(args[pos].equals("-m") || args[pos].equals("--macro")) {
 			if(pos+1 >= args.length)
 				log(FATAL_ERROR, "-m needs two options following it!");
-			
-			log(SUPER_DEBUG, "Macro -m saying that: '#macro %s'", args[pos+1]);
 			
 			if(!call.defineMacro(args[pos+1]))
 				log(FATAL_ERROR, "-m was given illegal options for a macro definition!");
@@ -29,12 +27,12 @@ public class MacroOption implements CommandOption {
 
 	@Override
 	public String getName() {
-		return "-m <name> [{] <value> [}] ";
+		return "-m --macro <macro statement> ";
 	}
 
 	@Override
 	public String getDescription() {
-		return "Defines a macro in parsing. The name is an identifier, and the value can be anything. If there are spaces in the value, use { and }";
+		return "Defines a macro in parsing just like \"#macro <macro statement>\"";
 	}
 	
 	public static interface AddMacroCall {

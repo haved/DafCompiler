@@ -14,7 +14,10 @@ public class MacroMap {
 	public boolean tryAddMacro(String text) {
 		Macro newMacro = Macro.getMacroFromString(text); //Checking if text is bad is done in here!
 		if(newMacro == null) //getMacroFromString will in this case already have written error messages
+		{
+			log(MESSAGE, "The macro text in question: \"%s\"", text);
 			return false;
+		}
 		
 		return tryAddMacro(newMacro);
 	}
@@ -27,6 +30,9 @@ public class MacroMap {
 			log(ERROR, "Macro by name of '%s' was already defined!", oldMacro.getMacroName());
 			return false;
 		}
+		
+		log(DEBUG, "Added macro: %s", macro.toString());
+		
 		macros.add(macro);
 		return true;
 	}
