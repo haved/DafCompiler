@@ -7,6 +7,8 @@ package me.haved.daf.lexer;
 
 import static me.haved.daf.LogHelper.*;
 
+import java.util.ArrayList;
+
 public class Macro {
 	private String name;
 	private String[] parameters;
@@ -33,10 +35,161 @@ public class Macro {
 	
 	public static Macro getMacroFromString(String text) {
 		if(text == null || (text = text.trim()).length() < 1) {
-			log(ERROR, "Trying to add a macro without any text");
+			log(ERROR, "Trying to add a macro without any text!");
 			return null;
+		}
+		
+		if(!TextParserUtil.isStartOfIdentifier(text.charAt(0))) {
+			log(ERROR, "Macro name didn't start with a legal identifier character! '%c'", text.charAt(0));
+			return null;
+		}
+		
+		String macroName = null;
+		
+		int i;
+		for(i = 1; i < text.length(); i++) {
+			char c = text.charAt(i);
+			if(!TextParserUtil.isIdentifierChar(c)) {
+				macroName = text.substring(0, i); //Not including i;
+				
+				if(!TextParserUtil.isNormalWhitespace(c) & !TextParserUtil.isLessThanChar(c)) { //Must be space or '<' after name!
+					log(ERROR, "Found unknown character after macro name! '%c'", c);
+					return null;
+				}
+				break;
+			}
+		}
+		
+		if(macroName == null) {
+			log(WARNING, "Macro definition didn't contain more than a name: '%s'", text); //Should this be legal? It's legal in C
+			return new Macro(text, new String[]{}, ""); //Give all of the name as macro identifier
+		}
+		
+		while(TextParserUtil.isNormalWhitespace(text.charAt(i)))
+			i++; //Skip all whitespace
+		
+		if(TextParserUtil.isLessThanChar(text.charAt(i))) { //Argument list! Hurrah!
+			i++; //To get past the '<'
+			boolean lookingForParm = true;
+			boolean doneWithParam  = false; //Means you are looking for a special char between two parameters
+			int parameterNameStart = 0; //The first letter of the current parameter name
+			
+			ArrayList<String> parameters = new ArrayList<>();
+			
+			for(; i < text.length(); i++) {
+				char c = text.charAt(i);
+				if(TextParserUtil.isGreaterThanChar(c)) {
+					break; //We are done with the parameter list
+				}
+				if(lookingForParm) {
+					if(TextParserUtil.isPoundSymbol(c)) {
+						i++; //Go to the next char to see that there is a proper name there
+						parameterNameStart = i; //First letter of thr name
+						lookingForParm = false;
+						if(!TextParserUtil.isStartOfIdentifier(text.charAt(i))) {
+							log(ERROR, "A macro parameter can't start with the character '%c'", text.charAt(i));
+							return null;
+						}
+					} else if(!TextParserUtil.isNormalWhitespace(c)) {
+						log(ERROR, "Something NOT a pound symbol ( %cw ) found when looking for a macro parameter", c);
+						return null;
+					}
+				}
+			}
 		}
 		
 		return new Macro(text, null, null);
 	}
+	
+	/*
+	public static boolean isNameValidMacroIdentifer(String name) {
+		name=name.trim();
+		
+		if(!TextParserUtil.isStartOfIdentifier(name.charAt(0))) {
+			log(ERROR, "Macro identifier didn't start with a valid identifier keyword");
+			return false;
+		}
+		int i;
+		for(i = 1; i < name.length(); i++)
+			if(!TextParserUtil.isIdentifierChar(name.charAt(i))) {
+				while(TextParserUtil.isNormalWhitespace(name.charAt(i))) {
+					i++;
+					if(i>=name.length()) //For some reason we just passed a bunch of spaces and found nothing more
+						break;
+				}
+				
+				if(TextParserUtil.isLessThanChar(name.charAt(i)))
+					break;
+				log(ERROR, "Macro name contained illegal special character! '%s'", name);
+				return false;
+			}
+		
+		if(i < name.length()-1) {
+			//At this point, charAt(i) == '<'
+			i++;
+			boolean lookingForParam = true; //This means we are looking _for_ a parameter or the end of the list
+			boolean doneWithParam = false; //Before the special character between names
+			
+			int parameterNameStart = 0;
+			
+			HashSet<String> params = new HashSet<>();
+			
+			for(; i < name.length(); i++) {
+				char c = name.charAt(i);
+				if(TextParserUtil.isGreaterThanChar(c)) {
+					if(i+1 < name.length()) {
+						log(ERROR, "More stuff found after end of parameter list in macro name!");
+						return false;
+					}
+					return true; //Finally done!
+				}
+				if(lookingForParam) {
+					if(TextParserUtil.isPoundSymbol(c)) {
+						lookingForParam = false;
+						i++;
+						if(i>=name.length()) {
+							log(ERROR, "No identifier following pound symbol in macro parameter list");
+							return false;
+						}
+						if(!TextParserUtil.isStartOfIdentifier(name.charAt(i))) {
+							log(ERROR, "A macro parameter must start with a-z or A-Z or underscore");
+							return false;
+						}
+						parameterNameStart = i; //The first letter of the macro name
+					}
+					else if(!TextParserUtil.isNormalWhitespace(c)) {
+						log(ERROR, "Found something not whitespace before a macro parameter! '%c'", c);
+						return false;
+					}
+				} else if(!doneWithParam) { //We are looking AT a parameter with the first letter checked
+					if(!TextParserUtil.isIdentifierChar(c)) {
+						//We are done with the parameter name! Must check earlier names;
+						String paramName = name.substring(parameterNameStart, i); //I is the letter after the identifier
+						if(params.contains(paramName)) {
+							log(ERROR, "The macro parameter name '%s' was already taken!", paramName);
+							return false;
+						}
+						params.add(paramName);
+						doneWithParam = true; //This means we check c again
+					}
+				}
+				if (doneWithParam) { //Right here!
+					if(TextParserUtil.isGreaterThanChar(c)) 
+						continue;
+					else if(TextParserUtil.isNormalWhitespace(c)) {
+						continue;
+					}
+					else if(!TextParserUtil.isLegalSpecialCharacter(c)) {
+						log(ERROR, "Found illegal charcter between parameter names");
+						return false;
+					}
+					doneWithParam = false;
+					lookingForParam = true;
+				}
+			}
+		}
+		
+		return true;
+	}
+	*/
 }
