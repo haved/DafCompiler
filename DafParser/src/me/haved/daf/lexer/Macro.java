@@ -110,7 +110,7 @@ public class Macro {
 				if(TextParserUtil.isGreaterThanChar(c)) {
 					i++; //Get past the end of the list
 					if(i >= text.length())
-						break; //The macro has for some very odd reason got parameters but noe value!
+						break; //The macro has for some very odd reason got parameters but no value!
 					if(!TextParserUtil.isAnyWhitespace(text.charAt(i))) {
 						log(ERROR, "Char found right after a macro name: '%c'", text.charAt(i));
 						return null;
@@ -150,7 +150,7 @@ public class Macro {
 					else if(TextParserUtil.isNormalWhitespace(c)) { //We go to i++;
 						continue;
 					}
-					else if(TextParserUtil.isPoundSymbol(c)) { //We found another parameter before a seperator!
+					else if(TextParserUtil.isPoundSymbol(c)) { //We found another parameter before a separator!
 						log(ERROR, "Found a pound symbol after the name of a macro parameter");
 					}
 					else if(!TextParserUtil.isLegalSpecialCharacter(c)) { //We found some character that is special, but not legal as a separator!
