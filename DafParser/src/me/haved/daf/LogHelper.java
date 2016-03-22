@@ -74,6 +74,10 @@ public class LogHelper {
 			log(file.getErrorString(), logLevel, String.format(format, objects));
 	}
 	
+	public static void log(Exception e) {
+		e.printStackTrace(out);
+	}
+	
 	public static void terminateIfErrorsOccured() {
 		if(errorsOccured)
 			log(FATAL_ERROR, "Terminating due to previous errors!");

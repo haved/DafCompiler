@@ -3,8 +3,8 @@ package me.haved.daf.lexer;
 public class TextParserUtil {
 	
 	public static final char END_OF_LINE = '\n';
-	public static final char OPEN_CURLY_BRACKETS = '{';
-	public static final char CLOSE_CURLY_BRACKETS = '}';
+	public static final char OPEN_MACRO = '`';
+	public static final char CLOSE_MACRO = '´';
 
 	public static boolean containsAnyWhitespace(String s) {
 		for(int i = 0; i < s.length(); i++)
@@ -33,16 +33,20 @@ public class TextParserUtil {
 		return c=='#';
 	}
 	
-	public static boolean isLessThanChar(char c) {
+	public static boolean isStartOfMacroParameters(char c) {
 		return c == '<';
 	}
 
-	public static boolean isGreaterThanChar(char c) {
+	public static boolean isEndOfMacroParameters(char c) {
 		return c == '>';
 	}
 
 	public static boolean isLegalSpecialCharacter(char c) {
 		return c == ';' | c == '-' | c == ',';
+	}
+	
+	public static boolean isLegalMacroParameterSeparator(char c) {
+		return isLegalSpecialCharacter(c) && !isPoundSymbol(c) && !isEndOfMacroParameters(c) && !isStartOfMacroParameters(c);
 	}
 
 	public static boolean isQuoteChar(char c) {

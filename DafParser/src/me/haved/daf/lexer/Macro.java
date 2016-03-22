@@ -1,10 +1,5 @@
 package me.haved.daf.lexer;
 
-// #macro Ball true
-// #macro Bull<> {false}
-// #macro Func <#param> {#param}
-// 
-
 import static me.haved.daf.LogHelper.*;
 
 import java.util.ArrayList;
@@ -81,7 +76,7 @@ public class Macro {
 			if(!TextParserUtil.isIdentifierChar(c)) {
 				macroName = text.substring(0, i); //Not including i;
 				
-				if(!TextParserUtil.isNormalWhitespace(c) & !TextParserUtil.isLessThanChar(c)) { //Must be space or '<' after name!
+				if(!TextParserUtil.isNormalWhitespace(c) & !TextParserUtil.isStartOfMacroParameters(c)) { //Must be space or '<' after name!
 					log(ERROR, "Found unknown character after macro name! '%c'", c);
 					return null;
 				}
@@ -98,7 +93,7 @@ public class Macro {
 			i++; //Skip all whitespace
 		
 		ArrayList<String> parameters = new ArrayList<>();
-		if(TextParserUtil.isLessThanChar(text.charAt(i))) { //Argument list! Hurrah!
+		if(TextParserUtil.isStartOfMacroParameters(text.charAt(i))) { //Argument list! Hurrah!
 			i++; //To get past the '<'
 			boolean lookingForParam = true; //Means you are looking for a pound symbol or '>'
 			boolean doneWithParam  = false; //Means you are looking for a special char between two parameters or '>'
@@ -106,7 +101,7 @@ public class Macro {
 			
 			for(; i < text.length(); i++) {
 				char c = text.charAt(i);
-				if(TextParserUtil.isGreaterThanChar(c) & (lookingForParam || doneWithParam))
+				if(TextParserUtil.isEndOfMacroParameters(c) & (lookingForParam || doneWithParam))
 					break; //We are done with the parameter list
 				if(lookingForParam) {
 					if(TextParserUtil.isPoundSymbol(c)) {
@@ -140,7 +135,7 @@ public class Macro {
 						continue;
 					doneWithParam = false;
 					lookingForParam = true;
-					if(TextParserUtil.isGreaterThanChar(c)) //This means we are done with the parameter list
+					if(TextParserUtil.isEndOfMacroParameters(c)) //This means we are done with the parameter list
 						break;
 					else if(TextParserUtil.isPoundSymbol(c)) { //We found another parameter before a separator!
 						log(ERROR, "Found a pound symbol after the name of a macro parameter");
@@ -182,7 +177,7 @@ public class Macro {
 		while(TextParserUtil.isNormalWhitespace(text.charAt(i)))
 			i++;
 		
-		int indexOfDefStart = text.indexOf(TextParserUtil.OPEN_CURLY_BRACKETS, i); //TRUE: If charAt(i) is '{', i is returned!
+		int indexOfDefStart = text.indexOf(TextParserUtil.OPEN_MACRO, i); //TRUE: If charAt(i) is '{', i is returned!
 		
 		if(indexOfDefStart == i) {
 			int previousChar = i; //Where the last curly bracket was
@@ -194,8 +189,8 @@ public class Macro {
 					indexOfOpen  = -1;
 					indexOfClose = -1;
 				} else {
-					indexOfOpen = text.indexOf(TextParserUtil.OPEN_CURLY_BRACKETS, previousChar+1);
-					indexOfClose = text.indexOf(TextParserUtil.CLOSE_CURLY_BRACKETS, previousChar+1);
+					indexOfOpen = text.indexOf(TextParserUtil.OPEN_MACRO, previousChar+1);
+					indexOfClose = text.indexOf(TextParserUtil.CLOSE_MACRO, previousChar+1);
 				}
 				
 				if(indexOfClose >= 0 && (indexOfOpen < 0 || indexOfClose < indexOfOpen)) {
@@ -205,7 +200,7 @@ public class Macro {
 					if(level <= 0) {
 						assert(level == 0);
 						if(indexOfClose != text.length()-1) {
-							log(ERROR, "More stuff found after last closing curly bracket!: '%s'", text.substring(indexOfClose));
+							log(ERROR, "More stuff found after end of macro definition!: '%s'", text.substring(indexOfClose));
 							return null;
 						}
 						definition = text.substring(i+1, indexOfClose); //Not including either bracket
@@ -216,7 +211,7 @@ public class Macro {
 					previousChar = indexOfOpen;
 					level++;
 				} else { //No more brackets in the text
-					log(ERROR, "The opening curly bracket of a macro definition wasn't properly closed! Levels in: %d", level);
+					log(ERROR, "The opening char (%c) of a macro definition wasn't properly closed! Levels in: %d", TextParserUtil.OPEN_MACRO, level);
 					return null;
 				}
 			}
@@ -226,13 +221,13 @@ public class Macro {
 				endOfLine = text.length(); //We just go on for the whole line + 1
 			
 			if(endOfLine < indexOfDefStart) {
-				log(ERROR, "The end of the macro definition line was found before a supplied opening curly bracket! Too much text was sent!");
+				log(ERROR, "The end of the macro definition line was found before a supplied opening char (%c)! Too much text was sent!", TextParserUtil.CLOSE_MACRO);
 				return null;
 			}
 			if(indexOfDefStart == -1) //We are going from i to endOfLine;
 				definition = text.substring(i, endOfLine);
 			else {
-				log(ERROR, "The macro definitin contained a opening curly bracket, but there were none at the beginning!");
+				log(ERROR, "The macro definition contained a opening char (%c), but there were none at the beginning!", TextParserUtil.OPEN_MACRO);
 				return null;
 			}
 		}
