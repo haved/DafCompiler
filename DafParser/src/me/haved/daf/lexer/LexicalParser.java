@@ -1,8 +1,6 @@
 package me.haved.daf.lexer;
 
 import java.util.ArrayList;
-import java.util.Scanner;
-
 import me.haved.daf.RegisteredFile;
 
 import static me.haved.daf.LogHelper.*;
@@ -16,9 +14,11 @@ public class LexicalParser {
 			ArrayList<Token> tokens = new ArrayList<>();
 			
 			try {
-				try(Scanner scanner = new Scanner(file.fileObject)) {
-					
-				}
+				FileTextSupplier supplier = new FileTextSupplier(file);
+				
+				SupplierTester.testSupplier(supplier);
+				
+				supplier.close(); //Just in case
 			} catch(Exception e) {
 				log(e);
 				log(FATAL_ERROR, "Error occured during file reading of file '%s': %s", file.fileName, e.getClass().getName());

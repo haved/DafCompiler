@@ -18,7 +18,7 @@ public class MainDafParser {
 	
 	private static boolean developer = true;	
 	public  static void main(String[] args) {
-		log(SUPER_DEBUG, "Welcome to the daf parser!");
+		//log(SUPER_DEBUG, "Welcome to the daf parser!");
 		if(args.length == 0)
 			if(developer) {
 				LogHelper.startSummaryTime();
