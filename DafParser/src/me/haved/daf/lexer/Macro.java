@@ -152,9 +152,14 @@ public class Macro {
 					}
 				}
 			}
+			i++; //Get past the last char of the list
+			
+			if(i < text.length() && !TextParserUtil.isAnyWhitespace(text.charAt(i))) {
+				log(ERROR, "Char found right after a macro parameter list: '%c'", text.charAt(i));
+				return null;
+			}
 		}
 		
-		i++; //Get past the end of the list
 		if(i >= text.length()) {
 			if(parameters.size() == 0) {
 				log(MESSAGE, "The macro named '%s' has got no definitions, and an empty parameter list!", macroName);
@@ -165,10 +170,6 @@ public class Macro {
 				String[] params = new String[parameters.size()];
 				return new Macro(macroName, parameters.toArray(params), null);
 			}
-		}
-		if(!TextParserUtil.isAnyWhitespace(text.charAt(i))) {
-			log(ERROR, "Char found right after a macro parameter list: '%c'", text.charAt(i));
-			return null;
 		}
 		
 		// Now we have the macroName, the parameters, and we know there is more to come!
