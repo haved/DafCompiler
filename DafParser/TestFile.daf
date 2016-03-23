@@ -17,7 +17,7 @@ proc main() {
 
 	b = CAST_TO<int> a;
 
-	#if DEBUG
-		printf("B is %d", b);
+	#ifmacro DEBUG
+		print("B is %d", b);
 	#endif
 }
