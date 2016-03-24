@@ -20,6 +20,7 @@ public class FileTextSupplier implements Supplier {
 	private char current;
 	private int currentLine;
 	private int currentCol;
+	private boolean finalNewline;
 	private boolean done;
 	
 	public FileTextSupplier(RegisteredFile file) throws FileNotFoundException {
@@ -37,11 +38,8 @@ public class FileTextSupplier implements Supplier {
 		current = '\n';
 		currentLine = 0;
 		currentCol = 0;
+		finalNewline = false;
 		done = false;
-	}
-	
-	public boolean isOpen() {
-		return !done;
 	}
 	
 	public void close() throws IOException {
@@ -72,20 +70,22 @@ public class FileTextSupplier implements Supplier {
 		
 		currentCol += current == '\t' ? tabWidth : 1; //If the current char is a tab, it is (probably) 4 long instead of the normal 1
 				
-		if(!in.ready()) {
+		if(finalNewline) {
 			done = true;
 			return false;
 		}
 		
 		int i = in.read(); //If the file is over, add an extra newline just to be sure
-		if(i < 0) {
+		if(i < 0) { //No more actual file content, but we keep going for another advance() call until hasChar() returns false
 			current = '\n';
 			in.close();
+			finalNewline = true;
 		} else
 			current = (char) i;
 		return true;
 	}
 	
+	@Override
 	public String toString() {
 		return String.format("FileTextSupplier(%s)", file.fileName);
 	}

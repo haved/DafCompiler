@@ -3,9 +3,6 @@ package me.haved.daf.lexer;
 import java.io.IOException;
 
 public interface Supplier {
-	
-	public boolean isOpen();
-	
 	public void close() throws IOException;
 	
 	public boolean hasChar();
