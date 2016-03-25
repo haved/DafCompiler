@@ -6,7 +6,7 @@ import static me.haved.daf.LogHelper.*;
 
 public class FileCodeSupplier implements Supplier {
 	
-	private static int DEFAULT_CHAR_BUFFER_LENGTH = 20; // A macro will quickly destroy this
+	private static int DEFAULT_CHAR_BUFFER_LENGTH = 30; // A macro will quickly destroy this
 	private static float ARRAY_EXPAND_AMOUNT = 1.5f;
 	
 	private FileTextSupplier fileText;
@@ -18,11 +18,22 @@ public class FileCodeSupplier implements Supplier {
 	private int currentChar = 0;
 	private int length = 0;
 	
-	public FileCodeSupplier(FileTextSupplier fileText) {
+	public FileCodeSupplier(FileTextSupplier fileText) throws Exception {
 		this.fileText = fileText;
 		chars = new char[DEFAULT_CHAR_BUFFER_LENGTH]; //Start of with 20
 		lineNums = new int[DEFAULT_CHAR_BUFFER_LENGTH];
 		colNums = new int[DEFAULT_CHAR_BUFFER_LENGTH];
+		
+		if(!fileText.hasChar())
+			if(!fileText.advance())
+				log(FATAL_ERROR, "The %s given to a FileCodeSupplier refused to give a char or advance!", fileText.toString());
+		if(!fileText.hasChar())
+			log(FATAL_ERROR, "%s refused to give a char a second time!", fileText.toString());
+		
+		chars   [length] = fileText.getCurrentChar();
+		lineNums[length] = fileText.getCurrentLine();
+		colNums [length] = fileText.getCurrentCol ();
+		length++;
 	}
 	
 	@Override
@@ -88,14 +99,33 @@ public class FileCodeSupplier implements Supplier {
 			chars   [length] = fileText.getCurrentChar();
 			lineNums[length] = fileText.getCurrentLine();
 			colNums [length] = fileText.getCurrentCol ();
-			if(currentChar != length)
-				currentChar++; //We can show the next char!
 			length++;
+			if(currentChar < length-1) //In the case we didn't have a char at all, we got one now
+				currentChar++;
+			if(chars[currentChar]==' ')
+				updateBaseToCurrent();
 			return fileText.advance(); //Out of text?
 		} else {
-			log(ERROR, "The FileTextSupplier is out of chars before advace() returned false");
+			log(ERROR, "The FileTextSupplier is out of chars before advance() returned false");
 			return false;
 		}
 	}
+	
+	public void resetAtBase() {
+		currentChar = currentBase;
+	}
 
+	public void updateBaseToCurrent() {
+		
+		length = length - currentChar;
+		log(DEBUG, "Just update base of FileCodeSupplier! Length went from %d to %d!", length+currentChar, length);
+		
+		System.arraycopy(chars,    currentChar, chars,    0, length);
+		System.arraycopy(lineNums, currentChar, lineNums, 0, length);
+		System.arraycopy(colNums,  currentChar, colNums,  0, length);
+		
+		currentChar = 0;
+		currentBase = 0;
+	}
+	
 }
