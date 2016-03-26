@@ -51,6 +51,8 @@ public class FileTextSupplier implements Supplier {
 	}
 	
 	public char getCurrentChar() {
+		if(!hasChar())
+			log(FATAL_ERROR, "Asking %s for current char when hasChar() is false!", toString());
 		return current;
 	}
 	

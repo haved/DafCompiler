@@ -2,6 +2,8 @@ package me.haved.daf.lexer;
 
 import java.io.IOException;
 
+import me.haved.daf.args.MacroOption.AddMacroCall;
+
 import static me.haved.daf.LogHelper.*;
 
 public class FileCodeSupplier implements Supplier {
@@ -76,7 +78,7 @@ public class FileCodeSupplier implements Supplier {
 		int[] oldCols = colNums;
 		chars = new char[newSize];
 		lineNums = new int[newSize];
-		oldCols = new int[newSize];
+		colNums = new int[newSize];
 		System.arraycopy(oldChars, 0, chars, 0, length);
 		System.arraycopy(oldLines, 0, lineNums, 0, length);
 		System.arraycopy(oldCols , 0, colNums, 0, length);
@@ -115,6 +117,43 @@ public class FileCodeSupplier implements Supplier {
 
 	@Override
 	public boolean advance() throws IOException {
+		if(currentChar < length-1) { //We know the next char is already loaded
+			currentChar++;
+			return true;
+		}
 		
+		if(!fileText.hasChar())
+			log(FATAL_ERROR, "FileTextSupplier out of chars before advance() returned false");
+		char c = fileText.getCurrentChar();
+		if(c == '/') { //Let's check if we are looking at a comment
+			int line = fileText.getCurrentLine();
+			int col = fileText.getCurrentCol();
+			if(fileText.advance()) { //The file might be over after the / (not really because of the '\n' but let's just go with it)
+				if(!fileText.hasChar())
+					log(FATAL_ERROR, "FileTextSupplier out of chars before advance() returned false");
+				char nextC = fileText.getCurrentChar();
+				if(nextC == '/') { //One line comment!
+					//Advance and check until newline. Don't add anything
+					log(SUPER_DEBUG, "Found one-line comment");
+				} else if(nextC == '*') { //Multiple line comment
+					
+				} else {
+					appendChar(c, line, col);
+					appendChar(nextC, fileText.getCurrentLine(), fileText.getCurrentCol());
+				}
+			} else {
+				appendChar(c, line, col);
+			}
+		} else if(c == '#') { //Check for macros and control statements and stuff
+			
+		} else {
+			appendChar(c, fileText.getCurrentLine(), fileText.getCurrentCol()); //The usual
+		}
+		
+		if(currentChar < length-1) {
+			currentChar++; //We know that we have appended a char
+		}
+		
+		return fileText.advance(); //We do one final advance if we read a char. Uuugly code
 	}
 }
