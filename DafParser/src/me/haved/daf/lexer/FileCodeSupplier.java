@@ -2,8 +2,6 @@ package me.haved.daf.lexer;
 
 import java.io.IOException;
 
-import me.haved.daf.args.MacroOption.AddMacroCall;
-
 import static me.haved.daf.LogHelper.*;
 
 public class FileCodeSupplier implements Supplier {
@@ -28,16 +26,9 @@ public class FileCodeSupplier implements Supplier {
 		this.lineNums = new int[DEFAULT_CHAR_BUFFER_LENGTH];
 		this.colNums = new int[DEFAULT_CHAR_BUFFER_LENGTH];
 	
-		if(!fileText.hasChar())
-			if(!fileText.advance())
-				log(FATAL_ERROR, "FileCodeSupplier was given a completly empty: %s", fileText.toString());
-		
-		if(!fileText.hasChar()) //Now it definitely *should* have one
-			log(FATAL_ERROR, "FileCodeSupplier was given broken %s", fileText.toString());
-		if(!appendChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol()))
-			log(FATAL_ERROR, "FileCodeSupplier was given a FileTextSupplier that refued to give it's promised char away!");
+		appendChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol());
 		if(!fileText.advance())
-			log(FATAL_ERROR, "FileCodeSupplier was given a one char long unadvanceable %s", fileText.toString());
+			log(FATAL_ERROR, "The File code supplier was given a %s that only had one char!", fileText.toString());
 	}
 
 	private boolean appendChar(char c, int line, int col) {
@@ -96,21 +87,21 @@ public class FileCodeSupplier implements Supplier {
 
 	@Override
 	public char getCurrentChar() {
-		if(currentChar >= length)
+		if(!hasChar())
 			log(ASSERTION_FAILED, "Asked for current char even though there is no current char!");
 		return chars[currentChar];
 	}
 
 	@Override
 	public int getCurrentLine() {
-		if(currentChar >= length)
+		if(!hasChar())
 			log(ASSERTION_FAILED, "Asked for current char line even though there is no current char!");
 		return lineNums[currentChar];
 	}
 	
 	@Override
 	public int getCurrentCol() {
-		if(currentChar >= length)
+		if(!hasChar())
 			log(ASSERTION_FAILED, "Asked for current char col even though there is no current char!");
 		return colNums[currentChar];
 	}
@@ -119,41 +110,8 @@ public class FileCodeSupplier implements Supplier {
 	public boolean advance() throws IOException {
 		if(currentChar < length-1) { //We know the next char is already loaded
 			currentChar++;
-			return true;
+			return true; //Successful advance!
 		}
-		
-		if(!fileText.hasChar())
-			log(FATAL_ERROR, "FileTextSupplier out of chars before advance() returned false");
-		char c = fileText.getCurrentChar();
-		if(c == '/') { //Let's check if we are looking at a comment
-			int line = fileText.getCurrentLine();
-			int col = fileText.getCurrentCol();
-			if(fileText.advance()) { //The file might be over after the / (not really because of the '\n' but let's just go with it)
-				if(!fileText.hasChar())
-					log(FATAL_ERROR, "FileTextSupplier out of chars before advance() returned false");
-				char nextC = fileText.getCurrentChar();
-				if(nextC == '/') { //One line comment!
-					//Advance and check until newline. Don't add anything
-					log(SUPER_DEBUG, "Found one-line comment");
-				} else if(nextC == '*') { //Multiple line comment
-					
-				} else {
-					appendChar(c, line, col);
-					appendChar(nextC, fileText.getCurrentLine(), fileText.getCurrentCol());
-				}
-			} else {
-				appendChar(c, line, col);
-			}
-		} else if(c == '#') { //Check for macros and control statements and stuff
-			
-		} else {
-			appendChar(c, fileText.getCurrentLine(), fileText.getCurrentCol()); //The usual
-		}
-		
-		if(currentChar < length-1) {
-			currentChar++; //We know that we have appended a char
-		}
-		
-		return fileText.advance(); //We do one final advance if we read a char. Uuugly code
+		return false;
 	}
 }
