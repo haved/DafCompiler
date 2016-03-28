@@ -124,8 +124,31 @@ public class FileCodeSupplier implements Supplier {
 		if(!fileText.advance()) //We NEED a char! Why did you fail us??
 			return false;
 		
-		char c = fileText.getCurrentChar();
-		appendChar(c, fileText.getCurrentLine(), fileText.getCurrentCol());
+		char firstChar = fileText.getCurrentChar();
+		if(firstChar == '/') { //A comment perhaps? 
+			int firstLine = fileText.getCurrentLine();
+			int firstCol = fileText.getCurrentCol();
+			
+			if(!fileText.advance()) {
+				appendChar(firstChar, firstLine, firstCol);
+				return true; //Next advance call will return false
+			}
+			
+			char nextC = fileText.getCurrentChar();
+			if(nextC == '/') { //One line comment, baby!
+				while(true) {
+					if(!fileText.advance()) //The file is done in a comment (Never happens because of forced newline end
+						return false;
+					if(fileText.getCurrentChar() == '\n')
+						break;
+				}
+				if(!fileText.advance()) //There was nothing after the comment. The file is over
+					return false;
+				appendChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol());
+				return true;
+			}
+		}
+		appendChar(firstChar, fileText.getCurrentLine(), fileText.getCurrentCol());
 		
 		return true;
 	}
