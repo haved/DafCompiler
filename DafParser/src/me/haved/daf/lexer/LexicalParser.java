@@ -15,10 +15,10 @@ public class LexicalParser {
 			
 			try {
 				FileTextSupplier supplier = new FileTextSupplier(file);
-				//FileCodeSupplier codeSupplier = new FileCodeSupplier(supplier, map);
-				SupplierTester.testSupplier(supplier);
+				FileCodeSupplier codeSupplier = new FileCodeSupplier(supplier, map);
+				SupplierTester.testSupplier(codeSupplier);
 				
-				//codeSupplier.close(); //Just in case
+				codeSupplier.close(); //Just in case
 			} catch(Exception e) {
 				log(e);
 				log(FATAL_ERROR, "Error occured during file reading of file '%s': %s", file.fileName, e.getClass().getName());
