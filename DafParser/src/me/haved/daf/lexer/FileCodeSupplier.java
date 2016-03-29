@@ -125,53 +125,67 @@ public class FileCodeSupplier implements Supplier {
 			return false;
 		
 		char firstChar = fileText.getCurrentChar();
-		if(firstChar == '/') { //A comment perhaps? 
-			int firstLine = fileText.getCurrentLine();
-			int firstCol = fileText.getCurrentCol();
-			
-			if(!fileText.advance()) {
-				appendChar(firstChar, firstLine, firstCol);
-				return true; //Next advance call will return false
-			}
-			
-			char nextC = fileText.getCurrentChar();
-			if(nextC == '/') { //One line comment, baby!
-				while(true) {
-					if(!fileText.advance()) //The file is done in a comment (Never happens because of forced newline end
-						return false;
-					if(fileText.getCurrentChar() == '\n')
-						break;
-				}
-				if(!fileText.advance()) //There was nothing after the comment. The file is over
+		if(firstChar == '/') //A comment perhaps? 
+			return doCommentChecks(firstChar);
+		if(firstChar == '#')
+			return doMacroAndFlowChecks(firstChar);
+		
+		appendChar(firstChar, fileText.getCurrentLine(), fileText.getCurrentCol());
+		return true;
+	}
+	
+	private boolean doCommentChecks(char firstChar) throws IOException {
+		int firstLine = fileText.getCurrentLine();
+		int firstCol = fileText.getCurrentCol();
+		
+		if(!fileText.advance()) {
+			appendChar(firstChar, firstLine, firstCol);
+			return true; //Next advance call will return false
+		}
+		
+		char nextC = fileText.getCurrentChar();
+		if(nextC == '/') { //One line comment, baby!
+			while(true) {
+				if(!fileText.advance()) //The file is done in a comment (Never happens because of forced newline end
 					return false;
-				appendChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol());
-				return true;
-			} else if(nextC == '*') { //Multiple line comment!
-				boolean starFound = false;
-				while(true) {
-					if(!fileText.advance()) //The file is done in a comment (Never happens because of forced newline end
-						return false;
-					char c = fileText.getCurrentChar();
-					if(c == '*')
-						starFound = true;
-					else if(c == '/' && starFound)
-						break; //We are done
-					else
-						starFound = false;
-				}
-				if(!fileText.advance()) //There was nothing after the comment. The file is over
-					return false;
-				appendChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol());
-				return true;
-			} else { //If next char wasn't interesting, we add the first char as well as the next char
-				appendChar(firstChar, firstLine, firstCol);
-				appendChar(nextC, fileText.getCurrentLine(), fileText.getCurrentCol());
-				return true;
+				if(fileText.getCurrentChar() == '\n')
+					break;
 			}
-		} else {
-			appendChar(firstChar, fileText.getCurrentLine(), fileText.getCurrentCol());
-			
+			if(!fileText.advance()) //There was nothing after the comment. The file is over
+				return false;
+			appendChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol());
+			return true;
+		} else if(nextC == '*') { //Multiple line comment!
+			boolean starFound = false;
+			while(true) {
+				if(!fileText.advance()) //The file is done in a comment (Never happens because of forced newline end
+					return false;
+				char c = fileText.getCurrentChar();
+				if(c == '*')
+					starFound = true;
+				else if(c == '/' && starFound)
+					break; //We are done
+				else
+					starFound = false;
+			}
+			if(!fileText.advance()) //There was nothing after the comment. The file is over
+				return false;
+			appendChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol());
+			return true;
+		} else { //If next char wasn't interesting, we add the first char as well as the next char
+			appendChar(firstChar, firstLine, firstCol);
+			appendChar(nextC, fileText.getCurrentLine(), fileText.getCurrentCol());
 			return true;
 		}
+	}
+
+	private boolean doMacroAndFlowChecks(char firstChar) throws IOException {
+		int firstLine = fileText.getCurrentLine();
+		int firstCol = fileText.getCurrentCol();
+		
+		StringBuilder identifier = new StringBuilder();
+		
+		
+		return false;
 	}
 }
