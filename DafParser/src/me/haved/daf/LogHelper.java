@@ -74,6 +74,10 @@ public class LogHelper {
 			log(file.getErrorString(), logLevel, String.format(format, objects));
 	}
 	
+	public static void log(String fileName, int line, int col, int logLevel, String format, Object... objects) {
+		log(String.format("%s:%d:%d", fileName, line, col), logLevel, String.format(format, objects));
+	}
+	
 	public static void log(Exception e) {
 		e.printStackTrace(out);
 	}

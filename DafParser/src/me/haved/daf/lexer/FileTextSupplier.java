@@ -87,6 +87,10 @@ public class FileTextSupplier implements Supplier {
 		return true;
 	}
 	
+	public RegisteredFile getFile() {
+		return file;
+	}
+	
 	@Override
 	public String toString() {
 		return String.format("FileTextSupplier(%s)", file.fileName);

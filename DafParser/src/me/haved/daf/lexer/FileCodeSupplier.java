@@ -180,11 +180,23 @@ public class FileCodeSupplier implements Supplier {
 	}
 
 	private boolean doMacroAndFlowChecks(char firstChar) throws IOException {
-		int firstLine = fileText.getCurrentLine();
-		int firstCol = fileText.getCurrentCol();
+		int poundLine = fileText.getCurrentLine();
+		int poundCol = fileText.getCurrentCol();
 		
 		StringBuilder identifier = new StringBuilder();
 		
+		while(true) {
+			if(!fileText.advance()) {
+				log(fileText.getFile().fileName, poundLine, poundCol, FATAL_ERROR, "A proper keyword or macro identifier wasn't found after a pound symbol");
+				return false; //Just to be sure
+			}
+			
+			char c = fileText.getCurrentChar();
+			if(TextParserUtil.isStartOfIdentifier(c)) {
+				identifier.append(c);
+			} else
+				break;
+		}
 		
 		return false;
 	}
