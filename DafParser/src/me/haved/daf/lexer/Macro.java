@@ -177,59 +177,29 @@ public class Macro {
 		while(TextParserUtil.isNormalWhitespace(text.charAt(i)))
 			i++;
 		
-		int indexOfDefStart = text.indexOf(TextParserUtil.OPEN_MACRO, i); //TRUE: If charAt(i) is '{', i is returned!
+		int indexOfDefStart = text.indexOf(TextParserUtil.ENCLOSE_MACRO, i); //TRUE: If charAt(i) is '{', i is returned!
+		int endOfLine = text.indexOf(TextParserUtil.END_OF_LINE, i); //The endOfTheLine index itself is "outside the line"
+		if(endOfLine == -1)
+			endOfLine = text.length(); //We just go on for the whole line + 1
 		
-		if(indexOfDefStart == i) {
-			int previousChar = i; //Where the last curly bracket was
-			int level = 1; //How deep in curly brackets we are. 0 is outside the definition
-			while(true) {
-				int indexOfOpen;
-				int indexOfClose;
-				if(previousChar+1>=text.length()) { //The last bracket was the end of the text, no more brackets
-					indexOfOpen  = -1;
-					indexOfClose = -1;
-				} else {
-					indexOfOpen = text.indexOf(TextParserUtil.OPEN_MACRO, previousChar+1);
-					indexOfClose = text.indexOf(TextParserUtil.CLOSE_MACRO, previousChar+1);
-				}
-				
-				if(indexOfClose >= 0 && (indexOfOpen < 0 || indexOfClose < indexOfOpen)) {
-					previousChar = indexOfClose;
-					level--;
-					
-					if(level <= 0) {
-						assert(level == 0);
-						if(indexOfClose != text.length()-1) {
-							log(ERROR, "More stuff found after end of macro definition!: '%s'", text.substring(indexOfClose));
-							return null;
-						}
-						definition = text.substring(i+1, indexOfClose); //Not including either bracket
-						break;
-					}
-				}
-				else if(indexOfOpen >= 0 && (indexOfClose < 0 || indexOfOpen < indexOfClose)) {
-					previousChar = indexOfOpen;
-					level++;
-				} else { //No more brackets in the text
-					log(ERROR, "The opening char (%c) of a macro definition wasn't properly closed! Levels in: %d", TextParserUtil.OPEN_MACRO, level);
-					return null;
-				}
-			}
-		} else {
-			int endOfLine = text.indexOf(TextParserUtil.END_OF_LINE, i); //The endOfTheLine index itself is outside the line
-			if(endOfLine == -1)
-				endOfLine = text.length(); //We just go on for the whole line + 1
+		if(endOfLine < indexOfDefStart) {
+			log(ERROR, "The end of the macro definition line was found before a supplied opening char (%c)! Too much text was sent!", TextParserUtil.ENCLOSE_MACRO);
+			return null;
+		}
+		if(indexOfDefStart == -1) //We are going from i to endOfLine;
+			definition = text.substring(i, endOfLine);
+		else if(indexOfDefStart == i) {
 			
-			if(endOfLine < indexOfDefStart) {
-				log(ERROR, "The end of the macro definition line was found before a supplied opening char (%c)! Too much text was sent!", TextParserUtil.CLOSE_MACRO);
+			int indexOfClose = text.indexOf(TextParserUtil.ENCLOSE_MACRO, indexOfDefStart+1);
+			if(indexOfClose == -1) {
+				log(ERROR, "Macro definition opened but not closed with '%c'", TextParserUtil.ENCLOSE_MACRO);
 				return null;
 			}
-			if(indexOfDefStart == -1) //We are going from i to endOfLine;
-				definition = text.substring(i, endOfLine);
-			else {
-				log(ERROR, "The macro definition contained a opening char (%c), but there were none at the beginning!", TextParserUtil.OPEN_MACRO);
-				return null;
-			}
+			definition = text.substring(indexOfDefStart+1, indexOfClose);
+		}
+		else {
+			log(ERROR, "The macro definition contained a opening char (%c), but there was text before it!", TextParserUtil.ENCLOSE_MACRO);
+			return null;
 		}
 			
 		if(parameters.size() == 0)

@@ -1,6 +1,7 @@
 package me.haved.daf.lexer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import static me.haved.daf.LogHelper.*;
 
@@ -178,12 +179,13 @@ public class FileCodeSupplier implements Supplier {
 			return true;
 		}
 	}
-
+	
 	private boolean doMacroAndFlowChecks(char firstChar) throws IOException {
 		int poundLine = fileText.getCurrentLine();
 		int poundCol = fileText.getCurrentCol();
 		
 		StringBuilder identifier = new StringBuilder();
+		ArrayList<Integer> col = new ArrayList<>(); //In case the pound symbol is a hoax! (In a string or something)
 		
 		while(true) {
 			if(!fileText.advance()) {
@@ -194,9 +196,13 @@ public class FileCodeSupplier implements Supplier {
 			char c = fileText.getCurrentChar();
 			if(TextParserUtil.isStartOfIdentifier(c)) {
 				identifier.append(c);
+				col.add(fileText.getCurrentCol());
 			} else
 				break;
 		}
+		//We are now done with the identifier, and currentChar is not a part of it
+		
+		
 		
 		return false;
 	}
