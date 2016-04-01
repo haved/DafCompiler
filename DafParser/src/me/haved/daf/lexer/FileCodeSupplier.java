@@ -245,7 +245,7 @@ public class FileCodeSupplier implements Supplier {
 			
 		} else {
 			if(!allowUnresolvedMacros) {
-				log(fileText.getFile().fileName, poundLine, poundCol, ERROR, "Unresolved macro found!");
+				log(fileText.getFile().fileName, poundLine, poundCol, ERROR, "Unresolved macro found: '#%s'", identifier);
 				return false;
 			}
 			//Time to add all the stuff back!

@@ -3,7 +3,7 @@ pub def pointer:=(&mut a:int)->&mut int {
 }
 
 #macro PLUS_ONE +1
-#macro CAST_TO<T> cast(T) 
+#macro CAST_TO<#T> cast(T) 
 
 #macro DEBUG true
 
