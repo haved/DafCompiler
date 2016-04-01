@@ -1,17 +1,20 @@
 package me.haved.daf.lexer;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import static me.haved.daf.LogHelper.*;
 
 public class FileCodeSupplier implements Supplier {
+	
+	private static final String MACRO_KEYWORD = "macro";
 	
 	private static int DEFAULT_CHAR_BUFFER_LENGTH = 30; // A macro will quickly destroy this
 	private static float ARRAY_EXTRA_EXPAND_FACTOR = 0.5f;
 	
 	private FileTextSupplier fileText;
 	private MacroMap macros;
+	private boolean allowUnresolvedMacros;
+	
 	private char[] chars;
 	private int[] lineNums;
 	private int[] colNums;
@@ -21,8 +24,14 @@ public class FileCodeSupplier implements Supplier {
 	private int length = 0; //The length of the used space of the buffer
 	
 	public FileCodeSupplier(FileTextSupplier fileText, MacroMap macros) throws Exception {
+		this(fileText, macros, false);
+	}
+	
+	public FileCodeSupplier(FileTextSupplier fileText, MacroMap macros, boolean allowUnresolvedMacros) throws Exception {
 		this.fileText = fileText;
 		this.macros = macros;
+		this.allowUnresolvedMacros = allowUnresolvedMacros;
+		
 		this.chars = new char[DEFAULT_CHAR_BUFFER_LENGTH];
 		this.lineNums = new int[DEFAULT_CHAR_BUFFER_LENGTH];
 		this.colNums = new int[DEFAULT_CHAR_BUFFER_LENGTH];
@@ -122,6 +131,10 @@ public class FileCodeSupplier implements Supplier {
 		if(currentChar < length) //We know the char is already loaded
 			return true; //Successful advance!
 		
+		return appendNextChar(); //We need to append a new char
+	}
+	
+	private boolean appendNextChar() throws IOException {
 		if(!fileText.advance()) //We NEED a char! Why did you fail us??
 			return false;
 		
@@ -135,6 +148,12 @@ public class FileCodeSupplier implements Supplier {
 		return true;
 	}
 	
+	/**
+	 * 
+	 * @param firstChar the char that made you branch over here
+	 * @return true if there is a new char added
+	 * @throws IOException
+	 */
 	private boolean doCommentChecks(char firstChar) throws IOException {
 		int firstLine = fileText.getCurrentLine();
 		int firstCol = fileText.getCurrentCol();
@@ -180,30 +199,99 @@ public class FileCodeSupplier implements Supplier {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param firstChar the char that made you branch here
+	 * @return true if a new char was added to the text
+	 * @throws IOException
+	 */
 	private boolean doMacroAndFlowChecks(char firstChar) throws IOException {
 		int poundLine = fileText.getCurrentLine();
 		int poundCol = fileText.getCurrentCol();
 		
-		StringBuilder identifier = new StringBuilder();
-		ArrayList<Integer> col = new ArrayList<>(); //In case the pound symbol is a hoax! (In a string or something)
+		StringBuilder identifierB = new StringBuilder();
 		
 		while(true) {
 			if(!fileText.advance()) {
-				log(fileText.getFile().fileName, poundLine, poundCol, FATAL_ERROR, "A proper keyword or macro identifier wasn't found after a pound symbol");
+				log(fileText.getFile().fileName, poundLine, poundCol, FATAL_ERROR, "A properly finished keyword or macro identifier wasn't found after a pound symbol");
 				return false; //Just to be sure
 			}
 			
 			char c = fileText.getCurrentChar();
-			if(TextParserUtil.isStartOfIdentifier(c)) {
-				identifier.append(c);
-				col.add(fileText.getCurrentCol());
+			if(identifierB.length()==0?TextParserUtil.isStartOfIdentifier(c):TextParserUtil.isIdentifierChar(c)) {
+				identifierB.append(c);
 			} else
 				break;
 		}
-		//We are now done with the identifier, and currentChar is not a part of it
+		//We are now done with the identifier, and fileText.currentChar is not a part of it!
 		
+		String identifier = identifierB.toString();
+		if(identifier.equals(MACRO_KEYWORD)) { //Adding a new macro, guys!
+			if(!TextParserUtil.isNormalWhitespace(fileText.getCurrentChar())) {
+				log(fileText.getFile().fileName, poundLine, poundCol + identifier.length(), ERROR, "#%s must be followed by a whitespace before the definition", MACRO_KEYWORD);
+				return false;
+			}
+			if(!resolveMacroDefinition()) { //This ends with fileText.currentChar at the last char of macro definition
+				log(fileText.getFile().fileName, poundLine, poundCol, ERROR, "Macro definition failed due to previous error(s)");
+				return false; //No error recoverability what so ever
+			}
+			
+			return appendNextChar(); //In theory a bit ugly and stuff because of the recursion, but two consecutive macro definitions will
+										//both be parsed, and a letter will be added after it. Nice code??
+		}
 		
+		Macro macro = macros.getMacro(identifier);
+		if(macro != null) {
+			
+		} else {
+			if(!allowUnresolvedMacros) {
+				log(fileText.getFile().fileName, poundLine, poundCol, ERROR, "Unresolved macro found!");
+				return false;
+			}
+			//Time to add all the stuff back!
+		}
 		
 		return false;
+	}
+	
+	/** Starts at the next char in the fileTextParser and keeps going until the macro definition is over
+	 * NB: Does not append a char, and leaves the fileText currentChar at either the newline or $
+	 * 
+	 * @return true if it worked
+	 */
+	private boolean resolveMacroDefinition() throws IOException {
+		StringBuilder macroLine = new StringBuilder(); //All parse errors are handled in the macroFromString
+		
+		boolean foundDefStart = false;
+		
+		while(true) {
+			if(!fileText.advance()) {
+				log(ERROR, "The file ended before the macro definition was over! Did you forget a closing '%c' ?", TextParserUtil.ENCLOSE_MACRO);
+				return false;
+			}
+			
+			char c = fileText.getCurrentChar();
+			
+			macroLine.append(c);
+			
+			if(c == TextParserUtil.ENCLOSE_MACRO) {
+				if(foundDefStart) { //We are done!
+					break;
+				}
+				foundDefStart = true;
+			}
+			if(c == TextParserUtil.END_OF_LINE && !foundDefStart) {
+				break;
+			}
+		}
+		
+		Macro macro = Macro.getMacroFromString(macroLine.toString());
+		if(macro == null) {
+			return false; //Error location is handled outside here
+		}
+		
+		macros.tryAddMacro(macro);
+		
+		return true;
 	}
 }
