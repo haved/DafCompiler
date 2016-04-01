@@ -24,7 +24,7 @@ public class FileCodeSupplier implements Supplier {
 	private int length = 0; //The length of the used space of the buffer
 	
 	public FileCodeSupplier(FileTextSupplier fileText, MacroMap macros) throws Exception {
-		this(fileText, macros, false);
+		this(fileText, macros, true);
 	}
 	
 	public FileCodeSupplier(FileTextSupplier fileText, MacroMap macros, boolean allowUnresolvedMacros) throws Exception {
@@ -249,6 +249,15 @@ public class FileCodeSupplier implements Supplier {
 				return false;
 			}
 			//Time to add all the stuff back!
+			
+			assureExtraSpace(identifier.length()+2); //Both the pound symbol and the char after the identifier ended (current)
+			
+			appendChar(firstChar, poundLine, poundCol);
+			for(int i = 0; i < identifier.length(); i++)
+				appendChar(identifier.charAt(i), poundLine, poundCol+1+i); //We know that only one-wide chars are in identifier
+			
+			appendChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol());
+			return true; //All good
 		}
 		
 		return false;
