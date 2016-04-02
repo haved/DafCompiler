@@ -123,6 +123,12 @@ public class FileCodeSupplier implements Supplier {
 			log(ASSERTION_FAILED, "Asked for current char col even though there is no current char!");
 		return colNums[currentChar];
 	}
+	
+
+	@Override
+	public String getSourceName() {
+		return fileText.getSourceName();
+	}
 
 	@Override
 	public boolean advance() throws IOException {
@@ -131,11 +137,14 @@ public class FileCodeSupplier implements Supplier {
 		if(currentChar < length) //We know the char is already loaded
 			return true; //Successful advance!
 		
-		return appendNextChar(); //We need to append a new char
+		return appendNextChar(true); //We need to append a new char
 	}
 	
-	private boolean appendNextChar() throws IOException {
-		if(!fileText.advance()) //We NEED a char! Why did you fail us??
+	private boolean appendNextChar(boolean advance) throws IOException {
+		if(advance && !fileText.advance()) //We NEED a char! Why did you fail us??
+			return false;
+		
+		if(!fileText.hasChar())
 			return false;
 		
 		char firstChar = fileText.getCurrentChar();
@@ -236,7 +245,7 @@ public class FileCodeSupplier implements Supplier {
 				return false; //No error recoverability what so ever
 			}
 			
-			return appendNextChar(); //In theory a bit ugly and stuff because of the recursion, but two consecutive macro definitions will
+			return appendNextChar(true); //In theory a bit ugly and stuff because of the recursion, but two consecutive macro definitions will
 										//both be parsed, and a letter will be added after it. Nice code??
 		}
 		
@@ -246,6 +255,7 @@ public class FileCodeSupplier implements Supplier {
 			if(!evaluateMacroFromHere(macro))
 				return false;
 			
+			//After evalutaeMacro, we know that current char is 
 			return appendNextChar(false);
 			
 		} else {
@@ -352,6 +362,7 @@ public class FileCodeSupplier implements Supplier {
 						break; //We are done with the macro parameters!
 					}
 				}
+				fileText.advance(); //We don't care what it returns. we just need to be sure we're past the '>'
 				foundParameters = params.length; //For the sake of debugging, we pretend to have parameters
 			}
 		} else if(params != null) {
@@ -389,7 +400,7 @@ public class FileCodeSupplier implements Supplier {
 			
 		if(map != null) { //We need to pass it through a FileCodeSupplier
 			StringTextSupplier supplier = 
-					new StringTextSupplier(macroEvaluation, fileText.getFile(), fileText.getCurrentLine(), fileText.getCurrentCol());
+					new StringTextSupplier(macroEvaluation, fileText.getFile().fileName, fileText.getCurrentLine(), fileText.getCurrentCol());
 		}
 		
 		return true;

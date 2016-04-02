@@ -1,6 +1,5 @@
 package me.haved.daf.lexer;
 
-import me.haved.daf.RegisteredFile;
 
 import static me.haved.daf.LogHelper.*;
 
@@ -9,15 +8,15 @@ import java.io.IOException;
 public class StringTextSupplier implements Supplier {
 
 	private String text;
-	private RegisteredFile file;
+	private String source;
 	private int line;
 	private int col;
 	
 	private int currentChar;
 	
-	public StringTextSupplier(String text, RegisteredFile file, int line, int col) {
+	public StringTextSupplier(String text, String source, int line, int col) {
 		this.text = text;
-		this.file = file;
+		this.source = source;
 		this.line = line;
 		this.col = col;
 		
@@ -55,5 +54,10 @@ public class StringTextSupplier implements Supplier {
 	public boolean advance() throws IOException {
 		currentChar++;
 		return hasChar();
+	}
+
+	@Override
+	public String getSourceName() {
+		return source;
 	}
 }

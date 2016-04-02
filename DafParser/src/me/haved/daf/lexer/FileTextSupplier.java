@@ -64,6 +64,11 @@ public class FileTextSupplier implements Supplier {
 		return currentCol;
 	}
 	
+	@Override
+	public String getSourceName() {
+		return file.fileName;
+	}
+	
 	public boolean advance() throws IOException {
 		if(current == '\n') {
 			currentLine++;
