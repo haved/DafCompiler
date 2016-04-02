@@ -243,50 +243,10 @@ public class FileCodeSupplier implements Supplier {
 		Macro macro = macros.getMacro(identifier);
 		if(macro != null) { //When here, currentChar is the char after the macro Name
 			
-			int whitespacesSkipped = 0;
-			boolean fileIsOver = false;
-			
-			while(true) { //Skip whitespace
-				if(fileText.getCurrentChar() == ' ') {
-					whitespacesSkipped++;
-					if(!fileText.advance()) {
-						fileIsOver = true;
-						break;
-					}	
-				}
-				else
-					break;
-			}
-			
-			String[] params = null;
-			if(macro.hasMacroParameters()) {
-				params = new String[macro.getMacroParameters().length];
-				if(params.length > 0) {
-					log(ASSERTION_FAILED, "The macro parameter list existed, but had a length of 0. Should be null!");
-				}
-			}
-			if(!fileIsOver) { //Then we look for parameters
-				
-			} else if(params != null) {
-				log(ERROR, "Macro evaluation was over before the needed %d parameters were found!", params.length);
+			if(!evaluateMacroFromHere(macro))
 				return false;
-			}
 			
-			MacroMap map = null;
-			if(params != null) {
-				map = macro.makeMacroMapFromParameters(params);
-				if(map == null)
-					log(fileText.getFile().fileName, fileText.getCurrentLine(), fileText.getCurrentCol()-identifier.length(), ERROR, "Wrong amount of macro parameters passed");
-			}
-				
-			String macroEvaluation = macro.getMacroValue();	
-				
-			if(map != null) { //We need to pass it through a FileCodeSupplier
-				StringTextSupplier supplier = new StringTextSupplier(macroEvaluation, fileText.getCurrentLine(), fileText.getCurrentCol()-identifier.length(), fileText.getFile());
-			}
-			
-			appendChar(fileText.getCurrentChar(), fileText.getCurrentCol(), fileText.getCurrentLine());
-			return true;
+			return appendNextChar(false);
 			
 		} else {
 			if(!allowUnresolvedMacros) {
@@ -343,6 +303,94 @@ public class FileCodeSupplier implements Supplier {
 		}
 		
 		macros.tryAddMacro(macro);
+		
+		return true;
+	}
+
+	/**
+	 * fileText current char must be the char after the macro name on call
+	 * After the call, the fileText current char is the first char that isn't a space after the name, or the first char after the parameter list
+	 * 
+	 * @param macro the macro instance that is to be evaluated and then added onto the buffer
+	 * @return true if everything is well. Note: Stuff isn't necessarily added to the buffer. Be sure! 
+	 * @throws IOException
+	 */
+	private boolean evaluateMacroFromHere(Macro macro) throws IOException {
+		int whitespacesSkipped = 0;
+		boolean fileIsOver = false;
+		
+		while(true) { //Skip whitespace
+			if(fileText.getCurrentChar() == ' ') {
+				whitespacesSkipped++;
+				if(!fileText.advance()) {
+					fileIsOver = true;
+					break;
+				}	
+			}
+			else
+				break;
+		}
+		
+		String[] params = null;
+		if(macro.hasMacroParameters()) {
+			params = new String[macro.getMacroParameters().length];
+			if(params.length == 0)
+				log(ASSERTION_FAILED, "The macro parameter list existed, but had a length of 0. Should be null!");
+		}
+		int foundParameters = -1; //Means to parameter list
+		if(!fileIsOver) { //Then we look for parameters
+			char afterName = fileText.getCurrentChar();
+			if(TextParserUtil.isStartOfMacroParameters(afterName)) { //Parameter list!
+				foundParameters = 0;
+				log(SUPER_DEBUG, "We have a parameter list!");
+				while(true) {
+					if(!fileText.advance()) {
+						log(ERROR, "File ended in middle of macro parameter list for macro: %s", macro.getMacroName());
+						return false;
+					}
+					if(TextParserUtil.isEndOfMacroParameters(fileText.getCurrentChar())) {
+						break; //We are done with the macro parameters!
+					}
+				}
+				foundParameters = params.length; //For the sake of debugging, we pretend to have parameters
+			}
+		} else if(params != null) {
+			log(ERROR, "Macro evaluation text was over before the needed %d parameters were found!", params.length);
+			return false;
+		}
+		
+		if(params != null && foundParameters < params.length) { //Not enough parameters 
+			if(foundParameters == -1)
+				log(ERROR, "Expected %d macro parameters, but there was no parameter list!", params.length);
+			else
+				log(ERROR, "Expected %d macro parameters, but only %d were given!", params.length, foundParameters);
+			return false;
+		}
+		if(foundParameters > (params == null ? 0:params.length)) {
+			log(ERROR, "Too many macro parameters were given to '%s'! Expected %d but got %d", 
+					macro.getMacroName(), params==null?0:params.length, foundParameters);
+			return false;
+		}
+		
+		
+		
+		MacroMap map = null;
+		if(params != null) {
+			map = macro.makeMacroMapFromParameters(params);
+			if(map == null)
+				log(fileText.getFile().fileName, fileText.getCurrentLine(), fileText.getCurrentCol(), ERROR, "Wrong amount of macro parameters passed");
+		}
+			
+		String macroEvaluation = macro.getMacroValue();
+		
+		if(macroEvaluation == null || macroEvaluation.trim().length()==0) {
+			return true;
+		}
+			
+		if(map != null) { //We need to pass it through a FileCodeSupplier
+			StringTextSupplier supplier = 
+					new StringTextSupplier(macroEvaluation, fileText.getFile(), fileText.getCurrentLine(), fileText.getCurrentCol());
+		}
 		
 		return true;
 	}

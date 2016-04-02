@@ -21,6 +21,8 @@ public interface Supplier {
 	
 	public int getCurrentCol();
 	
+	public String getSourceName();
+	
 	/** Advance the current char by one, or return false if it didn't work
 	 * After this getCurrentChar() will give you the next char, or hasChar will return false.
 	 * Has char might be true for one more char after advance has returned false;
