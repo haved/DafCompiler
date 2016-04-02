@@ -1,0 +1,2 @@
+Hello, my name is #name! -> Hello, my name is Havard!    Hello, my age is #age and my age times two is #timesTwo <#age> -> Hello, my age is 15 and my age times two is 15*2
+This is #also <legal>     #And#this#is#ok       #This <>#Too< > #EndOfText
