@@ -241,7 +241,52 @@ public class FileCodeSupplier implements Supplier {
 		}
 		
 		Macro macro = macros.getMacro(identifier);
-		if(macro != null) {
+		if(macro != null) { //When here, currentChar is the char after the macro Name
+			
+			int whitespacesSkipped = 0;
+			boolean fileIsOver = false;
+			
+			while(true) { //Skip whitespace
+				if(fileText.getCurrentChar() == ' ') {
+					whitespacesSkipped++;
+					if(!fileText.advance()) {
+						fileIsOver = true;
+						break;
+					}	
+				}
+				else
+					break;
+			}
+			
+			String[] params = null;
+			if(macro.hasMacroParameters()) {
+				params = new String[macro.getMacroParameters().length];
+				if(params.length > 0) {
+					log(ASSERTION_FAILED, "The macro parameter list existed, but had a length of 0. Should be null!");
+				}
+			}
+			if(!fileIsOver) { //Then we look for parameters
+				
+			} else if(params != null) {
+				log(ERROR, "Macro evaluation was over before the needed %d parameters were found!", params.length);
+				return false;
+			}
+			
+			MacroMap map = null;
+			if(params != null) {
+				map = macro.makeMacroMapFromParameters(params);
+				if(map == null)
+					log(fileText.getFile().fileName, fileText.getCurrentLine(), fileText.getCurrentCol()-identifier.length(), ERROR, "Wrong amount of macro parameters passed");
+			}
+				
+			String macroEvaluation = macro.getMacroValue();	
+				
+			if(map != null) { //We need to pass it through a FileCodeSupplier
+				StringTextSupplier supplier = new StringTextSupplier(macroEvaluation, fileText.getCurrentLine(), fileText.getCurrentCol()-identifier.length(), fileText.getFile());
+			}
+			
+			appendChar(fileText.getCurrentChar(), fileText.getCurrentCol(), fileText.getCurrentLine());
+			return true;
 			
 		} else {
 			if(!allowUnresolvedMacros) {
@@ -259,8 +304,6 @@ public class FileCodeSupplier implements Supplier {
 			appendChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol());
 			return true; //All good
 		}
-		
-		return false;
 	}
 	
 	/** Starts at the next char in the fileTextParser and keeps going until the macro definition is over

@@ -208,4 +208,15 @@ public class Macro {
 		String[] params = new String[parameters.size()];
 		return new Macro(macroName, parameters.toArray(params), definition);
 	}
+
+	public MacroMap makeMacroMapFromParameters(String[] params) {
+		if(params.length != parameters.length) {
+			log(ERROR, "Wrong amount of parameters to macro %s! Expected %d, got %d!", name, parameters.length, params.length);
+			return null;
+		}
+		MacroMap map = new MacroMap();
+		for(int i = 0; i < params.length; i++)
+			map.tryAddMacro(new Macro(parameters[i], null, params[i])); //parameters are the names, while params are the definitions
+		return map;
+	}
 }

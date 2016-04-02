@@ -3,19 +3,21 @@ pub def pointer:=(&mut a:int)->&mut int {
 }
 
 #macro PLUS_ONE +1
-#macro CAST_TO<#T> cast(T) 
+#macro CAST_TO<#T> cast(T)
+#macro MULTILINE<#param, #perm> $ println("%#param", #parem);
+//multiline, man! $
 
 #macro DEBUG true
 
-#if DEBUG
+#if #DEBUG
 import daf.stdio;
 #endif
 
 proc main() { //A comment!
-	let a:=5 PLUS_ONE;
+	let a:=5 #PLUS_ONE;
 	let mut b:byte = 4;
 
-	b = CAST_TO<int> a;
+	b = #CAST_TO<int> a;
 	/* Multiline comments
 		are fun!*/
 	#ifmacro DEBUG
