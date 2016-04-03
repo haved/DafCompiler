@@ -255,7 +255,11 @@ public class FileCodeSupplier implements Supplier {
 			if(!evaluateMacroFromHere(macro))
 				return false;
 			
-			//After evalutaeMacro, we know that current char is 
+			if(fileText.hasChar())
+				log(SUPER_DEBUG, "Just finished evaluateMacroFromHere()!", fileText.getCurrentChar());
+			else
+				log(SUPER_DEBUG, "Evaluate macro advanced past the fileText supplier!");
+			//After evaluateMacro, we know that current char is to be added
 			return appendNextChar(false);
 			
 		} else {
@@ -394,14 +398,17 @@ public class FileCodeSupplier implements Supplier {
 			
 		String macroEvaluation = macro.getMacroValue();
 		
-		if(macroEvaluation == null || macroEvaluation.trim().length()==0) {
-			return true;
+		if(macroEvaluation != null && macroEvaluation.trim().length()==0) {
+		
+			if(map != null) { //We need to pass it through a FileCodeSupplier
+				StringTextSupplier supplier = 
+						new StringTextSupplier(macroEvaluation, fileText.getFile().fileName, fileText.getCurrentLine(), fileText.getCurrentCol());
+			}
+		
 		}
-			
-		if(map != null) { //We need to pass it through a FileCodeSupplier
-			StringTextSupplier supplier = 
-					new StringTextSupplier(macroEvaluation, fileText.getFile().fileName, fileText.getCurrentLine(), fileText.getCurrentCol());
-		}
+		
+		if(foundParameters == -1) //We didn't find a macro list, but may still have skipped spaces
+			for()
 		
 		return true;
 	}
