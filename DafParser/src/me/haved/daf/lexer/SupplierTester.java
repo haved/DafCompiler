@@ -9,7 +9,8 @@ public class SupplierTester {
 			while(true) {
 				if(!supplier.hasChar())
 					log(FATAL_ERROR, "Tested Supplier '%s'.hasChar() retruned false before advance() returned false");
-				println("'%c'   %d:%d", supplier.getCurrentChar(), supplier.getCurrentLine(), supplier.getCurrentCol());
+				//println("'%c'   %d:%d", supplier.getCurrentChar(), supplier.getCurrentLine(), supplier.getCurrentCol());
+				System.out.print(supplier.getCurrentChar());
 				if(!supplier.advance())
 					break;
 			}

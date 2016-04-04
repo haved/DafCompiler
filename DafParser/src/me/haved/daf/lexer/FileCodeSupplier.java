@@ -323,7 +323,8 @@ public class FileCodeSupplier implements Supplier {
 
 	/**
 	 * fileText current char must be the char after the macro name on call
-	 * After the call, the fileText current char is the first char that isn't a space after the name, or the first char after the parameter list
+	 * After the call, the fileText current char is the first char that isn't a space after the name (spaces have been appended), 
+	 * 								OR the first char after the parameter list that isn't '>' (might not be a char, so check!)
 	 * 
 	 * @param macro the macro instance that is to be evaluated and then added onto the buffer
 	 * @return true if everything is well. Note: Stuff isn't necessarily added to the buffer. Be sure! 
@@ -332,6 +333,8 @@ public class FileCodeSupplier implements Supplier {
 	private boolean evaluateMacroFromHere(Macro macro) throws IOException {
 		int whitespacesSkipped = 0;
 		boolean fileIsOver = false;
+		
+		int whitespacesStartCol = fileText.getCurrentCol();
 		
 		while(true) { //Skip whitespace
 			if(fileText.getCurrentChar() == ' ') {
@@ -381,13 +384,11 @@ public class FileCodeSupplier implements Supplier {
 				log(ERROR, "Expected %d macro parameters, but only %d were given!", params.length, foundParameters);
 			return false;
 		}
-		if(foundParameters > (params == null ? 0:params.length)) {
+		else if(foundParameters > (params == null ? 0:params.length)) {
 			log(ERROR, "Too many macro parameters were given to '%s'! Expected %d but got %d", 
 					macro.getMacroName(), params==null?0:params.length, foundParameters);
 			return false;
 		}
-		
-		
 		
 		MacroMap map = null;
 		if(params != null) {
@@ -398,17 +399,23 @@ public class FileCodeSupplier implements Supplier {
 			
 		String macroEvaluation = macro.getMacroValue();
 		
-		if(macroEvaluation != null && macroEvaluation.trim().length()==0) {
+		if(macroEvaluation != null && macroEvaluation.trim().length()!=0) {
 		
 			if(map != null) { //We need to pass it through a FileCodeSupplier
 				StringTextSupplier supplier = 
 						new StringTextSupplier(macroEvaluation, fileText.getFile().fileName, fileText.getCurrentLine(), fileText.getCurrentCol());
 			}
-		
+			
+			assureExtraSpace(macroEvaluation.length());
+			for(int i = 0; i < macroEvaluation.length(); i++) {
+				appendChar(macroEvaluation.charAt(i), fileText.getCurrentLine(), fileText.getCurrentLine());
+			}
 		}
 		
-		if(foundParameters == -1) //We didn't find a macro list, but may still have skipped spaces
-			for()
+		if(foundParameters == -1) //We didn't find a macro list, but may still have skipped spaces. Add them back after the macro
+			for(int i = 0; i < whitespacesSkipped; i++) {
+				appendChar(' ', fileText.getCurrentLine(), whitespacesStartCol+i);
+			}
 		
 		return true;
 	}
