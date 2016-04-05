@@ -2,6 +2,8 @@ package me.haved.daf.lexer;
 
 import java.io.IOException;
 
+import static me.haved.daf.LogHelper.*;
+
 public interface Supplier {
 	public void close() throws IOException;
 	
@@ -31,4 +33,28 @@ public interface Supplier {
 	 * @throws IOException
 	 */
 	public boolean advance() throws IOException;
+	
+	public static String supplierToString(Supplier supplier) throws IOException {
+		StringBuilder builder = new StringBuilder();
+		
+		if(!supplier.hasChar()) {
+			log(ERROR, "supplier To String was given an empty supplier!");
+			return null;
+		}
+			
+		builder.append(supplier.getCurrentChar());
+		while(true) {
+			if(supplier.advance())
+				builder.append(supplier.getCurrentChar());
+			else
+				break;
+		}
+		
+		if(supplier.hasChar()) {
+			log(ERROR, "Supplier passed to supplierToString had more chars after advnace() returned false");
+			return null;
+		}
+			
+		return builder.toString();
+	}
 }

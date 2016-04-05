@@ -404,6 +404,8 @@ public class FileCodeSupplier implements Supplier {
 			if(map != null) { //We need to pass it through a FileCodeSupplier
 				StringTextSupplier supplier = 
 						new StringTextSupplier(macroEvaluation, fileText.getFile().fileName, fileText.getCurrentLine(), fileText.getCurrentCol());
+			
+				
 			}
 			
 			assureExtraSpace(macroEvaluation.length());
