@@ -16,7 +16,7 @@ public class LexicalParser {
 			try {
 				FileTextSupplier supplier = new FileTextSupplier(file);
 				FileCodeSupplier codeSupplier = new FileCodeSupplier(supplier, map);
-				SupplierTester.testSupplier(codeSupplier);
+				Supplier.testSupplier(codeSupplier);
 				
 				codeSupplier.close(); //Just in case
 			} catch(Exception e) {
