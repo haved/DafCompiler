@@ -37,6 +37,10 @@ public class Macro {
 		return definition;
 	}
 	
+	public boolean hasValue() {
+		return definition != null;
+	}
+	
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		if(!hasMacroParameters())

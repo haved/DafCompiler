@@ -11,7 +11,7 @@ public class FileCodeSupplier implements Supplier {
 	private static int DEFAULT_CHAR_BUFFER_LENGTH = 30; // A macro will quickly destroy this
 	private static float ARRAY_EXTRA_EXPAND_FACTOR = 0.5f;
 	
-	private FileTextSupplier fileText;
+	private Supplier fileText;
 	private MacroMap macros;
 	private boolean allowUnresolvedMacros;
 	
@@ -23,11 +23,11 @@ public class FileCodeSupplier implements Supplier {
 	private int currentChar = 0;
 	private int length = 0; //The length of the used space of the buffer
 	
-	public FileCodeSupplier(FileTextSupplier fileText, MacroMap macros) throws Exception {
+	public FileCodeSupplier(Supplier fileText, MacroMap macros) throws IOException {
 		this(fileText, macros, true);
 	}
 	
-	public FileCodeSupplier(FileTextSupplier fileText, MacroMap macros, boolean allowUnresolvedMacros) throws Exception {
+	public FileCodeSupplier(Supplier fileText, MacroMap macros, boolean allowUnresolvedMacros) throws IOException {
 		this.fileText = fileText;
 		this.macros = macros;
 		this.allowUnresolvedMacros = allowUnresolvedMacros;
@@ -222,7 +222,7 @@ public class FileCodeSupplier implements Supplier {
 		
 		while(true) {
 			if(!fileText.advance()) {
-				log(fileText.getFile().fileName, poundLine, poundCol, FATAL_ERROR, "A properly finished keyword or macro identifier wasn't found after a pound symbol");
+				log(fileText.getSourceName(), poundLine, poundCol, FATAL_ERROR, "A properly finished keyword or macro identifier wasn't found after a pound symbol");
 				return false; //Just to be sure
 			}
 			
@@ -237,11 +237,11 @@ public class FileCodeSupplier implements Supplier {
 		String identifier = identifierB.toString();
 		if(identifier.equals(MACRO_KEYWORD)) { //Adding a new macro, guys!
 			if(!TextParserUtil.isNormalWhitespace(fileText.getCurrentChar())) {
-				log(fileText.getFile().fileName, poundLine, poundCol + identifier.length(), ERROR, "#%s must be followed by a whitespace before the definition", MACRO_KEYWORD);
+				log(fileText.getSourceName(), poundLine, poundCol + identifier.length(), ERROR, "#%s must be followed by a whitespace before the definition", MACRO_KEYWORD);
 				return false;
 			}
 			if(!resolveMacroDefinition()) { //This ends with fileText.currentChar at the last char of macro definition
-				log(fileText.getFile().fileName, poundLine, poundCol, ERROR, "Macro definition failed due to previous error(s)");
+				log(fileText.getSourceName(), poundLine, poundCol, ERROR, "Macro definition failed due to previous error(s)");
 				return false; //No error recoverability what so ever
 			}
 			
@@ -264,7 +264,7 @@ public class FileCodeSupplier implements Supplier {
 			
 		} else {
 			if(!allowUnresolvedMacros) {
-				log(fileText.getFile().fileName, poundLine, poundCol, ERROR, "Unresolved macro found: '#%s'", identifier);
+				log(fileText.getSourceName(), poundLine, poundCol, ERROR, "Unresolved macro found: '#%s'", identifier);
 				return false;
 			}
 			//Time to add all the stuff back!
@@ -394,19 +394,21 @@ public class FileCodeSupplier implements Supplier {
 		if(params != null) {
 			map = macro.makeMacroMapFromParameters(params);
 			if(map == null)
-				log(fileText.getFile().fileName, fileText.getCurrentLine(), fileText.getCurrentCol(), ERROR, "Wrong amount of macro parameters passed");
+				log(fileText.getSourceName(), fileText.getCurrentLine(), fileText.getCurrentCol(), ERROR, "Wrong amount of macro parameters passed");
 		}
+		
+		if(macro.hasValue()) {
+		
+			Supplier supplier = new StringTextSupplier(macro.getMacroValue(), 
+					fileText.getSourceName(), fileText.getCurrentLine(), fileText.getCurrentCol());
 			
-		String macroEvaluation = macro.getMacroValue();
-		
-		if(macroEvaluation != null && macroEvaluation.trim().length()!=0) {
-		
 			if(map != null) { //We need to pass it through a FileCodeSupplier
-				StringTextSupplier supplier = 
-						new StringTextSupplier(macroEvaluation, fileText.getFile().fileName, fileText.getCurrentLine(), fileText.getCurrentCol());
-			
-				
+				supplier = new FileCodeSupplier(supplier, map);
 			}
+			
+			supplier = new FileCodeSupplier(supplier, macros); //Amazing code. I am aware!
+			
+			String macroEvaluation = Supplier.supplierToString(supplier);
 			
 			assureExtraSpace(macroEvaluation.length());
 			for(int i = 0; i < macroEvaluation.length(); i++) {

@@ -1,26 +1,16 @@
-pub def pointer:=(&mut a:int)->&mut int {
-	return &mut a;
-}
-
-#macro PLUS_ONE +1
-#macro CAST_TO<#T> cast(T)
-#macro MULTILINE<#param, #perm> $ println("%#param", #parem);
-//multiline, man! $
-
 #macro DEBUG true
+#macro Cast<#Value, #Type> cast(#Type) #Value
+#macro PrintInt<#int> $printf("%d", #int);$
+#macro PrintIntChar<#int!#char> $printf("%d : %c", #int, #char);
+	//Multiline!$
 
-#if #DEBUG
 import daf.stdio;
-#endif
 
-proc main() { //A comment!
-	let a:=5 #PLUS_ONE;
-	let mut b:byte = 4;
+def main := () -> int {
+	let a := 5;
+	let c := 'b';
 
-	b = #CAST_TO<int> a;
-	/* Multiline comments
-		are fun!*/
-	#ifmacro DEBUG
-		print(/*They may appear inside code blocks!*/"B is %d", b);
-	#endif
+	let l := #Cast<a, long>;
+	#PrintInt<a>
+	#PrintIntChar<a!c>
 }
