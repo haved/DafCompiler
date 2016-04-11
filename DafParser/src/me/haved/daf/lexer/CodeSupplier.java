@@ -4,13 +4,14 @@ import me.haved.daf.RegisteredFile;
 
 import static me.haved.daf.LogHelper.*;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-
 public class CodeSupplier {
 	
 	private RegisteredFile file;
-	private BufferedReader fileReader;
+	private FileTextSupplier fileText;
+	
+	private char current;
+	private int line;
+	private int col;
 	
 	private char[] bufferedChars;
 	private int[] bufferedLineNums;
@@ -19,7 +20,13 @@ public class CodeSupplier {
 	
 	public CodeSupplier(RegisteredFile file) {
 		this.file = file;
+		fileText = new FileTextSupplier(file);
 		
+		if(!fileText.hasChar())
+			log(ASSERTION_FAILED, "new FileTextSupplier was created, but has NO chars!");
+		current = fileText.getCurrentChar();
+		line = fileText.getCurrentLine();
+		col = fileText.getCurrentCol();
 	}
 	
 	public String getFileName() {
@@ -27,10 +34,18 @@ public class CodeSupplier {
 	}
 	
 	public void close() {
-		try {
-			fileReader.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		fileText.close();
+	}
+	
+	public char getCurrentChar() {
+		return current;
+	}
+	
+	public int getCurrentLine() {
+		return line;
+	}
+	
+	public int getCurrentCol() {
+		return col;
 	}
 }
