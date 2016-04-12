@@ -16,7 +16,7 @@ public class CodeSupplier {
 	private char[] bufferedChars;
 	private int[] bufferedLineNums;
 	private int[] bufferedColNums;
-	private int bufferIndex = 0;
+	private int bufferIndex = 0; //The index of the yet to be read buffered char
 	
 	public CodeSupplier(RegisteredFile file) {
 		this.file = file;
@@ -40,13 +40,22 @@ public class CodeSupplier {
 	}
 	
 	private boolean getNextChar(FileChar fc) {
-		fc.c++;
-		fc.col++;
-		return true;
+		if(bufferedChars != null && bufferIndex < bufferedChars.length) {
+			fc.c = bufferedChars[bufferIndex];
+			fc.line = bufferedLineNums[bufferIndex];
+			fc.col = bufferedColNums[bufferIndex];
+			bufferIndex++;
+			return true;
+		} else if(fileText.advance()) {
+			fc.c = fileText.getCurrentChar();
+			fc.line = fileText.getCurrentLine();
+			fc.col = fileText.getCurrentCol();
+			return true;
+		} else
+			return false;
 	}
 	
 	private boolean trySetCurrentChar(char c, int line, int col) {
-		
 		if(c=='/')
 			return false;
 		

@@ -1,24 +1,32 @@
 package me.haved.daf.lexer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+
 import me.haved.daf.RegisteredFile;
 
 import static me.haved.daf.LogHelper.*;
 
 public class LexicalParser {
 	
+	private static HashMap<Integer, ArrayList<Token>> tokensMap = new HashMap<>();
+	
 	public static ArrayList<Token> tokenizeFile(RegisteredFile file, MacroMap map) {
+		int fileId = file.getId();
 		try {
-			log(DEBUG, "tokenizeFile(%s)", file.toString());
+			log(DEBUG, "tokenizeFile(%s) with file id %d", file.toString(), fileId);
+			
+			if(tokensMap.containsKey(fileId))
+				return tokensMap.get(fileId);
 			
 			ArrayList<Token> tokens = new ArrayList<>();
+			CodeSupplier supplier = new CodeSupplier(file);
 			
-			try {
-				
-			} catch(Exception e) {
-				log(e);
-				log(FATAL_ERROR, "Error occured during file reading of file '%s': %s", file.fileName, e.getClass().getName());
-			}
+			System.out.print(supplier.getCurrentChar());
+			while(supplier.advance())
+				System.out.print(supplier.getCurrentChar());
+			
+			tokensMap.put(fileId, tokens);
 			
 			return tokens;
 		}

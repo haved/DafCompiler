@@ -45,27 +45,32 @@ public class FileTextSupplier {
 		}
 	}
 	
-	public boolean advance() throws IOException {
-		if(done | finalNewline) {
-			done = true;
+	public boolean advance() {
+		try {
+			if(done | finalNewline) {
+				done = true;
+				return false;
+			}
+			
+			if(current == '\n') {
+				line++;
+				col = 0;
+			}
+			col += current=='\t' ? 4 : 1;
+			
+			int nextChar = reader.read();
+			if(nextChar == -1) {
+				finalNewline = true;
+				current = '\n';
+			}
+			else
+				current = (char) nextChar;
+				
+			return true;
+		} catch(IOException e) {
+			e.printStackTrace();
 			return false;
 		}
-		
-		if(current == '\n') {
-			line++;
-			col = 0;
-		}
-		col += current=='\t' ? 4 : 1;
-		
-		int nextChar = reader.read();
-		if(nextChar == -1) {
-			finalNewline = true;
-			current = '\n';
-		}
-		else
-			current = (char) nextChar;
-			
-		return true;
 	}
 	
 	public boolean hasChar() {
