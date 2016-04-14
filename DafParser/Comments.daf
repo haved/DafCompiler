@@ -1,0 +1,17 @@
+//This is a comment
+let a:= 6/2;
+pub let g:="Hei/Hallo";
+
+/** The main procedure
+ *	The statring point of the program
+ */
+
+import daf.iostream;
+
+def main:=(argc:int, argv:&&char)->int {
+	//Comments
+	let c:=5;//Hello
+	printf("%d", c+a); /*Mutliline
+			biches*/
+	exit(0);
+}

@@ -4,6 +4,8 @@ import me.haved.daf.RegisteredFile;
 
 import static me.haved.daf.LogHelper.*;
 
+import java.util.Stack;
+
 public class CodeSupplier {
 	
 	private RegisteredFile file;
@@ -13,14 +15,16 @@ public class CodeSupplier {
 	private int line;
 	private int col;
 	
-	private char[] bufferedChars;
-	private int[] bufferedLineNums;
-	private int[] bufferedColNums;
-	private int bufferIndex = 0; //The index of the yet to be read buffered char
+	private Stack<Character> charBuffer;
+	private Stack<Integer> lineNumBuffer;
+	private Stack<Integer> colNumBuffer;
 	
 	public CodeSupplier(RegisteredFile file) {
 		this.file = file;
 		fileText = new FileTextSupplier(file);
+		charBuffer = new Stack<>();
+		lineNumBuffer = new Stack<>();
+		colNumBuffer = new Stack<>();
 		
 		if(!fileText.hasChar())
 			log(ASSERTION_FAILED, "new FileTextSupplier was created, but has NO chars!");
@@ -40,11 +44,10 @@ public class CodeSupplier {
 	}
 	
 	private boolean getNextChar(FileChar fc) {
-		if(bufferedChars != null && bufferIndex < bufferedChars.length) {
-			fc.c = bufferedChars[bufferIndex];
-			fc.line = bufferedLineNums[bufferIndex];
-			fc.col = bufferedColNums[bufferIndex];
-			bufferIndex++;
+		if(!charBuffer.empty()) {
+			fc.c = charBuffer.pop();
+			fc.line = lineNumBuffer.pop();
+			fc.col = colNumBuffer.pop();
 			return true;
 		} else if(fileText.advance()) {
 			fc.c = fileText.getCurrentChar();
@@ -57,13 +60,54 @@ public class CodeSupplier {
 	
 	private boolean trySetCurrentChar(char c, int line, int col) {
 		if(c=='/')
-			return false;
+			return checkComments(c);
 		
-		current = c;
+		return forceSetCurrentChar(c, line, col);
+	}
+	
+	private boolean forceSetCurrentChar(char c, int line, int col) {
+		this.current = c;
 		this.line = line;
 		this.col = col;
-		
 		return true;
+	}
+	
+	private boolean checkComments(char firstChar) {
+		int firstLine = fileText.getCurrentLine();
+		int firstCol  = fileText.getCurrentCol ();
+		
+		if(!fileText.advance())
+			return forceSetCurrentChar(firstChar, firstLine, firstCol);
+			
+		char next = fileText.getCurrentChar();
+		if(next == '/') { //One line comment!
+			while(true) {
+				if(!fileText.advance())
+					return false;
+				if(fileText.getCurrentChar()=='\n')
+					return forceSetCurrentChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol());
+			}
+		} else if(next=='*') {
+			boolean lastStar=false;
+			while(true) {
+				if(!fileText.advance())
+					return false;
+				char c = fileText.getCurrentChar();
+				if(lastStar&&c=='/')
+					return false;
+				lastStar = c=='*';
+			}
+		}
+		
+		//I there wasn't a comments
+		addBufferedChar(next, fileText.getCurrentLine(), fileText.getCurrentCol());
+		return forceSetCurrentChar(firstChar, firstLine, firstCol);
+	}
+	
+	private void addBufferedChar(char c, int line, int col) {
+		charBuffer.push(c);
+		lineNumBuffer.push(line);
+		colNumBuffer.push(col);
 	}
 	
 	public String getFileName() {
