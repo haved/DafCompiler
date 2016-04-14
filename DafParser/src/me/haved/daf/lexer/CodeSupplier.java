@@ -61,7 +61,9 @@ public class CodeSupplier {
 	private boolean trySetCurrentChar(char c, int line, int col) {
 		if(c=='/')
 			return checkComments(c);
-		
+		else if(c=='#')
+			return false; //Flow checks andf macros. Fak my lif
+			
 		return forceSetCurrentChar(c, line, col);
 	}
 	
@@ -99,7 +101,6 @@ public class CodeSupplier {
 			}
 		}
 		
-		//I there wasn't a comments
 		addBufferedChar(next, fileText.getCurrentLine(), fileText.getCurrentCol());
 		return forceSetCurrentChar(firstChar, firstLine, firstCol);
 	}
