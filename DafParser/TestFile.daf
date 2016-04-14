@@ -1,16 +1,17 @@
-#macro DEBUG true
-#macro Cast<#Value, #Type> cast(#Type) #Value
-#macro PrintInt<#int> $printf("%d", #int);$
-#macro PrintIntChar<#int!#char> $printf("%d : %c", #int, #char);
-	//Multiline!$
+#ifmacro DEBUG
+import daf.assert;
+#endif
 
-import daf.stdio;
+#macro DEBUG
 
-def main := () -> int {
-	let a := 5;
-	let c := 'b';
+//This is a comment
+pub let a:=5; //This might have been a def, unless you need to point to it
 
-	let l := #Cast<a, long>;
-	#PrintInt<a>
-	#PrintIntChar<a!c>
+/** The main function
+ * @return exit status
+ */
+pub def main:=(argv:int, argc:&&char) -> int {
+	#ifmacro DEBUG
+	assert(a==5);
+	#endif
 }

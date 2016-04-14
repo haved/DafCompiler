@@ -62,7 +62,7 @@ public class CodeSupplier {
 		if(c=='/')
 			return checkComments(c);
 		else if(c=='#')
-			return false; //Flow checks andf macros. Fak my lif
+			return doMacroAndFlowChecks(c);
 			
 		return forceSetCurrentChar(c, line, col);
 	}
@@ -101,11 +101,56 @@ public class CodeSupplier {
 			}
 		}
 		
-		addBufferedChar(next, fileText.getCurrentLine(), fileText.getCurrentCol());
+		pushBufferedChar(next, fileText.getCurrentLine(), fileText.getCurrentCol());
 		return forceSetCurrentChar(firstChar, firstLine, firstCol);
 	}
 	
-	private void addBufferedChar(char c, int line, int col) {
+	private boolean doMacroAndFlowChecks(char firstChar) {
+		int firstLine = fileText.getCurrentLine();
+		int firstCol = fileText.getCurrentCol();
+		
+		if(!fileText.advance())
+			return forceSetCurrentChar(firstChar, firstLine, firstCol);
+		
+		char nameStartChar = fileText.getCurrentChar();
+		if(!TextParserUtil.isStartOfIdentifier(nameStartChar)) { //So we need to set the pound symbol, and push the next letter
+			pushBufferedChar(nameStartChar, fileText.getCurrentLine(), fileText.getCurrentCol());
+			return forceSetCurrentChar(firstChar, firstLine, firstCol);
+		}
+		
+		StringBuilder identifierBuilder = new StringBuilder();
+		identifierBuilder.append(nameStartChar);
+		
+		while(true) {
+			if(!fileText.advance()) { //We need to add all the shit back to the stack, and write the pound symbol to the current char
+				for(int i = identifierBuilder.length()-1; i>=0; i--)
+					pushBufferedChar(identifierBuilder.charAt(i), firstLine, firstCol+i+1);
+				return forceSetCurrentChar(firstChar, firstLine, firstCol);
+			}
+			char c = fileText.getCurrentChar();
+			if(TextParserUtil.isIdentifierChar(c))
+				identifierBuilder.append(c);
+			else break;
+		}
+		
+		String identifier = identifierBuilder.toString();
+		log(MESSAGE, "Found compiler token: %s", identifier);
+		
+		if(handleCompilerFlag(identifier)) { //if this returns false, add the pound symbol and stuff back.
+			return forceSetCurrentChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol());
+		} else {
+			pushBufferedChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol());
+			for(int i = identifier.length()-1; i>=0; i--)
+				pushBufferedChar(identifier.charAt(i), firstLine, firstCol+i+1);
+			return forceSetCurrentChar(firstChar, firstLine, firstCol);
+		}
+	}
+	
+	private boolean handleCompilerFlag(String identifier) {
+		return false;
+	}
+	
+	private void pushBufferedChar(char c, int line, int col) {
 		charBuffer.push(c);
 		lineNumBuffer.push(line);
 		colNumBuffer.push(col);
