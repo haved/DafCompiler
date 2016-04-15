@@ -151,6 +151,8 @@ public class CodeSupplier {
 	
 	/** Handles whatever happens when code is done.
 	 * 	Returns true if the identifier was known. False if the text should be passed on to the lexical
+	 * 	When this is done and true is returned, the fileText's current char should be force set
+	 * 	If this returns false, the current char should be pushed to the stack before everything else
 	 * 
 	 * @param identifier the name of the flag
 	 * @return
@@ -158,8 +160,13 @@ public class CodeSupplier {
 	private boolean handleCompilerFlag(String identifier) {
 		if(identifier.equalsIgnoreCase("macro")) {
 			
+			return true;
 		}
 		return false;
+	}
+	
+	private boolean handleMacroDefinition() {
+		
 	}
 	
 	private void pushBufferedChar(char c, int line, int col) {
