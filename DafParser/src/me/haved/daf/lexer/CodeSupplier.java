@@ -9,6 +9,8 @@ import java.util.Stack;
 public class CodeSupplier {
 	
 	private RegisteredFile file;
+	private MacroMap macros;
+	
 	private FileTextSupplier fileText;
 	
 	private char current;
@@ -19,8 +21,9 @@ public class CodeSupplier {
 	private Stack<Integer> lineNumBuffer;
 	private Stack<Integer> colNumBuffer;
 	
-	public CodeSupplier(RegisteredFile file) {
+	public CodeSupplier(RegisteredFile file, MacroMap macros) {
 		this.file = file;
+		this.macros = macros;
 		fileText = new FileTextSupplier(file);
 		charBuffer = new Stack<>();
 		lineNumBuffer = new Stack<>();
@@ -146,7 +149,16 @@ public class CodeSupplier {
 		}
 	}
 	
+	/** Handles whatever happens when code is done.
+	 * 	Returns true if the identifier was known. False if the text should be passed on to the lexical
+	 * 
+	 * @param identifier the name of the flag
+	 * @return
+	 */
 	private boolean handleCompilerFlag(String identifier) {
+		if(identifier.equalsIgnoreCase("macro")) {
+			
+		}
 		return false;
 	}
 	
