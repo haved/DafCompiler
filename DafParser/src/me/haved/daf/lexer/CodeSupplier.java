@@ -139,9 +139,12 @@ public class CodeSupplier {
 		String identifier = identifierBuilder.toString();
 		log(MESSAGE, "Found compiler token: %s", identifier);
 		
-		if(handleCompilerFlag(identifier)) { //if this returns false, add the pound symbol and stuff back.
-			return forceSetCurrentChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol());
-		} else {
+		int compilerFlagHandeling = handleCompilerFlag(identifier);
+		if(compilerFlagHandeling == NEXT_CHAR_SET)//if this returns false, add the pound symbol and stuff back.
+			return true;
+		else if(compilerFlagHandeling == USE_STACK_OR_FILE_FOR_NEXT)
+			return false;
+		else { //WE push the identifier and force set the pound symbol
 			pushBufferedChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol());
 			for(int i = identifier.length()-1; i>=0; i--)
 				pushBufferedChar(identifier.charAt(i), firstLine, firstCol+i+1);
@@ -149,24 +152,33 @@ public class CodeSupplier {
 		}
 	}
 	
-	/** Handles whatever happens when code is done.
-	 * 	Returns true if the identifier was known. False if the text should be passed on to the lexical
-	 * 	When this is done and true is returned, the fileText's current char should be force set
-	 * 	If this returns false, the current char should be pushed to the stack before everything else
+	/** Handles whatever happens when code is done. The current char at the time of calling is 
+	 * 	the first char after the identifier
 	 * 
 	 * @param identifier the name of the flag
-	 * @return
+	 * @return the key saying what to do with the current char and stack
 	 */
-	private boolean handleCompilerFlag(String identifier) {
+	
+	private static final int PUSH_IDENTIFIER_AGAIN = 0;
+	private static final int USE_STACK_OR_FILE_FOR_NEXT = 1;
+	private static final int NEXT_CHAR_SET = 2;
+	
+	private int handleCompilerFlag(String identifier) {
 		if(identifier.equalsIgnoreCase("macro")) {
-			
-			return true;
+			int line = fileText.getCurrentLine();
+			int col = fileText.getCurrentCol();
+			if(!handleMacroDefinition()) {
+				log(getFileName(), line, col, ERROR, "Macro definition failed");
+			}
+			return USE_STACK_OR_FILE_FOR_NEXT;
 		}
-		return false;
+		//The letter after the macro name is our responsibility to push back
+		pushBufferedChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol());
+		return PUSH_IDENTIFIER_AGAIN;
 	}
 	
 	private boolean handleMacroDefinition() {
-		
+		return true;
 	}
 	
 	private void pushBufferedChar(char c, int line, int col) {
