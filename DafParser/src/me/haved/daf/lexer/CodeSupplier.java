@@ -177,7 +177,17 @@ public class CodeSupplier {
 		return PUSH_IDENTIFIER_AGAIN;
 	}
 	
+	/**When called, currentChar is the char after macro
+	 * 
+	 * @return
+	 */
 	private boolean handleMacroDefinition() {
+		
+		if(TextParserUtil.isNormalWhitespace(fileText.getCurrentChar())) {
+			log(getFileName(), fileText.getCurrentLine(), fileText.getCurrentCol(), ERROR, "'#macro' must be followed by a space or tab, not '%c'", fileText.getCurrentChar());
+			return false;
+		}
+		
 		return true;
 	}
 	
