@@ -3,6 +3,7 @@ import daf.assert;
 #endif
 
 #macro DEBUG
+#macro PrintInt<#d> $printf("%d", #d)$
 
 //This is a comment
 pub let a:=5; //This might have been a def, unless you need to point to it
@@ -14,4 +15,5 @@ pub def main:=(argv:int, argc:&&char) -> int {
 	#ifmacro DEBUG
 	assert(a==5);
 	#endif
+	PrintInt<a>;
 }

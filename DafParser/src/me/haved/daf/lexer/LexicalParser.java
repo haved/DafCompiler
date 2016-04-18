@@ -20,7 +20,7 @@ public class LexicalParser {
 				return tokensMap.get(fileId);
 			
 			ArrayList<Token> tokens = new ArrayList<>();
-			CodeSupplier supplier = new CodeSupplier(file);
+			CodeSupplier supplier = new CodeSupplier(file, map);
 			
 			System.out.print(supplier.getCurrentChar());
 			while(supplier.advance())

@@ -89,7 +89,6 @@ public class Macro {
 		}
 		
 		if(macroName == null) {
-			log(WARNING, "Macro definition didn't contain more than a name: '%s'", text); //Should this be legal? It's legal in C
 			return new Macro(text, null, null); //Give all of the name as macro identifier
 		}
 		

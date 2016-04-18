@@ -137,7 +137,6 @@ public class CodeSupplier {
 		}
 		
 		String identifier = identifierBuilder.toString();
-		log(MESSAGE, "Found compiler token: %s", identifier);
 		
 		int compilerFlagHandeling = handleCompilerFlag(identifier);
 		if(compilerFlagHandeling == NEXT_CHAR_SET)//if this returns false, add the pound symbol and stuff back.
@@ -170,24 +169,52 @@ public class CodeSupplier {
 			if(!handleMacroDefinition()) {
 				log(getFileName(), line, col, ERROR, "Macro definition failed");
 			}
-			return USE_STACK_OR_FILE_FOR_NEXT;
+			return USE_STACK_OR_FILE_FOR_NEXT; //Means the fileText is advanced after this.
 		}
 		//The letter after the macro name is our responsibility to push back
 		pushBufferedChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol());
 		return PUSH_IDENTIFIER_AGAIN;
 	}
 	
-	/**When called, currentChar is the char after macro
+	/**When called, currentChar is the newline or $ of the macro definition
 	 * 
 	 * @return
 	 */
 	private boolean handleMacroDefinition() {
-		
-		if(TextParserUtil.isNormalWhitespace(fileText.getCurrentChar())) {
+		if(!TextParserUtil.isNormalWhitespace(fileText.getCurrentChar())) {
 			log(getFileName(), fileText.getCurrentLine(), fileText.getCurrentCol(), ERROR, "'#macro' must be followed by a space or tab, not '%c'", fileText.getCurrentChar());
 			return false;
 		}
 		
+		StringBuilder macroDef = new StringBuilder();
+		
+		boolean encloseMacro = false;
+		
+		while(true) {
+			if(!fileText.advance()) {
+				log(getFileName(), fileText.getCurrentLine(), fileText.getCurrentCol(), ERROR, "File ended before macro definition!");
+				return false;
+			}
+			char c = fileText.getCurrentChar();
+			macroDef.append(c);
+			if(c==TextParserUtil.ENCLOSE_MACRO) {
+				if(!encloseMacro) {
+					encloseMacro = true;
+				}
+				else {
+					break;
+				}
+			}
+			else if(c==TextParserUtil.END_OF_LINE && !encloseMacro) {
+				break;
+			}
+		}
+		
+		Macro macro = Macro.getMacroFromString(macroDef.toString());
+		if(macro == null)
+			return false;
+		
+		macros.tryAddMacro(macro);
 		return true;
 	}
 	
