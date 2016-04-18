@@ -141,7 +141,7 @@ public class CodeSupplier {
 		
 		String identifier = identifierBuilder.toString();
 		
-		int compilerFlagHandeling = handleCompilerFlag(identifier);
+		int compilerFlagHandeling = handleCompilerFlag(firstLine, firstCol, identifier);
 		if(compilerFlagHandeling == NEXT_CHAR_SET)//if this returns false, add the pound symbol and stuff back.
 			return true;
 		else if(compilerFlagHandeling == USE_STACK_OR_FILE_FOR_NEXT)
@@ -163,10 +163,8 @@ public class CodeSupplier {
 	private static final int USE_STACK_OR_FILE_FOR_NEXT = 1;
 	private static final int NEXT_CHAR_SET = 2;
 	
-	private int handleCompilerFlag(String identifier) {
+	private int handleCompilerFlag(int line, int col, String identifier) {
 		Macro macro;
-		int line = inputLine;
-		int col = inputCol;
 		
 		if(identifier.equalsIgnoreCase("macro")) {
 			if(!handleMacroDefinition()) {
@@ -180,6 +178,7 @@ public class CodeSupplier {
 				log(getFileName(), line, col, ERROR, "Tried evaluating a macro that doeasn't have a value: %s", macro.getMacroName());
 				return USE_STACK_OR_FILE_FOR_NEXT;
 			}
+			pushBufferedInputChar(inputChar, inputLine, inputCol);
 			for(int i = value.length()-1; i>=0; i--) {
 				pushBufferedInputChar(value.charAt(i), line, col);
 			}
