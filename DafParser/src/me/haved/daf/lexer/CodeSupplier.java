@@ -159,19 +159,31 @@ public class CodeSupplier {
 	 * @param identifier the name of the flag
 	 * @return the key saying what to do with the current char and stack
 	 */
-	
 	private static final int PUSH_IDENTIFIER_AGAIN = 0;
 	private static final int USE_STACK_OR_FILE_FOR_NEXT = 1;
 	private static final int NEXT_CHAR_SET = 2;
 	
 	private int handleCompilerFlag(String identifier) {
+		Macro macro;
+		int line = inputLine;
+		int col = inputCol;
+		
 		if(identifier.equalsIgnoreCase("macro")) {
-			int line = inputLine;
-			int col = inputCol;
 			if(!handleMacroDefinition()) {
 				log(getFileName(), line, col, ERROR, "Macro definition failed");
 			}
 			return USE_STACK_OR_FILE_FOR_NEXT; //Means the fileText is advanced after this.
+		}
+		else if((macro = macros.getMacro(identifier)) != null) {
+			String value = macro.getMacroValue();
+			if(value == null) {
+				log(getFileName(), line, col, ERROR, "Tried evaluating a macro that doeasn't have a value: %s", macro.getMacroName());
+				return USE_STACK_OR_FILE_FOR_NEXT;
+			}
+			for(int i = value.length()-1; i>=0; i--) {
+				pushBufferedInputChar(value.charAt(i), line, col);
+			}
+			return USE_STACK_OR_FILE_FOR_NEXT;
 		}
 		//The letter after the macro name is our responsibility to push back
 		pushBufferedInputChar(inputChar, inputLine, inputCol);

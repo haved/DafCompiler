@@ -15,5 +15,5 @@ pub def main:=(argv:int, argc:&&char) -> int {
 	#ifmacro DEBUG
 	assert(a==5);
 	#endif
-	PrintInt<a>;
+	#PrintInt<a>;
 }
