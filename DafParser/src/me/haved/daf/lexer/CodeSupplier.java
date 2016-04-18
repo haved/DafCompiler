@@ -36,26 +36,29 @@ public class CodeSupplier {
 			log(ASSERTION_FAILED, "new FileTextSupplier gave a char that didn't fill the code supplier");
 	}
 	
-	private FileChar fc = new FileChar();
+	private char inputChar;
+	private int inputLine;
+	private int inputCol;
+	
 	public boolean advance() {
 		while(true) {
-			if(!getNextChar(fc))
+			if(!advanceInput())
 				return false;
-			if(trySetCurrentChar(fc.c, fc.line, fc.col)) //If we didn't add a letter, try again!
+			if(trySetCurrentChar(inputChar, inputLine, inputCol)) //If we didn't add a letter, try again!
 				return true;
 		}
 	}
 	
-	private boolean getNextChar(FileChar fc) {
+	private boolean advanceInput() {
 		if(!charBuffer.empty()) {
-			fc.c = charBuffer.pop();
-			fc.line = lineNumBuffer.pop();
-			fc.col = colNumBuffer.pop();
+			inputChar = charBuffer.pop();
+			inputLine = lineNumBuffer.pop();
+			inputCol  = colNumBuffer.pop();
 			return true;
 		} else if(fileText.advance()) {
-			fc.c = fileText.getCurrentChar();
-			fc.line = fileText.getCurrentLine();
-			fc.col = fileText.getCurrentCol();
+			inputChar = fileText.getCurrentChar();
+			inputLine = fileText.getCurrentLine();
+			inputCol  = fileText.getCurrentCol();
 			return true;
 		} else
 			return false;
