@@ -16,5 +16,5 @@ pub def main:=(argv:int, argc:&&char) -> int {
 	assert(a==5);
 	#endif
 	//#PrintInt<a>;
-	#DEBUG
+	#DEBUG#DEBUG#DEBUG
 }
