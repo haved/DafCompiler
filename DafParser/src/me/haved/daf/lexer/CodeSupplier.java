@@ -81,46 +81,46 @@ public class CodeSupplier {
 	}
 	
 	private boolean checkComments(char firstChar) {
-		int firstLine = fileText.getCurrentLine();
+		int firstLine = inputLine;
 		int firstCol  = fileText.getCurrentCol ();
 		
-		if(!fileText.advance())
+		if(!advanceInput())
 			return forceSetCurrentChar(firstChar, firstLine, firstCol);
 			
-		char next = fileText.getCurrentChar();
+		char next = inputChar;
 		if(next == '/') { //One line comment!
 			while(true) {
-				if(!fileText.advance())
+				if(!advanceInput())
 					return false;
-				if(fileText.getCurrentChar()=='\n')
-					return forceSetCurrentChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol());
+				if(inputChar=='\n')
+					return forceSetCurrentChar(inputChar, inputLine, inputCol);
 			}
 		} else if(next=='*') {
 			boolean lastStar=false;
 			while(true) {
-				if(!fileText.advance())
+				if(!advanceInput())
 					return false;
-				char c = fileText.getCurrentChar();
+				char c = inputChar;
 				if(lastStar&&c=='/')
 					return false;
 				lastStar = c=='*';
 			}
 		}
 		
-		pushBufferedChar(next, fileText.getCurrentLine(), fileText.getCurrentCol());
+		pushBufferedInputChar(next, inputLine, inputCol);
 		return forceSetCurrentChar(firstChar, firstLine, firstCol);
 	}
 	
 	private boolean doMacroAndFlowChecks(char firstChar) {
-		int firstLine = fileText.getCurrentLine();
-		int firstCol = fileText.getCurrentCol();
+		int firstLine = inputLine;
+		int firstCol = inputCol;
 		
-		if(!fileText.advance())
+		if(!advanceInput())
 			return forceSetCurrentChar(firstChar, firstLine, firstCol);
 		
-		char nameStartChar = fileText.getCurrentChar();
+		char nameStartChar = inputChar;
 		if(!TextParserUtil.isStartOfIdentifier(nameStartChar)) { //So we need to set the pound symbol, and push the next letter
-			pushBufferedChar(nameStartChar, fileText.getCurrentLine(), fileText.getCurrentCol());
+			pushBufferedInputChar(nameStartChar, inputLine, inputCol);
 			return forceSetCurrentChar(firstChar, firstLine, firstCol);
 		}
 		
@@ -128,12 +128,12 @@ public class CodeSupplier {
 		identifierBuilder.append(nameStartChar);
 		
 		while(true) {
-			if(!fileText.advance()) { //We need to add all the shit back to the stack, and write the pound symbol to the current char
+			if(!advanceInput()) { //We need to add all the shit back to the stack, and write the pound symbol to the current char
 				for(int i = identifierBuilder.length()-1; i>=0; i--)
-					pushBufferedChar(identifierBuilder.charAt(i), firstLine, firstCol+i+1);
+					pushBufferedInputChar(identifierBuilder.charAt(i), firstLine, firstCol+i+1);
 				return forceSetCurrentChar(firstChar, firstLine, firstCol);
 			}
-			char c = fileText.getCurrentChar();
+			char c = inputChar;
 			if(TextParserUtil.isIdentifierChar(c))
 				identifierBuilder.append(c);
 			else break;
@@ -147,9 +147,8 @@ public class CodeSupplier {
 		else if(compilerFlagHandeling == USE_STACK_OR_FILE_FOR_NEXT)
 			return false;
 		else { //WE push the identifier and force set the pound symbol
-			pushBufferedChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol());
 			for(int i = identifier.length()-1; i>=0; i--)
-				pushBufferedChar(identifier.charAt(i), firstLine, firstCol+i+1);
+				pushBufferedInputChar(identifier.charAt(i), firstLine, firstCol+i+1);
 			return forceSetCurrentChar(firstChar, firstLine, firstCol);
 		}
 	}
@@ -167,15 +166,15 @@ public class CodeSupplier {
 	
 	private int handleCompilerFlag(String identifier) {
 		if(identifier.equalsIgnoreCase("macro")) {
-			int line = fileText.getCurrentLine();
-			int col = fileText.getCurrentCol();
+			int line = inputLine;
+			int col = inputCol;
 			if(!handleMacroDefinition()) {
 				log(getFileName(), line, col, ERROR, "Macro definition failed");
 			}
 			return USE_STACK_OR_FILE_FOR_NEXT; //Means the fileText is advanced after this.
 		}
 		//The letter after the macro name is our responsibility to push back
-		pushBufferedChar(fileText.getCurrentChar(), fileText.getCurrentLine(), fileText.getCurrentCol());
+		pushBufferedInputChar(inputChar, inputLine, inputCol);
 		return PUSH_IDENTIFIER_AGAIN;
 	}
 	
@@ -184,8 +183,8 @@ public class CodeSupplier {
 	 * @return
 	 */
 	private boolean handleMacroDefinition() {
-		if(!TextParserUtil.isNormalWhitespace(fileText.getCurrentChar())) {
-			log(getFileName(), fileText.getCurrentLine(), fileText.getCurrentCol(), ERROR, "'#macro' must be followed by a space or tab, not '%c'", fileText.getCurrentChar());
+		if(!TextParserUtil.isNormalWhitespace(inputChar)) {
+			log(getFileName(), inputLine, inputCol, ERROR, "'#macro' must be followed by a space or tab, not '%c'", inputChar);
 			return false;
 		}
 		
@@ -194,11 +193,11 @@ public class CodeSupplier {
 		boolean encloseMacro = false;
 		
 		while(true) {
-			if(!fileText.advance()) {
-				log(getFileName(), fileText.getCurrentLine(), fileText.getCurrentCol(), ERROR, "File ended before macro definition!");
+			if(!advanceInput()) {
+				log(getFileName(), inputLine, inputCol, ERROR, "File ended before macro definition!");
 				return false;
 			}
-			char c = fileText.getCurrentChar();
+			char c = inputChar;
 			macroDef.append(c);
 			if(c==TextParserUtil.ENCLOSE_MACRO) {
 				if(!encloseMacro) {
@@ -221,7 +220,7 @@ public class CodeSupplier {
 		return true;
 	}
 	
-	private void pushBufferedChar(char c, int line, int col) {
+	private void pushBufferedInputChar(char c, int line, int col) {
 		charBuffer.push(c);
 		lineNumBuffer.push(line);
 		colNumBuffer.push(col);
@@ -245,10 +244,5 @@ public class CodeSupplier {
 	
 	public int getCurrentCol() {
 		return col;
-	}
-	
-	private static class FileChar {
-		public char c;
-		public int line, col;
 	}
 }
