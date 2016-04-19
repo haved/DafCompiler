@@ -230,6 +230,7 @@ public class CodeSupplier {
 		int firstWhitespace = inputCol;
 		int whiteSpacesSkipped = 0;
 		boolean done = false;
+		
 		while(inputChar==' ') {
 			if(!advanceInput()) {
 				done = true;
@@ -238,6 +239,8 @@ public class CodeSupplier {
 			whiteSpacesSkipped++;
 		}
 		
+		String[] parameters = null;
+		
 		if(!done && TextParserUtil.isStartOfMacroParameters(inputChar)) { //Parameter list
 			while(!TextParserUtil.isEndOfMacroParameters(inputChar)) {
 				if(!advanceInput()) {
@@ -245,20 +248,22 @@ public class CodeSupplier {
 					return USE_STACK_OR_FILE_FOR_NEXT;
 				}
 			}
-		} else {
-			for(int i = whiteSpacesSkipped-1; i >= 0; i++) //Pushes the white spaces back in the wrong direction
-			pushBufferedInputChar(' ', line, firstWhitespace+i);
+			parameters = new String[0];
+		} else { //Parameters were not found, and input char is not part of the macro
+			pushBufferedInputChar(inputChar, inputLine, inputCol); //There is no parameter list, so push whatever char you found instead 
+			for(int i = whiteSpacesSkipped-1; i >= 0; i++) //Push the white spaces we skipped back
+				pushBufferedInputChar(' ', line, firstWhitespace+i);
 		}
 		
-		pushBufferedInputChar(inputChar, inputLine, inputCol);
 		String value = macro.getMacroValue();
 		if(value == null) {
 			log(getFileName(), line, col, ERROR, "Tried evaluating a macro that doeasn't have a value: %s", macro.getMacroName());
 			return USE_STACK_OR_FILE_FOR_NEXT;
 		}
-		for(int i = value.length()-1; i>=0; i--) {
+		for(int i = value.length()-1; i>=0; i--) { //Pushing the evaluated macro
 			pushBufferedInputChar(value.charAt(i), line, col);
 		}
+		
 		return USE_STACK_OR_FILE_FOR_NEXT;
 	}
 	
