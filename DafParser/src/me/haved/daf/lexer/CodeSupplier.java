@@ -227,11 +227,27 @@ public class CodeSupplier {
 	private int evaluateMacro(int line, int col, Macro macro) {
 		//The input char is the one right after the macro name
 		
+		int firstWhitespace = inputCol;
 		int whiteSpacesSkipped = 0;
+		boolean done = false;
 		while(inputChar==' ') {
-			if(!advanceInput())
+			if(!advanceInput()) {
+				done = true;
 				break;
+			}
 			whiteSpacesSkipped++;
+		}
+		
+		if(!done && TextParserUtil.isStartOfMacroParameters(inputChar)) { //Parameter list
+			while(!TextParserUtil.isEndOfMacroParameters(inputChar)) {
+				if(!advanceInput()) {
+					log(getFileName(), line, col, ERROR, "Macro parameter list didn't close before end of file!");
+					return USE_STACK_OR_FILE_FOR_NEXT;
+				}
+			}
+		} else {
+			for(int i = whiteSpacesSkipped-1; i >= 0; i++) //Pushes the white spaces back in the wrong direction
+			pushBufferedInputChar(' ', line, firstWhitespace+i);
 		}
 		
 		pushBufferedInputChar(inputChar, inputLine, inputCol);
