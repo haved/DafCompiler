@@ -251,7 +251,7 @@ public class CodeSupplier {
 			parameters = new String[0];
 		} else { //Parameters were not found, and input char is not part of the macro
 			pushBufferedInputChar(inputChar, inputLine, inputCol); //There is no parameter list, so push whatever char you found instead 
-			for(int i = whiteSpacesSkipped-1; i >= 0; i++) //Push the white spaces we skipped back
+			for(int i = whiteSpacesSkipped-1; i >= 0; i--) //Push the white spaces we skipped back
 				pushBufferedInputChar(' ', line, firstWhitespace+i);
 		}
 		
