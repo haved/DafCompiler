@@ -173,19 +173,12 @@ public class CodeSupplier {
 			return USE_STACK_OR_FILE_FOR_NEXT; //Means the fileText is advanced after this.
 		}
 		else if((macro = macros.getMacro(identifier)) != null) {
-			String value = macro.getMacroValue();
-			if(value == null) {
-				log(getFileName(), line, col, ERROR, "Tried evaluating a macro that doeasn't have a value: %s", macro.getMacroName());
-				return USE_STACK_OR_FILE_FOR_NEXT;
-			}
-			pushBufferedInputChar(inputChar, inputLine, inputCol);
-			for(int i = value.length()-1; i>=0; i--) {
-				pushBufferedInputChar(value.charAt(i), line, col);
-			}
-			return USE_STACK_OR_FILE_FOR_NEXT;
+			return evaluateMacro(line, col, macro);
 		}
+		//Unrecognized token, mate. Put it back again.
 		//The letter after the macro name is our responsibility to push back
 		pushBufferedInputChar(inputChar, inputLine, inputCol);
+		//This pushes the rest of the macro name in the wrong order
 		return PUSH_IDENTIFIER_AGAIN;
 	}
 	
@@ -229,6 +222,28 @@ public class CodeSupplier {
 		
 		macros.tryAddMacro(macro);
 		return true;
+	}
+	
+	private int evaluateMacro(int line, int col, Macro macro) {
+		//The input char is the one right after the macro name
+		
+		int whiteSpacesSkipped = 0;
+		while(inputChar==' ') {
+			if(!advanceInput())
+				break;
+			whiteSpacesSkipped++;
+		}
+		
+		pushBufferedInputChar(inputChar, inputLine, inputCol);
+		String value = macro.getMacroValue();
+		if(value == null) {
+			log(getFileName(), line, col, ERROR, "Tried evaluating a macro that doeasn't have a value: %s", macro.getMacroName());
+			return USE_STACK_OR_FILE_FOR_NEXT;
+		}
+		for(int i = value.length()-1; i>=0; i--) {
+			pushBufferedInputChar(value.charAt(i), line, col);
+		}
+		return USE_STACK_OR_FILE_FOR_NEXT;
 	}
 	
 	private void pushBufferedInputChar(char c, int line, int col) {
