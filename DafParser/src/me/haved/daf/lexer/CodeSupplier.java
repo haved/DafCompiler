@@ -242,13 +242,32 @@ public class CodeSupplier {
 		String[] parameters = null;
 		
 		if(!done && TextParserUtil.isStartOfMacroParameters(inputChar)) { //Parameter list
-			while(!TextParserUtil.isEndOfMacroParameters(inputChar)) {
-				if(!advanceInput()) {
-					log(getFileName(), line, col, ERROR, "Macro parameter list didn't close before end of file!");
-					return USE_STACK_OR_FILE_FOR_NEXT;
+			parameters = new String[macro.getMacroParameterCount()];
+			int currentParam;
+			for(currentParam = 0; currentParam < parameters.length; currentParam++) {
+				char nextChar = currentParam < parameters.length ? '>' : '-';
+				StringBuilder parameter = new StringBuilder();
+				int scopeDepth = 0; //Used for allowing < > inside < >
+				while(true) {
+					if(!advanceInput()) {
+						log(getFileName(), inputLine, inputCol, ERROR, "Macro parameter list didn't have an end!");
+						return USE_STACK_OR_FILE_FOR_NEXT;
+					}
+					if(inputChar == nextChar && scopeDepth==0)
+						break;
+					if(inputChar == '<')
+						scopeDepth++;
+					else if(inputChar == '>')
+						scopeDepth--;
+					parameter.append(inputChar);
 				}
+				parameters[currentParam] = parameter.toString().trim();
 			}
-			parameters = new String[0];
+			if(currentParam != parameters.length) {
+				log(getFileName(), line, col, ERROR, "Not enough parameters were passed to the macro '%s' (%d/&d)", macro.getMacroName(), currentParam, parameters.length);
+				return USE_STACK_OR_FILE_FOR_NEXT;
+			}
+			
 		} else { //Parameters were not found, and input char is not part of the macro
 			pushBufferedInputChar(inputChar, inputLine, inputCol); //There is no parameter list, so push whatever char you found instead 
 			for(int i = whiteSpacesSkipped-1; i >= 0; i--) //Push the white spaces we skipped back
@@ -262,6 +281,11 @@ public class CodeSupplier {
 		}
 		for(int i = value.length()-1; i>=0; i--) { //Pushing the evaluated macro
 			pushBufferedInputChar(value.charAt(i), line, col);
+		}
+		
+		if(parameters != null) {
+			MacroMap map = macro.makeMacroMapFromParameters(parameters);
+			println(map.toString());
 		}
 		
 		return USE_STACK_OR_FILE_FOR_NEXT;

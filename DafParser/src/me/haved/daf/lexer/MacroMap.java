@@ -44,4 +44,13 @@ public class MacroMap {
 		}
 		return null;
 	}
+	
+	public String toString() {
+		StringBuilder builder = new StringBuilder("(MacroMap, ");
+		for(Macro macro:macros) {
+			builder.append(String.format("\n %s ", macro.toString()));
+		}
+		
+		return builder.append(")").toString();
+	}
 }
