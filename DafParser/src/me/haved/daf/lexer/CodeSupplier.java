@@ -9,21 +9,31 @@ import java.util.Stack;
 public class CodeSupplier {
 	
 	private RegisteredFile file;
-	private MacroMap macros;
+	private Stack<MacroMap> macros;
+	private int timeToPopMacroMap;
+	private Stack<Integer> macroPoppingCounters;
 	
 	private FileTextSupplier fileText;
-	
-	private char current;
-	private int line;
-	private int col;
 	
 	private Stack<Character> charBuffer;
 	private Stack<Integer> lineNumBuffer;
 	private Stack<Integer> colNumBuffer;
 	
+	private char inputChar;
+	private int inputLine;
+	private int inputCol;
+	
+	private char current;
+	private int line;
+	private int col;
+	
+	
 	public CodeSupplier(RegisteredFile file, MacroMap macros) {
 		this.file = file;
-		this.macros = macros;
+		this.macros = new Stack<>();
+		this.macros.push(macros);
+		this.timeToPopMacroMap = 0;
+		this.macroPoppingCounters = new Stack<>();
 		fileText = new FileTextSupplier(file);
 		charBuffer = new Stack<>();
 		lineNumBuffer = new Stack<>();
@@ -36,10 +46,6 @@ public class CodeSupplier {
 			log(ASSERTION_FAILED, "new FileTextSupplier gave a char that didn't fill the code supplier");
 	}
 	
-	private char inputChar;
-	private int inputLine;
-	private int inputCol;
-	
 	public boolean advance() {
 		while(true) {
 			if(!advanceInput())
@@ -50,6 +56,23 @@ public class CodeSupplier {
 	}
 	
 	private boolean advanceInput() {
+		if(timeToPopMacroMap>0) {
+			timeToPopMacroMap--;
+			if(timeToPopMacroMap == 0) {
+				if(macros.size() > 1)
+					macros.pop();
+				else
+					log(getFileName(), inputLine, inputCol, ASSERTION_FAILED, 
+							"The MacroMap stack was supposed to be popped, but needs at least one MacroMap");
+				if(!macroPoppingCounters.isEmpty()) //If it is empty, timeToPopMacroMap will stay at 0, making nothing happen anymore
+					timeToPopMacroMap = macroPoppingCounters.pop();
+				else
+					log(getFileName(), inputLine, inputCol, ASSERTION_FAILED, 
+							"%s Not replacing even though the MacroMap stack has got %d items",
+							"The MacroMap time to pop stack was empty when timeToPopMacroMap ran out.",
+							macros.size());
+			}
+		}
 		if(!charBuffer.empty()) {
 			inputChar = charBuffer.pop();
 			inputLine = lineNumBuffer.pop();
@@ -164,21 +187,23 @@ public class CodeSupplier {
 	private static final int NEXT_CHAR_SET = 2;
 	
 	private int handleCompilerFlag(int line, int col, String identifier) {
-		Macro macro;
-		
 		if(identifier.equalsIgnoreCase("macro")) {
 			if(!handleMacroDefinition()) {
 				log(getFileName(), line, col, ERROR, "Macro definition failed");
 			}
 			return USE_STACK_OR_FILE_FOR_NEXT; //Means the fileText is advanced after this.
 		}
-		else if((macro = macros.getMacro(identifier)) != null) {
-			return evaluateMacro(line, col, macro);
+		Macro macro = null;
+		for(int i = macros.size()-1; i>=0; i--) {
+			macro = macros.elementAt(i).getMacro(identifier);
+			if(macro!=null) {
+				return evaluateMacro(line, col, macro);
+			}
 		}
 		//Unrecognized token, mate. Put it back again.
 		//The letter after the macro name is our responsibility to push back
 		pushBufferedInputChar(inputChar, inputLine, inputCol);
-		//This pushes the rest of the macro name in the wrong order
+		//This pushes the rest of the macro name in the wrong order, force setting the pound symbol
 		return PUSH_IDENTIFIER_AGAIN;
 	}
 	
@@ -220,7 +245,7 @@ public class CodeSupplier {
 		if(macro == null)
 			return false;
 		
-		macros.tryAddMacro(macro);
+		macros.firstElement().tryAddMacro(macro); //Add the macro to the bottom. Upper macro maps are only for macro parameters
 		return true;
 	}
 	
@@ -245,7 +270,7 @@ public class CodeSupplier {
 			parameters = new String[macro.getMacroParameterCount()];
 			int currentParam;
 			for(currentParam = 0; currentParam < parameters.length; currentParam++) {
-				char nextChar = currentParam < parameters.length ? '>' : '-';
+				char nextChar = currentParam == parameters.length-1 ? '>' : ';';
 				StringBuilder parameter = new StringBuilder();
 				int scopeDepth = 0; //Used for allowing < > inside < >
 				while(true) {
@@ -285,7 +310,9 @@ public class CodeSupplier {
 		
 		if(parameters != null) {
 			MacroMap map = macro.makeMacroMapFromParameters(parameters);
-			println(map.toString());
+			macros.push(map);
+			macroPoppingCounters.push(timeToPopMacroMap);
+			timeToPopMacroMap = value.length()+1;
 		}
 		
 		return USE_STACK_OR_FILE_FOR_NEXT;

@@ -20,4 +20,5 @@ pub def main:=(argv:int, argc:&&char) -> int {
 	#DEBUG#DEBUG#DEBUG
 	#PrintChar  <'g'>;
 	#DEBUG   #PrintChar<'f'>;
+	printf("#HALLO#");
 }

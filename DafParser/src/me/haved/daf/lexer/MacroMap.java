@@ -31,7 +31,7 @@ public class MacroMap {
 			return false;
 		}
 		
-		log(DEBUG, "Added macro: %s", macro.toString());
+		//log(DEBUG, "Added macro: %s", macro.toString());
 		
 		macros.add(macro);
 		return true;
