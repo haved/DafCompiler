@@ -1,24 +1,3 @@
-#ifmacro DEBUG
-import daf.assert;
-#endif
+#macro Noe <Noko <Noget>> printf("#Noko<Grulle>");
 
-#macro DEBUG true
-#macro PrintInt<#d> $printf("%d", #d)$let c:=6;
-#macro  	PrintChar		<#c>		printf("%c", #c)
-
-//This is a comment
-pub let a:=5; //This might have been a def, unless you need to point to it
-
-/** The main function
- * @return exit status
- */
-pub def main:=(argv:int, argc:&&char) -> int {
-	#ifmacro DEBUG
-	assert(a==5);
-	#endif
-	#PrintInt<a>;
-	#DEBUG#DEBUG#DEBUG
-	#PrintChar  <'g'>;
-	#DEBUG   #PrintChar<'f'>;
-	printf("#HALLO#");
-}
+#Noe<Halla #Noget>

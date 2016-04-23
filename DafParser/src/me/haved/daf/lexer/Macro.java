@@ -69,7 +69,9 @@ public class Macro {
 		}
 		MacroMap map = new MacroMap();
 		for(int i = 0; i < params.length; i++)
-			map.tryAddMacro(new Macro(parameters[i], null, params[i])); //parameters are the names, while params are the definitions
+			map.tryAddMacro(String.format("%s %c%s%c", 
+					parameters[i], TextParserUtil.ENCLOSE_MACRO, params[i], TextParserUtil.ENCLOSE_MACRO)); 
+									//parameters are the names, while params are the definitions
 		return map;
 	}
 	
@@ -111,56 +113,21 @@ public class Macro {
 			i++; //Skip all whitespace
 		
 		ArrayList<String> parameters = new ArrayList<>();
+		ArrayList<Character> separators = new ArrayList<>();
 		if(TextParserUtil.isStartOfMacroParameters(text.charAt(i))) { //Argument list! Hurrah!
 			i++; //To get past the '<'
-			boolean lookingForParam = true; //Means you are looking for a pound symbol or '>'
-			boolean doneWithParam  = false; //Means you are looking for a special char between two parameters or '>'
+			boolean lookingForParam  = true; //Means you are looking for an identifier to mark the beginning of a parameter
 			int parameterNameStart = 0; //The first letter of the current parameter name
 			
 			for(; i < text.length(); i++) {
 				char c = text.charAt(i);
-				if(TextParserUtil.isEndOfMacroParameters(c) & (lookingForParam || doneWithParam))
+				if(TextParserUtil.isEndOfMacroParameters(c) && lookingForParam)
 					break; //We are done with the parameter list
 				if(lookingForParam) {
-					if(TextParserUtil.isPoundSymbol(c)) {
-						i++; //Go to the next char to see that there is a proper name there
-						parameterNameStart = i; //First letter of the name
-						lookingForParam = false;
-						if(!TextParserUtil.isStartOfIdentifier(text.charAt(i))) {
-							log(ERROR, "A macro parameter can't start with the character '%c'", text.charAt(i));
-							return null;
-						}
+					if(TextParserUtil.isStartOfIdentifier(c)) {
+						parameterNameStart = i;
 					} else if(!TextParserUtil.isNormalWhitespace(c)) {
-						log(ERROR, "Something NOT a pound symbol ( %c ) found when looking for a macro parameter", c);
-						return null;
-					}
-				}
-				else if(!doneWithParam) {
-					if(!TextParserUtil.isIdentifierChar(c)) {
-						//We are done with the parameter name! Must check earlier names;
-						String paramName = text.substring(parameterNameStart, i); //I is the letter after the identifier
-						if(parameters.contains(paramName)) {
-							log(ERROR, "The macro parameter name '%s' was already taken!", paramName);
-							return null;
-						}
-						parameters.add(paramName);
-						doneWithParam = true; //This means we check c again
-					}
-				}
-				
-				if(doneWithParam) { //When the name is over, we are doneWithParam until we find a separator character
-					if(TextParserUtil.isNormalWhitespace(c)) //We go to i++;
-						continue;
-					doneWithParam = false;
-					lookingForParam = true;
-					if(TextParserUtil.isEndOfMacroParameters(c)) //This means we are done with the parameter list
-						break;
-					else if(TextParserUtil.isPoundSymbol(c)) { //We found another parameter before a separator!
-						log(ERROR, "Found a pound symbol after the name of a macro parameter");
-						return null;
-					}
-					else if(!TextParserUtil.isLegalSpecialCharacter(c)) { //We found some character that is special, but not legal as a separator!
-						log(ERROR, "Found illegal charcter between parameter names");
+						log(ERROR, "A macro parameter name must start with a letter, not %c", c);
 						return null;
 					}
 				}
@@ -175,7 +142,7 @@ public class Macro {
 		
 		if(i >= text.length()) {
 			if(parameters.size() == 0) {
-				log(MESSAGE, "The macro named '%s' has got no definitions, and an empty parameter list!", macroName);
+				log(DEBUG, "The macro named '%s' has got no definitions, and an empty parameter list!", macroName);
 				return new Macro(macroName, null, null);
 			}
 			else {
