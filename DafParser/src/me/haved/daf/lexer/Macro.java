@@ -7,12 +7,21 @@ import java.util.ArrayList;
 public class Macro {
 	private String name;
 	private String[] parameters; //null means no parameters
-	private String definition; //null means no definition
+	private char[]   separators; //null means no separators
+	private String   definition; //null means no definition
 	
-	private Macro(String name, String[] parameters, String definition) {
-		this.name = name;
-		this.parameters = parameters != null && parameters.length > 0 ? parameters : null;
-		this.definition = definition != null && definition.length()>0 ? definition : null;
+	private Macro(String nameIn, String[] parametersIn, char[] separatorsIn, String definitionIn) {
+		this.name = nameIn;
+		this.parameters = parametersIn != null && parametersIn.length > 0 ? parametersIn : null;
+		this.separators = separatorsIn != null && separatorsIn.length > 0 ? separatorsIn : null;
+		this.definition = definitionIn != null && definitionIn.length()>0 ? definitionIn : null;
+		
+		if(separators == null && parameters != null && parameters.length!=1)
+			log(ASSERTION_FAILED, "No separator chars but more than one parameter given to Macro()");
+		if(separators != null && (parameters == null || separators.length != parameters.length+1))
+			log(ASSERTION_FAILED, "Macro() was given parameter and separator lists of conflicting sizes");
+		
+		log(DEBUG, "Macro created: %s", toString());
 	}
 	
 	public String getMacroName() {
@@ -53,7 +62,7 @@ public class Macro {
 			builder.append("{");
 			for(int i = 0; i < parameters.length; i++) {
 				if(i!=0)
-					builder.append(", ");
+					builder.append(separators[i-1]);
 				builder.append('"').append(parameters[i]).append('"');
 			}
 			builder.append("}");
@@ -63,7 +72,7 @@ public class Macro {
 	}
 	
 	public MacroMap makeMacroMapFromParameters(String[] params) {
-		if(params.length != parameters.length) {
+		if(params.length != (parameters == null ? 0 : parameters.length)) {
 			log(ERROR, "Wrong amount of parameters to macro %s! Expected %d, got %d!", name, parameters.length, params.length);
 			return null;
 		}
@@ -106,7 +115,7 @@ public class Macro {
 		}
 		
 		if(macroName == null) {
-			return new Macro(text, null, null); //Give all of the name as macro identifier
+			return new Macro(text, null, null, null); //Give all of the name as macro identifier
 		}
 		
 		while(TextParserUtil.isNormalWhitespace(text.charAt(i)))
@@ -117,18 +126,57 @@ public class Macro {
 		if(TextParserUtil.isStartOfMacroParameters(text.charAt(i))) { //Argument list! Hurrah!
 			i++; //To get past the '<'
 			boolean lookingForParam  = true; //Means you are looking for an identifier to mark the beginning of a parameter
+			boolean lookingForSeparator = false; //Means you need a separator before a new macro parameter
 			int parameterNameStart = 0; //The first letter of the current parameter name
+			
+			int scope = 0;
 			
 			for(; i < text.length(); i++) {
 				char c = text.charAt(i);
+				if(!lookingForParam && TextParserUtil.isStartOfMacroParameters(c)) {
+					scope++;
+					continue;
+				}
+				if(scope > 0) {
+					if(TextParserUtil.isEndOfMacroParameters(c))
+						scope--;
+					continue;
+				}
 				if(TextParserUtil.isEndOfMacroParameters(c) && lookingForParam)
 					break; //We are done with the parameter list
-				if(lookingForParam) {
+				if(lookingForSeparator) {
+					if(TextParserUtil.isAnyWhitespace(c))
+						continue;
+					else if(TextParserUtil.isLegalMacroParameterSeparator(c)) {
+						separators.add(c);
+						lookingForSeparator = false;
+					}
+					else {
+						log(ERROR, "After macro parameter '%s' => Illegal char used as separator: %c", 
+								parameters.get(parameters.size()-1), c);
+						return null;
+					}
+				}
+				else if(lookingForParam) {
 					if(TextParserUtil.isStartOfIdentifier(c)) {
 						parameterNameStart = i;
+						lookingForParam = false;
 					} else if(!TextParserUtil.isNormalWhitespace(c)) {
 						log(ERROR, "A macro parameter name must start with a letter, not %c", c);
 						return null;
+					}
+				}
+				else {
+					if(!TextParserUtil.isIdentifierChar(c)) {
+						String parameter = text.substring(parameterNameStart, i);
+						if(!testMacroName(parameter)) {
+							log(ERROR, "Macro parameter name: %s was not legal", parameter);
+							return null;
+						}
+						parameters.add(parameter);
+						lookingForParam = true;
+						lookingForSeparator = true;
+						i--; //We run for c again, this time with lookingForParam being true.
 					}
 				}
 			}
@@ -143,12 +191,13 @@ public class Macro {
 		if(i >= text.length()) {
 			if(parameters.size() == 0) {
 				log(DEBUG, "The macro named '%s' has got no definitions, and an empty parameter list!", macroName);
-				return new Macro(macroName, null, null);
+				return new Macro(macroName, null, null, null);
 			}
 			else {
 				log(MESSAGE, "The macro named '%s' has got %d parameters, but no definition!", macroName, parameters.size());
-				String[] params = new String[parameters.size()];
-				return new Macro(macroName, parameters.toArray(params), null);
+				String[]    params = new String   [parameters.size()];
+				Character[] seps   = new Character[separators.size()];
+				return new Macro(macroName, parameters.toArray(params), toPrimitiveArray(separators.toArray(seps)), null);
 			}
 		}
 		
@@ -188,9 +237,26 @@ public class Macro {
 		}
 			
 		if(parameters.size() == 0)
-			return new Macro(macroName, null, definition);
+			return new Macro(macroName, null, null, definition);
 		
 		String[] params = new String[parameters.size()];
-		return new Macro(macroName, parameters.toArray(params), definition);
+		Character[]   seps   = new Character  [separators.size()];
+		return new Macro(macroName, parameters.toArray(params), toPrimitiveArray(separators.toArray(seps)), definition);
+	}
+	
+	private static boolean testMacroName(String text) {
+		Macro macro = getMacroFromString(text);
+		if(macro==null)
+			return false;
+		return !macro.hasValue(); //It shall not have a value!
+	}
+	
+	private static char[] toPrimitiveArray(Character[] chars) {
+		char[] output = new char[chars.length];
+		
+		for(int i = 0; i < output.length; i++)
+			output[i] = chars[i];
+		
+		return output;
 	}
 }

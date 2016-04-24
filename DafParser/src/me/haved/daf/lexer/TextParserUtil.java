@@ -46,7 +46,7 @@ public class TextParserUtil {
 	}
 	
 	public static boolean isLegalMacroParameterSeparator(char c) {
-		return isLegalSpecialCharacter(c) && !isPoundSymbol(c) && 
+		return isLegalSpecialCharacter(c) && 
 				!isEndOfMacroParameters(c) && 
 				!isStartOfMacroParameters(c) && c!=ENCLOSE_MACRO;
 	}
