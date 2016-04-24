@@ -21,7 +21,7 @@ public class Macro {
 		if(separators != null && (parameters == null || separators.length != parameters.length+1))
 			log(ASSERTION_FAILED, "Macro() was given parameter and separator lists of conflicting sizes");
 		
-		log(DEBUG, "Macro created: %s", toString());
+		//System.err.printf("%nMacro created: %s%n%n", toString());
 	}
 	
 	public String getMacroName() {
@@ -126,14 +126,13 @@ public class Macro {
 		if(TextParserUtil.isStartOfMacroParameters(text.charAt(i))) { //Argument list! Hurrah!
 			i++; //To get past the '<'
 			boolean lookingForParam  = true; //Means you are looking for an identifier to mark the beginning of a parameter
-			boolean lookingForSeparator = false; //Means you need a separator before a new macro parameter
 			int parameterNameStart = 0; //The first letter of the current parameter name
 			
 			int scope = 0;
 			
 			for(; i < text.length(); i++) {
 				char c = text.charAt(i);
-				if(!lookingForParam && TextParserUtil.isStartOfMacroParameters(c)) {
+				if(TextParserUtil.isStartOfMacroParameters(c)) {
 					scope++;
 					continue;
 				}
@@ -144,20 +143,8 @@ public class Macro {
 				}
 				if(TextParserUtil.isEndOfMacroParameters(c) && lookingForParam)
 					break; //We are done with the parameter list
-				if(lookingForSeparator) {
-					if(TextParserUtil.isAnyWhitespace(c))
-						continue;
-					else if(TextParserUtil.isLegalMacroParameterSeparator(c)) {
-						separators.add(c);
-						lookingForSeparator = false;
-					}
-					else {
-						log(ERROR, "After macro parameter '%s' => Illegal char used as separator: %c", 
-								parameters.get(parameters.size()-1), c);
-						return null;
-					}
-				}
-				else if(lookingForParam) {
+				
+				if(lookingForParam) {
 					if(TextParserUtil.isStartOfIdentifier(c)) {
 						parameterNameStart = i;
 						lookingForParam = false;
@@ -167,16 +154,21 @@ public class Macro {
 					}
 				}
 				else {
-					if(!TextParserUtil.isIdentifierChar(c)) {
-						String parameter = text.substring(parameterNameStart, i);
+					if(TextParserUtil.isLegalMacroParameterSeparator(c) | TextParserUtil.isEndOfMacroParameters(c)) {
+						String parameter = text.substring(parameterNameStart, i).trim();
+						
 						if(!testMacroName(parameter)) {
-							log(ERROR, "Macro parameter name: %s was not legal", parameter);
+							log(ERROR, "Not a valid macro parameter: '%s'", parameter);
 							return null;
 						}
+						
 						parameters.add(parameter);
 						lookingForParam = true;
-						lookingForSeparator = true;
-						i--; //We run for c again, this time with lookingForParam being true.
+						
+						if(TextParserUtil.isEndOfMacroParameters(c))
+							i--;
+						else
+							separators.add(c);
 					}
 				}
 			}
