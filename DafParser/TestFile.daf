@@ -1,16 +1,5 @@
-//#macro Noe <Noko<Noget>> printf("#Noko<Grulle>");
-
-//#Noe<Halla #Noget>
-
-#macro PrintInt<d<>> $printf("%d", #d)$
-
-let a:=5;
-#PrintInt<a>;
-
-#macro DEBUG true
-#macro VERSION<> 2.4
 
 
-#macro TestMacro<TParam<Output>> $printf("Given #TParam<Stuff>");$
+#macro Hello<d> #d<>true#d
 
-Here: #TestMacro<Have your output back: #Output>
+#Hello<a>#d

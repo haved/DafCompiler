@@ -4,6 +4,8 @@ public class TextParserUtil {
 	
 	public static final char END_OF_LINE = '\n';
 	public static final char ENCLOSE_MACRO = '$';
+	public static final char START_OF_MACRO_PARAMETER = '<';
+	public static final char END_OF_MACRO_PARAMETER = '>';
 
 	public static boolean containsAnyWhitespace(String s) {
 		for(int i = 0; i < s.length(); i++)
@@ -33,11 +35,11 @@ public class TextParserUtil {
 	}
 	
 	public static boolean isStartOfMacroParameters(char c) {
-		return c == '<';
+		return c == START_OF_MACRO_PARAMETER;
 	}
 
 	public static boolean isEndOfMacroParameters(char c) {
-		return c == '>';
+		return c == END_OF_MACRO_PARAMETER;
 	}
 
 	public static boolean isLegalSpecialCharacter(char c) {

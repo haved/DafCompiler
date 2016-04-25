@@ -54,6 +54,17 @@ public class Macro {
 		return definition != null;
 	}
 	
+	public char getSeparator(int index) {
+		if(separators == null)
+			log(ASSERTION_FAILED, "Tried getting parameters separator #%d from macro %s that doesn't have separators!",
+					index, getMacroName());
+		else if(index >= separators.length)
+			log(ASSERTION_FAILED, "Tried getting parameters separator #%d from macro %s that only has %d separators!",
+					index, getMacroName(), separators.length);
+	
+		return separators[index];
+	}
+	
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		if(!hasMacroParameters())

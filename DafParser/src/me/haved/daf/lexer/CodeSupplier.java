@@ -60,7 +60,7 @@ public class CodeSupplier {
 			timeToPopMacroMap--;
 			if(timeToPopMacroMap == 0) {
 				if(macros.size() > 1)
-					macros.pop();
+					System.out.printf("%n\t\tPoping MacroMap: %s%n%n", macros.pop().toString());
 				else
 					log(getFileName(), inputLine, inputCol, ASSERTION_FAILED, 
 							"The MacroMap stack was supposed to be popped, but needs at least one MacroMap");
@@ -267,17 +267,17 @@ public class CodeSupplier {
 		String[] parameters = null;
 		
 		if(!done && TextParserUtil.isStartOfMacroParameters(inputChar)) { //Parameter list
+			if(!advanceInput()) { //Get to the char after '<'
+				log(getFileName(), inputLine, inputCol, ERROR, "Macro parameter list didn't have an end!");
+				return USE_STACK_OR_FILE_FOR_NEXT;
+			}
 			parameters = new String[macro.getMacroParameterCount()];
 			int currentParam;
 			for(currentParam = 0; currentParam < parameters.length; currentParam++) {
-				char nextChar = currentParam == parameters.length-1 ? '>' : ';';
+				char nextChar = currentParam == parameters.length-1 ? TextParserUtil.END_OF_MACRO_PARAMETER : macro.getSeparator(currentParam);
 				StringBuilder parameter = new StringBuilder();
 				int scopeDepth = 0; //Used for allowing < > inside < >
 				while(true) {
-					if(!advanceInput()) {
-						log(getFileName(), inputLine, inputCol, ERROR, "Macro parameter list didn't have an end!");
-						return USE_STACK_OR_FILE_FOR_NEXT;
-					}
 					if(inputChar == nextChar && scopeDepth==0)
 						break;
 					if(inputChar == '<')
@@ -285,18 +285,27 @@ public class CodeSupplier {
 					else if(inputChar == '>')
 						scopeDepth--;
 					parameter.append(inputChar);
+					if(!advanceInput()) {
+						log(getFileName(), inputLine, inputCol, ERROR, "Macro parameter list didn't have an end!");
+						return USE_STACK_OR_FILE_FOR_NEXT;
+					}
 				}
-				parameters[currentParam] = parameter.toString().trim();
+				parameters[currentParam] = parameter.toString().trim(); //We should in theory
 			}
-			if(currentParam != parameters.length) {
-				log(getFileName(), line, col, ERROR, "Not enough parameters were passed to the macro '%s' (%d/&d)", macro.getMacroName(), currentParam, parameters.length);
+			if(currentParam != parameters.length) { //CurrentParam is at the index after the last parameter
+				log(getFileName(), line, col, ERROR, "Not enough parameters were passed to the macro '%s' (%d/&d)", 
+						macro.getMacroName(), currentParam, parameters.length);
 				return USE_STACK_OR_FILE_FOR_NEXT;
 			}
-			
 		} else { //Parameters were not found, and input char is not part of the macro
 			pushBufferedInputChar(inputChar, inputLine, inputCol); //There is no parameter list, so push whatever char you found instead 
 			for(int i = whiteSpacesSkipped-1; i >= 0; i--) //Push the white spaces we skipped back
 				pushBufferedInputChar(' ', line, firstWhitespace+i);
+			if(macro.getMacroParameterCount() != 0) {
+				log(getFileName(), line, col, ERROR, "No parameters were passed to the macro '%s' requirering %d parameters", 
+						macro.getMacroName(), macro.getMacroParameterCount());
+				return USE_STACK_OR_FILE_FOR_NEXT;
+			}
 		}
 		
 		String value = macro.getMacroValue();
@@ -310,6 +319,8 @@ public class CodeSupplier {
 		
 		if(parameters != null) {
 			MacroMap map = macro.makeMacroMapFromParameters(parameters);
+			System.out.printf("%n\t\tPushing MacroMap: %s%n", map.toString());
+			System.out.printf("\t\tPushed %d to the timeToPopMacroMap%n%n", value.length()+1);
 			macros.push(map);
 			macroPoppingCounters.push(timeToPopMacroMap);
 			timeToPopMacroMap = value.length()+1;
