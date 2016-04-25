@@ -18,8 +18,8 @@ public class Macro {
 		
 		if(separators == null && parameters != null && parameters.length!=1)
 			log(ASSERTION_FAILED, "No separator chars but more than one parameter given to Macro()");
-		if(separators != null && (parameters == null || separators.length != parameters.length+1))
-			log(ASSERTION_FAILED, "Macro() was given parameter and separator lists of conflicting sizes");
+		if(separators != null && (parameters == null || separators.length+1 != parameters.length))
+			log(ASSERTION_FAILED, "Macro() was given parameter and separator lists of conflicting sizes (seps:%d)", separators.length);
 		
 		//System.err.printf("%nMacro created: %s%n%n", toString());
 	}

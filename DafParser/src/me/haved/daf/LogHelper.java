@@ -51,8 +51,9 @@ public class LogHelper {
 		println("%s: %s: %s", location, LOG_LEVEL_NAMES[logLevel], text);
 		if(logLevel==ERROR)
 			errorsOccured = true;
-		else if(logLevel == ASSERTION_FAILED)
-			assert(false);
+		else if(logLevel == ASSERTION_FAILED) {
+			throw new RuntimeException("Assertion failed");
+		}
 		else if(logLevel == FATAL_ERROR) {
 			printSummary(-1);
 			System.exit(-1);

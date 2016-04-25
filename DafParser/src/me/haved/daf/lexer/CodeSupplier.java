@@ -27,7 +27,6 @@ public class CodeSupplier {
 	private int line;
 	private int col;
 	
-	
 	public CodeSupplier(RegisteredFile file, MacroMap macros) {
 		this.file = file;
 		this.macros = new Stack<>();
