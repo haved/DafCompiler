@@ -118,7 +118,7 @@ public class Macro {
 				macroName = text.substring(0, i); //Not including i;
 				
 				if(!TextParserUtil.isNormalWhitespace(c) & !TextParserUtil.isStartOfMacroParameters(c)) { //Must be space or '<' after name!
-					log(ERROR, "Found unknown character after macro name! '%c'", c);
+					log(ERROR, "Found unknown character after macro name(%s): '%c'", macroName, c);
 					return null;
 				}
 				break;

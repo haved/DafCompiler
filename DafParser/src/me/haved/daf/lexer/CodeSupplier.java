@@ -169,7 +169,7 @@ public class CodeSupplier {
 	private int handleCompilerFlag(int line, int col, String identifier) {
 		if(identifier.equalsIgnoreCase(COMPILER_TOKEN_MACRO)) {
 			if(!handleMacroDefinition()) {
-				log(getFileName(), line, col, ERROR, "Macro definition failed");
+				log(getFileName(), line, col, ERROR, "Macro definition failed due to previous error");
 			}
 			return USE_STACK_OR_FILE_FOR_NEXT; //Means the fileText is advanced after this.
 		}

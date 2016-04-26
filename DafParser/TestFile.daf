@@ -1,3 +1,5 @@
 #macro FunMacro<Param<Callback>> $This is fun! Param was: #Param<Man>$
 
 #FunMacro<Giving back: #Callback>
+
+#macro Errors$Imminent$
