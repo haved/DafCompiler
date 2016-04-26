@@ -197,7 +197,7 @@ public class Macro {
 				return new Macro(macroName, null, null, null);
 			}
 			else {
-				log(MESSAGE, "The macro named '%s' has got %d parameters, but no definition!", macroName, parameters.size());
+				//log(MESSAGE, "The macro named '%s' has got %d parameters, but no definition!", macroName, parameters.size());
 				String[]    params = new String   [parameters.size()];
 				Character[] seps   = new Character[separators.size()];
 				return new Macro(macroName, parameters.toArray(params), toPrimitiveArray(separators.toArray(seps)), null);

@@ -1,9 +1,3 @@
+#macro FunMacro<Param<Callback>> $This is fun! Param was: #Param<Man>$
 
-
-#macro Hello<d> #d<>true#d
-
-#Hello<a>#d
-
-#macro MultiParam<a;b?c> $a:#a b:#b c:#c$
-
-#MultiParam<6?3;7?2,3>
+#FunMacro<Giving back: #Callback>

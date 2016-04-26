@@ -7,11 +7,11 @@ import static me.haved.daf.LogHelper.*;
 import java.util.Stack;
 
 public class CodeSupplier {
+	public static final String COMPILER_TOKEN_MACRO = "macro";
+	public static final String COMPILER_TOKEN_POP_MACRO_STACK = "poppmacrostack";
 	
 	private RegisteredFile file;
 	private Stack<MacroMap> macros;
-	private int timeToPopMacroMap;
-	private Stack<Integer> macroPoppingCounters;
 	
 	private FileTextSupplier fileText;
 	
@@ -31,8 +31,6 @@ public class CodeSupplier {
 		this.file = file;
 		this.macros = new Stack<>();
 		this.macros.push(macros);
-		this.timeToPopMacroMap = 0;
-		this.macroPoppingCounters = new Stack<>();
 		fileText = new FileTextSupplier(file);
 		charBuffer = new Stack<>();
 		lineNumBuffer = new Stack<>();
@@ -55,23 +53,6 @@ public class CodeSupplier {
 	}
 	
 	private boolean advanceInput() {
-		if(timeToPopMacroMap>0) {
-			timeToPopMacroMap--;
-			if(timeToPopMacroMap == 0) {
-				if(macros.size() > 1)
-					System.out.printf("%n\t\tPoping MacroMap: %s%n%n", macros.pop().toString());
-				else
-					log(getFileName(), inputLine, inputCol, ASSERTION_FAILED, 
-							"The MacroMap stack was supposed to be popped, but needs at least one MacroMap");
-				if(!macroPoppingCounters.isEmpty()) //If it is empty, timeToPopMacroMap will stay at 0, making nothing happen anymore
-					timeToPopMacroMap = macroPoppingCounters.pop();
-				else
-					log(getFileName(), inputLine, inputCol, ASSERTION_FAILED, 
-							"%s Not replacing even though the MacroMap stack has got %d items",
-							"The MacroMap time to pop stack was empty when timeToPopMacroMap ran out.",
-							macros.size());
-			}
-		}
 		if(!charBuffer.empty()) {
 			inputChar = charBuffer.pop();
 			inputLine = lineNumBuffer.pop();
@@ -186,11 +167,18 @@ public class CodeSupplier {
 	private static final int NEXT_CHAR_SET = 2;
 	
 	private int handleCompilerFlag(int line, int col, String identifier) {
-		if(identifier.equalsIgnoreCase("macro")) {
+		if(identifier.equalsIgnoreCase(COMPILER_TOKEN_MACRO)) {
 			if(!handleMacroDefinition()) {
 				log(getFileName(), line, col, ERROR, "Macro definition failed");
 			}
 			return USE_STACK_OR_FILE_FOR_NEXT; //Means the fileText is advanced after this.
+		}
+		else if(identifier.equals(COMPILER_TOKEN_POP_MACRO_STACK)) {
+			if(macros.size()>1)
+				macros.pop();
+			else
+				log(ERROR, "Macro stack was popped too much someehow. Maybe you wrote: #%s", COMPILER_TOKEN_MACRO);
+			return USE_STACK_OR_FILE_FOR_NEXT;
 		}
 		Macro macro = null;
 		for(int i = macros.size()-1; i>=0; i--) {
@@ -312,17 +300,16 @@ public class CodeSupplier {
 			log(getFileName(), line, col, ERROR, "Tried evaluating a macro that doeasn't have a value: %s", macro.getMacroName());
 			return USE_STACK_OR_FILE_FOR_NEXT;
 		}
-		for(int i = value.length()-1; i>=0; i--) { //Pushing the evaluated macro
-			pushBufferedInputChar(value.charAt(i), line, col);
-		}
-		
 		if(parameters != null) {
 			MacroMap map = macro.makeMacroMapFromParameters(parameters);
-			System.out.printf("%n\t\tPushing MacroMap: %s%n", map.toString());
-			System.out.printf("\t\tPushed %d to the timeToPopMacroMap%n%n", value.length()+1);
 			macros.push(map);
-			macroPoppingCounters.push(timeToPopMacroMap);
-			timeToPopMacroMap = value.length()+1;
+			pushBufferedInputChar(' ', line, col);
+			for(int i = COMPILER_TOKEN_POP_MACRO_STACK.length()-1; i>=0; i--)
+				pushBufferedInputChar(COMPILER_TOKEN_POP_MACRO_STACK.charAt(i), line, col);
+			pushBufferedInputChar('#', line, col);
+		}
+		for(int i = value.length()-1; i>=0; i--) { //Pushing the evaluated macro
+			pushBufferedInputChar(value.charAt(i), line, col);
 		}
 		
 		return USE_STACK_OR_FILE_FOR_NEXT;
