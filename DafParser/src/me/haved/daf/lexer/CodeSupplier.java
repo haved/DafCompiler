@@ -9,6 +9,8 @@ import java.util.Stack;
 public class CodeSupplier {
 	public static final String COMPILER_TOKEN_MACRO = "macro";
 	public static final String COMPILER_TOKEN_POP_MACRO_STACK = "poppmacrostack";
+	public static final String COMPILER_TOKEN_IF_MACRO = "ifmacro";
+	public static final String COMPILER_TOKEN_ENDIF = "endif";
 	
 	private RegisteredFile file;
 	private Stack<MacroMap> macros;
@@ -119,7 +121,7 @@ public class CodeSupplier {
 		int firstCol = inputCol;
 		
 		if(!advanceInput())
-			return forceSetCurrentChar(firstChar, firstLine, firstCol);
+			return forceSetCurrentChar(firstChar, firstLine, firstCol); //Push back the pound symbol
 		
 		char nameStartChar = inputChar;
 		if(!TextParserUtil.isStartOfIdentifier(nameStartChar)) { //So we need to set the pound symbol, and push the next letter
@@ -180,6 +182,17 @@ public class CodeSupplier {
 				log(ERROR, "Macro stack was popped too much someehow. Maybe you wrote: #%s", COMPILER_TOKEN_MACRO);
 			return USE_STACK_OR_FILE_FOR_NEXT;
 		}
+		else if(identifier.equals(COMPILER_TOKEN_ENDIF)) {
+			return USE_STACK_OR_FILE_FOR_NEXT; //We don't care about #endif because it means we 
+		}
+		else if(identifier.equals(COMPILER_TOKEN_IF_MACRO)) {
+			return evaluateIfMacroExpression(line, col);
+		}
+		
+		return tryEvaluatingMacro(identifier);
+	}
+	
+	private int tryEvaluatingMacro(String identifier) {
 		Macro macro = null;
 		for(int i = macros.size()-1; i>=0; i--) {
 			macro = macros.elementAt(i).getMacro(identifier);
@@ -312,6 +325,70 @@ public class CodeSupplier {
 			pushBufferedInputChar(value.charAt(i), line, col);
 		}
 		
+		return USE_STACK_OR_FILE_FOR_NEXT;
+	}
+	
+	private int evaluateIfMacroExpression(int line, int col) { //inputChar is the one after '#ifmacro'
+		if(!TextParserUtil.isNormalWhitespace(inputChar)) {
+			log(getFileName(), inputLine, inputCol, ERROR, "#%s must be followed by a whitespace! Not: '%c'", COMPILER_TOKEN_IF_MACRO, inputChar);
+			return USE_STACK_OR_FILE_FOR_NEXT;
+		}
+		
+		while(TextParserUtil.isNormalWhitespace(inputChar)) {
+			if(!advanceInput())
+				log(getFileName(), inputLine, inputCol, ERROR, "File ended right after #s", COMPILER_TOKEN_IF_MACRO);
+		}
+		
+		if(!TextParserUtil.isStartOfIdentifier(inputChar)) {
+			log(getFileName(), inputLine, inputCol, ERROR, "#%s must be followed by a macro name. Macro names can't start with '%c'", 
+					COMPILER_TOKEN_IF_MACRO, inputChar);
+			return USE_STACK_OR_FILE_FOR_NEXT;
+		}
+			
+		StringBuilder macroName = new StringBuilder();
+		macroName.append(inputChar);
+		
+		while(true) {
+			if(!advanceInput())
+				log(getFileName(), inputLine, inputCol, ERROR, "File ended during macro name (so far: '%s') after #%s",
+						macroName.toString(), COMPILER_TOKEN_IF_MACRO);
+			if(!TextParserUtil.isIdentifierChar(inputChar))
+				break;
+		}
+		
+		String macroIdentifier = macroName.toString();
+		
+		boolean useCurrentInputChar = true;
+		if(TextParserUtil.isStartOfMacroParameters(inputChar)) {
+			if(!advanceInput()) {
+				log(getFileName(), inputLine, inputCol, ERROR, "File ended after #ifmacro MacroName<");
+				return USE_STACK_OR_FILE_FOR_NEXT; //Will automagicly fail
+			}
+			if(!TextParserUtil.isEndOfMacroParameters(inputChar)) {
+				log(getFileName(), inputLine, inputCol, ERROR, "Char '%c' found after macro parameter opening (%s)! Expected '%c' immiediatly!",
+						inputChar, macroName, TextParserUtil.END_OF_MACRO_PARAMETER);
+				return USE_STACK_OR_FILE_FOR_NEXT;
+			}
+			//We now know that we ended with <>
+			useCurrentInputChar = false; //The '>' shall not be included, so use the stack or file for next char
+		}
+		else if(!TextParserUtil.isAnyWhitespace(inputChar)) {
+			log(getFileName(), inputLine, inputCol, ERROR, "'#%s %s' needs to end with a whitespace or '<>' before any other chars! Not '%c'",
+					COMPILER_TOKEN_IF_MACRO, macroIdentifier, inputChar);
+		}
+		
+		boolean foundMacro = false;
+		for(int i = macros.size()-1; i>=0 && !foundMacro; i--) {
+			if(macros.get(i).getMacro(macroIdentifier) != null)
+				foundMacro = true;
+		}
+		
+		if(foundMacro) {
+			log(DEBUG, "Found the macro: %s", macroName);
+		}
+		
+		if(useCurrentInputChar)
+			pushBufferedInputChar(inputChar, inputLine, inputCol); //The white space
 		return USE_STACK_OR_FILE_FOR_NEXT;
 	}
 	
