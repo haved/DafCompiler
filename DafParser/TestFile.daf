@@ -1,5 +1,13 @@
-#macro FunMacro<Param<Callback>> $This is fun! Param was: #Param<Man>$
+#macro DEBUG
 
-#FunMacro<Giving back: #Callback>
+printf("Dette er en test der FREEBUG ikke er #ifmacro FREEBUG<>u#endif sann");
 
-#macro Errors$Imminent$
+#ifmacro DEBUG
+printf("Debug!");
+#endif
+
+#ifmacro FREEBUG
+printf("Freebug!");
+#endif
+
+

@@ -383,13 +383,42 @@ public class CodeSupplier {
 				foundMacro = true;
 		}
 		
-		if(foundMacro) {
-			log(DEBUG, "Found the macro: %s", macroName);
+		if(!foundMacro) {
+			log(DEBUG, "Did not find the macro: %s", macroName);
+			if(skipUntilEndif())
+				useCurrentInputChar = true; //The char after endif shall be placed on the stack
+			else //We are out of chars!
+				return USE_STACK_OR_FILE_FOR_NEXT; //Will stop because of lack of new chars
 		}
 		
 		if(useCurrentInputChar)
 			pushBufferedInputChar(inputChar, inputLine, inputCol); //The white space
 		return USE_STACK_OR_FILE_FOR_NEXT;
+	}
+	
+	/**
+	 * Starts looking for #endif immediately
+	 * 
+	 * inputChar will after this be the first char after 
+	 * 
+	 * @return true if #endif was found before the end of the file
+	 */
+	private boolean skipUntilEndif() {
+		
+		int endifSteps = 0;
+		
+		while(endifSteps < COMPILER_TOKEN_ENDIF.length()) {
+			if(COMPILER_TOKEN_ENDIF.charAt(endifSteps)==inputChar)
+				endifSteps++;
+			else
+				endifSteps = 0;
+			if(endifSteps==COMPILER_TOKEN_ENDIF.length())
+				break;
+			if(!advanceInput())
+				return false;
+		}
+		
+		return true;
 	}
 	
 	private void pushBufferedInputChar(char c, int line, int col) {
