@@ -386,9 +386,8 @@ public class CodeSupplier {
 		}
 		
 		if(!foundMacro) {
-			log(DEBUG, "Did not find the macro: %s", macroName);
 			if(skipUntilEndif())
-				useCurrentInputChar = false; //The inoutChar right now is the f of "#endif" and shall not be placed on the stack
+				useCurrentInputChar = false; //The letter after endif is on the stack already
 			else //We are out of chars!
 				return USE_STACK_OR_FILE_FOR_NEXT; //Will stop because of lack of new chars
 		}
@@ -401,7 +400,7 @@ public class CodeSupplier {
 	/**
 	 * Starts looking for #endif immediately
 	 * 
-	 * inputChar will after this be the f of #endif
+	 * The next char on the stack will after this be the char after #endif<>
 	 * 
 	 * @return true if #endif was found before the end of the file
 	 */
@@ -414,12 +413,16 @@ public class CodeSupplier {
 				endifSteps++;
 			else
 				endifSteps = 0;
-			if(endifSteps==COMPILER_TOKEN_ENDIF.length())
-				break;
 			if(!advanceInput())
 				return false;
 		}
 		
+		//Now, currentChar is the one after '#endif'
+		
+		skipLessThanBiggerOrPushCurrentLetter();
+		
+		//Now either the letter after endif or the letter after <> is on the stack
+	
 		return true;
 	}
 	
@@ -431,7 +434,6 @@ public class CodeSupplier {
 		if(TextParserUtil.isStartOfMacroParameters(inputChar)) {
 			advanceInput();//The file can't stop here either way
 			if(TextParserUtil.isEndOfMacroParameters(inputChar)) {
-				advanceInput();
 				return;
 			}
 			else
