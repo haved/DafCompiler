@@ -19,11 +19,11 @@ public class TextParserUtil {
 	}
 	
 	public static boolean isAnyWhitespace(char c) {
-		return c == ' ' | c == '\n' | c == '\t' | c == '\r';
+		return c == ' ' || c == '\n' || c == '\t' || c == '\r';
 	}
 	
 	public static boolean isIdentifierChar(char c) {
-		return (c >= 'a' & c<='z') | (c >= 'A' & c<='Z') | (c >= '0' & c<='9') | c == '_';
+		return (c >= 'a' && c<='z') || (c >= 'A' && c<='Z') || (c >= '0' && c<='9') || c == '_';
 	}
 	
 	public static boolean isStartOfIdentifier(char c) {

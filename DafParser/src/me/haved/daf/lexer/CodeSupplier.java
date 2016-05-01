@@ -183,6 +183,7 @@ public class CodeSupplier {
 			return USE_STACK_OR_FILE_FOR_NEXT;
 		}
 		else if(identifier.equals(COMPILER_TOKEN_ENDIF)) {
+			pushBufferedInputChar(inputChar, inputLine, inputCol);
 			return USE_STACK_OR_FILE_FOR_NEXT; //We don't care about #endif because it means we 
 		}
 		else if(identifier.equals(COMPILER_TOKEN_IF_MACRO)) {
@@ -354,6 +355,7 @@ public class CodeSupplier {
 						macroName.toString(), COMPILER_TOKEN_IF_MACRO);
 			if(!TextParserUtil.isIdentifierChar(inputChar))
 				break;
+			macroName.append(inputChar);
 		}
 		
 		String macroIdentifier = macroName.toString();
@@ -386,7 +388,7 @@ public class CodeSupplier {
 		if(!foundMacro) {
 			log(DEBUG, "Did not find the macro: %s", macroName);
 			if(skipUntilEndif())
-				useCurrentInputChar = true; //The char after endif shall be placed on the stack
+				useCurrentInputChar = false; //The inoutChar right now is the f of "#endif" and shall not be placed on the stack
 			else //We are out of chars!
 				return USE_STACK_OR_FILE_FOR_NEXT; //Will stop because of lack of new chars
 		}
@@ -399,7 +401,7 @@ public class CodeSupplier {
 	/**
 	 * Starts looking for #endif immediately
 	 * 
-	 * inputChar will after this be the first char after 
+	 * inputChar will after this be the f of #endif
 	 * 
 	 * @return true if #endif was found before the end of the file
 	 */

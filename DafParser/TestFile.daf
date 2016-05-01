@@ -9,5 +9,3 @@ printf("Debug!");
 #ifmacro FREEBUG
 printf("Freebug!");
 #endif
-
-
