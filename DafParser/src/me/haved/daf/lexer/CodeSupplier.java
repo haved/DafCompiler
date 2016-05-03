@@ -9,7 +9,9 @@ import java.util.Stack;
 public class CodeSupplier {
 	public static final String COMPILER_TOKEN_MACRO = "macro";
 	public static final String COMPILER_TOKEN_POP_MACRO_STACK = "poppmacrostack";
-	public static final String COMPILER_TOKEN_IF_MACRO = "ifmacro";
+	public static final String[] COMPILER_TOKEN_IFS = {"ifmacro", "ifnmacro"};
+	public static final int COMPILER_TOKEN_IF_MACRO = 0;
+	public static final int COMPILER_TOKEN_IF_NOT_MACRO = 1;
 	public static final String COMPILER_TOKEN_ENDIF = "endif";
 	
 	private RegisteredFile file;
@@ -186,8 +188,10 @@ public class CodeSupplier {
 			skipLessThanBiggerOrPushCurrentLetter();
 			return USE_STACK_OR_FILE_FOR_NEXT;
 		}
-		else if(identifier.equals(COMPILER_TOKEN_IF_MACRO)) {
-			return evaluateIfMacroExpression(line, col);
+		else if(identifier.equals(COMPILER_TOKEN_IFS[COMPILER_TOKEN_IF_MACRO])) {
+			return evaluateIfMacroExpression(line, col, false);
+		} else if(identifier.equals(COMPILER_TOKEN_IFS[COMPILER_TOKEN_IF_NOT_MACRO])) {
+			return evaluateIfMacroExpression(line, col, true);
 		}
 		
 		return tryEvaluatingMacro(identifier);
@@ -329,20 +333,22 @@ public class CodeSupplier {
 		return USE_STACK_OR_FILE_FOR_NEXT;
 	}
 	
-	private int evaluateIfMacroExpression(int line, int col) { //inputChar is the one after '#ifmacro'
+	private int evaluateIfMacroExpression(int line, int col, boolean not) { //inputChar is the one after '#ifmacro' or '#ifnmacro'
+		String tokenUsed = COMPILER_TOKEN_IFS[not?COMPILER_TOKEN_IF_NOT_MACRO:COMPILER_TOKEN_IF_MACRO];
+		
 		if(!TextParserUtil.isNormalWhitespace(inputChar)) {
-			log(getFileName(), inputLine, inputCol, ERROR, "#%s must be followed by a whitespace! Not: '%c'", COMPILER_TOKEN_IF_MACRO, inputChar);
+			log(getFileName(), inputLine, inputCol, ERROR, "#%s must be followed by a whitespace! Not: '%c'", tokenUsed, inputChar);
 			return USE_STACK_OR_FILE_FOR_NEXT;
 		}
 		
 		while(TextParserUtil.isNormalWhitespace(inputChar)) {
 			if(!advanceInput())
-				log(getFileName(), inputLine, inputCol, ERROR, "File ended right after #s", COMPILER_TOKEN_IF_MACRO);
+				log(getFileName(), inputLine, inputCol, ERROR, "File ended right after #s", tokenUsed);
 		}
 		
 		if(!TextParserUtil.isStartOfIdentifier(inputChar)) {
 			log(getFileName(), inputLine, inputCol, ERROR, "#%s must be followed by a macro name. Macro names can't start with '%c'", 
-					COMPILER_TOKEN_IF_MACRO, inputChar);
+					tokenUsed, inputChar);
 			return USE_STACK_OR_FILE_FOR_NEXT;
 		}
 			
@@ -352,7 +358,7 @@ public class CodeSupplier {
 		while(true) {
 			if(!advanceInput())
 				log(getFileName(), inputLine, inputCol, ERROR, "File ended during macro name (so far: '%s') after #%s",
-						macroName.toString(), COMPILER_TOKEN_IF_MACRO);
+						macroName.toString(), tokenUsed);
 			if(!TextParserUtil.isIdentifierChar(inputChar))
 				break;
 			macroName.append(inputChar);
@@ -385,7 +391,7 @@ public class CodeSupplier {
 				foundMacro = true;
 		}
 		
-		if(!foundMacro) {
+		if(!foundMacro ^ not) {
 			if(skipUntilEndif())
 				useCurrentInputChar = false; //The letter after endif is on the stack already
 			else //We are out of chars!

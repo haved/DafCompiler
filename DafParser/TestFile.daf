@@ -1,6 +1,7 @@
 #macro DEBUG
 
 printf("Dette er en test der FREEBUG ikke er #ifmacro FREEBUG<>u#endif<>sann");
+printf("Dette er en test der FREEBUG er #ifnmacro FREEBUG<>u#endif<>sann");
 
 #ifmacro DEBUG
 printf("Debug!");
