@@ -183,8 +183,8 @@ public class CodeSupplier {
 			return USE_STACK_OR_FILE_FOR_NEXT;
 		}
 		else if(identifier.equals(COMPILER_TOKEN_ENDIF)) {
-			pushBufferedInputChar(inputChar, inputLine, inputCol);
-			return USE_STACK_OR_FILE_FOR_NEXT; //We don't care about #endif because it means we 
+			skipLessThanBiggerOrPushCurrentLetter();
+			return USE_STACK_OR_FILE_FOR_NEXT;
 		}
 		else if(identifier.equals(COMPILER_TOKEN_IF_MACRO)) {
 			return evaluateIfMacroExpression(line, col);
@@ -421,6 +421,24 @@ public class CodeSupplier {
 		}
 		
 		return true;
+	}
+	
+	/** When called, the inputChar is either pushed onto the inputStack Again, 
+	 *  or if it's a '<' followed by a '>', we skip them both, making the next inputChar
+	 *  what we expect it to be after, say, an #endif<> 
+	 */
+	private void skipLessThanBiggerOrPushCurrentLetter() {
+		if(TextParserUtil.isStartOfMacroParameters(inputChar)) {
+			advanceInput();//The file can't stop here either way
+			if(TextParserUtil.isEndOfMacroParameters(inputChar)) {
+				advanceInput();
+				return;
+			}
+			else
+				log(getFileName(), inputLine, inputCol, ERROR, "The start of an empty parameter list (%c) wasn't followed directly by a '%c'",
+						TextParserUtil.START_OF_MACRO_PARAMETER, TextParserUtil.ENCLOSE_MACRO);
+		}
+		pushBufferedInputChar(inputChar, inputLine, inputCol);
 	}
 	
 	private void pushBufferedInputChar(char c, int line, int col) {
