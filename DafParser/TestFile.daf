@@ -1,12 +1,20 @@
-#macro DEBUG
+#macro FREEBUG
 
 printf("Dette er en test der FREEBUG ikke er #ifmacro FREEBUG<>u#endif<>sann");
 printf("Dette er en test der FREEBUG er #ifnmacro FREEBUG<>u#endif<>sann");
 
-#ifmacro DEBUG
-printf("Debug!");
+#ifmacro FIZ
+	#ifmacro BUZ
+		printf("Fizbuz");
+	#endif
+	#ifnmacro BUZ
+		printf("Fiz");
+	#endif
+#endif
+#ifmacro BUZ
+	#ifnmacro FIZ
+		printf("buz");
+	#endif
 #endif
 
-#ifmacro FREEBUG
-printf("Freebug!");
-#endif
+printf("#ifmacro FIZ<>Fiz#endif#ifmacro BUZ<>buz#endif");

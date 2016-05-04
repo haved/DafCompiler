@@ -413,12 +413,45 @@ public class CodeSupplier {
 	private boolean skipUntilEndif() {
 		
 		int endifSteps = 0;
+		int[] ifSteps = new int[COMPILER_TOKEN_IFS.length];
 		
-		while(endifSteps < COMPILER_TOKEN_ENDIF.length()) {
+		int scope = 1;
+		
+		boolean clear = true;
+		
+		while(scope>0) {
+			
+			if(clear) {
+				endifSteps = 0;
+				for(int i = 0; i < ifSteps.length; i++) {
+					ifSteps[i] = 0;
+				}
+				clear = false;
+			}
+			
 			if(COMPILER_TOKEN_ENDIF.charAt(endifSteps)==inputChar)
 				endifSteps++;
 			else
 				endifSteps = 0;
+	
+			if(endifSteps >= COMPILER_TOKEN_ENDIF.length()) {
+				scope--;
+				clear = true;
+			}
+			else {
+				for(int i = 0; i < ifSteps.length; i++) {
+					if(COMPILER_TOKEN_IFS[i].charAt(ifSteps[i])==inputChar)
+						ifSteps[i]++;
+					else
+						ifSteps[i]=0;
+					
+					if(ifSteps[i] >= COMPILER_TOKEN_IFS[i].length()) {
+						scope++;
+						clear = true;
+					}
+				}
+			}
+			
 			if(!advanceInput())
 				return false;
 		}
