@@ -22,9 +22,7 @@ public class LexicalParser {
 			ArrayList<Token> tokens = new ArrayList<>();
 			CodeSupplier supplier = new CodeSupplier(file, map);
 			
-			System.out.print(supplier.getCurrentChar());
-			while(supplier.advance())
-				System.out.print(supplier.getCurrentChar());
+			
 			
 			tokensMap.put(fileId, tokens);
 			
