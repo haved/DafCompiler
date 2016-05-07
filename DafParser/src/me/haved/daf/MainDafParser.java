@@ -12,7 +12,7 @@ import me.haved.daf.args.MacroOption;
 import me.haved.daf.lexer.LexicalParser;
 import me.haved.daf.lexer.MacroMap;
 import me.haved.daf.lexer.TextParserUtil;
-import me.haved.daf.lexer.Token;
+import me.haved.daf.lexer.tokens.Token;
 
 public class MainDafParser {
 	

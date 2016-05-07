@@ -49,6 +49,7 @@ public class FileTextSupplier {
 		try {
 			if(done | finalNewline) {
 				done = true;
+				close();
 				return false;
 			}
 			

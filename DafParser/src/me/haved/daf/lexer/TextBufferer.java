@@ -2,6 +2,8 @@ package me.haved.daf.lexer;
 
 import java.util.ArrayList;
 
+import static me.haved.daf.LogHelper.*;
+
 public class TextBufferer {
 	
 	private CodeSupplier supplier;
@@ -36,5 +38,36 @@ public class TextBufferer {
 	
 	public int getCurrentCol() {
 		return colNums.get(letterIndex);
+	}
+	
+	public boolean advance() {
+		if(letterIndex < letters.size()-1) {
+			letterIndex++;
+			return true;
+		}
+		
+		if(open && supplier.advance()) {
+			letters .add(supplier.getCurrentChar());
+			lineNums.add(supplier.getCurrentLine());
+			colNums .add(supplier.getCurrentCol ());
+			letterIndex++;
+			return true;
+		}
+		
+		return open = false;
+	}
+	
+	public void restoreToStart() {
+		letterIndex = 0;
+	}
+	
+	public void setNewStart(int saveAmount) {
+		if(saveAmount == 0) {
+			letters.clear();
+			lineNums.clear();
+			colNums.clear();
+		} else 
+			log(ASSERTION_FAILED, "TextBuffer asked to setNewStart saving %d letters. Has to be 0 in this implementation!", saveAmount);
+		letterIndex = 0;
 	}
 }

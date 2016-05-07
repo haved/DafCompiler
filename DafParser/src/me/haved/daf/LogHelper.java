@@ -2,7 +2,7 @@ package me.haved.daf;
 
 import java.io.PrintStream;
 
-import me.haved.daf.lexer.Token;
+import me.haved.daf.lexer.tokens.Token;
 
 public class LogHelper {
 	

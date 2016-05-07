@@ -1,4 +1,4 @@
-package me.haved.daf.lexer;
+package me.haved.daf.lexer.tokens;
 
 public class Token {
 	

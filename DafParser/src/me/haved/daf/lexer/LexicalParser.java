@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import me.haved.daf.RegisteredFile;
+import me.haved.daf.lexer.tokens.Token;
 
 import static me.haved.daf.LogHelper.*;
 
@@ -21,9 +22,11 @@ public class LexicalParser {
 			
 			ArrayList<Token> tokens = new ArrayList<>();
 			CodeSupplier supplier = new CodeSupplier(file, map);
+			TextBufferer bufferer = new TextBufferer(supplier);
 			
 			
 			
+			supplier.close();
 			tokensMap.put(fileId, tokens);
 			
 			return tokens;
