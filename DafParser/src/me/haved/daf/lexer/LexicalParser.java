@@ -24,7 +24,16 @@ public class LexicalParser {
 			CodeSupplier supplier = new CodeSupplier(file, map);
 			TextBufferer bufferer = new TextBufferer(supplier);
 			
-			
+			while(true) {
+				if(TextParserUtil.isAnyWhitespace(bufferer.getCurrentChar())) {
+					if(!bufferer.advance())
+						break;
+					bufferer.setNewStart(0); //We have now found a new start
+				}
+				
+				
+				
+			}
 			
 			supplier.close();
 			tokensMap.put(fileId, tokens);
