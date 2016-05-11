@@ -2,18 +2,24 @@ package me.haved.daf.lexer.tokens;
 
 public class Token {
 	
+	private TokenType type;
+	
 	private String fileName;
 	private int line;
 	private int col;
 	
 	private String text;
 	
-	public Token(String file, int line, int col) {
-		this(file, line, col, null);
+	public Token(TokenType type, String file, int line, int col) {
+		this(type, file, line, col, null);
 	}
 	
-	public Token(String file, int line, int col, String text) {
-		
+	public Token(TokenType type, String file, int line, int col, String text) {
+		this.type = type;
+		this.fileName = file;
+		this.line = line;
+		this.col = col;
+		this.text = text;
 	}
 	
 	public String getErrorLocation() {
@@ -21,7 +27,7 @@ public class Token {
 	}
 	
 	public String getTokenContents() {
-		return text; //TODO: Return token keyword +? text
+		return type.isSpecial()?text:type.getName();
 	}
 	
 	public String getErrorString() {
