@@ -41,10 +41,15 @@ public class TextParserUtil {
 	public static boolean isEndOfMacroParameters(char c) {
 		return c == END_OF_MACRO_PARAMETER;
 	}
-
+	
+	/** Returns true if the char is a legal char, but not a letter, number, underscore or whitespace
+	 * 
+	 * @param c the char
+	 * @return
+	 */
 	public static boolean isLegalSpecialCharacter(char c) {
-		return (c >= '!' && c <= '/') || (c >= ':' && c <= '?')
-				|| (c >= '[' && c <= '`') || (c >= '{' && c <= '~');
+		return (c >= '!' && c <= '/') || (c >= ':' && c <= '@')
+				|| (c >= '[' && c <= '`' && c != '_') || (c >= '{' && c <= '~');
 	}
 	
 	public static boolean isLegalMacroParameterSeparator(char c) {

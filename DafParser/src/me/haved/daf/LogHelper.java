@@ -83,6 +83,11 @@ public class LogHelper {
 		e.printStackTrace(out);
 	}
 	
+	public static void logAssert(boolean v) {
+		if(!v)
+			throw new RuntimeException("Assertion failed!");
+	}
+	
 	public static void terminateIfErrorsOccured() {
 		if(errorsOccured)
 			log(FATAL_ERROR, "Terminating due to previous errors!");

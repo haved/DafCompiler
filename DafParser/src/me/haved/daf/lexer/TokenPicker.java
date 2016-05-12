@@ -25,9 +25,26 @@ public class TokenPicker {
 			specialChar = true;
 		} else {
 			log(fileName, line, col, ERROR, "Illegal char '%c' makes lexer flip out!");
-			return new Token(TokenType.ERROR, fileName, line, col);
+			return null;
 		}
 		
-		return null;
+		StringBuilder text = new StringBuilder().append(firstLetter);
+		
+		while(true) {
+			bufferer.advance();
+			char letter = bufferer.getCurrentChar();
+			if(specialChar ? !TextParserUtil.isLegalSpecialCharacter(letter) : !TextParserUtil.isIdentifierChar(letter))
+				break;
+		}
+		
+		String name = text.toString();
+		
+		bufferer.setNewStart(0); //We are guaranteed to add some token here no matter what
+		for(TokenType type:TokenType.values()) {
+			if(!type.isSpecial() && type.getName().equals(name))
+				return new Token(type, fileName, line, col);
+		}
+		
+		return new Token(TokenType.IDENTIFER, fileName, line, col, name);
 	}
 }

@@ -30,6 +30,7 @@ public class LexicalParser {
 			CodeSupplier supplier = new CodeSupplier(file, map);
 			TextBufferer bufferer = new TextBufferer(supplier);
 			
+			mainLoop:
 			while(true) {
 				if(TextParserUtil.isAnyWhitespace(bufferer.getCurrentChar())) {
 					if(!bufferer.advance()) //Skip the whitespace
@@ -41,10 +42,15 @@ public class LexicalParser {
 					Token token = picker.makeToken(bufferer);
 					if(token != null) {
 						tokens.add(token);
-						break;
+						continue mainLoop;
 					} else 
 						bufferer.restoreToStart();
 				}
+				
+				log(bufferer.getSourceName(), bufferer.getCurrentCol(), bufferer.getCurrentLine(), ERROR, 
+						"The char '%s' was totally unknown to the lexical parser!");
+				
+				logAssert(bufferer.advance()); //Should always work!
 			}
 			
 			supplier.close();
