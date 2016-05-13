@@ -10,8 +10,8 @@ import me.haved.daf.args.CommandOption;
 import me.haved.daf.args.HelpOption;
 import me.haved.daf.args.MacroOption;
 import me.haved.daf.lexer.LexicalParser;
-import me.haved.daf.lexer.MacroMap;
-import me.haved.daf.lexer.TextParserUtil;
+import me.haved.daf.lexer.text.MacroMap;
+import me.haved.daf.lexer.text.TextParserUtil;
 import me.haved.daf.lexer.tokens.Token;
 
 public class MainDafParser {

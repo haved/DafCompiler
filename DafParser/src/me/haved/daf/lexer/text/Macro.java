@@ -1,4 +1,4 @@
-package me.haved.daf.lexer;
+package me.haved.daf.lexer.text;
 
 import static me.haved.daf.LogHelper.*;
 

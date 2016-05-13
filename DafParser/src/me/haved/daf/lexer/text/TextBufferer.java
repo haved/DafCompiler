@@ -1,4 +1,4 @@
-package me.haved.daf.lexer;
+package me.haved.daf.lexer.text;
 
 import java.util.ArrayList;
 
@@ -38,6 +38,10 @@ public class TextBufferer {
 	
 	public int getCurrentCol() {
 		return colNums.get(letterIndex);
+	}
+	
+	public String getSourceName() {
+		return supplier.getFileName();
 	}
 	
 	public boolean advance() {
