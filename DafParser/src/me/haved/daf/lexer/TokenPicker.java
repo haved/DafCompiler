@@ -1,11 +1,45 @@
 package me.haved.daf.lexer;
 
+import java.util.HashSet;
+
 import me.haved.daf.lexer.text.TextBufferer;
 import me.haved.daf.lexer.text.TextParserUtil;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;
 
 public class TokenPicker {
+	
+	private static HashSet<String> finsihedTokens = new HashSet<>();
+	
+	static {
+		finsihedTokens.add("++");
+		finsihedTokens.add("--");
+		finsihedTokens.add("+=");
+		finsihedTokens.add("-=");
+		finsihedTokens.add("*=");
+		finsihedTokens.add("/=");
+		finsihedTokens.add("%=");
+		finsihedTokens.add(":=");
+		finsihedTokens.add("==");
+		finsihedTokens.add("!=");
+		finsihedTokens.add("<<");
+		finsihedTokens.add(">>");
+		finsihedTokens.add("||");
+		finsihedTokens.add("&&");
+		finsihedTokens.add("(");
+		finsihedTokens.add(")");
+		finsihedTokens.add("[");
+		finsihedTokens.add("]");
+		finsihedTokens.add("{");
+		finsihedTokens.add("}");
+		finsihedTokens.add(",");
+		finsihedTokens.add(".");
+		finsihedTokens.add(";");
+		finsihedTokens.add("?");
+		finsihedTokens.add(":");
+		finsihedTokens.add("@");
+		finsihedTokens.add("->");
+	}
 	
 	public static Token makeToken(TextBufferer bufferer) {
 		String fileName = bufferer.getSourceName();
@@ -28,15 +62,21 @@ public class TokenPicker {
 		
 		StringBuilder text = new StringBuilder().append(firstLetter);
 		
+		String name;
+		
 		while(true) {
 			bufferer.advance();
-			char letter = bufferer.getCurrentChar();
+			char letter = bufferer.getCurrentChar();			
 			if(specialChar ? !TextParserUtil.isLegalSpecialCharacter(letter) : !TextParserUtil.isIdentifierChar(letter))
 				break;
 			text.append(bufferer.getCurrentChar());
+			
+			name = text.toString();
+			if(finsihedTokens.contains(name))
+				break;
 		}
 		
-		String name = text.toString();
+		name = text.toString();
 		
 		bufferer.setNewStart(0); //We are guaranteed to add some token here no matter what
 		for(TokenType type:TokenType.values()) {
