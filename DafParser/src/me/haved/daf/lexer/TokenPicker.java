@@ -28,8 +28,6 @@ public class TokenPicker {
 			return new Token(TokenType.ERROR, fileName, line, col);
 		}
 		
-		
-		
 		return null;
 	}
 }
