@@ -40,6 +40,9 @@ public class TokenPicker {
 		finsihedTokens.add("?");
 		finsihedTokens.add("@");
 		finsihedTokens.add("->");
+		finsihedTokens.add("\""); //These two will be picked up
+		finsihedTokens.add("'"); // ...by the text literal picker
+		
 		
 		mustBeFollowedBy.put("=", "=");
 		mustBeFollowedBy.put(":", "=");
