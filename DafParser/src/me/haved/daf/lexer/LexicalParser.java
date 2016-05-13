@@ -30,31 +30,14 @@ public class LexicalParser {
 			CodeSupplier supplier = new CodeSupplier(file, map);
 			TextBufferer bufferer = new TextBufferer(supplier);
 			
-			mainLoop:
-			while(true) {
-				if(TextParserUtil.isAnyWhitespace(bufferer.getCurrentChar())) {
-					if(!bufferer.advance()) //Skip the whitespace
-						break;
-					bufferer.setNewStart(0); //We have now found a new start, after the whitespace!
-				}
-				
-				for(Picker picker:pickers) {
-					Token token = picker.makeToken(bufferer);
-					if(token != null) {
-						tokens.add(token);
-						continue mainLoop;
-					} else 
-						bufferer.restoreToStart();
-				}
-				
-				log(bufferer.getSourceName(), bufferer.getCurrentCol(), bufferer.getCurrentLine(), ERROR, 
-						"The char '%s' was totally unknown to the lexical parser!");
-				
-				logAssert(bufferer.advance()); //Should always work!
-			}
+			fillTokenList(tokens, bufferer);
 			
 			supplier.close();
 			tokensMap.put(fileId, tokens);
+			
+			for(int i = 0; i < tokens.size(); i++) {
+				System.out.println(tokens.get(i).getErrorString());
+			}
 			
 			return tokens;
 		}
@@ -62,6 +45,32 @@ public class LexicalParser {
 			e.printStackTrace();
 			log(file, FATAL_ERROR, "Some sort of Exception was thrown in tokenizeFile()");
 			return null;
+		}
+	}
+	
+	private static void fillTokenList(ArrayList<Token> tokens, TextBufferer bufferer) {
+		mainLoop:
+		while(true) {
+			if(TextParserUtil.isAnyWhitespace(bufferer.getCurrentChar())) {
+				if(!bufferer.advance()) //Skip the whitespace
+					break;
+				bufferer.setNewStart(0); //We have now found a new start, after the whitespace!
+				continue;
+			}
+			
+			for(Picker picker:pickers) {
+				Token token = picker.makeToken(bufferer);
+				if(token != null) {
+					tokens.add(token);
+					continue mainLoop;
+				} else 
+					bufferer.restoreToStart();
+			}
+			
+			log(bufferer.getSourceName(), bufferer.getCurrentCol(), bufferer.getCurrentLine(), ERROR, 
+					"The char '%c' was totally unknown to the lexical parser!", bufferer.getCurrentChar());
+			
+			logAssert(bufferer.advance()); //Should always work!
 		}
 	}
 }

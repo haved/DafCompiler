@@ -1,20 +1,29 @@
-#macro FREEBUG
+import daf.print;
 
-printf("Dette er en test der FREEBUG ikke er #ifmacro FREEBUG<>u#endif<>sann");
-printf("Dette er en test der FREEBUG er #ifnmacro FREEBUG<>u#endif<>sann");
+#macro VERSION 2.4
 
-#ifmacro FIZ
-	#ifmacro BUZ
-		printf("Fizbuz");
+def main:=(argc:int, argv:&&char) -> int {
+	printf("Hello");
+	let mut a:=4;
+	let b:=&mut a;
+	a++;
+	b[0]++;
+	@b++; //At b, add one
+	
+	#ifmacro VERSION
+		printf("The version is #VERSION");
 	#endif
-	#ifnmacro BUZ
-		printf("Fiz");
-	#endif
-#endif
-#ifmacro BUZ
-	#ifnmacro FIZ
-		printf("buz");
-	#endif
-#endif
 
-printf("#ifmacro FIZ<>Fiz#endif#ifmacro BUZ<>buz#endif");
+	refTo(mut a, b);
+	smartRefTo(a, b);
+}
+
+def refTo:=(&mut a:int, b:&mut int) -> boolean {
+	let copy:=a;
+	@b++;
+	return a!=copy;
+}
+
+def smartRefTo:=(&a:int, b:&int) -> boolean {
+	return &a==b;
+}

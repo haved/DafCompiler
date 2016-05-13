@@ -27,7 +27,7 @@ public class Token {
 	}
 	
 	public String getTokenContents() {
-		return type.isSpecial()?text:type.getName();
+		return type.isSpecial()?String.format("%s: (%s)", type.getName(), text):type.getName();
 	}
 	
 	public String getErrorString() {

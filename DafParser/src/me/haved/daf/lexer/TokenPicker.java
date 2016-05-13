@@ -24,7 +24,7 @@ public class TokenPicker {
 		} else if(TextParserUtil.isLegalSpecialCharacter(firstLetter)) {
 			specialChar = true;
 		} else {
-			log(fileName, line, col, ERROR, "Illegal char '%c' makes lexer flip out!");
+			//log(fileName, line, col, ERROR, "Illegal char '%c' makes lexer flip out!", firstLetter);
 			return null;
 		}
 		
@@ -35,6 +35,7 @@ public class TokenPicker {
 			char letter = bufferer.getCurrentChar();
 			if(specialChar ? !TextParserUtil.isLegalSpecialCharacter(letter) : !TextParserUtil.isIdentifierChar(letter))
 				break;
+			text.append(bufferer.getCurrentChar());
 		}
 		
 		String name = text.toString();

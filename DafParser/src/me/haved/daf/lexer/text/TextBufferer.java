@@ -19,9 +19,7 @@ public class TextBufferer {
 		this.open = true;
 		this.letterIndex = 0;
 		
-		letters .add(supplier.getCurrentChar());
-		lineNums.add(supplier.getCurrentLine());
-		colNums .add(supplier.getCurrentCol ());
+		setOnlyFirstLetter();
 	}
 	
 	public boolean hasChar() {
@@ -67,11 +65,18 @@ public class TextBufferer {
 	
 	public void setNewStart(int saveAmount) {
 		if(saveAmount == 0) {
-			letters.clear();
-			lineNums.clear();
-			colNums.clear();
+			setOnlyFirstLetter();
 		} else 
 			log(ASSERTION_FAILED, "TextBuffer asked to setNewStart saving %d letters. Has to be 0 in this implementation!", saveAmount);
 		letterIndex = 0;
+	}
+	
+	private void setOnlyFirstLetter() {
+		letters .clear();
+		lineNums.clear();
+		colNums .clear();
+		letters .add(supplier.getCurrentChar());
+		lineNums.add(supplier.getCurrentLine());
+		colNums .add(supplier.getCurrentCol ());
 	}
 }
