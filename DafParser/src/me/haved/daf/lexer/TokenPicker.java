@@ -5,8 +5,6 @@ import me.haved.daf.lexer.text.TextParserUtil;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;
 
-import static me.haved.daf.LogHelper.*;
-
 public class TokenPicker {
 	
 	public static Token makeToken(TextBufferer bufferer) {
