@@ -38,6 +38,8 @@ public enum TokenType {
 	EQUALS("=="), LOWER("<"), LOWER_OR_EQUAL("<="), 
 	GREATER(">"), GREATER_OR_EQUAL(">="), Q_MARK("?"),
 	
+	PLUS_PLUS("++"), MINUS_MINUS("--"),
+	
 	ERROR(true);
 	
 	private String text;

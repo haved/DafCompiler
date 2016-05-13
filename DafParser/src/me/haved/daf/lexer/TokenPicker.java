@@ -1,5 +1,6 @@
 package me.haved.daf.lexer;
 
+import java.util.HashMap;
 import java.util.HashSet;
 
 import me.haved.daf.lexer.text.TextBufferer;
@@ -10,6 +11,7 @@ import me.haved.daf.lexer.tokens.TokenType;
 public class TokenPicker {
 	
 	private static HashSet<String> finsihedTokens = new HashSet<>();
+	private static HashMap<String, String> mustBeFollowedBy = new HashMap<>();
 	
 	static {
 		finsihedTokens.add("++");
@@ -36,9 +38,20 @@ public class TokenPicker {
 		finsihedTokens.add(".");
 		finsihedTokens.add(";");
 		finsihedTokens.add("?");
-		finsihedTokens.add(":");
 		finsihedTokens.add("@");
 		finsihedTokens.add("->");
+		
+		mustBeFollowedBy.put("=", "=");
+		mustBeFollowedBy.put(":", "=");
+		mustBeFollowedBy.put("!", "=");
+		mustBeFollowedBy.put("+", "+=");
+		mustBeFollowedBy.put("-", "-=");
+		mustBeFollowedBy.put("*", "=");
+		mustBeFollowedBy.put("/", "=");
+		mustBeFollowedBy.put("<", "<=");
+		mustBeFollowedBy.put(">", ">=");
+		mustBeFollowedBy.put("<<", "=");
+		mustBeFollowedBy.put(">>", "=");
 	}
 	
 	public static Token makeToken(TextBufferer bufferer) {
@@ -69,11 +82,26 @@ public class TokenPicker {
 			char letter = bufferer.getCurrentChar();			
 			if(specialChar ? !TextParserUtil.isLegalSpecialCharacter(letter) : !TextParserUtil.isIdentifierChar(letter))
 				break;
-			text.append(bufferer.getCurrentChar());
 			
 			name = text.toString();
 			if(finsihedTokens.contains(name))
 				break;
+			else {
+				String req = mustBeFollowedBy.get(name);
+				if(req!=null) {
+					boolean found = false;
+					for(int i = 0; i < req.length(); i++) {
+						if(req.charAt(i)==letter) {
+							found = true;
+							break;
+						}
+					}
+					if(!found)
+						break; // "<<" has to be followed by '=' for instance, or else we are done with the current token
+				}
+			}
+			
+			text.append(bufferer.getCurrentChar());
 		}
 		
 		name = text.toString();
