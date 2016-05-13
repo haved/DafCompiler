@@ -71,6 +71,7 @@ public class LexicalParser {
 					"The char '%c' was totally unknown to the lexical parser!", bufferer.getCurrentChar());
 			
 			logAssert(bufferer.advance()); //Should always work!
+			bufferer.setNewStart(0);
 		}
 	}
 }

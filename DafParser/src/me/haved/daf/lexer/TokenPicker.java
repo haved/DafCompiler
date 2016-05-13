@@ -40,9 +40,6 @@ public class TokenPicker {
 		finsihedTokens.add("?");
 		finsihedTokens.add("@");
 		finsihedTokens.add("->");
-		finsihedTokens.add("\""); //These two will be picked up
-		finsihedTokens.add("'"); // ...by the text literal picker
-		
 		
 		mustBeFollowedBy.put("=", "=");
 		mustBeFollowedBy.put(":", "=");
@@ -69,11 +66,11 @@ public class TokenPicker {
 		
 		if(TextParserUtil.isStartOfIdentifier(firstLetter)) {
 			specialChar = false;
-		} else if(TextParserUtil.isLegalSpecialCharacter(firstLetter)) {
+		} else if(TextParserUtil.isLegalTokenSpecialCharacter(firstLetter)) {
 			specialChar = true;
 		} else {
 			//log(fileName, line, col, ERROR, "Illegal char '%c' makes lexer flip out!", firstLetter);
-			return null;
+			return null; //Returns back to the other thing
 		}
 		
 		StringBuilder text = new StringBuilder().append(firstLetter);
@@ -83,7 +80,7 @@ public class TokenPicker {
 		while(true) {
 			bufferer.advance();
 			char letter = bufferer.getCurrentChar();			
-			if(specialChar ? !TextParserUtil.isLegalSpecialCharacter(letter) : !TextParserUtil.isIdentifierChar(letter))
+			if(specialChar ? !TextParserUtil.isLegalTokenSpecialCharacter(letter) : !TextParserUtil.isIdentifierChar(letter))
 				break;
 			
 			name = text.toString();

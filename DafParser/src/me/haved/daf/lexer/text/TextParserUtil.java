@@ -47,13 +47,13 @@ public class TextParserUtil {
 	 * @param c the char
 	 * @return
 	 */
-	public static boolean isLegalSpecialCharacter(char c) {
-		return (c >= '!' && c <= '/') || (c >= ':' && c <= '@')
-				|| (c >= '[' && c <= '`' && c != '_') || (c >= '{' && c <= '~');
+	public static boolean isLegalTokenSpecialCharacter(char c) {
+		return (c >= '!' && c <= '/' && c != '"' && c != '\'') || (c >= ':' && c <= '@')
+				|| (c >= '[' && c <= '`' && c != '_') || (c >= '{' && c <= '~') ;
 	}
 	
 	public static boolean isLegalMacroParameterSeparator(char c) {
-		return isLegalSpecialCharacter(c) && 
+		return isLegalTokenSpecialCharacter(c) && 
 				!isEndOfMacroParameters(c) && 
 				!isStartOfMacroParameters(c) && c!=ENCLOSE_MACRO;
 	}
