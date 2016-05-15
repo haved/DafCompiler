@@ -26,7 +26,10 @@ public class MainDafParser {
 				try (Scanner in = new Scanner(System.in)) {
 					line = in.nextLine();
 				}
-				if(line.trim().isEmpty())
+				
+				if(line.isEmpty())
+					line = "TestFile.daf .";
+				else if(line.trim().isEmpty())
 					log(FATAL_ERROR, "Give me somethig to work with, man!");
 				
 				ArrayList<String> myArgs = new ArrayList<>();
