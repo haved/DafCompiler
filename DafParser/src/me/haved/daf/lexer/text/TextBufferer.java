@@ -63,11 +63,23 @@ public class TextBufferer {
 		letterIndex = 0;
 	}
 	
+	/** Sets the start to the current char + saveAmount and removes anything prior
+	 * 
+	 * @param saveAmount the amount of chars before or after the current one to save
+	 */
 	public void setNewStart(int saveAmount) {
-		if(saveAmount == 0) {
-			setOnlyFirstLetter();
-		} else 
-			log(ASSERTION_FAILED, "TextBuffer asked to setNewStart saving %d letters. Has to be 0 in this implementation!", saveAmount);
+		
+		if(saveAmount < 0)
+			for(int i = 0; i > saveAmount; i--) {
+				if(!advance()) {
+					log(WARNING, "File ended before the textBufferer could skip %d chars", saveAmount);
+					break;
+				}
+			}
+		else if(saveAmount != 0)
+			log(ASSERTION_FAILED, "TextBuffer asked to setNewStart saving %d letters. Has to be 0 or less in this implementation!", saveAmount);
+			
+		setOnlyFirstLetter();
 		letterIndex = 0;
 	}
 	

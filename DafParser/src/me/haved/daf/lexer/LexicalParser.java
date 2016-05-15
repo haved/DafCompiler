@@ -16,7 +16,7 @@ public class LexicalParser {
 	
 	private static HashMap<Integer, ArrayList<Token>> tokensMap = new HashMap<>();
 	
-	private static Picker[] pickers = {TokenPicker::makeToken};//Fancy java
+	private static Picker[] pickers = {TokenPicker::makeToken, StringLiteralPicker::makeToken};//Fancy java
 	
 	public static ArrayList<Token> tokenizeFile(RegisteredFile file, MacroMap map) {
 		int fileId = file.getId();

@@ -38,7 +38,7 @@ public class MainDafParser {
 						if(start<i)
 							myArgs.add(line.substring(start, i));
 						start = i+1;
-					} else if(TextParserUtil.isQuoteChar(c)) {
+					} else if(TextParserUtil.isDoubleQuoteChar(c)) {
 						if(inQuotes)
 							myArgs.add(line.substring(start, i)); //Not including the quotes
 						inQuotes = !inQuotes;

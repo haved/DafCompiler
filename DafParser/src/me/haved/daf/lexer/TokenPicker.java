@@ -8,6 +8,8 @@ import me.haved.daf.lexer.text.TextParserUtil;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;
 
+import static me.haved.daf.LogHelper.*;
+
 public class TokenPicker {
 	
 	private static HashSet<String> finsihedTokens = new HashSet<>();
@@ -110,6 +112,11 @@ public class TokenPicker {
 		for(TokenType type:TokenType.values()) {
 			if(!type.isSpecial() && type.getName().equals(name))
 				return new Token(type, fileName, line, col);
+		}
+		
+		if(specialChar) {
+			log(fileName, line, col, WARNING, "Found special chars with no meaning: '%s'", name);
+			return null;
 		}
 		
 		return new Token(TokenType.IDENTIFER, fileName, line, col, name);

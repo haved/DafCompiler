@@ -22,6 +22,10 @@ public class TextParserUtil {
 		return c == ' ' || c == '\n' || c == '\t' || c == '\r';
 	}
 	
+	public static boolean isNewlineChar(char c) {
+		return c == '\n';
+	}
+	
 	public static boolean isIdentifierChar(char c) {
 		return (c >= 'a' && c<='z') || (c >= 'A' && c<='Z') || (c >= '0' && c<='9') || c == '_';
 	}
@@ -32,6 +36,10 @@ public class TextParserUtil {
 	
 	public static boolean isPoundSymbol(char c) {
 		return c=='#';
+	}
+	
+	public static boolean isBackslash(char c) {
+		return c=='\\';
 	}
 	
 	public static boolean isStartOfMacroParameters(char c) {
@@ -58,7 +66,11 @@ public class TextParserUtil {
 				!isStartOfMacroParameters(c) && c!=ENCLOSE_MACRO;
 	}
 
-	public static boolean isQuoteChar(char c) {
+	public static boolean isDoubleQuoteChar(char c) {
 		return c == '"';
+	}
+	
+	public static boolean isSingleQuoteChar(char c) {
+		return c == '\'';
 	}
 }
