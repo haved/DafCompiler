@@ -40,7 +40,7 @@ public class MainDafParser {
 				}
 				
 				if(line == null || line.isEmpty())
-					line = "TestFile.daf . --preproc";
+					line = "TestFile.daf .";
 				
 				ArrayList<String> myArgs = new ArrayList<>();
 				int start = 0;
