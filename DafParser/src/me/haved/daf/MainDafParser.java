@@ -40,7 +40,7 @@ public class MainDafParser {
 				}
 				
 				if(line == null || line.isEmpty())
-					line = "TestFile.daf .";
+					line = "TestFile.daf . --preproc";
 				
 				ArrayList<String> myArgs = new ArrayList<>();
 				int start = 0;
@@ -165,6 +165,8 @@ public class MainDafParser {
 			e.printStackTrace();
 			log(ERROR, "Could not write to file '%s'!", outfileName);
 		}
+		
+		log(MESSAGE, "Writing of pre-processed file finished!");
 	}
 	
 	private static void printHelpMessage(CommandOption[] options) {
