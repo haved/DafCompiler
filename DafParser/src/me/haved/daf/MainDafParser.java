@@ -3,6 +3,9 @@ package me.haved.daf;
 import static me.haved.daf.LogHelper.*;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -13,6 +16,7 @@ import me.haved.daf.args.MacroOption;
 import me.haved.daf.args.PreprocOnlyOption;
 import me.haved.daf.data.Definition;
 import me.haved.daf.lexer.LexicalParser;
+import me.haved.daf.lexer.text.CodeSupplier;
 import me.haved.daf.lexer.text.MacroMap;
 import me.haved.daf.lexer.text.TextParserUtil;
 import me.haved.daf.lexer.tokens.Token;
@@ -110,17 +114,16 @@ public class MainDafParser {
 		else if(outputDirectory == null) //Never got that far!
 			log(FATAL_ERROR, "An output directory needs to be specified. -h for help");
 		
-		parseFile(inputFile, outputDirectory, macros);
+		if(onlyDoPreProc)
+			doOnlyPreproc(inputFile, outputDirectory, macros);
+		else
+			parseFile(inputFile, outputDirectory, macros);
 	}
 
 	private static void parseFile(String infileName, String outputDirName, MacroMap macros) {
 		File inputFileObject = new File(infileName);
-		File outputDir = new File(outputDirName);
-		
 		if(!inputFileObject.isFile())
 			log(FATAL_ERROR, "The input file '%s' doesn't exist", infileName);
-		if(!outputDir.isDirectory())
-			log(FATAL_ERROR, "The output directory '%s' doesn't exist", outputDirName);
 	
 		RegisteredFile inputFile = RegisteredFile.registerNewFile(inputFileObject, infileName);
 		
@@ -138,6 +141,30 @@ public class MainDafParser {
 		terminateIfErrorsOccured();
 		
 		log(DEBUG, "Finished! Got %d tokens and %d definitions!", tokens.size(), definitions.size());
+	}
+	
+	private static void doOnlyPreproc(String infileName, String outputDirName, MacroMap macros) {
+		File inputFileObject = new File(infileName);
+		if(!inputFileObject.isFile())
+			log(FATAL_ERROR, "The input file '%s' doesn't exist", infileName);
+		
+		RegisteredFile inputFile = RegisteredFile.registerNewFile(inputFileObject, infileName);
+		
+		CodeSupplier supplier = new CodeSupplier(inputFile, macros);
+		
+		String outfileName = (infileName.endsWith(".daf") ? infileName.substring(0, infileName.length()-4) : infileName)+"-preproc.daf";
+		try(PrintWriter out = new PrintWriter(new FileWriter(outfileName))) {
+			while(true) {
+				out.print(supplier.getCurrentChar());
+				if(!supplier.advance())
+					break;
+			}
+			out.flush();
+			out.close();
+		} catch(IOException e) {
+			e.printStackTrace();
+			log(ERROR, "Could not write to file '%s'!", outfileName);
+		}
 	}
 	
 	private static void printHelpMessage(CommandOption[] options) {
