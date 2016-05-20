@@ -43,12 +43,20 @@ public class NumberLiteralPicker {
 				decimalFound = true;
 			}
 			else if(TextParserUtil.isFloatLetter(c)) {
+				if(!decimalFound) {
+					log(fileName, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "Float literals must have a decimal point: '%s%c' is illegal!", text.toString(), c);
+					break;
+				}
+				else if(text.length()==1) {
+					log(fileName, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "Float literals can't be just '%s%c'", text.toString(), c);
+					break;
+				}
 				fFound = true;
 			} else if(!TextParserUtil.isDigit(c)) {
 				break;
 			}
 			
-			text.append(firstLetter);
+			text.append(c);
 		}
 		
 		bufferer.setNewStart(0);
