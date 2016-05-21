@@ -112,14 +112,10 @@ public class MainDafParser {
 			log(FATAL_ERROR, "The input file '%s' doesn't exist", infileName);
 		if(!outputDir.isDirectory())
 			log(FATAL_ERROR, "The output directory '%s' doesn't exist", outputDirName);
-		
-		log(DEBUG, "Parsing %s into %s", infileName, outputDirName);
 	
 		RegisteredFile inputFile = RegisteredFile.registerNewFile(inputFileObject, infileName);
 		
 		ArrayList<Token> tokens = LexicalParser.tokenizeFile(inputFile, macros);
-		if(tokens == null)
-			log(infileName, DEBUG, "tokenizeFile returned null!"); //ERRORS are thrown inside of tokenizeFile
 		terminateIfErrorsOccured();
 		
 		log(DEBUG, "Finished tokenizing, got %d tokens!", tokens.size());

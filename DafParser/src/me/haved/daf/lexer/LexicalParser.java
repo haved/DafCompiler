@@ -55,7 +55,7 @@ public class LexicalParser {
 				if(!bufferer.advance()) //Skip the whitespace
 					break;
 				bufferer.setNewStart(0); //We have now found a new start, after the whitespace!
-				continue;
+				continue; //More whitespaces?
 			}
 			
 			for(Picker picker:pickers) {
