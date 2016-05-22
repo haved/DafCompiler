@@ -72,7 +72,7 @@ public class LogHelper {
 		if(file==null)
 			log(logLevel, String.format(format, objects)); //Fewer arguments is better, and shorter procedure stack
 		else
-			log(file.getErrorString(), logLevel, String.format(format, objects));
+			log(file.getFileName(), logLevel, String.format(format, objects));
 	}
 	
 	public static void log(String fileName, int line, int col, int logLevel, String format, Object... objects) {
