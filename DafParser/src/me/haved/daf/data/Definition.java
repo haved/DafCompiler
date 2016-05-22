@@ -1,5 +1,7 @@
 package me.haved.daf.data;
 
-public interface Definition {
+import java.io.PrintStream;
 
+public interface Definition {
+	void print(PrintStream out);
 }

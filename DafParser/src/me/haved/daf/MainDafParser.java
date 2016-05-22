@@ -4,15 +4,18 @@ import static me.haved.daf.LogHelper.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import me.haved.daf.args.CommandOption;
 import me.haved.daf.args.HelpOption;
 import me.haved.daf.args.MacroOption;
+import me.haved.daf.data.Definition;
 import me.haved.daf.lexer.LexicalParser;
 import me.haved.daf.lexer.text.MacroMap;
 import me.haved.daf.lexer.text.TextParserUtil;
 import me.haved.daf.lexer.tokens.Token;
+import me.haved.daf.syxer.SyntaxicParser;
 
 public class MainDafParser {
 	
@@ -115,8 +118,16 @@ public class MainDafParser {
 	
 		RegisteredFile inputFile = RegisteredFile.registerNewFile(inputFileObject, infileName);
 		
-		ArrayList<Token> tokens = LexicalParser.tokenizeFile(inputFile, macros);
+		List<Token> tokens = LexicalParser.tokenizeFile(inputFile, macros);
 		terminateIfErrorsOccured();
+		
+		List<Definition> definitions = SyntaxicParser.getDefinitions(inputFile, tokens);
+		terminateIfErrorsOccured();
+		
+		for(Definition d:definitions) {
+			out.println("=============Definition============");
+			d.print(out);
+		}
 		
 		log(DEBUG, "Finished tokenizing, got %d tokens!", tokens.size());
 	}
