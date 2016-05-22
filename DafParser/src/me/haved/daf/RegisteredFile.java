@@ -9,9 +9,9 @@ public class RegisteredFile {
 	
 	private static ArrayList<RegisteredFile> files = new ArrayList<RegisteredFile>();
 	
-	public File fileObject;
-	public String fileName;
-	public String canonicalPath;
+	private File fileObject;
+	private String fileName;
+	private String canonicalPath;
 	
 	private int id;
 	
@@ -27,9 +27,21 @@ public class RegisteredFile {
 		return id;
 	}
 	
-	public String getErrorString() {
+	public File getFileObject() {
+		return fileObject;
+	}
+	
+	public String getFileName() {
 		return fileName;
 	}
+	
+	public String getCanonicalPath() {
+		return canonicalPath;
+	}
+	
+	/*public String getErrorString() {
+		return fileName;
+	}*/
 	
 	public String toString() {
 		return  String.format("RegisteredFile(fileObject:\"%s\", fileName:\"%s\", id:%d)", fileObject.toString(), fileName, id);

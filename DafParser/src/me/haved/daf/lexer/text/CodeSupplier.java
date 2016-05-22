@@ -14,7 +14,6 @@ public class CodeSupplier {
 	public static final int COMPILER_TOKEN_IF_NOT_MACRO = 1;
 	public static final String COMPILER_TOKEN_ENDIF = "endif";
 	
-	private RegisteredFile file;
 	private Stack<MacroMap> macros;
 	
 	private FileTextSupplier fileText;
@@ -32,7 +31,6 @@ public class CodeSupplier {
 	private int col;
 	
 	public CodeSupplier(RegisteredFile file, MacroMap macros) {
-		this.file = file;
 		this.macros = new Stack<>();
 		this.macros.push(macros);
 		fileText = new FileTextSupplier(file);
@@ -489,7 +487,7 @@ public class CodeSupplier {
 	}
 	
 	public String getFileName() {
-		return file.fileName;
+		return fileText.getFileName();
 	}
 	
 	public void close() {

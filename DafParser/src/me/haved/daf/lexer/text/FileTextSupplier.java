@@ -25,15 +25,15 @@ public class FileTextSupplier {
 		this.line = 0;
 		this.col = 0;
 		
-		if(!file.fileObject.canRead())
-			log(ASSERTION_FAILED, "File given to FileTextSupllier was unreadable: %s", file.fileName);
+		if(!file.getFileObject().canRead())
+			log(ASSERTION_FAILED, "File given to FileTextSupllier was unreadable: %s", file.getFileName());
 		try {
-			reader = new BufferedReader(new FileReader(file.fileObject));
+			reader = new BufferedReader(new FileReader(file.getFileObject()));
 			if(!reader.ready())
-				log(ASSERTION_FAILED, "Created reader for file was never ready: %s", file.fileName);
+				log(ASSERTION_FAILED, "Created reader for file was never ready: %s", file.getFileName());
 		}
 		catch(Exception e) {
-			log(ASSERTION_FAILED, "Failed to open file for reading in FileTextSupplier: '%s'", file.fileName);
+			log(ASSERTION_FAILED, "Failed to open file for reading in FileTextSupplier: '%s'", file.getFileName());
 		}
 	}
 	
@@ -91,6 +91,6 @@ public class FileTextSupplier {
 	}
 	
 	public String getFileName() {
-		return file.fileName;
+		return file.getFileName();
 	}
 }
