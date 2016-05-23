@@ -171,7 +171,7 @@ public class CodeSupplier {
 	private int handleCompilerFlag(int line, int col, String identifier) {
 		if(identifier.equalsIgnoreCase(COMPILER_TOKEN_MACRO)) {
 			if(!handleMacroDefinition()) {
-				log(getFileName(), line, col, ERROR, "Macro definition failed due to previous error");
+				log(getFile(), line, col, ERROR, "Macro definition failed due to previous error");
 			}
 			return USE_STACK_OR_FILE_FOR_NEXT; //Means the fileText is advanced after this.
 		}
@@ -216,7 +216,7 @@ public class CodeSupplier {
 	 */
 	private boolean handleMacroDefinition() {
 		if(!TextParserUtil.isNormalWhitespace(inputChar)) {
-			log(getFileName(), inputLine, inputCol, ERROR, "'#macro' must be followed by a space or tab, not '%c'", inputChar);
+			log(getFile(), inputLine, inputCol, ERROR, "'#macro' must be followed by a space or tab, not '%c'", inputChar);
 			return false;
 		}
 		
@@ -226,7 +226,7 @@ public class CodeSupplier {
 		
 		while(true) {
 			if(!advanceInput()) {
-				log(getFileName(), inputLine, inputCol, ERROR, "File ended before macro definition!");
+				log(getFile(), inputLine, inputCol, ERROR, "File ended before macro definition!");
 				return false;
 			}
 			char c = inputChar;
@@ -271,7 +271,7 @@ public class CodeSupplier {
 		
 		if(!done && TextParserUtil.isStartOfMacroParameters(inputChar)) { //Parameter list
 			if(!advanceInput()) { //Get to the char after '<'
-				log(getFileName(), inputLine, inputCol, ERROR, "Macro parameter list didn't have an end!");
+				log(getFile(), inputLine, inputCol, ERROR, "Macro parameter list didn't have an end!");
 				return USE_STACK_OR_FILE_FOR_NEXT;
 			}
 			parameters = new String[macro.getMacroParameterCount()];
@@ -289,14 +289,14 @@ public class CodeSupplier {
 						scopeDepth--;
 					parameter.append(inputChar);
 					if(!advanceInput()) {
-						log(getFileName(), inputLine, inputCol, ERROR, "Macro parameter list didn't have an end!");
+						log(getFile(), inputLine, inputCol, ERROR, "Macro parameter list didn't have an end!");
 						return USE_STACK_OR_FILE_FOR_NEXT;
 					}
 				}
 				parameters[currentParam] = parameter.toString().trim(); //We should in theory
 			}
 			if(currentParam != parameters.length) { //CurrentParam is at the index after the last parameter
-				log(getFileName(), line, col, ERROR, "Not enough parameters were passed to the macro '%s' (%d/&d)", 
+				log(getFile(), line, col, ERROR, "Not enough parameters were passed to the macro '%s' (%d/&d)", 
 						macro.getMacroName(), currentParam, parameters.length);
 				return USE_STACK_OR_FILE_FOR_NEXT;
 			}
@@ -305,7 +305,7 @@ public class CodeSupplier {
 			for(int i = whiteSpacesSkipped-1; i >= 0; i--) //Push the white spaces we skipped back
 				pushBufferedInputChar(' ', line, firstWhitespace+i);
 			if(macro.getMacroParameterCount() != 0) {
-				log(getFileName(), line, col, ERROR, "No parameters were passed to the macro '%s' requirering %d parameters", 
+				log(getFile(), line, col, ERROR, "No parameters were passed to the macro '%s' requirering %d parameters", 
 						macro.getMacroName(), macro.getMacroParameterCount());
 				return USE_STACK_OR_FILE_FOR_NEXT;
 			}
@@ -313,7 +313,7 @@ public class CodeSupplier {
 		
 		String value = macro.getMacroValue();
 		if(value == null) {
-			log(getFileName(), line, col, ERROR, "Tried evaluating a macro that doeasn't have a value: %s", macro.getMacroName());
+			log(getFile(), line, col, ERROR, "Tried evaluating a macro that doeasn't have a value: %s", macro.getMacroName());
 			return USE_STACK_OR_FILE_FOR_NEXT;
 		}
 		if(parameters != null) {
@@ -335,17 +335,17 @@ public class CodeSupplier {
 		String tokenUsed = COMPILER_TOKEN_IFS[not?COMPILER_TOKEN_IF_NOT_MACRO:COMPILER_TOKEN_IF_MACRO];
 		
 		if(!TextParserUtil.isNormalWhitespace(inputChar)) {
-			log(getFileName(), inputLine, inputCol, ERROR, "#%s must be followed by a whitespace! Not: '%c'", tokenUsed, inputChar);
+			log(getFile(), inputLine, inputCol, ERROR, "#%s must be followed by a whitespace! Not: '%c'", tokenUsed, inputChar);
 			return USE_STACK_OR_FILE_FOR_NEXT;
 		}
 		
 		while(TextParserUtil.isNormalWhitespace(inputChar)) {
 			if(!advanceInput())
-				log(getFileName(), inputLine, inputCol, ERROR, "File ended right after #s", tokenUsed);
+				log(getFile(), inputLine, inputCol, ERROR, "File ended right after #s", tokenUsed);
 		}
 		
 		if(!TextParserUtil.isStartOfIdentifier(inputChar)) {
-			log(getFileName(), inputLine, inputCol, ERROR, "#%s must be followed by a macro name. Macro names can't start with '%c'", 
+			log(getFile(), inputLine, inputCol, ERROR, "#%s must be followed by a macro name. Macro names can't start with '%c'", 
 					tokenUsed, inputChar);
 			return USE_STACK_OR_FILE_FOR_NEXT;
 		}
@@ -355,7 +355,7 @@ public class CodeSupplier {
 		
 		while(true) {
 			if(!advanceInput())
-				log(getFileName(), inputLine, inputCol, ERROR, "File ended during macro name (so far: '%s') after #%s",
+				log(getFile(), inputLine, inputCol, ERROR, "File ended during macro name (so far: '%s') after #%s",
 						macroName.toString(), tokenUsed);
 			if(!TextParserUtil.isIdentifierChar(inputChar))
 				break;
@@ -367,11 +367,11 @@ public class CodeSupplier {
 		boolean useCurrentInputChar = true;
 		if(TextParserUtil.isStartOfMacroParameters(inputChar)) {
 			if(!advanceInput()) {
-				log(getFileName(), inputLine, inputCol, ERROR, "File ended after #ifmacro MacroName<");
+				log(getFile(), inputLine, inputCol, ERROR, "File ended after #ifmacro MacroName<");
 				return USE_STACK_OR_FILE_FOR_NEXT; //Will automagicly fail
 			}
 			if(!TextParserUtil.isEndOfMacroParameters(inputChar)) {
-				log(getFileName(), inputLine, inputCol, ERROR, "Char '%c' found after macro parameter opening (%s)! Expected '%c' immiediatly!",
+				log(getFile(), inputLine, inputCol, ERROR, "Char '%c' found after macro parameter opening (%s)! Expected '%c' immiediatly!",
 						inputChar, macroName, TextParserUtil.END_OF_MACRO_PARAMETER);
 				return USE_STACK_OR_FILE_FOR_NEXT;
 			}
@@ -379,7 +379,7 @@ public class CodeSupplier {
 			useCurrentInputChar = false; //The '>' shall not be included, so use the stack or file for next char
 		}
 		else if(!TextParserUtil.isAnyWhitespace(inputChar)) {
-			log(getFileName(), inputLine, inputCol, ERROR, "'#%s %s' needs to end with a whitespace or '<>' before any other chars! Not '%c'",
+			log(getFile(), inputLine, inputCol, ERROR, "'#%s %s' needs to end with a whitespace or '<>' before any other chars! Not '%c'",
 					COMPILER_TOKEN_IF_MACRO, macroIdentifier, inputChar);
 		}
 		
@@ -474,7 +474,7 @@ public class CodeSupplier {
 				return;
 			}
 			else
-				log(getFileName(), inputLine, inputCol, ERROR, "The start of an empty parameter list (%c) wasn't followed directly by a '%c'",
+				log(getFile(), inputLine, inputCol, ERROR, "The start of an empty parameter list (%c) wasn't followed directly by a '%c'",
 						TextParserUtil.START_OF_MACRO_PARAMETER, TextParserUtil.ENCLOSE_MACRO);
 		}
 		pushBufferedInputChar(inputChar, inputLine, inputCol);
@@ -486,8 +486,9 @@ public class CodeSupplier {
 		colNumBuffer.push(col);
 	}
 	
-	public String getFileName() {
-		return fileText.getFileName();
+	
+	public RegisteredFile getFile() {
+		return fileText.getFile();
 	}
 	
 	public void close() {

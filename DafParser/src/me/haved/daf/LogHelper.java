@@ -75,8 +75,8 @@ public class LogHelper {
 			log(file.getFileName(), logLevel, String.format(format, objects));
 	}
 	
-	public static void log(String fileName, int line, int col, int logLevel, String format, Object... objects) {
-		log(String.format("%s:%d:%d", fileName, line, col), logLevel, String.format(format, objects));
+	public static void log(RegisteredFile file, int line, int col, int logLevel, String format, Object... objects) {
+		log(getErrorLocation(file, line, col), logLevel, String.format(format, objects));
 	}
 	
 	public static void log(Exception e) {
@@ -86,6 +86,12 @@ public class LogHelper {
 	public static void logAssert(boolean v) {
 		if(!v)
 			throw new RuntimeException("Assertion failed!");
+	}
+	
+	public static String getErrorLocation(RegisteredFile file, int line, int col) {
+		if(file == null)
+			return String.format("null:%d:%d", line, col);
+		return String.format("%s:%d:%d", file.getFileName(), line, col);
 	}
 	
 	public static void terminateIfErrorsOccured() {

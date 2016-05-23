@@ -7,6 +7,8 @@ import me.haved.daf.lexer.tokens.TokenType;
 
 import static me.haved.daf.LogHelper.*;
 
+import me.haved.daf.RegisteredFile;
+
 public class NumberLiteralPicker {
 	
 	public static Token makeToken(TextBufferer bufferer) {
@@ -24,14 +26,14 @@ public class NumberLiteralPicker {
 		}
 		
 		text.append(firstLetter);
-		String fileName = bufferer.getSourceName();
+		RegisteredFile file = bufferer.getFile();
 		int line = bufferer.getCurrentLine();
 		int col = bufferer.getCurrentCol();
 		boolean fFound = false;
 		
 		while(true) {
 			if(!bufferer.advance())
-				log(fileName, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ASSERTION_FAILED, "Text Bufferer ended during a number");//May never stop right here
+				log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ASSERTION_FAILED, "Text Bufferer ended during a number");//May never stop right here
 		
 			if(fFound)
 				break;
@@ -44,11 +46,11 @@ public class NumberLiteralPicker {
 			}
 			else if(TextParserUtil.isFloatLetter(c)) {
 				if(!decimalFound) {
-					log(fileName, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "Float literals must have a decimal point: '%s%c' is illegal!", text.toString(), c);
+					log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "Float literals must have a decimal point: '%s%c' is illegal!", text.toString(), c);
 					break;
 				}
 				else if(text.length()==1) {
-					log(fileName, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "Float literals can't be just '%s%c'", text.toString(), c);
+					log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "Float literals can't be just '%s%c'", text.toString(), c);
 					break;
 				}
 				fFound = true;
@@ -61,6 +63,6 @@ public class NumberLiteralPicker {
 		
 		bufferer.setNewStart(0);
 		
-		return new Token(TokenType.NUMBER_LITTERAL, fileName, line, col, text.toString());
+		return new Token(TokenType.NUMBER_LITTERAL, file, line, col, text.toString());
 	}
 }

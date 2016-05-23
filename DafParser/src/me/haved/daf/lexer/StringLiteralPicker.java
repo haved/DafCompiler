@@ -7,6 +7,8 @@ import me.haved.daf.lexer.tokens.TokenType;
 
 import static me.haved.daf.LogHelper.*;
 
+import me.haved.daf.RegisteredFile;
+
 public class StringLiteralPicker {
 	public static Token makeToken(TextBufferer bufferer) {
 		char firstLetter = bufferer.getCurrentChar();
@@ -14,7 +16,7 @@ public class StringLiteralPicker {
 		if(!TextParserUtil.isDoubleQuoteChar(firstLetter))
 			return null;
 		
-		String fileName = bufferer.getSourceName();
+		RegisteredFile file = bufferer.getFile();
 		int line = bufferer.getCurrentLine();
 		int col = bufferer.getCurrentCol();
 		
@@ -24,7 +26,7 @@ public class StringLiteralPicker {
 		
 		while(true) {
 			if(!bufferer.advance()) {
-				log(fileName, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "File ended before end of string literal");
+				log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "File ended before end of string literal");
 				break;
 			}
 			char letter = bufferer.getCurrentChar();
@@ -32,7 +34,7 @@ public class StringLiteralPicker {
 				break;
 			}
 			else if(TextParserUtil.isNewlineChar(letter)) {
-				log(fileName, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "String literal wasn't closed before a newline!");
+				log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "String literal wasn't closed before a newline!");
 			}
 			
 			backslash = TextParserUtil.isBackslash(letter);
@@ -43,6 +45,6 @@ public class StringLiteralPicker {
 		//We are now at the ending quote char, so skip one ahead!
 		bufferer.setNewStart(-1);
 		
-		return new Token(TokenType.STRING_LITTERAL, fileName, line, col, literal.toString());
+		return new Token(TokenType.STRING_LITTERAL, file, line, col, literal.toString());
 	}
 }

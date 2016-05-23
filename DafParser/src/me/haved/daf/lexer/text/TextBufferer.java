@@ -2,6 +2,8 @@ package me.haved.daf.lexer.text;
 
 import java.util.ArrayList;
 
+import me.haved.daf.RegisteredFile;
+
 import static me.haved.daf.LogHelper.*;
 
 public class TextBufferer {
@@ -38,8 +40,8 @@ public class TextBufferer {
 		return colNums.get(letterIndex);
 	}
 	
-	public String getSourceName() {
-		return supplier.getFileName();
+	public RegisteredFile getFile() {
+		return supplier.getFile();
 	}
 	
 	public boolean advance() {

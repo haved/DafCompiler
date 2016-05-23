@@ -17,7 +17,6 @@ def main:=(argc:int, argv:&&char) -> int {
 	let mut n:=5.3f;
 	n+=.4f;
 	let mut g:=.135;
-	g+=.f;
 
 	refTo(mut a, b);
 	smartRefTo(a, b);

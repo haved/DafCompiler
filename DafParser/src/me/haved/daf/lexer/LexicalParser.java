@@ -67,7 +67,7 @@ public class LexicalParser {
 					bufferer.restoreToStart();
 			}
 			
-			log(bufferer.getSourceName(), bufferer.getCurrentCol(), bufferer.getCurrentLine(), ERROR, 
+			log(bufferer.getFile(), bufferer.getCurrentCol(), bufferer.getCurrentLine(), ERROR, 
 					"The char '%c' was totally unknown to the lexical parser!", bufferer.getCurrentChar());
 			
 			logAssert(bufferer.advance()); //Should always work!

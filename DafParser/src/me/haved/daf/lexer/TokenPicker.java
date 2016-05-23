@@ -3,6 +3,7 @@ package me.haved.daf.lexer;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import me.haved.daf.RegisteredFile;
 import me.haved.daf.lexer.text.TextBufferer;
 import me.haved.daf.lexer.text.TextParserUtil;
 import me.haved.daf.lexer.tokens.Token;
@@ -57,7 +58,7 @@ public class TokenPicker {
 	}
 	
 	public static Token makeToken(TextBufferer bufferer) {
-		String fileName = bufferer.getSourceName();
+		RegisteredFile file = bufferer.getFile();
 		int line = bufferer.getCurrentLine();
 		int col = bufferer.getCurrentCol();
 		char firstLetter = bufferer.getCurrentChar();
@@ -111,14 +112,14 @@ public class TokenPicker {
 		bufferer.setNewStart(0); //We are guaranteed to add some token here no matter what
 		for(TokenType type:TokenType.values()) {
 			if(!type.isSpecial() && type.getName().equals(name))
-				return new Token(type, fileName, line, col);
+				return new Token(type, file, line, col);
 		}
 		
 		if(specialChar) {
-			log(fileName, line, col, WARNING, "Found special chars with no meaning: '%s'", name);
+			log(file, line, col, WARNING, "Found special chars with no meaning: '%s'", name);
 			return null;
 		}
 		
-		return new Token(TokenType.IDENTIFER, fileName, line, col, name);
+		return new Token(TokenType.IDENTIFER, file, line, col, name);
 	}
 }

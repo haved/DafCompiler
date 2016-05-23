@@ -90,7 +90,7 @@ public class FileTextSupplier {
 		return col;
 	}
 	
-	public String getFileName() {
-		return file.getFileName();
+	public RegisteredFile getFile() {
+		return file;
 	}
 }

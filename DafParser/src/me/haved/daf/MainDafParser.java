@@ -124,10 +124,11 @@ public class MainDafParser {
 		List<Definition> definitions = SyntaxicParser.getDefinitions(inputFile, tokens);
 		terminateIfErrorsOccured();
 		
-		for(Definition d:definitions) {
-			out.println("=============Definition============");
-			d.print(out);
-		}
+		if(definitions != null)
+			for(Definition d:definitions) {
+				out.println("=============Definition============");
+				d.print(out);
+			}
 		
 		log(DEBUG, "Finished tokenizing, got %d tokens!", tokens.size());
 	}
