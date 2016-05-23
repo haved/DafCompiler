@@ -1,33 +1,25 @@
 import daf.print;
 
-#macro VERSION 2.4
+pub def g:=10;
 
-def main:=(argc:int, argv:&&char) -> int {
-	printf("Hello");
-	let mut a:=4;
-	let b:=&mut a;
-	a++;
-	b[0]++;
-	@b++; //At b, add one
-	
-	#ifmacro VERSION
-		printf("The version is #VERSION");
-	#endif
+pub proc main() {
+    let mut a :int= 5;
 
-	let mut n:=5.3f;
-	n+=.4f;
-	let mut g:=.135;
+    printInt(a);
+    printf("%d", a);
 
-	refTo(mut a, b);
-	smartRefTo(a, b);
+    if(a==5) {
+    	a++;
+    }
+
+    a=a-(a=g); //Assignment is also an expression :/
+    a+=6;
+
+    printf("triangle of %d is %d!", a, triangle(a));
 }
 
-def refTo:=(&mut a:int, b:&mut int) -> boolean {
-	let copy:=a;
-	@b++;
-	return a!=copy;
-}
-
-def smartRefTo:=(&a:int, b:&int) -> boolean {
-	return &a==b;
+pub def triangle:=(n:int) -> int {
+    if(n<=0)
+	return 0;
+    return triange(n-1)+n;
 }
