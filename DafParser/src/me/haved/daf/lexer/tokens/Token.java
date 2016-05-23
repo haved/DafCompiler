@@ -25,6 +25,26 @@ public class Token {
 		this.text = text;
 	}
 	
+	public TokenType getType() {
+		return type;
+	}
+
+	public RegisteredFile getFile() {
+		return file;
+	}
+
+	public int getLine() {
+		return line;
+	}
+
+	public int getCol() {
+		return col;
+	}
+
+	public String getText() {
+		return text==null?type.getName():text;
+	}
+
 	public String getErrorLocation() {
 		return LogHelper.getErrorLocation(file, line, col);
 	}
@@ -36,4 +56,6 @@ public class Token {
 	public String getErrorString() {
 		return String.format("%s:\"%s\"", getErrorLocation(), getTokenContents());
 	}
+	
+	
 }
