@@ -1,6 +1,13 @@
 import daf.print;
+import yo.bro;
+import me . are . good;
+//import what.abou.this
+import me.haved;
+import me;
+//import yo.
 
-pub def g:=10;
+
+/*pub def g:=10;
 
 pub proc main() {
     let mut a :int= 5;
@@ -22,4 +29,4 @@ pub def triangle:=(n:int) -> int {
     if(n<=0)
 	return 0;
     return triange(n-1)+n;
-}
+}*/

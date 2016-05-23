@@ -38,6 +38,8 @@ public final class SyntaxicParser {
 		TokenBufferer bufferer = new TokenBufferer(tokens);
 		
 		boolean pub = false;
+		
+		mainLoop:
 		while(bufferer.hasCurrentToken()) {
 			if(bufferer.isCurrentTokenOfType(TokenType.PUB)) {
 				pub = true;
@@ -52,7 +54,7 @@ public final class SyntaxicParser {
 				if(d!=null) {
 					pub = false;
 					definitions.add(d);
-					continue;
+					continue mainLoop;
 				}
 			}
 			

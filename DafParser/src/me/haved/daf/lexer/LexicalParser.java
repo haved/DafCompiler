@@ -35,10 +35,6 @@ public class LexicalParser {
 			supplier.close();
 			tokensMap.put(fileId, tokens);
 			
-			for(int i = 0; i < tokens.size(); i++) {
-				System.out.println(tokens.get(i).getErrorString());
-			}
-			
 			return tokens;
 		}
 		catch(Exception e) {

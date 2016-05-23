@@ -131,7 +131,7 @@ public class MainDafParser {
 		
 		terminateIfErrorsOccured();
 		
-		log(DEBUG, "Finished tokenizing, got %d tokens!", tokens.size());
+		log(DEBUG, "Finished! Got %d tokens and %d definitions!", tokens.size(), definitions.size());
 	}
 	
 	private static void printHelpMessage(CommandOption[] options) {
