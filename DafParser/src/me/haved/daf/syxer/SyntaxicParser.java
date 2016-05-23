@@ -1,5 +1,6 @@
 package me.haved.daf.syxer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -13,9 +14,15 @@ public final class SyntaxicParser {
 	
 	public static List<Definition> getDefinitions(RegisteredFile file, List<Token> tokens) {
 		
-		if(definitionsMap.containsKey(file.getId()))
-			return definitionsMap.get(file.getId());
+		int id = file.getId();
 		
-		return null;
+		if(definitionsMap.containsKey(id))
+			return definitionsMap.get(id);
+		
+		ArrayList<Definition> definitions = new ArrayList<>();
+		
+		definitionsMap.put(id, definitions);
+		
+		return definitions;
 	}
 }

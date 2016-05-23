@@ -97,4 +97,16 @@ public class RegisteredFile {
 			return null;
 		}
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof RegisteredFile)
+			return id == ((RegisteredFile)obj).id;
+		return super.equals(obj);
+	}
+	
+	@Override
+	public int hashCode() {
+		return id; //Should only be one either way
+	}
 }
