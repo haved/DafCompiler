@@ -61,6 +61,10 @@ public class NumberLiteralPicker {
 			text.append(c);
 		}
 		
+		if(decimalFound && text.length()==1) {
+			return null; //We can't just say a '.' is a number literal!
+		}
+		
 		bufferer.setNewStart(0);
 		
 		return new Token(TokenType.NUMBER_LITTERAL, file, line, col, text.toString());

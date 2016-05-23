@@ -2,6 +2,7 @@ package me.haved.daf.syxer;
 
 import me.haved.daf.data.Definition;
 import me.haved.daf.data.ImportDefinition;
+import me.haved.daf.lexer.text.TextParserUtil;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;
 
@@ -42,7 +43,13 @@ public class ImportSyntaxReader {
 				log(t, ERROR, "Separator not found in import statement!"); //Lots of exclamation marks in this file's errors!
 			}
 			else {
+				if(!TextParserUtil.areLetters(t.getText())) {
+					log(t, ERROR, "Part of import statement path is not a legal text!");
+					continue;
+				}
+				
 				parts.add(t.getText());
+				lookingForSeparator = true;
 			}
 		}
 

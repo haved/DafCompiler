@@ -42,6 +42,7 @@ public final class SyntaxicParser {
 			if(bufferer.isCurrentTokenOfType(TokenType.PUB)) {
 				pub = true;
 				bufferer.advance();
+				bufferer.updateBase(0);
 				continue;
 			}
 			
@@ -55,7 +56,9 @@ public final class SyntaxicParser {
 				}
 			}
 			
-			log(bufferer.getCurrentToken(), ERROR, "Found token that couldn't be parsed into a definition! '%s'", bufferer.getCurrentToken().getText());
+			log(bufferer.getCurrentToken(), ERROR, "Found token that couldn't be parsed into a definition!");
+			bufferer.advance();
+			bufferer.updateBase(0);
 		}
 		
 		if(pub) {

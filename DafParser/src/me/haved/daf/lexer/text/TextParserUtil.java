@@ -14,6 +14,8 @@ public class TextParserUtil {
 		return false;
 	}
 	
+	public static boolean isLetterOrScore(char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'; }
+	
 	public static boolean isNormalWhitespace(char c) { return c == ' ' | c == '\t'; }
 	
 	public static boolean isAnyWhitespace(char c) { return c == ' ' || c == '\n' || c == '\t' || c == '\r'; }
@@ -24,7 +26,7 @@ public class TextParserUtil {
 	
 	public static boolean isIdentifierChar(char c) { return isStartOfIdentifier(c) || isDigit(c); }
 	
-	public static boolean isStartOfIdentifier(char c) { return (c >= 'a' && c<='z') || (c >= 'A' && c<='Z') || c == '_'; }
+	public static boolean isStartOfIdentifier(char c) { return isLetterOrScore(c); }
 	
 	public static boolean isPoundSymbol(char c) { return c=='#'; }
 	
@@ -59,4 +61,12 @@ public class TextParserUtil {
 	public static boolean isDoubleQuoteChar(char c) { return c == '"'; }
 	
 	public static boolean isSingleQuoteChar(char c) { return c == '\''; }
+	
+	public static boolean areLetters(String s) {
+		for(int i = 0; i < s.length(); i++) {
+			if(!isLetterOrScore(s.charAt(i)))
+				return false;
+		}
+		return true;
+	}
 }

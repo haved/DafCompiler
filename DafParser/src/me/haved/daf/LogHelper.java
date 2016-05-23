@@ -65,7 +65,7 @@ public class LogHelper {
 		if(token==null)
 			log(logLevel, String.format(format, objects));
 		else
-			log(token.getErrorString(), logLevel, String.format(format, objects));
+			log(token.getErrorLocation(), logLevel, String.format("\"%s\": %s", token.getText(), String.format(format, objects)));
 	}
 	
 	public static void log(RegisteredFile file, int logLevel, String format, Object... objects) {

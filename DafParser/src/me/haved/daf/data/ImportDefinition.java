@@ -14,7 +14,7 @@ public class ImportDefinition implements Definition {
 	public void print(PrintStream out) {
 		out.print("import ");
 		for(int i = 0; i < path.length; i++) {
-			out.println(path[i]);
+			out.print(path[i]);
 			out.print(i<path.length-1 ? "." : ";\n");
 		}
 	}
