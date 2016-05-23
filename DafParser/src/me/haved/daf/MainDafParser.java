@@ -10,6 +10,7 @@ import java.util.Scanner;
 import me.haved.daf.args.CommandOption;
 import me.haved.daf.args.HelpOption;
 import me.haved.daf.args.MacroOption;
+import me.haved.daf.args.PreprocOnlyOption;
 import me.haved.daf.data.Definition;
 import me.haved.daf.lexer.LexicalParser;
 import me.haved.daf.lexer.text.MacroMap;
@@ -67,9 +68,14 @@ public class MainDafParser {
 		LogHelper.printSummary(0);
 	}
 
+	private static boolean onlyDoPreProc;
+	
 	private static void parseInput(String[] args) {
 		MacroMap macros = new MacroMap();
-		CommandOption[] options = new CommandOption[] {null, new MacroOption((text)->macros.tryAddMacro(text))};
+		CommandOption[] options = new CommandOption[] {
+				null, 
+				new MacroOption((text)->macros.tryAddMacro(text)), 
+				new PreprocOnlyOption(MainDafParser::doPreprocOnly)};
 		options[0] = new HelpOption(()->printHelpMessage(options));
 		
 		String inputFile = null;
@@ -152,5 +158,12 @@ public class MainDafParser {
 		for(int i = 0; i < options.length; i++) {
 			println(String.format("   %%%ds   %%s", -longestName), names[i], descs[i]);
 		}
+	}
+
+	private static void doPreprocOnly() {
+		if(onlyDoPreProc) {
+			log(WARNING, "Option to only do pre processing was used twice!");
+		}
+		onlyDoPreProc = true;
 	}
 }
