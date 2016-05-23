@@ -5,8 +5,6 @@ import java.util.List;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;
 
-import static me.haved.daf.LogHelper.*;
-
 public class TokenBufferer {
 	private List<Token> tokens;
 	private int base;
@@ -45,8 +43,5 @@ public class TokenBufferer {
 	
 	public void updateBase(int offset) {
 		base = current+offset;
-		if(base < 0 | base >= tokens.size()) {
-			log(DEBUG, "The TokenBuffer base was set somewhere outside of the token list :(");
-		}
 	}
 }

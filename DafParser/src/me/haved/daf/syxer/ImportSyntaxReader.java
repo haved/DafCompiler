@@ -1,6 +1,7 @@
 package me.haved.daf.syxer;
 
 import me.haved.daf.data.Definition;
+import me.haved.daf.data.ImportDefinition;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;
 
@@ -38,10 +39,15 @@ public class ImportSyntaxReader {
 			else if(t.getType() == TokenType.SEMICOLON)
 				break;
 			else if(lookingForSeparator) {
-				log(t, ERROR, "Separator not found in import statement!"); //Lots of exclamation marks!
+				log(t, ERROR, "Separator not found in import statement!"); //Lots of exclamation marks in this file's errors!
+			}
+			else {
+				parts.add(t.getText());
 			}
 		}
+
+		bufferer.updateBase(1); //Will set the base to the next token after the semicolon
 		
-		return null;
+		return new ImportDefinition(parts.toArray(new String[parts.size()]));
 	}
 }

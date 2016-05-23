@@ -47,10 +47,10 @@ public final class SyntaxicParser {
 			
 			for(SyntaxReader p:readers) {
 				Definition d = p.makeDefinition(bufferer, pub);
+				bufferer.resetToBase(); //The destination might have updated the base
 				if(d!=null) {
 					pub = false;
 					definitions.add(d);
-					bufferer.advance();
 					continue;
 				}
 			}
