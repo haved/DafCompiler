@@ -1,0 +1,27 @@
+let mut a := 5;
+pub def b := 5;
+
+//This is a comment
+pub def main:=() {
+
+}
+
+/**
+ This is a multiline comment,
+ yo
+*/
+
+#macro VERSION 2.15
+#macro Test<etwas> $
+#etwas
+$
+#macro H<> $$
+
+def printVersion:=() {
+
+//Code's ugly, yo!
+#ifmacro VERSION
+	printf("The version is: '#ifmacro Test<>#Test<#VERSION>#else<>#VERSION#endif<>'");
+#endif
+}
+

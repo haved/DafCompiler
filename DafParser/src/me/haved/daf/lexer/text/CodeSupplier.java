@@ -6,7 +6,7 @@ import static me.haved.daf.LogHelper.*;
 
 import java.util.Stack;
 
-public class CodeSupplier {
+public class CodeSupplier implements TextSupplier {
 	public static final String COMPILER_TOKEN_MACRO = "macro";
 	public static final String COMPILER_TOKEN_POP_MACRO_STACK = "poppmacrostack";
 	public static final String[] COMPILER_TOKEN_IFS = {"ifmacro", "ifnmacro"};

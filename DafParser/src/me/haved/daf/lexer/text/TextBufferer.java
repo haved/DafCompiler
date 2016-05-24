@@ -8,7 +8,7 @@ import static me.haved.daf.LogHelper.*;
 
 public class TextBufferer {
 	
-	private CodeSupplier supplier;
+	private TextSupplier supplier;
 	private boolean open; //If the CodeSupplier is open
 	
 	private ArrayList<Character> letters  = new ArrayList<>();
@@ -16,7 +16,7 @@ public class TextBufferer {
 	private ArrayList<Integer>   colNums  = new ArrayList<>();
 	private int letterIndex;
 	
-	public TextBufferer(CodeSupplier supplier) {
+	public TextBufferer(TextSupplier supplier) {
 		this.supplier = supplier;
 		this.open = true;
 		this.letterIndex = 0;

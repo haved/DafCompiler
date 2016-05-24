@@ -24,15 +24,15 @@ import me.haved.daf.syxer.SyntaxicParser;
 
 public class MainDafParser {
 	
-	private static final boolean developer = true;
-	private static final boolean defaultArgs = true;
+	private static final boolean DEVELOPER = true;
+	private static final String DEFAULT_ARGS = "TestFile.daf . -P";
 	public  static void main(String[] args) {
 		if(args.length == 0)
-			if(developer) {
+			if(DEVELOPER) {
 				
 				String line = null;
 				
-				if(!defaultArgs) {
+				if(DEFAULT_ARGS==null) {
 					log(SUPER_DEBUG, "Enter arguments:");
 					try (Scanner in = new Scanner(System.in)) {
 						line = in.nextLine();
@@ -40,7 +40,7 @@ public class MainDafParser {
 				}
 				
 				if(line == null || line.isEmpty())
-					line = "TestFile.daf .";
+					line = DEFAULT_ARGS;
 				
 				ArrayList<String> myArgs = new ArrayList<>();
 				int start = 0;

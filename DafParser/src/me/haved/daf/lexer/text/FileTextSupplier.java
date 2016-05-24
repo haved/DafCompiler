@@ -8,7 +8,7 @@ import me.haved.daf.RegisteredFile;
 
 import static me.haved.daf.LogHelper.*;
 
-public class FileTextSupplier {
+public class FileTextSupplier implements TextSupplier {
 	private RegisteredFile file;
 	private BufferedReader reader;
 	
@@ -45,6 +45,9 @@ public class FileTextSupplier {
 		}
 	}
 	
+	/**
+	 *  Must have set current char to a new-line before false may ever be returned 
+	 */
 	public boolean advance() {
 		try {
 			if(done | finalNewline) {
