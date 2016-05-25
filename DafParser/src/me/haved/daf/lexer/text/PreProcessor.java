@@ -88,7 +88,9 @@ public class PreProcessor implements TextSupplier {
 	 * @return true if the output char was changed to something new
 	 */
 	private boolean doFlowMacrosAndArithmatic(char c, int line, int col) {
-		String token = pickUpPreProcToken();
+		String token = pickUpPreProcToken(); //The next char from advanceInput() is ready, so return false;
+		
+		log(DEBUG, "Found compiler token: %s", token);
 		
 		return false;
 	}
