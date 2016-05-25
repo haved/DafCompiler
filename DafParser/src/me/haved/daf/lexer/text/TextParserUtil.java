@@ -32,9 +32,9 @@ public class TextParserUtil {
 	
 	public static boolean isBackslash(char c) { return c=='\\'; }
 	
-	public static boolean isLegalCompilerTokenChar(char c) { return isLetterOrScore(c) ||
-			c == '=' || c == '+' || c == '-' || c == '*' || c == '/' ||
-			c == '(' || c == ')';  }
+	public static boolean isLegalCompilerTokenChar(char c) { return isLetterOrScore(c) || c == '=' ||  isOneLetterCompilerToken(c); }
+	
+	public static boolean isOneLetterCompilerToken(char c) { return c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')'; }
 	
 	public static boolean isStartOfMacroParameters(char c) { return c == START_OF_MACRO_PARAMETER; }
 

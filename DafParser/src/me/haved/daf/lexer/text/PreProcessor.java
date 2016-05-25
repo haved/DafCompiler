@@ -69,7 +69,7 @@ public class PreProcessor implements TextSupplier {
 	private boolean trySetCurrentChar(char c, int line, int col) {
 		if(c=='/'){} //Try doing comments and stuff
 		else if(c=='#')
-			return doFlowMacrosAndArithmatic(c, line, col);//Try doing macros, arithmetic and evaluation
+			return doFlowMacrosAndArithmetic(c, line, col);//Try doing macros, arithmetic and evaluation
 		return forceSetCurrentChar(c, line, col);
 	}
 	
@@ -87,7 +87,7 @@ public class PreProcessor implements TextSupplier {
 	 * @param col the column of the symbol
 	 * @return true if the output char was changed to something new
 	 */
-	private boolean doFlowMacrosAndArithmatic(char c, int line, int col) {
+	private boolean doFlowMacrosAndArithmetic(char c, int line, int col) {
 		String token = pickUpPreProcToken(); //The next char from advanceInput() is ready, so return false;
 		
 		log(DEBUG, "Found compiler token: %s", token);
@@ -103,7 +103,14 @@ public class PreProcessor implements TextSupplier {
 			if(!TextParserUtil.isLegalCompilerTokenChar(inputChar))
 				break;
 			builder.append(inputChar);
+			
+			if(TextParserUtil.isOneLetterCompilerToken(inputChar)) {
+				advanceInput();
+				break;
+			}
 		}
+		
+		//InputChar is now the 1. outside the compiler token
 		
 		String token = builder.toString();
 		
@@ -115,14 +122,12 @@ public class PreProcessor implements TextSupplier {
 			if(!TextParserUtil.isEndOfMacroParameters(inputChar)) { //Oh shit we need to push the stuff we skipped back! Macro parameters, y'know
 				pushBufferedChar(inputChar, inputLine, inputCol);
 				pushBufferedChar(startChar, startLine, startCol);
-			} else {
-				return token; //We have skipped the <> so the next char asked for will be the one after
 			}
+			
+			return token; //We have skipped the <>, or added what comes next back, so we're good to go
 		}
-		else if(!TextParserUtil.isAnyWhitespace(inputChar)) {
-			log(getFile(), inputLine, inputCol, ERROR, "Special char (%c) found right after compiler token! (%s)", inputChar, token);
-		}
-		pushBufferedChar(inputChar, inputLine, inputCol); //Put it back!
+		
+		pushBufferedChar(inputChar, inputLine, inputCol); //Put whatever came after the token back!
 		
 		return token;
 	}
