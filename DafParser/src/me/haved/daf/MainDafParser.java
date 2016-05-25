@@ -16,16 +16,16 @@ import me.haved.daf.args.MacroOption;
 import me.haved.daf.args.PreprocOnlyOption;
 import me.haved.daf.data.Definition;
 import me.haved.daf.lexer.LexicalParser;
-import me.haved.daf.lexer.text.CodeSupplier;
-import me.haved.daf.lexer.text.MacroMap;
+import me.haved.daf.lexer.text.PreProcessor;
 import me.haved.daf.lexer.text.TextParserUtil;
+import me.haved.daf.lexer.text.depricated.MacroMap;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.syxer.SyntaxicParser;
 
 public class MainDafParser {
 	
 	private static final boolean DEVELOPER = true;
-	private static final String DEFAULT_ARGS = "TestFile.daf . -P";
+	private static final String DEFAULT_ARGS = "PPTest.daf . -P";
 	public  static void main(String[] args) {
 		if(args.length == 0)
 			if(DEVELOPER) {
@@ -150,13 +150,13 @@ public class MainDafParser {
 		
 		RegisteredFile inputFile = RegisteredFile.registerNewFile(inputFileObject, infileName);
 		
-		CodeSupplier supplier = new CodeSupplier(inputFile, macros);
+		PreProcessor preProcessor = new PreProcessor(inputFile, macros);
 		
 		String outfileName = (infileName.endsWith(".daf") ? infileName.substring(0, infileName.length()-4) : infileName)+"-preproc.daf";
 		try(PrintWriter out = new PrintWriter(new FileWriter(outfileName))) {
 			while(true) {
-				out.print(supplier.getCurrentChar());
-				if(!supplier.advance())
+				out.print(preProcessor.getCurrentChar());
+				if(!preProcessor.advance())
 					break;
 			}
 			out.flush();

@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import me.haved.daf.RegisteredFile;
-import me.haved.daf.lexer.text.MacroMap;
 import me.haved.daf.lexer.text.PreProcessor;
 import me.haved.daf.lexer.text.TextBufferer;
 import me.haved.daf.lexer.text.TextParserUtil;
 import me.haved.daf.lexer.text.TextSupplier;
+import me.haved.daf.lexer.text.depricated.MacroMap;
 import me.haved.daf.lexer.tokens.Token;
 
 import static me.haved.daf.LogHelper.*;

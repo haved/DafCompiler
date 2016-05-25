@@ -32,6 +32,10 @@ public class TextParserUtil {
 	
 	public static boolean isBackslash(char c) { return c=='\\'; }
 	
+	public static boolean isLegalCompilerTokenChar(char c) { return isLetterOrScore(c) ||
+			c == '=' || c == '+' || c == '-' || c == '*' || c == '/' ||
+			c == '(' || c == ')';  }
+	
 	public static boolean isStartOfMacroParameters(char c) { return c == START_OF_MACRO_PARAMETER; }
 
 	public static boolean isEndOfMacroParameters(char c) { return c == END_OF_MACRO_PARAMETER; }

@@ -1,6 +1,9 @@
-package me.haved.daf.lexer.text;
+package me.haved.daf.lexer.text.depricated;
 
 import me.haved.daf.RegisteredFile;
+import me.haved.daf.lexer.text.FileTextSupplier;
+import me.haved.daf.lexer.text.TextParserUtil;
+import me.haved.daf.lexer.text.TextSupplier;
 
 import static me.haved.daf.LogHelper.*;
 

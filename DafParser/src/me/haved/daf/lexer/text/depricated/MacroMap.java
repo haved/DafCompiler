@@ -1,4 +1,4 @@
-package me.haved.daf.lexer.text;
+package me.haved.daf.lexer.text.depricated;
 
 import java.util.ArrayList;
 
