@@ -67,7 +67,8 @@ public class PreProcessor implements TextSupplier {
 	}
 	
 	private boolean trySetCurrentChar(char c, int line, int col) {
-		if(c=='/'){} //Try doing comments and stuff
+		if(c=='/')
+			return doCommentChecks(c, line, col);//Try doing comments and stuff
 		else if(c=='#')
 			return doFlowMacrosAndArithmetic(c, line, col);//Try doing macros, arithmetic and evaluation
 		return forceSetCurrentChar(c, line, col);
@@ -78,6 +79,28 @@ public class PreProcessor implements TextSupplier {
 		this.outputLine = line;
 		this.outputCol = col;
 		return true;
+	}
+	
+	private boolean doCommentChecks(char c, int line, int col) {
+		advanceInput();
+		if(inputChar == '/') {
+			while(true) {
+				if(!advanceInput())
+					return false;
+				if(inputChar=='\n')
+					break;
+			}
+			return false; //We then pick up the char after the newline
+		} else if(inputChar == '*') {
+			while(true) {
+				
+			}
+		}
+		else {
+			pushBufferedChar(inputChar, inputLine, inputCol);
+			forceSetCurrentChar(c, line, col);
+			return true; //We set it ourself
+		}
 	}
 	
 	/**
