@@ -26,7 +26,7 @@ public class Macro {
 		return name;
 	}
 	
-	public static Macro makeMacroFrom() {
+	public static Macro makeMacroFromString(String text) {
 		return null;
 	}
 }

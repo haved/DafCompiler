@@ -4,21 +4,27 @@ import java.util.Stack;
 
 import me.haved.daf.RegisteredFile;
 import me.haved.daf.lexer.text.depricated.MacroMap;
+import me.haved.daf.lexer.text.directives.DirectiveHandler;
+import me.haved.daf.lexer.text.directives.MacroDirectiveHandler;
 
 import static me.haved.daf.LogHelper.*;
 
 public class PreProcessor implements TextSupplier {
 	
+	private static DirectiveHandler[] DIRECTIVE_HANDLERS = {MacroDirectiveHandler::handleDirective};
+	
 	private TextSupplier fileInput;
 	private Stack<MacroMap> macros;
 
 	private Stack<Character> bufferedInputChars;
-	private Stack<Integer>    bufferedInputLines;
-	private Stack<Integer>    bufferedInputColms;
+	private Stack<Integer>   bufferedInputLines;
+	private Stack<Integer>   bufferedInputColms;
 	
 	private char inputChar;
 	private int  inputLine;
 	private int  inputCol;
+	
+	private InternalPreProcessor ipp;
 	
 	private char outputChar;
 	private int  outputLine;
@@ -33,6 +39,8 @@ public class PreProcessor implements TextSupplier {
 		bufferedInputChars = new Stack<>();
 		bufferedInputLines = new Stack<>();
 		bufferedInputColms = new Stack<>();
+		
+		ipp = new InternalPreProcessor();
 		
 		trySetCurrentChar(fileInput.getCurrentChar(), fileInput.getCurrentLine(), fileInput.getCurrentCol());
 	}
@@ -64,7 +72,7 @@ public class PreProcessor implements TextSupplier {
 		}
 		return true;
 	}
-	
+		
 	private boolean trySetCurrentChar(char c, int line, int col) {
 		if(c=='/')
 			return doCommentChecks(c, line, col);//Try doing comments and stuff
@@ -120,15 +128,20 @@ public class PreProcessor implements TextSupplier {
 		if(inputChar == '#')
 			return forceSetCurrentChar(inputChar, line, col);
 		
-		String token = pickUpPreProcToken(); //After, The next char from advanceInput() is ready, so return false;
-		log(DEBUG, "Found compiler token: %s", token);
+		String directive = pickUpPreProcDirective(); //After, the char immediately after the directive is on the stack
 		
+		for(DirectiveHandler handler:DIRECTIVE_HANDLERS) {
+			int result = handler.handleDirective(directive, ipp);
+			if(result != DirectiveHandler.CANT_HANLDE_DIRECTIVE)
+				return false;
+		}
 		
+		log(getFile(), line, col, ERROR, "Found directive ' #%s ' that the preprocessor can't handle!", directive);
 		
 		return false;
 	}
 	
-	private String pickUpPreProcToken() {
+	private String pickUpPreProcDirective() {
 		StringBuilder builder = new StringBuilder();
 		
 		while(true) {
@@ -207,6 +220,15 @@ public class PreProcessor implements TextSupplier {
 		}
 		public char getInputChar() {
 			return PreProcessor.this.inputChar;
+		}
+		public int getInputLine() {
+			return PreProcessor.this.inputLine;
+		}
+		public int getInputCol() {
+			return PreProcessor.this.inputCol;
+		}
+		public void pushBufferedChar(char c, int line, int col) {
+			PreProcessor.this.pushBufferedChar(c, line, col);
 		}
 		public Stack<MacroMap> getMacroStack() {
 			return PreProcessor.this.macros;
