@@ -91,9 +91,15 @@ public class PreProcessor implements TextSupplier {
 			}
 			return false; //We then pick up the char after the newline
 		} else if(inputChar == '*') {
+			boolean prevStar = true;
 			while(true) {
-				
+				if(!advanceInput())
+					return false;
+				if(prevStar && inputChar == '/')
+					break;
+				prevStar = inputChar == '*';
 			}
+			return false; //We then pick up the char after the */
 		}
 		else {
 			pushBufferedChar(inputChar, inputLine, inputCol);
@@ -110,7 +116,11 @@ public class PreProcessor implements TextSupplier {
 	 * @return true if the output char was changed to something new
 	 */
 	private boolean doFlowMacrosAndArithmetic(char c, int line, int col) {
-		String token = pickUpPreProcToken(); //The next char from advanceInput() is ready, so return false;
+		advanceInput();
+		if(inputChar == '#')
+			return forceSetCurrentChar(inputChar, line, col);
+		
+		String token = pickUpPreProcToken(); //After, The next char from advanceInput() is ready, so return false;
 		
 		log(DEBUG, "Found compiler token: %s", token);
 		
@@ -121,7 +131,6 @@ public class PreProcessor implements TextSupplier {
 		StringBuilder builder = new StringBuilder();
 		
 		while(true) {
-			advanceInput();
 			if(!TextParserUtil.isLegalCompilerTokenChar(inputChar))
 				break;
 			builder.append(inputChar);
@@ -130,6 +139,7 @@ public class PreProcessor implements TextSupplier {
 				advanceInput();
 				break;
 			}
+			advanceInput();
 		}
 		
 		//InputChar is now the 1. outside the compiler token

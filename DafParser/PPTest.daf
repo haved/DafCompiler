@@ -3,10 +3,13 @@ pub def b := 5;
 
 //This is a comment
 pub def main:=() {
-    printf("4+8 is #( 4 + 8 #)");
+    printf("4+8 is #( 4 8 + #)");
     printf("true = #( true #)");
     printf("false = #( false #)");
+
+    printf("##Test of pound symbol");
 }
+#macro Test_Macro<name;age> Hello #name! You are #age years old. ##ToBeEvaluated
 
 /**
  This is a multiline comment,
@@ -14,8 +17,8 @@ pub def main:=() {
 */
 
 #macro VERSION 2.15
-#macro Test<etwas> $
-#etwas
+#macro Test<etwas,gut> $
+#etwas#gut<>ay //The <> is used to distinguish the #gut from ay without a space
 $
 #macro H<> $$
 
