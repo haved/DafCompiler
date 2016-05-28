@@ -121,8 +121,9 @@ public class PreProcessor implements TextSupplier {
 			return forceSetCurrentChar(inputChar, line, col);
 		
 		String token = pickUpPreProcToken(); //After, The next char from advanceInput() is ready, so return false;
-		
 		log(DEBUG, "Found compiler token: %s", token);
+		
+		
 		
 		return false;
 	}
@@ -193,5 +194,22 @@ public class PreProcessor implements TextSupplier {
 	@Override
 	public void close() {
 		fileInput.close();
+	}
+	
+	/** Class used by directive handlers to access the preprocessors file input and stuff
+	 * 
+	 * @author havard
+	 *
+	 */
+	public class InternalPreProcessor {
+		public void advanceInput() {
+			PreProcessor.this.advanceInput();
+		}
+		public char getInputChar() {
+			return PreProcessor.this.inputChar;
+		}
+		public Stack<MacroMap> getMacroStack() {
+			return PreProcessor.this.macros;
+		}
 	}
 }
