@@ -17,5 +17,5 @@ public interface DirectiveHandler {
 	 * @param pp is the reference to the preprocessors input handler
 	 * @return CANT_HANDLE_DIRECTIVE if the name was wrong for this exact supplier. HANDLED if everything went a'ok. HANDLING_ERROR if errors occurred
 	 */
-	int handleDirective(String text, int line, int col, PreProcessor.InternalPreProcessor pp);
+	int handleDirective(String text, int line, int col, PreProcessor.InputHandler pp);
 }

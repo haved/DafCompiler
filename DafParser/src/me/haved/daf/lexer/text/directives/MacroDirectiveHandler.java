@@ -10,7 +10,7 @@ public class MacroDirectiveHandler {
 	
 	public static final String DIRECTIVE_NAME = "macro";
 	 
-	public static int handleDirective(String text, int line, int col, PreProcessor.InternalPreProcessor pp) {
+	public static int handleDirective(String text, int line, int col, PreProcessor.InputHandler pp) {
 		if(!text.equals(DIRECTIVE_NAME))
 			return DirectiveHandler.CANT_HANLDE_DIRECTIVE;
 		

@@ -13,61 +13,26 @@ public class PreProcessor implements TextSupplier {
 	
 	private static DirectiveHandler[] DIRECTIVE_HANDLERS = {MacroDirectiveHandler::handleDirective};
 	
-	private TextSupplier fileInput;
-	private Stack<MacroMap> macros;
-
-	private Stack<Character> bufferedInputChars;
-	private Stack<Integer>   bufferedInputLines;
-	private Stack<Integer>   bufferedInputColms;
-	
-	private char inputChar;
-	private int  inputLine;
-	private int  inputCol;
-	
-	private InternalPreProcessor ipp;
+	private InputHandler inputHandler;
 	
 	private char outputChar;
 	private int  outputLine;
 	private int  outputCol;
 	
 	public PreProcessor(RegisteredFile file, MacroMap macros) {
-		this.fileInput = new FileTextSupplier(file);
+		inputHandler = new InputHandler(file, macros);
 		
-		this.macros = new Stack<>();
-		this.macros.push(macros);
-		
-		bufferedInputChars = new Stack<>();
-		bufferedInputLines = new Stack<>();
-		bufferedInputColms = new Stack<>();
-		
-		ipp = new InternalPreProcessor();
-		
-		trySetCurrentChar(fileInput.getCurrentChar(), fileInput.getCurrentLine(), fileInput.getCurrentCol());
-	}
-	
-	private boolean advanceInput() {
-		if(!bufferedInputChars.isEmpty()) {
-			inputChar = bufferedInputChars.pop();
-			inputLine = bufferedInputLines.pop();
-			inputCol  = bufferedInputColms.pop();
-			return true;
-		}
-		if(!fileInput.advance())
-			return false;
-		
-		inputChar = fileInput.getCurrentChar();
-		inputLine = fileInput.getCurrentLine();
-		inputCol  = fileInput.getCurrentCol();
-		return true;
+		trySetCurrentChar(inputHandler.getInputChar(), inputHandler.getInputLine(), inputHandler.getInputCol());
 	}
 	
 	@Override
 	public boolean advance() {
 		while(true) {
-			if(!advanceInput())
+			if(!inputHandler.advanceInput())
 				return false;
 			
-			if(trySetCurrentChar(inputChar, inputLine, inputCol)) //Keep going until we actually set the output char!
+			//Keep going until we actually set the output char!
+			if(trySetCurrentChar(inputHandler.getInputChar(), inputHandler.getInputLine(), inputHandler.getInputCol()))
 				break;
 		}
 		return true;
@@ -89,28 +54,28 @@ public class PreProcessor implements TextSupplier {
 	}
 	
 	private boolean doCommentChecks(char c, int line, int col) {
-		advanceInput();
-		if(inputChar == '/') {
+		inputHandler.advanceInput();
+		if(inputHandler.getInputChar() == '/') {
 			while(true) {
-				if(!advanceInput())
+				if(!inputHandler.advanceInput())
 					return false;
-				if(inputChar=='\n')
+				if(inputHandler.getInputChar()=='\n')
 					break;
 			}
 			return false; //We then pick up the char after the newline
-		} else if(inputChar == '*') {
+		} else if(inputHandler.getInputChar() == '*') {
 			boolean prevStar = true;
 			while(true) {
-				if(!advanceInput())
+				if(!inputHandler.advanceInput())
 					return false;
-				if(prevStar && inputChar == '/')
+				if(prevStar && inputHandler.getInputChar() == '/')
 					break;
-				prevStar = inputChar == '*';
+				prevStar = inputHandler.getInputChar() == '*';
 			}
 			return false; //We then pick up the char after the */
 		}
 		else {
-			pushBufferedChar(inputChar, inputLine, inputCol);
+			inputHandler.pushBufferedChar(inputHandler.getInputChar(), inputHandler.getInputLine(), inputHandler.getInputCol());
 			forceSetCurrentChar(c, line, col);
 			return true; //We set it ourself
 		}
@@ -123,14 +88,14 @@ public class PreProcessor implements TextSupplier {
 	 * @return true if the output char was changed to something new
 	 */
 	private boolean doFlowMacrosAndArithmetic(char c, int line, int col) {
-		advanceInput();
-		if(inputChar == '#')
-			return forceSetCurrentChar(inputChar, line, col);
+		inputHandler.advanceInput();
+		if(inputHandler.getInputChar() == '#')
+			return forceSetCurrentChar(inputHandler.getInputChar(), line, col);
 		
 		String directive = pickUpPreProcDirective(); //After, the char immediately after the directive is on the stack
 		
 		for(DirectiveHandler handler:DIRECTIVE_HANDLERS) {
-			int result = handler.handleDirective(directive, line, col, ipp);
+			int result = handler.handleDirective(directive, line, col, inputHandler);
 			if(result != DirectiveHandler.CANT_HANLDE_DIRECTIVE)
 				return false;
 		}
@@ -144,43 +109,40 @@ public class PreProcessor implements TextSupplier {
 		StringBuilder builder = new StringBuilder();
 		
 		while(true) {
-			if(!TextParserUtil.isLegalCompilerTokenChar(inputChar))
+			if(!TextParserUtil.isLegalCompilerTokenChar(inputHandler.getInputChar()))
 				break;
-			builder.append(inputChar);
+			builder.append(inputHandler.getInputChar());
 			
-			if(TextParserUtil.isOneLetterCompilerToken(inputChar)) {
-				advanceInput();
+			if(TextParserUtil.isOneLetterCompilerToken(inputHandler.getInputChar())) {
+				inputHandler.advanceInput();
 				break;
 			}
-			advanceInput();
+			inputHandler.advanceInput();
 		}
 		
 		//InputChar is now the 1. outside the compiler token
 		
 		String token = builder.toString();
 		
-		if(TextParserUtil.isStartOfMacroParameters(inputChar)) {
-			char startChar = inputChar;
-			int  startLine = inputLine;
-			int  startCol  = inputCol;
-			advanceInput();
-			if(!TextParserUtil.isEndOfMacroParameters(inputChar)) { //Oh shit we need to push the stuff we skipped back! Macro parameters, y'know
-				pushBufferedChar(inputChar, inputLine, inputCol);
-				pushBufferedChar(startChar, startLine, startCol);
+		if(TextParserUtil.isStartOfMacroParameters(inputHandler.getInputChar())) {
+			char startChar = inputHandler.getInputChar();
+			int  startLine = inputHandler.getInputLine();
+			int  startCol  = inputHandler.getInputCol ();
+			inputHandler.advanceInput();
+			
+			if(!TextParserUtil.isEndOfMacroParameters(inputHandler.getInputChar())) {
+				//Oh shit we need to push the stuff we skipped back! Macro parameters, y'know
+				inputHandler.pushBufferedChar(inputHandler.getInputChar(), inputHandler.getInputLine(), inputHandler.getInputCol());
+				inputHandler.pushBufferedChar(startChar, startLine, startCol);
 			}
 			
 			return token; //We have skipped the <>, or added what comes next back, so we're good to go
 		}
 		
-		pushBufferedChar(inputChar, inputLine, inputCol); //Put whatever came after the token back!
+		//Put whatever came after the token back!
+		inputHandler.pushBufferedChar(inputHandler.getInputChar(), inputHandler.getInputLine(), inputHandler.getInputCol());
 		
 		return token;
-	}
-	
-	private void pushBufferedChar(char c, int line, int col) {
-		bufferedInputChars.push(c);
-		bufferedInputLines.push(line);
-		bufferedInputColms.push(col);
 	}
 	
 	@Override
@@ -200,39 +162,85 @@ public class PreProcessor implements TextSupplier {
 
 	@Override
 	public RegisteredFile getFile() {
-		return fileInput.getFile();
+		return inputHandler.getFile();
 	}
 
 	@Override
 	public void close() {
-		fileInput.close();
+		inputHandler.close();
 	}
 	
 	/** Class used by directive handlers to access the preprocessors file input and stuff
 	 * TODO: Make the class the input supplier. Handling bufferers and the file text supplier
 	 * @author havard
 	 */
-	public class InternalPreProcessor {
-		public boolean advanceInput() {
-			return PreProcessor.this.advanceInput();
+	public class InputHandler {
+		
+		private TextSupplier fileInput;
+		private Stack<MacroMap> macros;
+
+		private Stack<Character> bufferedInputChars;
+		private Stack<Integer>   bufferedInputLines;
+		private Stack<Integer>   bufferedInputColms;
+		
+		private char inputChar;
+		private int  inputLine;
+		private int  inputCol;
+		
+		private InputHandler(RegisteredFile file, MacroMap macros) {
+			this.fileInput = new FileTextSupplier(file);
+			
+			this.macros = new Stack<>();
+			this.macros.push(macros);
+			
+			bufferedInputChars = new Stack<>();
+			bufferedInputLines = new Stack<>();
+			bufferedInputColms = new Stack<>();
+			
+			inputChar = fileInput.getCurrentChar();
+			inputLine = fileInput.getCurrentLine();
+			inputCol  = fileInput.getCurrentCol();
 		}
+		
+		public boolean advanceInput() {
+			if(!bufferedInputChars.isEmpty()) {
+				inputChar = bufferedInputChars.pop();
+				inputLine = bufferedInputLines.pop();
+				inputCol  = bufferedInputColms.pop();
+				return true;
+			}
+			if(!fileInput.advance())
+				return false;
+			
+			inputChar = fileInput.getCurrentChar();
+			inputLine = fileInput.getCurrentLine();
+			inputCol  = fileInput.getCurrentCol();
+			return true;
+		}
+		
+		private void pushBufferedChar(char c, int line, int col) {
+			bufferedInputChars.push(c);
+			bufferedInputLines.push(line);
+			bufferedInputColms.push(col);
+		}
+		
 		public char getInputChar() {
-			return PreProcessor.this.inputChar;
+			return inputChar;
 		}
 		public int getInputLine() {
-			return PreProcessor.this.inputLine;
+			return inputLine;
 		}
 		public int getInputCol() {
-			return PreProcessor.this.inputCol;
+			return inputCol;
 		}
 		public RegisteredFile getFile() {
-			return PreProcessor.this.getFile();
-		}
-		public void pushBufferedChar(char c, int line, int col) {
-			PreProcessor.this.pushBufferedChar(c, line, col);
+			return fileInput.getFile();
 		}
 		public Stack<MacroMap> getMacroStack() {
-			return PreProcessor.this.macros;
+			return macros;
+		}
+		public void close() {
+			fileInput.close();
 		}
 	}
 }
