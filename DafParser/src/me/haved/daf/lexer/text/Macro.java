@@ -4,6 +4,8 @@ import static me.haved.daf.LogHelper.*;
 
 public class Macro {
 	
+	public static final char MACRO_DEFINITION_PERIMETER = '$';
+	
 	private String name;
 	private String[] parameters;
 	private char[] separators;

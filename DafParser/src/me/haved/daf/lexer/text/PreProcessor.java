@@ -116,11 +116,10 @@ public class PreProcessor implements TextSupplier {
 		}
 	}
 	
-	/**
-	 * 
+	/** 
 	 * @param c the pound symbol causing this to happen
-	 * @param line the line of the symbol
-	 * @param col the column of the symbol
+	 * @param line the line of the pound symbol
+	 * @param col the column of the pound symbol
 	 * @return true if the output char was changed to something new
 	 */
 	private boolean doFlowMacrosAndArithmetic(char c, int line, int col) {
@@ -131,7 +130,7 @@ public class PreProcessor implements TextSupplier {
 		String directive = pickUpPreProcDirective(); //After, the char immediately after the directive is on the stack
 		
 		for(DirectiveHandler handler:DIRECTIVE_HANDLERS) {
-			int result = handler.handleDirective(directive, ipp);
+			int result = handler.handleDirective(directive, line, col, ipp);
 			if(result != DirectiveHandler.CANT_HANLDE_DIRECTIVE)
 				return false;
 		}
@@ -210,13 +209,12 @@ public class PreProcessor implements TextSupplier {
 	}
 	
 	/** Class used by directive handlers to access the preprocessors file input and stuff
-	 * 
+	 * TODO: Make the class the input supplier. Handling bufferers and the file text supplier
 	 * @author havard
-	 *
 	 */
 	public class InternalPreProcessor {
-		public void advanceInput() {
-			PreProcessor.this.advanceInput();
+		public boolean advanceInput() {
+			return PreProcessor.this.advanceInput();
 		}
 		public char getInputChar() {
 			return PreProcessor.this.inputChar;
@@ -226,6 +224,9 @@ public class PreProcessor implements TextSupplier {
 		}
 		public int getInputCol() {
 			return PreProcessor.this.inputCol;
+		}
+		public RegisteredFile getFile() {
+			return PreProcessor.this.getFile();
 		}
 		public void pushBufferedChar(char c, int line, int col) {
 			PreProcessor.this.pushBufferedChar(c, line, col);
