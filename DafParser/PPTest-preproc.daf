@@ -9,14 +9,11 @@ pub def main:=() {
 
     printf("#Test of pound symbol");
 }
- Test_Macro<name;age> Hello ! You are  years old. #ToBeEvaluated
 
 
 
- VERSION 2.15
- Test<etwas,gut> $
-ay $
- H<> $$
+
+
 
 def printVersion:=() {
 

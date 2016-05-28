@@ -9,7 +9,7 @@ import static me.haved.daf.LogHelper.*;
 public class MacroDirectiveHandler {
 	
 	public static final String DIRECTIVE_NAME = "macro";
-	
+	 
 	public static int handleDirective(String text, int line, int col, PreProcessor.InternalPreProcessor pp) {
 		if(!text.equals(DIRECTIVE_NAME))
 			return DirectiveHandler.CANT_HANLDE_DIRECTIVE;
@@ -38,9 +38,11 @@ public class MacroDirectiveHandler {
 				break;
 		}
 		
-		Macro macro = Macro.makeMacroFromString(builder.toString());
-		
 		log(pp.getFile(), pp.getInputLine(), pp.getInputCol(), DEBUG, "Found macro definition: '%s'", builder.toString());
+		
+		Macro macro = Macro.makeMacroFromString(builder.toString());
+		if(macro == null)
+			log(pp.getFile(), pp.getInputLine(), pp.getInputCol(), ERROR, "Aborting macro due to previous errors");
 		
 		return DirectiveHandler.HANDLED;
 	}
