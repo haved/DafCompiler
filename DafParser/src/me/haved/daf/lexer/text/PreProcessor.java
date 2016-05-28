@@ -2,7 +2,6 @@ package me.haved.daf.lexer.text;
 
 import java.util.Stack;
 
-
 import me.haved.daf.RegisteredFile;
 import me.haved.daf.lexer.text.depricated.MacroMap;
 
