@@ -37,22 +37,22 @@ quotation marks are used.
   
 #####Here is a list of operators that may be used to alter the stack.
 
-* +    Add two numbers
-* -    Subtract one number from another
-* \*   Multiply two numbers
-* /    Divide one number by another (whole)
-* %    Modulo one number by another 
-* ==   Equality check. evaluates to 1 if equal and 0 if unequal
-* !=   Inequality check. See: ==
-* >    Greater than. See: ==
-* <    Less than.
-* >=   Greater than equals
-* <=   Less than equals
-* !    Not. Turns 0 to 1, and everything else to 0
-* len  Pops the prevoius string on the stack and pushes it's length
-* dup  Duplicates the item on the top of the stack
-* swp  Swaps the two top items
-* exists Pops the string an pushes 1 if a macro with that name is present, else 0
+* **+**    Add two numbers
+* **-**    Subtract one number from another
+* **\***   Multiply two numbers
+* **/**    Divide one number by another (whole)
+* **%**    Modulo one number by another 
+* **==**   Equality check. evaluates to 1 if equal and 0 if unequal
+* **!=**   Inequality check. See: ==
+* **>**    Greater than. See: ==
+* **<**    Less than.
+* **>=**   Greater than equals
+* **<=**   Less than equals
+* **!**    Not. Turns 0 to 1, and everything else to 0
+* **len**  Pops the prevoius string on the stack and pushes it's length
+* **dup**  Duplicates the item on the top of the stack
+* **swp**  Swaps the two top items
+* **exists**  Pops the string an pushes 1 if a macro with that name is present, else 0
 
 NOTE: **==**, **!=** and **+** are the only operators that work with strings.
 
