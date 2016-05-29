@@ -6,19 +6,19 @@ import java.util.ArrayList;
 
 public class Macro {
 	
-	public static final char MACRO_DEFINITION_PERIMETER = '$';
+	public static final char MACRO_DEFINITION_PERIMETER = TextParserUtil.ENCLOSE_MACRO;
 	
 	private String name;
 	private String[] parameters;
 	private char[] separators;
 	private String definition;
 	
-	private Macro(String name, String[] parameters, char[] separators, String definition) {
-		logAssert(name!=null && !name.trim().isEmpty());
-		this.name = name;
-		this.parameters = parameters != null && parameters.length > 0 ? parameters : null;
-		this.separators = separators != null && separators.length > 0 ? separators : null;
-		this.definition = definition != null && !definition.isEmpty() ? definition : null;
+	private Macro(String name_arg, String[] parameters_arg, char[] separators_arg, String definition_arg) {
+		logAssert(name_arg!=null && !name_arg.trim().isEmpty());
+		this.name = name_arg;
+		this.parameters = parameters_arg != null && parameters_arg.length > 0 ? parameters_arg : null;
+		this.separators = separators_arg != null && separators_arg.length > 0 ? separators_arg : null;
+		this.definition = definition_arg != null && !definition_arg.isEmpty() ? definition_arg : null;
 		
 		if(this.separators != null && this.parameters.length > 1)
 			logAssert(this.separators != null && this.separators.length == this.parameters.length -1);
@@ -27,14 +27,13 @@ public class Macro {
 		
 		StringBuilder builder = new StringBuilder();
 		
-		builder.append(String.format("Name: %s%n", name));
+		builder.append(String.format("Macro====== Name: %s%n", name));
 		builder.append("<");
 		
 		for(int i = 0; parameters != null && i < parameters.length; i++) {
-			builder.append(parameters[i]).append("  ");
+			builder.append(parameters[i]);
 			if(separators != null && i < separators.length)
-				builder.append(separators[i]);
-			builder.append("\n");
+				builder.append(separators[i]).append(" ");
 		}
 		builder.append(String.format(">%nDefinition: %s%n", definition));
 		
@@ -82,6 +81,8 @@ public class Macro {
 			return new Macro(macroName, null, null, null);
 		}
 		
+		//===============================LOOK FOR PARAMETERS
+		
 		ArrayList<String> parameters = new ArrayList<>();
 		StringBuilder separators = new StringBuilder();
 		if(TextParserUtil.isStartOfMacroParameters(text.charAt(index))) { //We've got parameters!
@@ -125,6 +126,7 @@ public class Macro {
 				
 				index++;
 			}
+			index++;
 		}
 		
 		//Parameters and separators found
@@ -132,9 +134,33 @@ public class Macro {
 		while(index < text.length() && TextParserUtil.isNormalWhitespace(text.charAt(index))) //Skip whitespaces
 			index++;
 		
-		if(index >= text.length() | true)
+		if(index >= text.length())
 			return new Macro(macroName, parameters.toArray(new String[parameters.size()]), separators.toString().toCharArray(), null);
 		
-		return null;
+		//================================= LOOK FOR DEFINITION
+		
+		char definitionEnd = '\n';
+		if(text.charAt(index) == MACRO_DEFINITION_PERIMETER) {
+			index++;
+			definitionEnd = MACRO_DEFINITION_PERIMETER;
+		}
+		
+		int definitionStart = index;
+		
+		while(true) {
+			if(index >= text.length()) {
+				log(ERROR, "Macro definition text was over before the final '%s' was found", 
+						definitionEnd=='\n'?"\\n":Character.toString(definitionEnd));
+				return null;
+			}
+			
+			if(text.charAt(index) == definitionEnd)
+				break;
+			index++;
+		}
+		
+		String definition = text.substring(definitionStart, index);
+		
+		return new Macro(macroName, parameters.toArray(new String[parameters.size()]), separators.toString().toCharArray(), definition);
 	}
 }
