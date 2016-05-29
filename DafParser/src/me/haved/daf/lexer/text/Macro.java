@@ -49,8 +49,6 @@ public class Macro {
 				if(!map.tryAddMacro(macro)) {
 					log(ERROR, "Two macro parameters in the macro '%s' have the same name: '%s'", name, macro.getName());
 				}
-				
-				log(String.format("%d:%d", line, col), DEBUG, "Added macro parameter: %s", macro.toString());
 			}
 			stack.pushMacroMap(map);
 			stack.pushMacroMapPopCommand(line, col);

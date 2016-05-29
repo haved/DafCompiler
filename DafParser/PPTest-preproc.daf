@@ -5,6 +5,6 @@
 
 printf("Version is 2.15");
 printf("Testing bolle: 'Test:Bolle-EndTest;'");
-printf("Version test: 'Test:VERSION-EndTest;'");
+printf("Version test: 'Test:2.15-EndTest;'");
 
 printf("ada-brb-coc-adamanDude");

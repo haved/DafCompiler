@@ -35,6 +35,6 @@ def printVersion:=() {
 printf("Version is #VERSION");
 #macro Test<param> Test:#param-EndTest;
 printf("Testing bolle: '#Test<Bolle>'");
-printf("Version test: '#Test<VERSION>'");
+printf("Version test: '#Test<#VERSION>'");
 #macro Test2<Do;Re,Mi> $#Do-#Re-#Mi-#Do<>man$
 printf("#Test2<ada;brb,coc>Dude");
