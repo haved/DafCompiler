@@ -51,11 +51,12 @@ public class MacroEvaluationDirectiveHandler {
 				else if(TextParserUtil.isEndOfMacroParameters(c))
 					scope--;
 				
-				if(scope == 0 || (scope == 1 && currentSeparator < separatorCount)) {
+				if(scope == 0 || (scope == 1 && currentSeparator < separatorCount && separators[currentSeparator] == c)) {
 					if(parameters.length == 0) {
 						if(!parameter.toString().trim().isEmpty()) {
 							log(inputHandler.getFile(), line, col, ERROR, "The macro '%s' takes no parameters, yet '%s' was given!", 
 									macro.getName(), parameter.toString());
+							return DirectiveHandler.HANDLING_ERROR;
 						}
 					} else {
 						logAssert(currentParameter < parameters.length);
@@ -63,11 +64,11 @@ public class MacroEvaluationDirectiveHandler {
 						parameter.setLength(0);
 						currentParameter++;
 						currentSeparator++;
+						if(scope == 0)
+							break;
+						continue;
 					}
 				}
-				
-				if(scope == 0)
-					break;
 				
 				parameter.append(c);
 			}
