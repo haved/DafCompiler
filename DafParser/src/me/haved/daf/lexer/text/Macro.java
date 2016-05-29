@@ -39,17 +39,13 @@ public class Macro {
 	}
 	
 	public void pushDefinition(CharStack stack, String[] parameters, int line, int col) {
-		println("Macro to string: %s", toString());
-		println("Parameters had: %d", getParameterCount());
-		println("Parameters passed: %d", parameters==null?-1:parameters.length);
-		
 		logAssert(getParameterCount() == (parameters == null ? 0 : parameters.length));
 		
 		for(int i = definition.length()-1; i >= 0; i--) {
 			stack.pushBufferedChar(definition.charAt(i), line, col);
 		}
 		
-		if(parameters != null && parameters.length > 1) {
+		if(parameters != null && parameters.length > 0) {
 			MacroMap map = new MacroMap();
 			for(int i = 0; i < parameters.length; i++) {
 				Macro macro = makeMacroFromString(this.parameters[i]);

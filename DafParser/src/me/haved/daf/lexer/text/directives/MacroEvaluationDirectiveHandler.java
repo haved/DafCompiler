@@ -21,6 +21,11 @@ public class MacroEvaluationDirectiveHandler {
 		//If not, the next char on the stack is the next one in the file
 		
 		if(hasParameters == false) {
+			if(macro.getParameterCount() != 0) {
+				log(inputHandler.getFile(), line, col, ERROR, "The macro '%s' takes %d parameters, but none were given!", 
+						macro.getName(), macro.getParameterCount());
+				return DirectiveHandler.HANDLING_ERROR;
+			}
 			macro.pushDefinition(inputHandler, null, line, col);
 		} else {
 			char[] separators = macro.getSeparators();

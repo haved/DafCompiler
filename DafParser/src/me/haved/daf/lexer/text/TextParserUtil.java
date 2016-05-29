@@ -33,7 +33,7 @@ public class TextParserUtil {
 	
 	public static boolean isBackslash(char c) { return c=='\\'; }
 	
-	public static boolean isLegalDirectiveChar(char c) { return isLetterOrScore(c) || c == '(' || c == ')'; }
+	public static boolean isLegalDirectiveChar(char c) { return isIdentifierChar(c) || c == '(' || c == ')'; }
 	
 	public static boolean isOneLetterCompilerToken(char c) { return c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')'; }
 	

@@ -272,6 +272,8 @@ public class PreProcessor implements TextSupplier {
 		
 		@Override
 		public void pushMacroMapPopCommand(int line, int col) {
+			pushBufferedChar('>', line, col);
+			pushBufferedChar('<', line, col);
 			for(int i = PopMacroStackDirectiveHandler.POP_MACRO_STACK_DIRECTIVE.length()-1; i>=0; i--) {
 				pushBufferedChar(PopMacroStackDirectiveHandler.POP_MACRO_STACK_DIRECTIVE.charAt(i), line, col);
 			}
