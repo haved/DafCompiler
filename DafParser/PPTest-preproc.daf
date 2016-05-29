@@ -1,24 +1,10 @@
 
-let mut a := 5;
-pub def b := 5;
-
-pub def main:=() {
-    printf("4+8 is  4 8 + ");
-    printf("true =  true ");
-    printf("false =  false ");
-
-    printf("#Test of pound symbol");
-}
 
 
 
 
+printf("Version is 2.15");
+printf("Testing bolle: 'Test:-EndTest;'");
+printf("Version test: 'Test:-EndTest;'");
 
-
-
-
-def printVersion:=() {
-    printf("Version is 2.15Hello");
-    printf("V is 2.15    Test     Another 2.15Test");
-    printf("V is 2.152.152.15 lorem ipsum just to count");
-    printf("Test of paramaters: }
+printf("

@@ -39,8 +39,29 @@ public class Macro {
 	}
 	
 	public void pushDefinition(CharStack stack, String[] parameters, int line, int col) {
+		println("Macro to string: %s", toString());
+		println("Parameters had: %d", getParameterCount());
+		println("Parameters passed: %d", parameters==null?-1:parameters.length);
+		
+		logAssert(getParameterCount() == (parameters == null ? 0 : parameters.length));
+		
 		for(int i = definition.length()-1; i >= 0; i--) {
 			stack.pushBufferedChar(definition.charAt(i), line, col);
+		}
+		
+		if(parameters != null && parameters.length > 1) {
+			MacroMap map = new MacroMap();
+			for(int i = 0; i < parameters.length; i++) {
+				Macro macro = makeMacroFromString(this.parameters[i]);
+				macro.definition = parameters[i]; //Surprise definition!
+				if(!map.tryAddMacro(macro)) {
+					log(ERROR, "Two macro parameters in the macro '%s' have the same name: '%s'", name, macro.getName());
+				}
+				
+				log(String.format("%d:%d", line, col), DEBUG, "Added macro parameter: %s", macro.toString());
+			}
+			stack.pushMacroMap(map);
+			stack.pushMacroMapPopCommand(line, col);
 		}
 	}
 	
@@ -134,9 +155,9 @@ public class Macro {
 						lookingForParameter = true;
 					} else if(!TextParserUtil.isNormalWhitespace(c)) {
 						if(TextParserUtil.isStartOfMacroParameters(c))
-							log(ERROR, "Found the char '%c', the start of a new macro parameter, before a separator was found!");
+							log(ERROR, "Found the char '%c', the start of a new macro parameter, before a separator was found!", c);
 						else
-							log(ERROR, "The special char '%c' was found in a macro parameter list, but can't be a separator");
+							log(ERROR, "The special char '%c' was found in a macro parameter list, but can't be a separator", c);
 						return null;
 					}
 				}
@@ -181,5 +202,9 @@ public class Macro {
 	
 	public static interface CharStack {
 		 void pushBufferedChar(char c, int line, int col);
+		 
+		 void pushMacroMap(MacroMap map);
+		 
+		 void pushMacroMapPopCommand(int line, int col);
 	}
 }

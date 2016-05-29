@@ -7,12 +7,14 @@ import me.haved.daf.lexer.text.MacroMap;
 import me.haved.daf.lexer.text.directives.DirectiveHandler;
 import me.haved.daf.lexer.text.directives.MacroDirectiveHandler;
 import me.haved.daf.lexer.text.directives.MacroEvaluationDirectiveHandler;
+import me.haved.daf.lexer.text.directives.PopMacroStackDirectiveHandler;
 
 import static me.haved.daf.LogHelper.*;
 
 public class PreProcessor implements TextSupplier {
 	
-	private static DirectiveHandler[] DIRECTIVE_HANDLERS = {MacroDirectiveHandler::handleDirective, MacroEvaluationDirectiveHandler::handleDirective};
+	private static DirectiveHandler[] DIRECTIVE_HANDLERS = {MacroDirectiveHandler::handleDirective, MacroEvaluationDirectiveHandler::handleDirective,
+			PopMacroStackDirectiveHandler::handleDirective};
 	
 	private InputHandler inputHandler;
 	
@@ -254,6 +256,26 @@ public class PreProcessor implements TextSupplier {
 		}
 		public void close() {
 			fileInput.close();
+		}
+
+		@Override
+		public void pushMacroMap(MacroMap map) {
+			macros.push(map);
+		}
+
+		public void popMacroMap() {
+			macros.pop();
+			if(macros.isEmpty()) {
+				log(FATAL_ERROR, "The macro map stack in the pre processor is somehow empty");
+			}
+		}
+		
+		@Override
+		public void pushMacroMapPopCommand(int line, int col) {
+			for(int i = PopMacroStackDirectiveHandler.POP_MACRO_STACK_DIRECTIVE.length()-1; i>=0; i--) {
+				pushBufferedChar(PopMacroStackDirectiveHandler.POP_MACRO_STACK_DIRECTIVE.charAt(i), line, col);
+			}
+			pushBufferedChar(TextParserUtil.POUND_SYMBOL, line, col);
 		}
 	}
 }

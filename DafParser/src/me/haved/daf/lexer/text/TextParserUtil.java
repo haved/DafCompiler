@@ -6,6 +6,7 @@ public class TextParserUtil {
 	public static final char ENCLOSE_MACRO = '$';
 	public static final char START_OF_MACRO_PARAMETER = '<';
 	public static final char END_OF_MACRO_PARAMETER = '>';
+	public static final char POUND_SYMBOL = '#';
 
 	public static boolean containsAnyWhitespace(String s) {
 		for(int i = 0; i < s.length(); i++)
@@ -28,7 +29,7 @@ public class TextParserUtil {
 	
 	public static boolean isStartOfIdentifier(char c) { return isLetterOrScore(c); }
 	
-	public static boolean isPoundSymbol(char c) { return c=='#'; }
+	public static boolean isPoundSymbol(char c) { return c==POUND_SYMBOL; }
 	
 	public static boolean isBackslash(char c) { return c=='\\'; }
 	
@@ -59,7 +60,7 @@ public class TextParserUtil {
 	public static boolean isLegalMacroParameterSeparator(char c) {
 		return isLegalTokenSpecialCharacter(c) && 
 				!isEndOfMacroParameters(c) && 
-				!isStartOfMacroParameters(c) && c!=ENCLOSE_MACRO;
+				!isStartOfMacroParameters(c) && c!=ENCLOSE_MACRO && !isPoundSymbol(c);
 	}
 
 	public static boolean isDoubleQuoteChar(char c) { return c == '"'; }
