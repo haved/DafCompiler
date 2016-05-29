@@ -38,3 +38,9 @@ printf("Testing bolle: '#Test<Bolle>'");
 printf("Version test: '#Test<#VERSION>'");
 #macro Test2<Do;Re,Mi> $#Do-#Re-#Mi-#Do<>man$
 printf("#Test2<ada;brb,coc>Dude");
+
+#macro Bolle<noe<noko>,noeAnnet> Bolle:#noe<noeAnnet>==END_OF_TRANSMISSION==
+
+#macro GjerNoko Eg gjer #noko!
+
+printf("#Bolle<#GjerNoko, Ost>");

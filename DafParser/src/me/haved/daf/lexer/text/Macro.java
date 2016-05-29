@@ -123,11 +123,18 @@ public class Macro {
 			
 			index++;
 			
+			int scope = 1;
+			
 			while(index < text.length()) {
 				char c = text.charAt(index);
-				if(startOfParam<0 && TextParserUtil.isEndOfMacroParameters(c))
+				
+				if(startOfParam<0 && scope <= 0)
 					break;
-				else if(lookingForParameter && !TextParserUtil.isNormalWhitespace(c)) {
+				
+				if(TextParserUtil.isStartOfMacroParameters(c))
+					scope++;
+				
+				if(lookingForParameter && !TextParserUtil.isNormalWhitespace(c)) {
 					if(!TextParserUtil.isStartOfIdentifier(c)) {
 						log(ERROR, "A macro parameter must start with a letter or underscore, not '%c'", c);
 						return null;
@@ -135,13 +142,17 @@ public class Macro {
 					startOfParam = index;
 					lookingForParameter = false;
 				}
-				else if(startOfParam >= 0 && !TextParserUtil.isIdentifierChar(c)) {
+				else if(startOfParam >= 0 && scope == 1 && !TextParserUtil.isIdentifierChar(c)) {
 					parameters.add(text.substring(startOfParam,index));
+					println("Added parameter %s", text.substring(startOfParam,index));
 					startOfParam = -1;
 				}
 				
+				if(TextParserUtil.isEndOfMacroParameters(c))
+					scope--;
+				
 				if(startOfParam < 0 && !lookingForParameter) { // lookingForParameter has to be false, but good code is self-descriptive
-					if(TextParserUtil.isEndOfMacroParameters(c)) {
+					if(scope <= 0) {
 						continue;
 					}
 					else if(TextParserUtil.isLegalMacroParameterSeparator(c)) {

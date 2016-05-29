@@ -8,3 +8,7 @@ printf("Testing bolle: 'Test:Bolle-EndTest;'");
 printf("Version test: 'Test:2.15-EndTest;'");
 
 printf("ada-brb-coc-adamanDude");
+
+
+
+printf("Bolle:Eg gjer noeAnnet!==END_OF_TRANSMISSION==");
