@@ -9,7 +9,7 @@ public interface DirectiveHandler {
 	public static int HANDLING_ERROR = -1;
 	
 	/**
-	 * The InputHandler must be advanced once before you're past the directive name 
+	 * The InputHandler must be advanced once before you're past the directive name
 	 * 
 	 * @param text is the name of the directive in question
 	 * @param line is the line number of the pound symbol

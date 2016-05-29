@@ -3,15 +3,16 @@ package me.haved.daf.lexer.text;
 import java.util.Stack;
 
 import me.haved.daf.RegisteredFile;
-import me.haved.daf.lexer.text.depricated.MacroMap;
+import me.haved.daf.lexer.text.MacroMap;
 import me.haved.daf.lexer.text.directives.DirectiveHandler;
 import me.haved.daf.lexer.text.directives.MacroDirectiveHandler;
+import me.haved.daf.lexer.text.directives.MacroEvaluationDirectiveHandler;
 
 import static me.haved.daf.LogHelper.*;
 
 public class PreProcessor implements TextSupplier {
 	
-	private static DirectiveHandler[] DIRECTIVE_HANDLERS = {MacroDirectiveHandler::handleDirective};
+	private static DirectiveHandler[] DIRECTIVE_HANDLERS = {MacroDirectiveHandler::handleDirective, MacroEvaluationDirectiveHandler::handleDirective};
 	
 	private InputHandler inputHandler;
 	
@@ -174,7 +175,7 @@ public class PreProcessor implements TextSupplier {
 	 * TODO: Make the class the input supplier. Handling bufferers and the file text supplier
 	 * @author havard
 	 */
-	public class InputHandler {
+	public class InputHandler implements Macro.CharStack {
 		
 		private TextSupplier fileInput;
 		private Stack<MacroMap> macros;
@@ -218,7 +219,7 @@ public class PreProcessor implements TextSupplier {
 			return true;
 		}
 		
-		private void pushBufferedChar(char c, int line, int col) {
+		public void pushBufferedChar(char c, int line, int col) {
 			bufferedInputChars.push(c);
 			bufferedInputLines.push(line);
 			bufferedInputColms.push(col);
@@ -238,6 +239,18 @@ public class PreProcessor implements TextSupplier {
 		}
 		public Stack<MacroMap> getMacroStack() {
 			return macros;
+		}
+		public boolean addMacro(Macro macro) {
+			logAssert(macro != null);
+			return macros.lastElement().tryAddMacro(macro);
+		}
+		public Macro getMacro(String name) {
+			for(int i = macros.size()-1; i >= 0; i--) {
+				Macro m = macros.get(i).getMacro(name);
+				if(m != null)
+					return m;
+			}
+			return null;
 		}
 		public void close() {
 			fileInput.close();

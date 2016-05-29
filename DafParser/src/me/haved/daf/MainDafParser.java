@@ -18,7 +18,7 @@ import me.haved.daf.data.Definition;
 import me.haved.daf.lexer.LexicalParser;
 import me.haved.daf.lexer.text.PreProcessor;
 import me.haved.daf.lexer.text.TextParserUtil;
-import me.haved.daf.lexer.text.depricated.MacroMap;
+import me.haved.daf.lexer.text.MacroMap;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.syxer.SyntaxicParser;
 

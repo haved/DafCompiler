@@ -41,12 +41,14 @@ public class MacroDirectiveHandler {
 				break;
 		}
 		
-		log(pp.getFile(), pp.getInputLine(), pp.getInputCol(), DEBUG, "Found macro definition: '%s'", builder.toString());
-		
 		Macro macro = Macro.makeMacroFromString(builder.toString());
-		if(macro == null)
+		if(macro == null) {
 			log(pp.getFile(), pp.getInputLine(), pp.getInputCol(), ERROR, "Aborting macro due to previous errors");
+			return DirectiveHandler.HANDLING_ERROR;
+		}
 		
+		pp.addMacro(macro);
+			
 		return DirectiveHandler.HANDLED;
 	}
 }

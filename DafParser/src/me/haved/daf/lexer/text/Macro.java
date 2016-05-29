@@ -24,10 +24,31 @@ public class Macro {
 			logAssert(this.separators != null && this.separators.length == this.parameters.length -1);
 		if(this.separators != null)
 			logAssert(this.parameters != null && this.separators.length == this.parameters.length -1);
-		
+	}
+	
+	public String getName() {
+		return name;
+	}
+	
+	public char[] getSeparators() {
+		return separators;
+	}
+	
+	public int getParameterCount() {
+		return parameters == null ? 0 : parameters.length;
+	}
+	
+	public void pushDefinition(CharStack stack, String[] parameters, int line, int col) {
+		for(int i = definition.length()-1; i >= 0; i--) {
+			stack.pushBufferedChar(definition.charAt(i), line, col);
+		}
+	}
+	
+	@Override
+	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		
-		builder.append(String.format("Macro====== Name: %s%n", name));
+		builder.append(name);
 		builder.append("<");
 		
 		for(int i = 0; parameters != null && i < parameters.length; i++) {
@@ -35,13 +56,9 @@ public class Macro {
 			if(separators != null && i < separators.length)
 				builder.append(separators[i]).append(" ");
 		}
-		builder.append(String.format(">%nDefinition: %s%n", definition));
+		builder.append(String.format("> %s", definition));
 		
-		println(builder.toString());
-	}
-	
-	public String getName() {
-		return name;
+		return builder.toString();
 	}
 	
 	public static Macro makeMacroFromString(String text) {
@@ -55,7 +72,7 @@ public class Macro {
 			return null;
 		}
 		
-		//Now at start of name
+		//=========================== Now at START OF NAME ================
 		
 		if(!TextParserUtil.isStartOfIdentifier(text.charAt(index))) {
 			log(ERROR, "A macro name may not start with the char '%c'", text.charAt(index));
@@ -81,7 +98,7 @@ public class Macro {
 			return new Macro(macroName, null, null, null);
 		}
 		
-		//===============================LOOK FOR PARAMETERS
+		//=============================== LOOK FOR PARAMETERS ===================
 		
 		ArrayList<String> parameters = new ArrayList<>();
 		StringBuilder separators = new StringBuilder();
@@ -134,12 +151,12 @@ public class Macro {
 		while(index < text.length() && TextParserUtil.isNormalWhitespace(text.charAt(index))) //Skip whitespaces
 			index++;
 		
-		if(index >= text.length())
+		if(index >= text.length()) //A macro with a parameter list, but no definition... Why?
 			return new Macro(macroName, parameters.toArray(new String[parameters.size()]), separators.toString().toCharArray(), null);
 		
-		//================================= LOOK FOR DEFINITION
+		//================================= LOOK FOR DEFINITION =========================
 		
-		char definitionEnd = '\n';
+		char definitionEnd = TextParserUtil.END_OF_LINE;
 		if(text.charAt(index) == MACRO_DEFINITION_PERIMETER) {
 			index++;
 			definitionEnd = MACRO_DEFINITION_PERIMETER;
@@ -149,11 +166,9 @@ public class Macro {
 		
 		while(true) {
 			if(index >= text.length()) {
-				log(ERROR, "Macro definition text was over before the final '%s' was found", 
-						definitionEnd=='\n'?"\\n":Character.toString(definitionEnd));
-				return null;
+				if(TextParserUtil.isNewlineChar(definitionEnd))
+					log(WARNING, "A macro definition supposedly ending with a %c stopped before it occured", definitionEnd);
 			}
-			
 			if(text.charAt(index) == definitionEnd)
 				break;
 			index++;
@@ -162,5 +177,9 @@ public class Macro {
 		String definition = text.substring(definitionStart, index);
 		
 		return new Macro(macroName, parameters.toArray(new String[parameters.size()]), separators.toString().toCharArray(), definition);
+	}
+	
+	public static interface CharStack {
+		 void pushBufferedChar(char c, int line, int col);
 	}
 }
