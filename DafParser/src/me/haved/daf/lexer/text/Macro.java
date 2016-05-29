@@ -41,10 +41,6 @@ public class Macro {
 	public void pushDefinition(CharStack stack, String[] parameters, int line, int col) {
 		logAssert(getParameterCount() == (parameters == null ? 0 : parameters.length));
 		
-		for(int i = definition.length()-1; i >= 0; i--) {
-			stack.pushBufferedChar(definition.charAt(i), line, col);
-		}
-		
 		if(parameters != null && parameters.length > 0) {
 			MacroMap map = new MacroMap();
 			for(int i = 0; i < parameters.length; i++) {
@@ -58,6 +54,10 @@ public class Macro {
 			}
 			stack.pushMacroMap(map);
 			stack.pushMacroMapPopCommand(line, col);
+		}
+		
+		for(int i = definition.length()-1; i >= 0; i--) {
+			stack.pushBufferedChar(definition.charAt(i), line, col);
 		}
 	}
 	

@@ -12,7 +12,6 @@ public class MacroEvaluationDirectiveHandler {
 		Macro macro = inputHandler.getMacro(text);
 		if(macro == null)
 			return DirectiveHandler.CANT_HANLDE_DIRECTIVE;
-		
 		//We found a macro, guys!
 		
 		inputHandler.advanceInput();

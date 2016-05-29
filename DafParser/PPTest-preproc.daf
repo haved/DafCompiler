@@ -4,7 +4,7 @@
 
 
 printf("Version is 2.15");
-printf("Testing bolle: 'Test:-EndTest;'");
-printf("Version test: 'Test:-EndTest;'");
+printf("Testing bolle: 'Test:Bolle-EndTest;'");
+printf("Version test: 'Test:VERSION-EndTest;'");
 
-printf("manDude");
+printf("-a-da;brb,coc-manDude");
