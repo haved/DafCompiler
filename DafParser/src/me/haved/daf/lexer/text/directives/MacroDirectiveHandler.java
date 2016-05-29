@@ -18,6 +18,9 @@ public class MacroDirectiveHandler {
 		
 		boolean startFound = false;
 		
+		if(TextParserUtil.isAnyWhitespace(pp.getInputChar()))
+			pp.advanceInput(); //Skip the first whitespace
+		
 		while(true) {
 			if(!pp.advanceInput()) {
 				log(pp.getFile(), pp.getInputLine(), pp.getInputCol(), ERROR, "The macro definition wasn't done by the end of the file!");

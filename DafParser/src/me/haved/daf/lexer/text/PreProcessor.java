@@ -109,7 +109,7 @@ public class PreProcessor implements TextSupplier {
 		StringBuilder builder = new StringBuilder();
 		
 		while(true) {
-			if(!TextParserUtil.isLegalCompilerTokenChar(inputHandler.getInputChar()))
+			if(!TextParserUtil.isLegalDirectiveChar(inputHandler.getInputChar()))
 				break;
 			builder.append(inputHandler.getInputChar());
 			

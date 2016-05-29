@@ -20,7 +20,7 @@ pub def main:=() {
 #macro Test<etwas,gut> $
 #etwas#gut<>ay //The <> is used to distinguish the #gut from ay without a space
 $
-#macro H<> $$
+//#macro H<> $$
 
 /*
 def printVersion:=() {
