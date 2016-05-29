@@ -10,7 +10,7 @@ public class MacroDirectiveHandler {
 	
 	public static final String DIRECTIVE_NAME = "macro";
 	 
-	public static int handleDirective(String text, int line, int col, PreProcessor.InputHandler pp) {
+	public static int handleDirective(String text, int line, int col, PreProcessor.InputHandler inputHandler) {
 		if(!text.equals(DIRECTIVE_NAME))
 			return DirectiveHandler.CANT_HANLDE_DIRECTIVE;
 		
@@ -18,17 +18,17 @@ public class MacroDirectiveHandler {
 		
 		boolean startFound = false;
 		
-		if(TextParserUtil.isAnyWhitespace(pp.getInputChar()))
-			pp.advanceInput(); //Skip the first whitespace
+		if(TextParserUtil.isAnyWhitespace(inputHandler.getInputChar()))
+			inputHandler.advanceInput(); //Skip the first whitespace
 		
 		while(true) {
-			if(!pp.advanceInput()) {
-				log(pp.getFile(), pp.getInputLine(), pp.getInputCol(), ERROR, "The macro definition wasn't done by the end of the file!");
+			if(!inputHandler.advanceInput()) {
+				log(inputHandler.getFile(), inputHandler.getInputLine(), inputHandler.getInputCol(), ERROR, "The macro definition wasn't done by the end of the file!");
 				log(SUGGESTION, "Have you forgotten a '%c' to end the multi-line definition?", Macro.MACRO_DEFINITION_PERIMETER);
 				break;
 			}
 			
-			char c = pp.getInputChar();
+			char c = inputHandler.getInputChar();
 			
 			builder.append(c);
 			
@@ -43,11 +43,11 @@ public class MacroDirectiveHandler {
 		
 		Macro macro = Macro.makeMacroFromString(builder.toString());
 		if(macro == null) {
-			log(pp.getFile(), pp.getInputLine(), pp.getInputCol(), ERROR, "Aborting macro due to previous errors");
+			log(inputHandler.getFile(), inputHandler.getInputLine(), inputHandler.getInputCol(), ERROR, "Aborting macro due to previous errors");
 			return DirectiveHandler.HANDLING_ERROR;
 		}
 		
-		pp.addMacro(macro);
+		inputHandler.addMacro(macro);
 			
 		return DirectiveHandler.HANDLED;
 	}
