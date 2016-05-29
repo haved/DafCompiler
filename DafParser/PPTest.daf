@@ -39,8 +39,8 @@ printf("Version test: '#Test<#VERSION>'");
 #macro Test2<Do;Re,Mi> $#Do-#Re-#Mi-#Do<>man$
 printf("#Test2<ada;brb,coc>Dude");
 
-#macro Bolle<noe<noko>,noeAnnet> Bolle:#noe<noeAnnet>==END_OF_TRANSMISSION==
+#macro TRANSMIT<whatToDo<something>,somethingElse> ==START== #whatToDo<#somethingElse> ==END_OF_TRANSMISSION==
 
-#macro GjerNoko Eg gjer #noko!
+#macro DoSomething I'm doing #something!
 
-printf("#Bolle<#GjerNoko, Ost>");
+printf("#TRANSMIT<#DoSomething,cheese>");
