@@ -22,6 +22,8 @@ pub def main:=() {
 $
 #macro H<> $$
 
+#tst
+
 def printVersion:=() {
     printf("Version is #VERSION<>Hello");
     printf("V is #VERSION    Test     Another #VERSION    <>Test");

@@ -15,6 +15,10 @@ pub def main:=() {
 
 
 
+
+
 def printVersion:=() {
     printf("Version is 2.15Hello");
-    printf("V is 2.15    Test     Another 
+    printf("V is 2.15    Test     Another 2.15Test");
+    printf("V is 2.152.152.15 lorem ipsum just to count");
+    printf("Test of paramaters: }

@@ -37,7 +37,12 @@ public class MacroEvaluationDirectiveHandler {
 				inputHandler.advanceInput();
 				char c = inputHandler.getInputChar();
 				
-				if(TextParserUtil.isStartOfIdentifier(c))
+				if(TextParserUtil.isNewlineChar(c)) {
+					log(inputHandler.getFile(), line, col, ERROR, "Newline or EOF found during macro parameter list!");
+					return DirectiveHandler.HANDLING_ERROR;
+				}
+				
+				if(TextParserUtil.isStartOfMacroParameters(c))
 					scope++;
 				else if(TextParserUtil.isEndOfMacroParameters(c))
 					scope--;
