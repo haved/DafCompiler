@@ -5,20 +5,19 @@ let mut a := 5;
  yo
 */
 
+/*
 #macro VERSION 2.15
 #macro Test<etwas,gut> $
 #etwas-#gut<>ay
 $
 #macro H<> $$
 
-#tst
-
 def printVersion:=() {
     printf("Version is #VERSION<>Hello");
     printf("V is #VERSION    Test     Another #VERSION    <>Test");
     printf("V is #VERSION#VERSION< >#VERSION lorem ipsum just to count");
     printf("Test of paramaters: #Test<#VERSION, #Test<Halla, Balla>>");
-}
+}*/
 
 #macro VERSION 2.15
 printf("Version is #VERSION");
@@ -34,7 +33,13 @@ printf("#Test2<ada;brb,coc>Dude");
 
 printf("#TRANSMIT<#DoSomething,cheese>");
 
-#if #( VERSION exists#) #then
+#if 2 #then
     printf("Halla");
+#endif
+#if 1 #then
+    printf("Fun times!");
+    #if 1 #then
+       printf("Super fun in fact!");
+    #endif
 #endif
 printf("Balla");
