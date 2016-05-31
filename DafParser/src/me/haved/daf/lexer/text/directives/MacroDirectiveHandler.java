@@ -3,6 +3,7 @@ package me.haved.daf.lexer.text.directives;
 import me.haved.daf.lexer.text.Macro;
 import me.haved.daf.lexer.text.PreProcessor;
 import me.haved.daf.lexer.text.TextParserUtil;
+import me.haved.daf.lexer.text.PreProcessor.InputHandler;
 
 import static me.haved.daf.LogHelper.*;
 
@@ -10,7 +11,7 @@ public class MacroDirectiveHandler {
 	
 	public static final String DIRECTIVE_NAME = "macro";
 	 
-	public static int handleDirective(String text, int line, int col, PreProcessor.InputHandler inputHandler) {
+	public static int handleDirective(String text, int line, int col, PreProcessor pp, InputHandler inputHandler) {
 		if(!text.equals(DIRECTIVE_NAME))
 			return DirectiveHandler.CANT_HANLDE_DIRECTIVE;
 		

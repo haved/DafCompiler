@@ -98,7 +98,7 @@ public class PreProcessor implements TextSupplier {
 		String directive = pickUpPreProcDirective(); //After, the char immediately after the directive is on the stack
 		
 		for(DirectiveHandler handler:DIRECTIVE_HANDLERS) {
-			int result = handler.handleDirective(directive, line, col, inputHandler);
+			int result = handler.handleDirective(directive, line, col, this, inputHandler);
 			if(result != DirectiveHandler.CANT_HANLDE_DIRECTIVE)
 				return false;
 		}
@@ -173,10 +173,6 @@ public class PreProcessor implements TextSupplier {
 		inputHandler.close();
 	}
 	
-	/** Class used by directive handlers to access the preprocessors file input and stuff
-	 * TODO: Make the class the input supplier. Handling bufferers and the file text supplier
-	 * @author havard
-	 */
 	public class InputHandler implements Macro.CharStack {
 		
 		private TextSupplier fileInput;
