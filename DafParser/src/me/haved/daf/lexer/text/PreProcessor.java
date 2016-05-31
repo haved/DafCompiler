@@ -5,16 +5,18 @@ import java.util.Stack;
 import me.haved.daf.RegisteredFile;
 import me.haved.daf.lexer.text.MacroMap;
 import me.haved.daf.lexer.text.directives.DirectiveHandler;
+import me.haved.daf.lexer.text.directives.IfDirectiveHandler;
 import me.haved.daf.lexer.text.directives.MacroDirectiveHandler;
 import me.haved.daf.lexer.text.directives.MacroEvaluationDirectiveHandler;
 import me.haved.daf.lexer.text.directives.PopMacroStackDirectiveHandler;
+import me.haved.daf.lexer.text.directives.PreProcessorController;
 
 import static me.haved.daf.LogHelper.*;
 
 public class PreProcessor implements TextSupplier {
 	
 	private static DirectiveHandler[] DIRECTIVE_HANDLERS = {MacroDirectiveHandler::handleDirective, MacroEvaluationDirectiveHandler::handleDirective,
-			PopMacroStackDirectiveHandler::handleDirective};
+			PopMacroStackDirectiveHandler::handleDirective, new IfDirectiveHandler()};
 	
 	private InputHandler inputHandler;
 	
@@ -22,8 +24,11 @@ public class PreProcessor implements TextSupplier {
 	private int  outputLine;
 	private int  outputCol;
 	
+	private Stack<PreProcessorController> controllers;
+	
 	public PreProcessor(RegisteredFile file, MacroMap macros) {
 		inputHandler = new InputHandler(file, macros);
+		controllers = new Stack<>();
 		
 		trySetCurrentChar(inputHandler.getInputChar(), inputHandler.getInputLine(), inputHandler.getInputCol());
 	}
@@ -36,7 +41,8 @@ public class PreProcessor implements TextSupplier {
 			
 			//Keep going until we actually set the output char!
 			if(trySetCurrentChar(inputHandler.getInputChar(), inputHandler.getInputLine(), inputHandler.getInputCol()))
-				break;
+				if(controllers.isEmpty() || controllers.peek().allowAdvanceToReturn(this))
+					break;
 		}
 		return true;
 	}
@@ -97,6 +103,9 @@ public class PreProcessor implements TextSupplier {
 		
 		String directive = pickUpPreProcDirective(); //After, the char immediately after the directive is on the stack
 		
+		if(!controllers.isEmpty() && !controllers.peek().allowDirectiveToHappen(this, directive))
+			return false;
+		
 		for(DirectiveHandler handler:DIRECTIVE_HANDLERS) {
 			int result = handler.handleDirective(directive, line, col, this, inputHandler);
 			if(result != DirectiveHandler.CANT_HANLDE_DIRECTIVE)
@@ -146,6 +155,14 @@ public class PreProcessor implements TextSupplier {
 		inputHandler.pushBufferedChar(inputHandler.getInputChar(), inputHandler.getInputLine(), inputHandler.getInputCol());
 		
 		return token;
+	}
+	
+	public void giveUpControlTo(PreProcessorController controller) {
+		this.controllers.push(controller);
+	}
+	
+	public void popBackControll() {
+		this.controllers.pop();
 	}
 	
 	@Override

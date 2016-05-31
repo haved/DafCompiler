@@ -1,21 +1,10 @@
-/*let mut a := 5;
-pub def b := 5;
+let mut a := 5;
 
-//This is a comment
-pub def main:=() {
-    printf("4+8 is #( 4 8 + #)");
-    printf("true = #( true #)");
-    printf("false = #( false #)");
-
-    printf("##Test of pound symbol");
-}
-#macro Test_Macro<name;age> Hello #name! You are #age years old. ##ToBeEvaluated
-*/
 /**
  This is a multiline comment,
  yo
 */
-/*
+
 #macro VERSION 2.15
 #macro Test<etwas,gut> $
 #etwas-#gut<>ay
@@ -29,7 +18,7 @@ def printVersion:=() {
     printf("V is #VERSION    Test     Another #VERSION    <>Test");
     printf("V is #VERSION#VERSION< >#VERSION lorem ipsum just to count");
     printf("Test of paramaters: #Test<#VERSION, #Test<Halla, Balla>>");
-}*/
+}
 
 #macro VERSION 2.15
 printf("Version is #VERSION");
@@ -44,3 +33,8 @@ printf("#Test2<ada;brb,coc>Dude");
 #macro DoSomething I'm doing #something!
 
 printf("#TRANSMIT<#DoSomething,cheese>");
+
+#if #( VERSION exists#) #then
+    printf("Halla");
+#endif
+printf("Balla");
