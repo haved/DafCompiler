@@ -1,0 +1,40 @@
+let a := 5;
+
+#macro test 1
+#macro tast 0
+
+#macro true 1
+#macro false 0
+#macro not<val> #if #val #then 0 #else 1 #endif
+
+let b:= 5;
+
+#if #not<0> #then
+printf("Ey, bro");
+#endif
+
+#if #test #then
+printf("test is true!");
+#else
+printf("test is false!");
+#if #not<tast> #then
+printf("And so is tast!");
+#endif
+#endif
+
+#if #not<#false> #then
+Ay, man
+#if #not<#true> #then
+ERROR
+#else
+Good stuff!
+#endif
+#if #not<tast> #then
+Tast is false!
+#endif
+#endif
+
+#if #true #then
+YAYA
+printf("Test is #if #test #then<>true#else<>false#endif while tast is #if #not<#tast> #then<>false#else<>true#endif");
+#endif

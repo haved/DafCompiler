@@ -48,7 +48,8 @@ public class MacroDirectiveHandler {
 			return DirectiveHandler.HANDLING_ERROR;
 		}
 		
-		inputHandler.addMacro(macro);
+		if(!inputHandler.addMacro(macro))
+			log(inputHandler.getFile(), line, col, SUGGESTION, "Change the name of the macro if you don't want to override");
 			
 		return DirectiveHandler.HANDLED;
 	}

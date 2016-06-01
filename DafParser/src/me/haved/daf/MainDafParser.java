@@ -25,7 +25,7 @@ import me.haved.daf.syxer.SyntaxicParser;
 public class MainDafParser {
 	
 	private static final boolean DEVELOPER = true;
-	private static final String DEFAULT_ARGS = "PPTest.daf . -P";
+	private static final String DEFAULT_ARGS = "FlowTest.daf . -P";
 	public  static void main(String[] args) {
 		if(args.length == 0)
 			if(DEVELOPER) {

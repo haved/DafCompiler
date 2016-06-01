@@ -18,9 +18,16 @@ public class IfPPController implements PreProcessorController {
 	private boolean readingExpression;
 	private boolean ifFulfilled;
 	
+	private IfPPController parent;
+	
 	public IfPPController(int line, int col) {
+		this(line, col, null);
+	}
+	
+	public IfPPController(int line, int col, IfPPController parent) {
 		this.line = line;
 		this.col = col;
+		this.parent = parent;
 		expression = new StringBuilder();
 		readingExpression = true;
 		ifFulfilled = false;
@@ -33,6 +40,10 @@ public class IfPPController implements PreProcessorController {
 			return false;
 		}
 		logAssert(ifFulfilled);
+		if(parent!=null) { //It goes to out parent instead!
+			parent.expression.append(pp.getCurrentChar());
+			return false;
+		}
 		return true;
 	}
 
@@ -44,7 +55,7 @@ public class IfPPController implements PreProcessorController {
 				return true;
 			}
 			readingExpression = false;
-			if(evaluateExpression(expression.toString().trim())) {
+			if(!evaluateExpression(expression.toString().trim())) {
 				logAssert(!ifFulfilled);
 				skipStatement(pp, inputHandler);
 			}
@@ -68,6 +79,10 @@ public class IfPPController implements PreProcessorController {
 			logAssert(ifFulfilled);
 			ifFulfilled = false;
 			skipStatement(pp, inputHandler);
+			return false;
+		} else if(directiveText.equals(IfDirectiveHandler.IF_DIRECTIVE)) { //Man this is soo cool
+			pp.giveUpControlTo(new IfPPController(line, col, this));
+			return false;
 		}
 		
 		return true;
@@ -82,6 +97,7 @@ public class IfPPController implements PreProcessorController {
 						inputHandler.getInputLine()-line);
 			}
 			if(TextParserUtil.isPoundSymbol(inputHandler.getInputChar())) {
+				inputHandler.advanceInput();
 				String directive = PreProcessor.pickUpPreProcDirective(inputHandler);
 				if(directive.equals(IfDirectiveHandler.IF_DIRECTIVE))
 					scope++;
