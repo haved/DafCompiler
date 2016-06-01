@@ -10,17 +10,22 @@ printf("Ey, bro");
 
 
 
-printf("test is true!");
+printf("test is false!");
+
+printf("And so is tast!");
+
 
 
 
 Ay, man
+
+Good stuff!
 
 
 
 
 
 YAYA
-printf("Test is  while tast is ");
+printf("Test is false while tast is false");
 
 

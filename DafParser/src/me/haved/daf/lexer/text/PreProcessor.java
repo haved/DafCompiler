@@ -45,11 +45,18 @@ public class PreProcessor implements TextSupplier {
 			}
 			
 			//Keep going until we actually set the output char!
-			if(trySetCurrentChar(inputHandler.getInputChar(), inputHandler.getInputLine(), inputHandler.getInputCol()))
-				if(controllers.isEmpty() || controllers.peek().allowAdvanceToReturn(this, inputHandler))
-					break;
+			if(trySetCurrentChar(inputHandler.getInputChar(), inputHandler.getInputLine(), inputHandler.getInputCol())) {
+				boolean allowed = true;
+				for(int i = controllers.size()-1; i >= 0; i--) {
+					if(!controllers.get(i).allowAdvanceToReturn(this, inputHandler)) {
+						allowed = false;
+						break;
+					}
+				}
+				if(allowed)
+					return true;
+			}
 		}
-		return true;
 	}
 		
 	private boolean trySetCurrentChar(char c, int line, int col) {
@@ -108,8 +115,10 @@ public class PreProcessor implements TextSupplier {
 		
 		String directive = pickUpPreProcDirective(inputHandler); //After, the char immediately after the directive is on the stack
 		
-		if(!controllers.isEmpty() && !controllers.peek().allowDirectiveToHappen(directive, line, col, this, inputHandler))
-			return false;
+		for(int i = controllers.size()-1; i >= 0; i--) {
+			if(!controllers.get(i).allowDirectiveToHappen(directive, line, col, this, inputHandler))
+				return false;
+		}
 		
 		for(DirectiveHandler handler:DIRECTIVE_HANDLERS) {
 			int result = handler.handleDirective(directive, line, col, this, inputHandler);

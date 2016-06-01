@@ -1,6 +1,6 @@
 let a := 5;
 
-#macro test 1
+#macro test 0
 #macro tast 0
 
 #macro true 1
@@ -17,7 +17,7 @@ printf("Ey, bro");
 printf("test is true!");
 #else
 printf("test is false!");
-#if #not<tast> #then
+#if #not<#tast> #then
 printf("And so is tast!");
 #endif
 #endif
