@@ -134,7 +134,7 @@ public class Macro {
 				if(TextParserUtil.isStartOfMacroParameters(c))
 					scope++;
 				
-				if(lookingForParameter && !TextParserUtil.isNormalWhitespace(c)) {
+				if(lookingForParameter && !TextParserUtil.isNormalWhitespace(c) && !TextParserUtil.isEndOfMacroParameters(c)) {
 					if(!TextParserUtil.isStartOfIdentifier(c)) {
 						log(ERROR, "A macro parameter must start with a letter or underscore, not '%c'", c);
 						return null;
@@ -144,7 +144,6 @@ public class Macro {
 				}
 				else if(startOfParam >= 0 && scope == 1 && !TextParserUtil.isIdentifierChar(c)) {
 					parameters.add(text.substring(startOfParam,index));
-					println("Added parameter %s", text.substring(startOfParam,index));
 					startOfParam = -1;
 				}
 				

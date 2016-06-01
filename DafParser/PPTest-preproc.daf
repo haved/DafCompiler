@@ -5,21 +5,17 @@ let mut a := 5;
 
 
 
-printf("Version is 2.15");
-printf("Testing bolle: 'Test:Bolle-EndTest;'");
-printf("Version test: 'Test:2.15-EndTest;'");
-
-printf("ada-brb-coc-adamanDude");
 
 
+def printVersion:=() {
+    printf("Version is 2.15Hello");
+    printf("V is 2.15    Test     Another 2.15Test");
+    printf("V is 2.152.152.15 lorem ipsum just to count");
+    printf("Test of paramaters: 
+2.15- 
+Halla- Ballaay
+ay
+");
+}
 
-printf("==START== I'm doing cheese! ==END_OF_TRANSMISSION==");
 
-
-
-    printf("Fun times!");
-    
-       printf("Super fun in fact!");
-    
-
-printf("Balla");

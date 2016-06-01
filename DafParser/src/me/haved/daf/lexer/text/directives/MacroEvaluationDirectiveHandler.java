@@ -59,6 +59,8 @@ public class MacroEvaluationDirectiveHandler {
 									macro.getName(), parameter.toString());
 							return DirectiveHandler.HANDLING_ERROR;
 						}
+						if(scope == 0)
+							break;
 					} else {
 						logAssert(currentParameter < parameters.length);
 						parameters[currentParameter] = parameter.toString();
