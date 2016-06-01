@@ -36,12 +36,17 @@ public class PreProcessor implements TextSupplier {
 	@Override
 	public boolean advance() {
 		while(true) {
-			if(!inputHandler.advanceInput())
+			if(!inputHandler.advanceInput()) {
+				if(!controllers.isEmpty())
+					log(getFile(), inputHandler.getInputLine(), inputHandler.getInputCol(), 
+							ERROR, "The file ended while '%s' still had controll over the preprocessor. Level(s) in: %d", 
+							controllers.peek().getName(), controllers.size());
 				return false;
+			}
 			
 			//Keep going until we actually set the output char!
 			if(trySetCurrentChar(inputHandler.getInputChar(), inputHandler.getInputLine(), inputHandler.getInputCol()))
-				if(controllers.isEmpty() || controllers.peek().allowAdvanceToReturn(this))
+				if(controllers.isEmpty() || controllers.peek().allowAdvanceToReturn(this, inputHandler))
 					break;
 		}
 		return true;
@@ -101,9 +106,9 @@ public class PreProcessor implements TextSupplier {
 		if(inputHandler.getInputChar() == '#')
 			return forceSetCurrentChar(inputHandler.getInputChar(), line, col);
 		
-		String directive = pickUpPreProcDirective(); //After, the char immediately after the directive is on the stack
+		String directive = pickUpPreProcDirective(inputHandler); //After, the char immediately after the directive is on the stack
 		
-		if(!controllers.isEmpty() && !controllers.peek().allowDirectiveToHappen(this, directive))
+		if(!controllers.isEmpty() && !controllers.peek().allowDirectiveToHappen(directive, line, col, this, inputHandler))
 			return false;
 		
 		for(DirectiveHandler handler:DIRECTIVE_HANDLERS) {
@@ -117,7 +122,7 @@ public class PreProcessor implements TextSupplier {
 		return false;
 	}
 	
-	private String pickUpPreProcDirective() {
+	public static String pickUpPreProcDirective(InputHandler inputHandler) {
 		StringBuilder builder = new StringBuilder();
 		
 		while(true) {

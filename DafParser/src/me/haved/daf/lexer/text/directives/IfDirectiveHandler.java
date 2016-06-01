@@ -13,7 +13,7 @@ public class IfDirectiveHandler implements DirectiveHandler {
 			return CANT_HANLDE_DIRECTIVE;
 		}
 		
-		pp.giveUpControlTo(new IfPPController());
+		pp.giveUpControlTo(new IfPPController(line, col));
 		
 		return HANDLED;
 	}
