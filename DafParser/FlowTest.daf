@@ -1,40 +1,17 @@
-let a := 5;
+#macro not<value> #if #value #then 0 #else 1 #endif
 
-#macro test 0
-#macro tast 0
+#macro MyValue1 0
+#macro MyValue2 1
 
-#macro true 1
-#macro false 0
-#macro not<val> #if #val #then 0 #else 1 #endif
-
-let b:= 5;
-
-#if #not<0> #then
-printf("Ey, bro");
-#endif
-
-#if #test #then
-printf("test is true!");
+#if #not<#MyValue1> #then
+printf("MyValue1 is false!");
+#if #MyValue2 #then
+printf("But MyValue2 is true!");
 #else
-printf("test is false!");
-#if #not<#tast> #then
-printf("And so is tast!");
+printf("...And so is MyValue2");
 #endif
 #endif
 
-#if #not<#false> #then
-Ay, man
-#if #not<#true> #then
-ERROR
-#else
-Good stuff!
-#endif
-#if #not<tast> #then
-Tast is false!
-#endif
-#endif
+#macro ToTrueOrFalse<value> #if #value #then<>true#else<>false#endif
 
-#if #true #then
-YAYA
-printf("Test is #if #test #then<>true#else<>false#endif while tast is #if #not<#tast> #then<>false#else<>true#endif");
-#endif
+printf("To summarize: MyValue1 is #ToTrueOrFalse<#MyValue1> while MyValue2 is #ToTrueOrFalse<#MyValue2>");

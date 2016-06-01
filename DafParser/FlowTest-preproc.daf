@@ -1,31 +1,12 @@
 
-let a := 5;
 
 
 
-let b:= 5;
+printf("MyValue1 is false!");
 
-
-printf("Ey, bro");
-
-
-
-printf("test is false!");
-
-printf("And so is tast!");
+printf("But MyValue2 is true!");
 
 
 
 
-Ay, man
-
-Good stuff!
-
-
-
-
-
-YAYA
-printf("Test is false while tast is false");
-
-
+printf("To summarize: MyValue1 is false while MyValue2 is true");
