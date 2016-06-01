@@ -189,6 +189,7 @@ public class Macro {
 		
 		int definitionStart = index;
 		
+		//TODO: Skip comments (important)
 		while(true) {
 			if(index >= text.length()) {
 				if(TextParserUtil.isNewlineChar(definitionEnd))
