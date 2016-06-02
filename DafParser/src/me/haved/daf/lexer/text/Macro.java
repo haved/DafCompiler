@@ -187,22 +187,59 @@ public class Macro {
 			definitionEnd = MACRO_DEFINITION_PERIMETER;
 		}
 		
-		int definitionStart = index;
+		StringBuilder definition = new StringBuilder();
 		
-		//TODO: Skip comments (important)
+		int defStart = index;
+		
+		boolean oneLineComment = false;
+		boolean multiLineComment = false;
+		
+		boolean prevSlash = false;
+		boolean prevStar = false;
+		
 		while(true) {
 			if(index >= text.length()) {
-				if(TextParserUtil.isNewlineChar(definitionEnd))
-					log(WARNING, "A macro definition supposedly ending with a %c stopped before it occured", definitionEnd);
-			}
-			if(text.charAt(index) == definitionEnd)
+				if(defStart < index)
+					definition.append(text.substring(defStart, index));
+				log(ERROR, "Macro definition text ended before the definition was finished");
 				break;
+			}
+			char c = text.charAt(index);
+			
+			if(oneLineComment) {
+				if(c == '\n') {
+					oneLineComment = false;
+					defStart = index; 
+					continue; //Retry the newline!
+				}
+			}
+			else if(multiLineComment) {
+				if(prevStar && c == '/') {
+					multiLineComment = false;
+					defStart = ++index; //We don't want to retry the slash
+					continue;
+				}
+				prevStar = c == '*';
+			}
+			else if(prevSlash && c == '/') {
+				definition.append(text.substring(defStart, index - 1));
+				oneLineComment = true;
+			}
+			else if(prevSlash && c == '*') {
+				definition.append(text.substring(defStart, index -1));
+				multiLineComment = true;
+			}
+			else if(c == definitionEnd) {
+				definition.append(text.substring(defStart, index));
+			}
+				
+			prevSlash = c == '/';
 			index++;
 		}
 		
-		String definition = text.substring(definitionStart, index);
 		
-		return new Macro(macroName, parameters.toArray(new String[parameters.size()]), separators.toString().toCharArray(), definition);
+		
+		return new Macro(macroName, parameters.toArray(new String[parameters.size()]), separators.toString().toCharArray(), definition.toString());
 	}
 	
 	public static interface CharStack {
