@@ -187,59 +187,34 @@ public class Macro {
 			definitionEnd = MACRO_DEFINITION_PERIMETER;
 		}
 		
-		StringBuilder definition = new StringBuilder();
+		String definition = null;
 		
 		int defStart = index;
-		
-		boolean oneLineComment = false;
-		boolean multiLineComment = false;
-		
-		boolean prevSlash = false;
-		boolean prevStar = false;
 		
 		while(true) {
 			if(index >= text.length()) {
 				if(defStart < index)
-					definition.append(text.substring(defStart, index));
+					definition = text.substring(defStart, index);
 				log(ERROR, "Macro definition text ended before the definition was finished");
 				break;
 			}
 			char c = text.charAt(index);
 			
-			if(oneLineComment) {
-				if(c == '\n') {
-					oneLineComment = false;
-					defStart = index; 
-					continue; //Retry the newline!
-				}
+			if(c == definitionEnd) {
+				definition = text.substring(defStart, index);
+				index++;
+				break;
 			}
-			else if(multiLineComment) {
-				if(prevStar && c == '/') {
-					multiLineComment = false;
-					defStart = ++index; //We don't want to retry the slash
-					continue;
-				}
-				prevStar = c == '*';
-			}
-			else if(prevSlash && c == '/') {
-				definition.append(text.substring(defStart, index - 1));
-				oneLineComment = true;
-			}
-			else if(prevSlash && c == '*') {
-				definition.append(text.substring(defStart, index -1));
-				multiLineComment = true;
-			}
-			else if(c == definitionEnd) {
-				definition.append(text.substring(defStart, index));
-			}
-				
-			prevSlash = c == '/';
+			
 			index++;
 		}
 		
+		if(index < text.length())
+			log(ERROR, "The macro definition was over before the text passed to macroFromString was over");
 		
+		log(DEBUG, "Got definition fro macro '%s': %s", macroName, definition);
 		
-		return new Macro(macroName, parameters.toArray(new String[parameters.size()]), separators.toString().toCharArray(), definition.toString());
+		return new Macro(macroName, parameters.toArray(new String[parameters.size()]), separators.toString().toCharArray(), definition);
 	}
 	
 	public static interface CharStack {

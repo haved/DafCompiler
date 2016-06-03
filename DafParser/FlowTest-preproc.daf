@@ -2,11 +2,15 @@
 
 
 
+
+$
+
+
 printf("MyValue1 is false!");
 
-printf("But MyValue2 is true!");
+printf("...And so is MyValue2");
 
 
 
 
-printf("To summarize: MyValue1 is false while MyValue2 is true");
+printf("To summarize: MyValue1 is false while MyValue2 is false");

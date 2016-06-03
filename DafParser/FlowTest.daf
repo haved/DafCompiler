@@ -1,7 +1,12 @@
-#macro not<value> #if #value #then 0 #else 1 #endif
+//#macro not<value> #if #value #then 0 #else 1 #endif
 
-#macro MyValue1 0
-#macro MyValue2 1
+//#macro MyValue1 0 //Comment
+//#macro MyValue2 1 //Test2
+
+//#macro test Hello /*Not this*/My dude! /**/ey? //Done?
+
+#macro ultraTest   <>   $ Hello, my dudes // It's wednesday $
+Ey$
 
 #if #not<#MyValue1> #then
 printf("MyValue1 is false!");
