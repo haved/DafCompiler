@@ -44,7 +44,17 @@ public class IfPPController implements PreProcessorController {
 				return true;
 			}
 			readingExpression = false;
-			if(!evaluateExpression(expression.toString().trim())) {
+			
+			boolean expressionValue = false;
+			String trimmed = expression.toString().trim();
+			if(trimmed.equals("1"))
+				expressionValue = true;
+			else if(!trimmed.equals("0")) {
+				log(inputHandler.getFile(), this.line, this.col, ERROR, 
+						"The condition of the #if directive was neither '0' nor '1', but '%s'. Using false by default", trimmed);
+			}
+			
+			if(expressionValue) {
 				logAssert(!ifFulfilled);
 				skipStatement(pp, inputHandler);
 			}
@@ -99,10 +109,6 @@ public class IfPPController implements PreProcessorController {
 		
 		logAssert(scope==0);
 		pp.popBackControll();
-	}
-	
-	private boolean evaluateExpression(String expression) {
-		return !(expression.isEmpty() || expression.equals("0") || expression.equals("false"));
 	}
 
 	@Override
