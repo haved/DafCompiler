@@ -1,33 +1,15 @@
-Test //Yo
-Test2
 
-Tast /*
-*/Bruh/**/
-Breah
+#macro ToTrueOrFalse<val> #if val #then<>true#else<>false#endif
+#macro Not<val> #if val #then 0 #else 1 #endif
 
-#(Test#)
-#(4#)
-#(Test Tast#)
-#("Trist 5 t" 7 "Tust Trost"#)
-#(Kjøtt Bolle +  #)
-#(5 "To" +#)
-#macro three<> #("1""2"+#)
-#(#three "5" 2 + +#)
+#macro VERSION 255
 
-#macro not<value> #if #value #then 0 #else 1 #endif
+#if #not<#(#VERSION -255 +#)> #then
+    printf("The version is 255!");
 
-#macro MyValue1 0 //Comment
-#macro MyValue2 1 //Test2
+#macro TestCase<> $Some Else 5 Last$
 
-#if #not<#MyValue1> #then
-printf("MyValue1 is false!");
-#if #MyValue2 #then
-printf("But MyValue2 is true!");
-#else
-printf("...And so is MyValue2");
-#endif
-#endif
-
-#macro ToTrueOrFalse<value> #if #value #then<>true#else<>false#endif
-
-printf("To summarize: MyValue1 is #ToTrueOrFalse<#MyValue1> while MyValue2 is #ToTrueOrFalse<#MyValue2>");
+#(#TestCase#) //Last
+#(#TestCase +#) //5Last
+#(#TestCase + + +#) //SomeElse5Last
+#(5 2 +#) //7

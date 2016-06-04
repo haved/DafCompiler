@@ -34,7 +34,7 @@ public class ExpressionPPController implements PreProcessorController {
 		if(TextParserUtil.isDoubleQuoteChar(c)) {
 			inQuotes = !inQuotes;
 			putElmOnStack(inputHandler); //Only if elm has got content
-		} else if(!inQuotes && TextParserUtil.isNormalWhitespace(c)) {
+		} else if(!inQuotes && TextParserUtil.isAnyWhitespace(c)) {
 			putElmOnStack(inputHandler);
 		} else {
 			currentElm.append(c);
