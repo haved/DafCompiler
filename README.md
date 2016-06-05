@@ -27,10 +27,8 @@ printf("==START== I'm doing cheese! ==END_OF_TRANSMISSION==");
 ```
 #macro not<value> #if #value #then 0 #else 1 #endif
 
-//Obviously false, (sorry bash)
-#macro MyValue1 0
-//1 meaning true
-#macro MyValue2 1 
+#macro MyValue1 0 //Obviously false, (sorry bash)
+#macro MyValue2 1 //1 meaning true
 
 #if #not<#MyValue1> #then
 printf("MyValue1 is false!");
