@@ -1,11 +1,7 @@
 package me.haved.daf.lexer.text.directives;
 
-import me.haved.daf.lexer.text.Macro;
 import me.haved.daf.lexer.text.PreProcessor;
-import me.haved.daf.lexer.text.TextParserUtil;
 import me.haved.daf.lexer.text.PreProcessor.InputHandler;
-
-import static me.haved.daf.LogHelper.*;
 
 public class MacroDirectiveHandler {
 	
@@ -15,7 +11,11 @@ public class MacroDirectiveHandler {
 		if(!text.equals(DIRECTIVE_NAME))
 			return DirectiveHandler.CANT_HANLDE_DIRECTIVE;
 		
-		StringBuilder builder = new StringBuilder();
+		pp.giveUpControlTo(new MacroPPController(line, col));
+		
+		return DirectiveHandler.HANDLED;
+		
+		/*StringBuilder builder = new StringBuilder();
 		
 		boolean startFound = false;
 		
@@ -50,7 +50,6 @@ public class MacroDirectiveHandler {
 		
 		if(!inputHandler.addMacro(macro))
 			log(inputHandler.getFile(), line, col, SUGGESTION, "Change the name of the macro if you don't want to override");
-			
-		return DirectiveHandler.HANDLED;
+		*/
 	}
 }

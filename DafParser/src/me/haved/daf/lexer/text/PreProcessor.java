@@ -80,8 +80,10 @@ public class PreProcessor implements TextSupplier {
 			while(true) {
 				if(!inputHandler.advanceInput())
 					return false;
-				if(inputHandler.getInputChar()=='\n')
+				if(inputHandler.getInputChar()=='\n') {
+					inputHandler.pushCurrentChar();
 					break;
+				}
 			}
 			return false; //We then pick up the char after the newline
 		} else if(inputHandler.getInputChar() == '*') {
@@ -246,6 +248,10 @@ public class PreProcessor implements TextSupplier {
 			inputLine = fileInput.getCurrentLine();
 			inputCol  = fileInput.getCurrentCol();
 			return true;
+		}
+		
+		public void pushCurrentChar() {
+			pushBufferedChar(inputChar, inputLine, inputCol);
 		}
 		
 		public void pushBufferedChar(char c, int line, int col) {
