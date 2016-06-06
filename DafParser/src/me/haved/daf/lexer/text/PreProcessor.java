@@ -261,6 +261,12 @@ public class PreProcessor implements TextSupplier {
 			bufferedInputColms.push(col);
 		}
 		
+		public void pushMultipleChars(String text, int line, int col) {
+			for(int i = text.length()-1; i >= 0; i--) {
+				pushBufferedChar(text.charAt(i), line, col);
+			}
+		}
+		
 		public char getInputChar() {
 			return inputChar;
 		}
@@ -296,7 +302,7 @@ public class PreProcessor implements TextSupplier {
 		public void pushMacroMap(MacroMap map) {
 			macros.push(map);
 		}
-
+		
 		public void popMacroMap() {
 			macros.pop();
 			if(macros.isEmpty()) {

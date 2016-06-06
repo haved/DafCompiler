@@ -54,9 +54,7 @@ public class Macro {
 			stack.pushMacroMapPopCommand(line, col);
 		}
 		
-		for(int i = definition.length()-1; i >= 0; i--) {
-			stack.pushBufferedChar(definition.charAt(i), line, col);
-		}
+		stack.pushMultipleChars(definition, line, col);
 	}
 	
 	@Override
@@ -219,6 +217,8 @@ public class Macro {
 	
 	public static interface CharStack {
 		 void pushBufferedChar(char c, int line, int col);
+		 
+		 void pushMultipleChars(String text, int line, int col);
 		 
 		 void pushMacroMap(MacroMap map);
 		 

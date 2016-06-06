@@ -12,7 +12,6 @@ public class ExpressionPPController implements PreProcessorController {
 
 	public static final String EXPRESSION_DIRECIVE_END = ")";
 	
-	@SuppressWarnings("unused")
 	private int line, col;
 	
 	private Stack<String> stack;
@@ -48,6 +47,9 @@ public class ExpressionPPController implements PreProcessorController {
 		
 		if(directiveText == EXPRESSION_DIRECIVE_END) {
 			putElmOnStack(inputHandler);
+			if(stack.size()>0) {
+				inputHandler.pushMultipleChars(stack.pop(), this.line, this.col);
+			}
 			return false;
 		}
 		
