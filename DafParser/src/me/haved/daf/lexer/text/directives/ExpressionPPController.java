@@ -83,7 +83,7 @@ public class ExpressionPPController implements PreProcessorController {
 				boolean ints = op.canTakeInts();
 				Object[] params = new Object[op.getParamCount()];
 				
-				for(int i = params.length -1; i > 0; i--) {
+				for(int i = params.length -1; i >= 0; i--) {
 					String stackElm = stack.pop();
 					if(ints) {
 						try {
