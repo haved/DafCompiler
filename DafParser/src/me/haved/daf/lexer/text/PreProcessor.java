@@ -5,6 +5,7 @@ import java.util.Stack;
 import me.haved.daf.RegisteredFile;
 import me.haved.daf.lexer.text.MacroMap;
 import me.haved.daf.lexer.text.directives.DirectiveHandler;
+import me.haved.daf.lexer.text.directives.ExpressionDirectiveHandler;
 import me.haved.daf.lexer.text.directives.IfDirectiveHandler;
 import me.haved.daf.lexer.text.directives.MacroDirectiveHandler;
 import me.haved.daf.lexer.text.directives.MacroEvaluationDirectiveHandler;
@@ -16,7 +17,7 @@ import static me.haved.daf.LogHelper.*;
 public class PreProcessor implements TextSupplier {
 	
 	private static DirectiveHandler[] DIRECTIVE_HANDLERS = {MacroDirectiveHandler::handleDirective, MacroEvaluationDirectiveHandler::handleDirective,
-			PopMacroStackDirectiveHandler::handleDirective, new IfDirectiveHandler()};
+			PopMacroStackDirectiveHandler::handleDirective, new IfDirectiveHandler(), ExpressionDirectiveHandler::handleDirective};
 	
 	private InputHandler inputHandler;
 	

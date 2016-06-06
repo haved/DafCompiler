@@ -8,9 +8,6 @@ Breah
 
 
 
-
-
-
 printf("MyValue1 is false!");
 
 printf("But MyValue2 is true!");

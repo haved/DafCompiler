@@ -6,10 +6,13 @@ import me.haved.daf.lexer.text.PreProcessor;
 import me.haved.daf.lexer.text.PreProcessor.InputHandler;
 import me.haved.daf.lexer.text.TextParserUtil;
 
+import static me.haved.daf.LogHelper.*;
+
 public class ExpressionPPController implements PreProcessorController {
 
 	public static final String EXPRESSION_DIRECIVE_END = ")";
 	
+	@SuppressWarnings("unused")
 	private int line, col;
 	
 	private Stack<String> stack;
@@ -30,10 +33,10 @@ public class ExpressionPPController implements PreProcessorController {
 		
 		if(TextParserUtil.isDoubleQuoteChar(c)) {
 			inQuotes = !inQuotes;
-			putElmOnStack(); //Only if elm has got content
+			putElmOnStack(inputHandler); //Only if elm has got content
 		} else if(!inQuotes && TextParserUtil.isNormalWhitespace(c)) {
-			putElmOnStack();
-		} else {
+			putElmOnStack(inputHandler);
+		} else {
 			currentElm.append(c);
 		}
 		
@@ -44,41 +47,60 @@ public class ExpressionPPController implements PreProcessorController {
 	public boolean allowDirectiveToHappen(String directiveText, int line, int col, PreProcessor pp, InputHandler inputHandler) {
 		
 		if(directiveText == EXPRESSION_DIRECIVE_END) {
-			putElmOnStack();
+			putElmOnStack(inputHandler);
 			return false;
 		}
 		
 		return true;
 	}
 
-	private void putElmOnStack() {
+	private void putElmOnStack(InputHandler handler) {
 		if(currentElm.length()==0) {
 			return;
 		}
 		
 		String elm = currentElm.toString();
 		
-		if(!handleSpecialElement(elm))
+		if(!handleSpecialElement(elm, handler))
 			stack.push(elm);
 		currentElm.setLength(0);
 	}
 	
-	private boolean handleSpecialElement(String elm) {
-		if(elm.length() < 2) {
-			
+	private boolean handleSpecialElement(String elm, InputHandler handler) {
+		for(Operator op:Operator.operators) {
+			if(elm.equals(op.getName())) {
+				if(stack.size() < op.getParamCount()) {
+					log(handler.getFile(), handler.getInputChar(), handler.getInputCol()-elm.length(), ERROR, 
+							"The operator %s' requires %d elements to be on the stack, not just %d", elm, op.getParamCount(), stack.size());
+					for(int i = stack.size(); i < op.getParamCount(); i++) {
+						stack.push(""); //Fill it with enough
+					}
+				}
+				
+				boolean ints = op.canTakeInts();
+				Object[] params = new Object[op.getParamCount()];
+				
+				for(int i = 0; i < params.length; i++) {
+					String stackElm = stack.get(stack.size()-params.length+i); 
+					if(ints) {
+						try {
+							params[i] = Integer.parseInt(stackElm);
+							continue;
+						} catch(Exception e) {} //I don't like throwing exceptions on purpose
+					}
+					params[i] = stackElm;
+				}
+				
+				stack.push(op.getDoer().doOperator(params));
+				
+				return true;
+			}
 		}
 		return false;
-	}
-
-	private static final Operator[] operators = {};
-	
-	class Operator {
-		
 	}
 	
 	@Override
 	public String getName() {
 		return "Expression-parser controller";
 	}
-
 }
