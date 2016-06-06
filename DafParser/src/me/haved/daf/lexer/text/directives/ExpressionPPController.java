@@ -22,6 +22,7 @@ public class ExpressionPPController implements PreProcessorController {
 		this.col = col;
 		
 		this.stack = new Stack<>();
+		currentElm = new StringBuilder();
 	}
 	
 	boolean inQuotes = false;
@@ -44,12 +45,12 @@ public class ExpressionPPController implements PreProcessorController {
 
 	@Override
 	public boolean allowDirectiveToHappen(String directiveText, int line, int col, PreProcessor pp, InputHandler inputHandler) {
-		
-		if(directiveText == EXPRESSION_DIRECIVE_END) {
+		if(directiveText.equals(EXPRESSION_DIRECIVE_END)) {
 			putElmOnStack(inputHandler);
 			if(stack.size()>0) {
 				inputHandler.pushMultipleChars(stack.pop(), this.line, this.col);
 			}
+			pp.popBackControll();
 			return false;
 		}
 		

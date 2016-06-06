@@ -5,6 +5,13 @@ Tast /*
 */Bruh/**/
 Breah
 
+#(Test#)
+#(4#)
+#(Test Tast#)
+#("Trist 5 t" 7 "Tust Trost"#)
+#(Kjøtt Bolle +  #)
+#(5 2 +#)
+
 #macro not<value> #if #value #then 0 #else 1 #endif
 
 #macro MyValue1 0 //Comment
