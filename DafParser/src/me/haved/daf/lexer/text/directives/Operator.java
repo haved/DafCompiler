@@ -50,7 +50,6 @@ public class Operator {
 			return Integer.toString(((Integer)objects[0])+((Integer)objects[1]));
 		}
 		else {
-			logAssert(objects[0] instanceof String && objects[1] instanceof String);
 			return objects[0].toString() + objects[1].toString();
 		}
 	}
