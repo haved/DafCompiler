@@ -17,7 +17,7 @@ import static me.haved.daf.LogHelper.*;
 public class PreProcessor implements TextSupplier {
 	
 	private static DirectiveHandler[] DIRECTIVE_HANDLERS = {MacroDirectiveHandler::handleDirective, MacroEvaluationDirectiveHandler::handleDirective,
-			PopMacroStackDirectiveHandler::handleDirective, new IfDirectiveHandler(), ExpressionDirectiveHandler::handleDirective};
+			PopMacroStackDirectiveHandler::handleDirective, IfDirectiveHandler::handleDirective, ExpressionDirectiveHandler::handleDirective};
 	
 	private InputHandler inputHandler;
 	
