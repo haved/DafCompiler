@@ -16,7 +16,7 @@ public class FileTextSupplier implements TextSupplier {
 	private int line;
 	private int col;
 	
-	private boolean finalNewline = false;
+	private boolean outOfChars = false;
 	private boolean done = false;
 	
 	public FileTextSupplier(RegisteredFile file) {
@@ -50,7 +50,11 @@ public class FileTextSupplier implements TextSupplier {
 	 */
 	public boolean advance() {
 		try {
-			if(done | finalNewline) {
+			if(done) {
+				return false;
+			}
+			else if(outOfChars) {
+				logAssert(current=='\n');
 				done = true;
 				close();
 				return false;
@@ -64,7 +68,12 @@ public class FileTextSupplier implements TextSupplier {
 			
 			int nextChar = reader.read();
 			if(nextChar == -1) {
-				finalNewline = true;
+				outOfChars = true;
+				if(current == '\n') { //already newline
+					done = true;
+					close();
+					return false;
+				}
 				current = '\n';
 			}
 			else

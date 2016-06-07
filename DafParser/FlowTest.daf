@@ -1,11 +1,12 @@
 
 #macro ToTrueOrFalse<val> #if val #then<>true#else<>false#endif
-#macro Not<val> #if val #then 0 #else 1 #endif
+#macro Not<val> #if #val #then 0 #else 1 #endif
 
 #macro VERSION 255
 
-#if #not<#(#VERSION -255 +#)> #then
+#if #Not<#(#VERSION -255 +#)> #then
     printf("The version is 255!");
+#endif
 
 #macro TestCase<> $Some Else 5 Last$
 
