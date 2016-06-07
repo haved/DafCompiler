@@ -8,6 +8,11 @@ import me.haved.daf.lexer.text.TextParserUtil;
 
 public class IfPPController implements PreProcessorController {
 	
+	public static final int FALSE_INT = 0;
+	public static final int TRUE_INT = 1;
+	public static final String FALSE_STRING = "0";
+	public static final String TRUE_STRING = "1";
+	
 	public static final String THEN_DIRECTIVE = "then";
 	public static final String ELSE_DIRECTIVE = "else";
 	public static final String ENDIF_DIRECTIVE = "endif";
@@ -47,11 +52,14 @@ public class IfPPController implements PreProcessorController {
 			
 			boolean expressionValue = false;
 			String trimmed = expression.toString().trim();
-			if(trimmed.equals("1"))
-				expressionValue = true;
-			else if(!trimmed.equals("0")) {
+			try {
+				//Don't change without also looking at the operators
+				//log();
+				expressionValue = Integer.parseInt(trimmed) != FALSE_INT;
+			} catch(Exception e) {
 				log(inputHandler.getFile(), this.line, this.col, ERROR, 
-						"The condition of the #if directive was neither '0' nor '1', but '%s'. Using false by default", trimmed);
+						"The condition of the #if directive was neither '%s' nor '%s', "
+						+ "but '%s'. Using false by default", TRUE_STRING, FALSE_STRING, trimmed);
 			}
 			
 			if(expressionValue) {

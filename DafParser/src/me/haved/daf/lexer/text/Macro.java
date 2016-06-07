@@ -210,8 +210,6 @@ public class Macro {
 		if(index < text.length())
 			log(ERROR, "The macro definition was over before the text passed to macroFromString was over");
 		
-		log(DEBUG, "Got definition fro macro '%s': %s", macroName, definition);
-		
 		return new Macro(macroName, parameters.toArray(new String[parameters.size()]), separators.toString().toCharArray(), definition);
 	}
 	

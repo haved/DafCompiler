@@ -10,7 +10,4 @@
 
 #macro TestCase<> $Some Else 5 Last$
 
-#(#TestCase#) //Last
-#(#TestCase +#) //5Last
-#(#TestCase + + +#) //SomeElse5Last
-#(5 2 +#) //7
+/*#if*/ #(12 3 / 2 2 + / 1 == ! #) // #then ERROR! #endif
