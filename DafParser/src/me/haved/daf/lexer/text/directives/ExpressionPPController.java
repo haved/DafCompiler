@@ -51,16 +51,7 @@ public class ExpressionPPController implements PreProcessorController {
 	}
 
 	@Override
-	public boolean allowDirectiveToHappen(String directiveText, int line, int col, PreProcessor pp, InputHandler inputHandler) {
-		/*if(directiveText.equals(EXPRESSION_DIRECIVE_END)) {
-			putElmOnStack(inputHandler);
-			if(stack.size()>0) {
-				inputHandler.pushMultipleChars(stack.pop(), this.line, this.col);
-			}
-			pp.popBackControll();
-			return false;
-		}*/
-		
+	public boolean allowDirectiveToHappen(String directiveText, int line, int col, PreProcessor pp, InputHandler inputHandler) {	
 		return true;
 	}
 

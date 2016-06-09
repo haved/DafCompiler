@@ -17,7 +17,11 @@ public class Operator {
 		new Operator("!",   Operator::not, 1,  false, true),
 		new Operator("==",  Operator::equals, 2,  true,  true),
 		new Operator("!=",  Operator::notEquals, 2,  true,  true),
-		new Operator("len", objects->Integer.toString(objects[0].toString().length()), 1, true,  true)
+		new Operator("len", objects->Integer.toString(objects[0].toString().length()), 1, true,  true),
+		new Operator("?", Operator::questionColon, 3, true, true),
+		new Operator("toChar", Operator::toChar, 1, true, false),
+		new Operator("toInt", Operator::toInt, 1, false, true),
+		new Operator("substring", Operator::substring, 3, true, true)
 	};
 	
 	private String name;
