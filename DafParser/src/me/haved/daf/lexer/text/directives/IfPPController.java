@@ -54,7 +54,7 @@ public class IfPPController implements PreProcessorController {
 			String trimmed = expression.toString().trim();
 			try {
 				//Don't change without also looking at the operators
-				//log();
+				log(DEBUG, "%d", Integer.parseInt(trimmed));
 				expressionValue = Integer.parseInt(trimmed) != FALSE_INT;
 			} catch(Exception e) {
 				log(inputHandler.getFile(), this.line, this.col, ERROR, 
@@ -62,7 +62,7 @@ public class IfPPController implements PreProcessorController {
 						+ "but '%s'. Using false by default", TRUE_STRING, FALSE_STRING, trimmed);
 			}
 			
-			if(expressionValue) {
+			if(!expressionValue) {
 				logAssert(!ifFulfilled);
 				skipStatement(pp, inputHandler);
 			}

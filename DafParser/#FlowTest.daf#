@@ -4,10 +4,10 @@
 
 #macro VERSION 255
 
-#if #(#VERSION 255 ==) #then
+#if #(#VERSION 255 ==#) #then
     printf("The version is 255!");
 #endif
 
-#macro TestCase<> $Some Else 5 Last$
+#if #(12 3 / 2 2 + / 1 == ! #) #then ERROR! #endif
 
-#if #(12 3 / 2 2 + / 1 == !) #then ERROR! #endif
+printf("");

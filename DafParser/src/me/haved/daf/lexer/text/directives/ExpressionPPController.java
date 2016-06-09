@@ -10,7 +10,8 @@ import static me.haved.daf.LogHelper.*;
 
 public class ExpressionPPController implements PreProcessorController {
 
-	public static final String EXPRESSION_DIRECIVE_END = ")";
+	public static final char EXPRESSION_DIRECTIVE_END = ')';
+	public static final String EXPRESSION_DIRECIVE_END = Character.toString(EXPRESSION_DIRECTIVE_END);
 	
 	private int line, col;
 	
@@ -36,6 +37,12 @@ public class ExpressionPPController implements PreProcessorController {
 			putElmOnStack(inputHandler); //Only if elm has got content
 		} else if(!inQuotes && TextParserUtil.isAnyWhitespace(c)) {
 			putElmOnStack(inputHandler);
+		} else if(!inQuotes && c == EXPRESSION_DIRECTIVE_END) {
+			putElmOnStack(inputHandler);
+			if(stack.size()>0) {
+				inputHandler.pushMultipleChars(stack.pop(), this.line, this.col);
+			}
+			pp.popBackControll();
 		} else {
 			currentElm.append(c);
 		}
