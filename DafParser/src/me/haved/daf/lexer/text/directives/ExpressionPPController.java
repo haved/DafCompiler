@@ -79,6 +79,7 @@ public class ExpressionPPController implements PreProcessorController {
 				}
 				
 				boolean ints = op.canTakeInts();
+				boolean strings = op.canTakeStrings();
 				Object[] params = new Object[op.getParamCount()];
 				
 				for(int i = params.length -1; i >= 0; i--) {
@@ -89,7 +90,13 @@ public class ExpressionPPController implements PreProcessorController {
 							continue;
 						} catch(Exception e) {} //I don't like throwing exceptions on purpose
 					}
-					params[i] = stackElm;
+					if(strings)
+						params[i] = stackElm;
+					else {
+						log(handler.getFile(), handler.getInputLine(), handler.getInputCol(), ERROR, 
+								"The %dth parameter of the %s operator must be an integer! Defaulting to 0");
+						params[i] = 0;
+					}
 				}
 				
 				stack.push(op.getDoer().doOperator(params));

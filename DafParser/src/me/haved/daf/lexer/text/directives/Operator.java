@@ -18,10 +18,10 @@ public class Operator {
 		new Operator("==",  Operator::equals, 2,  true,  true),
 		new Operator("!=",  Operator::notEquals, 2,  true,  true),
 		new Operator("len", objects->Integer.toString(objects[0].toString().length()), 1, true,  true),
-		new Operator("?", Operator::questionColon, 3, true, true),
-		new Operator("toChar", Operator::toChar, 1, true, false),
-		new Operator("toInt", Operator::toInt, 1, false, true),
-		new Operator("substring", Operator::substring, 3, true, true)
+		new Operator("?", Operator::questionColon, 3, true, true)//,
+		//new Operator("toChar", Operator::toChar, 1, true, false),
+		//new Operator("toInt", Operator::toInt, 1, false, true),
+		//new Operator("substring", Operator::substring, 3, true, true)
 	};
 	
 	private String name;
@@ -84,7 +84,7 @@ public class Operator {
 	private static String not(Object...objects) {
 		logAssert(objects.length==1);
 		logAssert(objects[0] instanceof Integer);
-		return ((Integer)objects[0]) != 0 ? "1" : "0";
+		return ((Integer)objects[0]) != IfPPController.FALSE_INT ? IfPPController.TRUE_STRING : IfPPController.FALSE_STRING;
 	}
 	
 	private static String equals(Object...objects) {
@@ -95,5 +95,11 @@ public class Operator {
 	
 	private static String notEquals(Object...objects) {
 		return not(equals(objects));
+	}
+	
+	private static String questionColon(Object...objects) {
+		logAssert(objects.length == 3);
+		logAssert(objects[0] instanceof Integer);
+		return objects[1].toString();
 	}
 }
