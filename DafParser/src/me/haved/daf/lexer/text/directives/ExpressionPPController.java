@@ -67,6 +67,11 @@ public class ExpressionPPController implements PreProcessorController {
 		currentElm.setLength(0);
 	}
 	
+	/**
+	 * @param element - the string
+	 * @param handler - an inputHandler to get error location data from
+	 * @return true if the element was special and should not be put on the stack itself
+	 */
 	private boolean handleSpecialElement(String elm, InputHandler handler) {
 		for(Operator op:Operator.OPERATORS) {
 			if(elm.equals(op.getName())) {
@@ -97,7 +102,16 @@ public class ExpressionPPController implements PreProcessorController {
 					}
 				}
 				
-				stack.push(op.getDoer().doOperator(params));
+				String result = op.getDoer().doOperator(params);
+				
+				String warning = Operator.parseWarning(result);
+				if(warning == null) {
+					result = warning;
+					log(handler.getFile(), handler.getInputCol(), handler.getInputLine(), WARNING, 
+							"Previous operator fault made the %s operator output %s", op.getName(), result);
+				}
+				
+				stack.push(result);
 				
 				return true;
 			}

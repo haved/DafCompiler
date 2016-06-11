@@ -115,14 +115,14 @@ public class Operator {
 		logAssert(objects.length == 1 && objects[0] instanceof Integer);
 		int i = (Integer)objects[0];
 		if(i > Character.MAX_VALUE) {
-			log(ERROR, "A PP expression wanted to turn the integer %d into a char! Way too high! Using '?' instead", i);
+			log(ERROR, "A PP expression wanted to turn the integer %d into a char! Way too high!", i);
 			return makeOperatorWarning("E");
 		}
 		
 		char c = (char) i;
 		
 		if(!TextParserUtil.isLegalChar(c)) {
-			log(ERROR, "%d toChar made little sense, as the resulting char '%c' is not known to be legal. Using '?' instead", i, c);
+			log(ERROR, "%d toChar made little sense, as the resulting char '%c' is not known to be legal.", i, c);
 			return makeOperatorWarning("?");
 		}
 		
