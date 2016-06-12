@@ -68,7 +68,7 @@ public class ExpressionPPController implements PreProcessorController {
 	}
 	
 	private boolean handleSpecialElement(String elm, InputHandler handler) {
-		for(Operator op:Operator.operators) {
+		for(Operator op:Operator.OPERATORS) {
 			if(elm.equals(op.getName())) {
 				if(stack.size() < op.getParamCount()) {
 					log(handler.getFile(), handler.getInputChar(), handler.getInputCol()-elm.length(), ERROR, 
@@ -78,19 +78,17 @@ public class ExpressionPPController implements PreProcessorController {
 					}
 				}
 				
-				boolean ints = op.canTakeInts();
-				boolean strings = op.canTakeStrings();
 				Object[] params = new Object[op.getParamCount()];
 				
 				for(int i = params.length -1; i >= 0; i--) {
 					String stackElm = stack.pop();
-					if(ints) {
+					if(op.canTakeInt(i)) {
 						try {
 							params[i] = Integer.parseInt(stackElm);
 							continue;
 						} catch(Exception e) {} //I don't like throwing exceptions on purpose
 					}
-					if(strings)
+					if(op.canTakeString(i))
 						params[i] = stackElm;
 					else {
 						log(handler.getFile(), handler.getInputLine(), handler.getInputCol(), ERROR, 

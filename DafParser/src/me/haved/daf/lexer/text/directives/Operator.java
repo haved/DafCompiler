@@ -4,32 +4,35 @@ import static me.haved.daf.LogHelper.*;
 
 public class Operator {
 	
-	public static final Operator[] operators = {
-		new Operator("+",  Operator::doAddition, 								 2, true,  true),
-		new Operator("-",  (objects) -> doIntegerOperation((a,b)->a-b, objects), 2, false, true),
-		new Operator("*",  (objects) -> doIntegerOperation((a,b)->a*b, objects), 2, false, true),
-		new Operator("/",  (objects) -> doIntegerOperation((a,b)->a/b, objects), 2, false, true),
-		new Operator("%",  (objects) -> doIntegerOperation((a,b)->a%b, objects), 2, false, true),
-		new Operator(">",  (objects) -> doIntegerOperation((a,b)->a>b?1:0, objects),  2, false, true),
-		new Operator("<",  (objects) -> doIntegerOperation((a,b)->a<b?1:0, objects),  2, false, true),
-		new Operator(">=", (objects) -> doIntegerOperation((a,b)->a>=b?1:0, objects), 2, false, true),
-		new Operator("<=", (objects) -> doIntegerOperation((a,b)->a<=b?1:0, objects), 2, false, true),
-		new Operator("!",   Operator::not, 1,  false, true),
-		new Operator("==",  Operator::equals, 2,  true,  true),
-		new Operator("!=",  Operator::notEquals, 2,  true,  true),
-		new Operator("len", objects->Integer.toString(objects[0].toString().length()), 1, true,  true),
-		new Operator("?", Operator::questionColon, 3, true, true)//,
-		//new Operator("toChar", Operator::toChar, 1, true, false),
-		//new Operator("toInt", Operator::toInt, 1, false, true),
-		//new Operator("substring", Operator::substring, 3, true, true)
+	private static final CanTakeType FALSE = n->false;
+	private static final CanTakeType TRUE = n->true;
+	
+	public static final Operator[] OPERATORS = {
+		new Operator("+",  Operator::doAddition, 								 2, TRUE,  TRUE),
+		new Operator("-",  (objects) -> doIntegerOperation((a,b)->a-b, objects), 2, FALSE, TRUE),
+		new Operator("*",  (objects) -> doIntegerOperation((a,b)->a*b, objects), 2, FALSE, TRUE),
+		new Operator("/",  (objects) -> doIntegerOperation((a,b)->a/b, objects), 2, FALSE, TRUE),
+		new Operator("%",  (objects) -> doIntegerOperation((a,b)->a%b, objects), 2, FALSE, TRUE),
+		new Operator(">",  (objects) -> doIntegerOperation((a,b)->a>b?1:0, objects),  2, FALSE, TRUE),
+		new Operator("<",  (objects) -> doIntegerOperation((a,b)->a<b?1:0, objects),  2, FALSE, TRUE),
+		new Operator(">=", (objects) -> doIntegerOperation((a,b)->a>=b?1:0, objects), 2, FALSE, TRUE),
+		new Operator("<=", (objects) -> doIntegerOperation((a,b)->a<=b?1:0, objects), 2, FALSE, TRUE),
+		new Operator("!",   Operator::not, 1,  FALSE, TRUE),
+		new Operator("==",  Operator::equals, 2,  TRUE,  TRUE), //We do care for integers in case '+' occurs 
+		new Operator("!=",  Operator::notEquals, 2,  TRUE,  TRUE),
+		new Operator("len", objects->Integer.toString(objects[0].toString().length()), 1, TRUE,  FALSE), //We only want the string
+		new Operator("?", Operator::questionColon, 3, n -> n>0, n -> n==0)//, //The first argument must be int, the rest string
+		//new Operator("toChar", Operator::toChar, 1, TRUE, FALSE),
+		//new Operator("toInt", Operator::toInt, 1, FALSE, TRUE),
+		//new Operator("substring", Operator::substring, 3, TRUE, TRUE)
 	};
 	
 	private String name;
 	private int paramCount;
-	private boolean strings, ints;
+	private CanTakeType strings, ints;
 	private OperatorDoer doer;
 	
-	public Operator(String name, OperatorDoer doer, int paramCount, boolean strings, boolean ints) {
+	public Operator(String name, OperatorDoer doer, int paramCount, CanTakeType strings, CanTakeType ints) {
 		this.name = name;
 		this.doer = doer;
 		this.paramCount = paramCount;
@@ -49,15 +52,19 @@ public class Operator {
 		return paramCount;
 	}
 	
-	public boolean canTakeStrings() {
-		return strings;
+	public boolean canTakeString(int argPos) {
+		return strings.canTake(argPos);
 	}
 	
-	public boolean canTakeInts() {
-		return ints;
+	public boolean canTakeInt(int argPos) {
+		return ints.canTake(argPos);
 	}
 	
-	public interface OperatorDoer {
+	interface CanTakeType {
+		boolean canTake(int argPos);
+	}
+	
+	interface OperatorDoer {
 		String doOperator(Object... objects);
 	}
 	
@@ -84,7 +91,7 @@ public class Operator {
 	private static String not(Object...objects) {
 		logAssert(objects.length==1);
 		logAssert(objects[0] instanceof Integer);
-		return ((Integer)objects[0]) != IfPPController.FALSE_INT ? IfPPController.TRUE_STRING : IfPPController.FALSE_STRING;
+		return IfPPController.evaluateIntToBoolean((Integer)objects[0]) ? IfPPController.FALSE_STRING : IfPPController.TRUE_STRING;
 	}
 	
 	private static String equals(Object...objects) {
@@ -100,6 +107,6 @@ public class Operator {
 	private static String questionColon(Object...objects) {
 		logAssert(objects.length == 3);
 		logAssert(objects[0] instanceof Integer);
-		return objects[1].toString();
+		return IfPPController.evaluateIntToBoolean((Integer)objects[0]) ? objects[1].toString() : objects[2].toString();
 	}
 }

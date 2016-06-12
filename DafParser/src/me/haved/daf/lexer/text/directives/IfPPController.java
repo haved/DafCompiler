@@ -53,9 +53,7 @@ public class IfPPController implements PreProcessorController {
 			boolean expressionValue = false;
 			String trimmed = expression.toString().trim();
 			try {
-				//Don't change without also looking at the operators
-				log(DEBUG, "%d", Integer.parseInt(trimmed));
-				expressionValue = Integer.parseInt(trimmed) != FALSE_INT;
+				expressionValue = evaluateIntToBoolean(Integer.parseInt(trimmed));
 			} catch(Exception e) {
 				log(inputHandler.getFile(), this.line, this.col, ERROR, 
 						"The condition of the #if directive was neither '%s' nor '%s', "
@@ -122,5 +120,9 @@ public class IfPPController implements PreProcessorController {
 	@Override
 	public String getName() {
 		return "If-statement controller";
+	}
+	
+	public static boolean evaluateIntToBoolean(int i) {
+		return i == TRUE_INT;
 	}
 }
