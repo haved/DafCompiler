@@ -24,8 +24,8 @@ public class Operator {
 		new Operator("!=",  Operator::notEquals, 2,  TRUE,  TRUE),
 		new Operator("len", objects->Integer.toString(objects[0].toString().length()), 1, TRUE,  FALSE), //We only want the string
 		new Operator("?", Operator::questionColon, 3, n -> n>0, n -> n==0), //The first argument must be int, the rest string
-		new Operator("toChar", Operator::toChar, 1, FALSE, TRUE)//,
-		//new Operator("toInt", Operator::toInt, 1, TRUE, FALSE),
+		new Operator("toChar", Operator::toChar, 1, FALSE, TRUE),
+		new Operator("toInt", Operator::toInt, 1, TRUE, FALSE)//,
 		//new Operator("substring", Operator::substring, 3, TRUE, TRUE)
 	};
 	
@@ -129,6 +129,18 @@ public class Operator {
 		return Character.toString(c);
 	}
 	
+	private static String toInt(Object...objects) {
+		logAssert(objects.length == 1 && objects[0] instanceof String);
+		String text = objects[0].toString();
+		logAssert(text.length() > 0);
+		
+		if(text.length() > 1) {
+			log(WARNING, "Called toInt on a string with more than one char! Using the first one");
+			return makeOperatorWarning(Integer.toString(text.charAt(0)));
+		}
+		
+		return Integer.toString(text.charAt(0));
+	}
 	
 	private static final String OPERATOR_WARNING = "#OP_WARNING ";
 	
