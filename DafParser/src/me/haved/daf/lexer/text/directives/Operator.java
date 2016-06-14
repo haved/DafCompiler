@@ -103,7 +103,9 @@ public class Operator {
 	}
 	
 	private static String notEquals(Object...objects) {
-		return not(equals(objects));
+		logAssert(objects.length==2);
+		return objects[0].toString().equals(objects[1].toString()) 
+				? IfPPController.FALSE_STRING : IfPPController.TRUE_STRING;
 	}
 	
 	private static String questionColon(Object...objects) {

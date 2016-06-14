@@ -1,1 +1,7 @@
-#( Test  4 -)
+#macro START 1
+#macro END 100
+
+#macro Next<val, max> $#( #val 3 % 0 == Fizz "" ? )#( #val 5 % 0 == Buzz "" ? )#( #val 15 % 0 != #val "" ? )
+//#if #( #val #max < ) #then #Next< #( #val 1 + )> #endif $
+$
+#Next<#START, 0>

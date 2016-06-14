@@ -33,13 +33,14 @@ public class ExpressionPPController implements PreProcessorController {
 		char c = inputHandler.getInputChar();
 		
 		if(TextParserUtil.isDoubleQuoteChar(c)) {
+			putElmOnStack(inputHandler, inQuotes);
 			inQuotes = !inQuotes;
-			putElmOnStack(inputHandler); //Only if elm has got content
 		} else if(!inQuotes && TextParserUtil.isAnyWhitespace(c)) {
-			putElmOnStack(inputHandler);
+			putElmOnStack(inputHandler, false);
 		} else if(!inQuotes && c == EXPRESSION_DIRECTIVE_END) {
-			putElmOnStack(inputHandler);
+			putElmOnStack(inputHandler, false);
 			if(stack.size()>0) {
+				log(INFO, "Expression evaluated to %s", stack.peek());
 				inputHandler.pushMultipleChars(stack.pop(), this.line, this.col);
 			}
 			pp.popBackControll();
@@ -55,8 +56,8 @@ public class ExpressionPPController implements PreProcessorController {
 		return true;
 	}
 
-	private void putElmOnStack(InputHandler handler) {
-		if(currentElm.length()==0) {
+	private void putElmOnStack(InputHandler handler, boolean forced) {
+		if(currentElm.length()==0 && !forced) {
 			return;
 		}
 		
@@ -76,8 +77,12 @@ public class ExpressionPPController implements PreProcessorController {
 		for(Operator op:Operator.OPERATORS) {
 			if(elm.equals(op.getName())) {
 				if(stack.size() < op.getParamCount()) {
-					log(handler.getFile(), handler.getInputChar(), handler.getInputCol()-elm.length(), ERROR, 
-							"The operator %s' requires %d elements to be on the stack, not just %d", elm, op.getParamCount(), stack.size());
+					log(handler.getFile(), handler.getInputLine(), handler.getInputCol()-elm.length(), ERROR, 
+							"The operator %s requires %d elements to be on the stack, not just %d", elm, op.getParamCount(), stack.size());
+					log(INFO, "The arguments already present were:");
+					for(int i = 0; i < stack.size(); i++) {
+						log(INFO, stack.get(i));
+					}
 					for(int i = stack.size(); i < op.getParamCount(); i++) {
 						stack.push(""); //Fill it with enough
 					}
@@ -110,7 +115,7 @@ public class ExpressionPPController implements PreProcessorController {
 				if(warning != null) {
 					result = warning;
 					log(handler.getFile(), handler.getInputCol(), handler.getInputLine(), WARNING, 
-							"Previous operator fault made the %s operator output %s", op.getName(), result);
+							"Previous operator fault made the %s operator output: %s", op.getName(), result);
 				}
 				
 				stack.push(result);
