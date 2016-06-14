@@ -97,15 +97,17 @@ public class ExpressionPPController implements PreProcessorController {
 						params[i] = stackElm;
 					else {
 						log(handler.getFile(), handler.getInputLine(), handler.getInputCol(), ERROR, 
-								"The %dth parameter of the %s operator must be an integer! Defaulting to 0");
-						params[i] = 0;
+								"Parameter #%d of the %s operator must be an integer! Defaulting to 0", i, op.getName());
+						params[i] = 0;//new Integer(0);
 					}
 				}
 				
 				String result = op.getDoer().doOperator(params);
 				
+				logAssert(result != null);
+				
 				String warning = Operator.parseWarning(result);
-				if(warning == null) {
+				if(warning != null) {
 					result = warning;
 					log(handler.getFile(), handler.getInputCol(), handler.getInputLine(), WARNING, 
 							"Previous operator fault made the %s operator output %s", op.getName(), result);
