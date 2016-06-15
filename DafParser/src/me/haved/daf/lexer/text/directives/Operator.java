@@ -2,6 +2,8 @@ package me.haved.daf.lexer.text.directives;
 
 import static me.haved.daf.LogHelper.*;
 
+import me.haved.daf.lexer.text.TextParserUtil;
+
 public class Operator {
 	
 	private static final CanTakeType FALSE = n->false;
@@ -21,9 +23,9 @@ public class Operator {
 		new Operator("==",  Operator::equals, 2,  TRUE,  TRUE), //We do care for integers in case '+' occurs 
 		new Operator("!=",  Operator::notEquals, 2,  TRUE,  TRUE),
 		new Operator("len", objects->Integer.toString(objects[0].toString().length()), 1, TRUE,  FALSE), //We only want the string
-		new Operator("?", Operator::questionColon, 3, n -> n>0, n -> n==0)//, //The first argument must be int, the rest string
-		//new Operator("toChar", Operator::toChar, 1, TRUE, FALSE),
-		//new Operator("toInt", Operator::toInt, 1, FALSE, TRUE),
+		new Operator("?", Operator::questionColon, 3, n -> n>0, n -> n==0), //The first argument must be int, the rest string
+		new Operator("toChar", Operator::toChar, 1, FALSE, TRUE)//,
+		//new Operator("toInt", Operator::toInt, 1, TRUE, FALSE),
 		//new Operator("substring", Operator::substring, 3, TRUE, TRUE)
 	};
 	
@@ -105,8 +107,38 @@ public class Operator {
 	}
 	
 	private static String questionColon(Object...objects) {
-		logAssert(objects.length == 3);
-		logAssert(objects[0] instanceof Integer);
+		logAssert(objects.length == 3 && objects[0] instanceof Integer);
 		return IfPPController.evaluateIntToBoolean((Integer)objects[0]) ? objects[1].toString() : objects[2].toString();
+	}
+	
+	private static String toChar(Object...objects) {
+		logAssert(objects.length == 1 && objects[0] instanceof Integer);
+		int i = (Integer)objects[0];
+		if(i > Character.MAX_VALUE) {
+			log(ERROR, "A PP expression wanted to turn the integer %d into a char! Way too high! Using '?' instead", i);
+			return makeOperatorWarning("E");
+		}
+		
+		char c = (char) i;
+		
+		if(!TextParserUtil.isLegalChar(c)) {
+			log(ERROR, "%d toChar made little sense, as the resulting char '%c' is not known to be legal. Using '?' instead", i, c);
+			return makeOperatorWarning("?");
+		}
+		
+		return Character.toString(c);
+	}
+	
+	
+	private static final String OPERATOR_WARNING = "#OP_WARNING ";
+	
+	public static String makeOperatorWarning(String output) {
+		return String.format("%s%s", OPERATOR_WARNING, output);
+	}
+	
+	public static String parseWarning(String text) {
+		if(text.startsWith(OPERATOR_WARNING))
+			return text.substring(OPERATOR_WARNING.length());
+		return null;
 	}
 }

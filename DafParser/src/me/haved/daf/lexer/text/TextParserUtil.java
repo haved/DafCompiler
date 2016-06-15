@@ -15,6 +15,8 @@ public class TextParserUtil {
 		return false;
 	}
 	
+	public static boolean isLegalChar(char c) { return isAnyWhitespace(c) || (c >= '!' && c != 127 /*DEL*/);}
+	
 	public static boolean isLetterOrScore(char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'; }
 	
 	public static boolean isNormalWhitespace(char c) { return c == ' ' | c == '\t'; }
