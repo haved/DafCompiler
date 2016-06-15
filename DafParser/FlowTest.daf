@@ -6,6 +6,6 @@
 $
 #Next<#START, 0>*/
 
-#macro Next<val, max> #val #if #(#val #max <) #then #Next<#(val 1 +), #max> #endif
+#macro Next<val, max> #val #if #(#val #max <) #then #Next<#(#val 1 +), #max> #endif
 
 #Next<#(1 1 +), 20>
