@@ -5,6 +5,8 @@ import me.haved.daf.lexer.text.PreProcessor;
 import me.haved.daf.lexer.text.TextParserUtil;
 import me.haved.daf.lexer.text.PreProcessor.InputHandler;
 
+import static me.haved.daf.LogHelper.*;
+
 public class MacroEvaluationPPController implements PreProcessorController {
 
 	private int line, col;
@@ -24,7 +26,10 @@ public class MacroEvaluationPPController implements PreProcessorController {
 		this.line = line;
 		this.col = col;
 		this.parameters = new String[macro.getParameterCount()];
+		this.buffer = new StringBuilder();
 	}
+	
+	int scope = 0;
 	
 	@Override
 	public boolean allowAdvanceToReturn(PreProcessor pp, InputHandler inputHandler) {
@@ -34,6 +39,7 @@ public class MacroEvaluationPPController implements PreProcessorController {
 			if(TextParserUtil.isStartOfMacroParameters(c)) {
 				parameterList = true;
 				paramLookingAt = 0;
+				scope = 1;
 				buffer.setLength(0);
 				updateNextSeparator();
 				return false;
@@ -47,8 +53,26 @@ public class MacroEvaluationPPController implements PreProcessorController {
 			}
 		}
 		
-		if(paramLookingAt <= parameters.length) {
-			
+		if(TextParserUtil.isStartOfIdentifier(c))
+			scope++;
+		
+		if(paramLookingAt < parameters.length) {
+			if(c == nextSep && scope == 1) {
+				parameters[paramLookingAt] = buffer.toString();
+				buffer.setLength(0);
+				paramLookingAt++;
+				updateNextSeparator();
+			}
+			else
+				buffer.append(c);
+		}
+		
+		if(TextParserUtil.isEndOfMacroParameters(c))
+			scope--;
+		
+		if(scope == 0) {
+			pushMacroDefinition(inputHandler, line, col);
+			pp.popBackControll();
 		}
 			
 		return false;
@@ -59,7 +83,17 @@ public class MacroEvaluationPPController implements PreProcessorController {
 	}
 	
 	private void pushMacroDefinition(InputHandler handler, int line, int col) {
-		
+		if(paramLookingAt != parameters.length) {
+			log(handler.getFile(), line, col, ERROR, "The macro %s requires %d parameters, but %d were given!", 
+					macro.getName(), parameters.length, paramLookingAt);
+			log(INFO, "The macro signature: %s\n", macro.getSignature());
+			log(VERBOSE, "Parameters given:");
+			for(int i = 0; i < paramLookingAt; i++) {
+				log(VERBOSE, parameters[i]);
+			}
+			log(VERBOSE, "End of list");
+		} else
+			macro.pushDefinition(handler, parameters, line, col);
 	}
 	
 	@Override

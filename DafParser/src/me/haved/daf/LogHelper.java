@@ -15,9 +15,10 @@ public class LogHelper {
 	public static final int ERROR = 6;
 	public static final int FATAL_ERROR = 7;
 	public static final int ASSERTION_FAILED = 8;
+	public static final int VERBOSE = 9;
 	
 	private static final String[] LOG_LEVEL_NAMES = {"super_debug", "debug", "info", "message",
-					"suggestion", "warning", "error", "fatal_error", "assertion_failed"};
+					"suggestion", "warning", "error", "fatal_error", "assertion_failed", "verbose"};
 	
 	private static final String COMPILER_NAME = "daf";
 	

@@ -57,8 +57,7 @@ public class Macro {
 		stack.pushMultipleChars(definition, line, col);
 	}
 	
-	@Override
-	public String toString() {
+	public String getSignature() {
 		StringBuilder builder = new StringBuilder();
 		
 		builder.append(name);
@@ -69,9 +68,12 @@ public class Macro {
 			if(separators != null && i < separators.length)
 				builder.append(separators[i]).append(" ");
 		}
-		builder.append(String.format("> %s", definition));
-		
-		return builder.toString();
+		return builder.append(">").toString();
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("%s %s", getSignature(), definition);
 	}
 	
 	public static Macro makeMacroFromString(String text) {
