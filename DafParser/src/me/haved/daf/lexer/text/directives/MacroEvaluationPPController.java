@@ -92,7 +92,7 @@ public class MacroEvaluationPPController implements PreProcessorController {
 				log(VERBOSE, parameters[i]);
 			}
 			log(VERBOSE, "End of list");
-		} else
+		} else if(macro.hasDefinition()) //No point in anything really, if there is no definition
 			macro.pushDefinition(handler, parameters, line, col);
 	}
 	

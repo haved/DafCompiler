@@ -140,6 +140,7 @@ public class PreProcessor implements TextSupplier {
 		while(true) {
 			if(!TextParserUtil.isLegalDirectiveChar(inputHandler.getInputChar()))
 				break;
+			
 			builder.append(inputHandler.getInputChar());
 			
 			if(TextParserUtil.isOneLetterCompilerToken(inputHandler.getInputChar())) {

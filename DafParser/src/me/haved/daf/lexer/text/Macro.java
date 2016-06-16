@@ -39,6 +39,7 @@ public class Macro {
 	}
 	
 	public void pushDefinition(CharStack stack, String[] parameters, int line, int col) {
+		logAssert(definition!=null);
 		logAssert(getParameterCount() == (parameters == null ? 0 : parameters.length));
 		
 		if(parameters != null && parameters.length > 0) {
@@ -57,6 +58,10 @@ public class Macro {
 		stack.pushMultipleChars(definition, line, col);
 	}
 	
+	public boolean hasDefinition() {
+		return definition != null;
+	}
+	
 	public String getSignature() {
 		StringBuilder builder = new StringBuilder();
 		
@@ -73,7 +78,7 @@ public class Macro {
 	
 	@Override
 	public String toString() {
-		return String.format("%s %s", getSignature(), definition);
+		return String.format("%s %s", getSignature(), definition!=null?definition:"'no definition'");
 	}
 	
 	public static Macro makeMacroFromString(String text) {
