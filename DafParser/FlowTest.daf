@@ -1,2 +1,2 @@
-#macro Next<val, max> #max#max<>hfgh
+#macro Next<val, max> #max//Test
 #Next<#(1 1 +), 20>

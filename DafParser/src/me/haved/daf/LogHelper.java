@@ -110,4 +110,11 @@ public class LogHelper {
 		println("Finished in %.2fs with error status %d",
 						(System.currentTimeMillis()-startTime)/1000f, errorStatus);
 	}
+	
+	
+	
+	
+	public static String format(String format, Object...args) {
+		return String.format(format, args);
+	}
 }

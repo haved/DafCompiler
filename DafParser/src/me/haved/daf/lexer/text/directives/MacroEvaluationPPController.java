@@ -38,6 +38,7 @@ public class MacroEvaluationPPController implements PreProcessorController {
 			if(TextParserUtil.isStartOfMacroParameters(c)) {
 				parameterList = true;
 				paramLookingAt = 0;
+				scope = 1;
 				buffer.setLength(0);
 				updateNextSeparator();
 				return false;
@@ -72,7 +73,6 @@ public class MacroEvaluationPPController implements PreProcessorController {
 		
 		if(scope == 0) {
 			pushMacroDefinition(inputHandler, line, col);
-			println("Macro done: %s", macro.toString());
 			pp.popBackControll();
 		}
 			
