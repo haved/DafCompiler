@@ -53,5 +53,4 @@ public class MacroPPController implements PreProcessorController {
 	public String getName() {
 		return "Macro definition controller";
 	}
-
 }

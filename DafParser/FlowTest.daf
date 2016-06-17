@@ -1,2 +1,2 @@
-#macro Next<val, max> #max //Test
-#Next<#(1 1 +), 20>
+#macro Next(<val, max> #max //Test
+#Next<2d, 5>

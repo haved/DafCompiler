@@ -80,7 +80,7 @@ public class MacroEvaluationPPController implements PreProcessorController {
 	}
 
 	private void updateNextSeparator() {
-		nextSep = paramLookingAt < macro.getSeparators().length ? macro.getSeparators()[paramLookingAt] : TextParserUtil.END_OF_MACRO_PARAMETER;
+		nextSep = paramLookingAt < macro.getSeparatorCount() ? macro.getSeparators()[paramLookingAt] : TextParserUtil.END_OF_MACRO_PARAMETER;
 	}
 	
 	private void pushMacroDefinition(InputHandler handler, int line, int col) {

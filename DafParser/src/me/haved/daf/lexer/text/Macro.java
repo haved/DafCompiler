@@ -34,6 +34,10 @@ public class Macro {
 		return separators;
 	}
 	
+	public int getSeparatorCount() {
+		return separators != null ? separators.length : 0;
+	}
+	
 	public int getParameterCount() {
 		return parameters == null ? 0 : parameters.length;
 	}
@@ -107,9 +111,15 @@ public class Macro {
 		
 		if(index == startOfName) {
 			log(ERROR, "The macro definition didn't have a name!");
+			return null;
 		}
 		
 		String macroName = text.substring(startOfName, index);
+		
+		if(!TextParserUtil.isStartOfMacroParameters(text.charAt(index))) {
+			log(ERROR, "The macro name '%s' was directly followed by a special char '%c' ! Blasphemous!", macroName, text.charAt(index));
+			return null;
+		}
 		
 		while(index < text.length() && TextParserUtil.isNormalWhitespace(text.charAt(index))) //Skip whitespaces
 			index++;
