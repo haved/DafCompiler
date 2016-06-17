@@ -44,7 +44,10 @@ public class MacroPPController implements PreProcessorController {
 		
 		definition.append('#');
 		definition.append(directiveText);
-		definition.append("<>");
+		inputHandler.advanceInput();
+		if(!TextParserUtil.isStartOfMacroParameters(inputHandler.getInputChar()))
+			definition.append("<>");
+		inputHandler.pushCurrentChar();
 		
 		return false;
 	}

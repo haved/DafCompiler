@@ -1,7 +1,7 @@
-#macro Noe 5
-
-#(#Noe #Noe<> <)
-
-//#macro Next<val, max> #val #if #(#val #max <) #then #Next<#(val 1 +),#max> #endif
+//#macro Next<val, max> #val #if #(#val #max<> <) #then #Next<#(#val 1 +), #max> #endif
 
 //#Next<1, 100>
+
+#macro Noe 5
+
+#(4 #Noe<> <)
