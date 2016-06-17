@@ -1,2 +1,7 @@
-#macro Next(<val, max> #max //Test
-#Next<2d, 5>
+#macro Noe 5
+
+#(#Noe #Noe<> <)
+
+//#macro Next<val, max> #val #if #(#val #max <) #then #Next<#(val 1 +),#max> #endif
+
+//#Next<1, 100>

@@ -37,7 +37,7 @@ public class TextParserUtil {
 	
 	public static boolean isLegalDirectiveChar(char c) { return isIdentifierChar(c) || c == '('; }
 	
-	public static boolean isOneLetterCompilerToken(char c) { return c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')'; }
+	public static boolean isOneLetterDirective(char c) { return c == '('; }
 	
 	public static boolean isStartOfMacroParameters(char c) { return c == START_OF_MACRO_PARAMETER; }
 

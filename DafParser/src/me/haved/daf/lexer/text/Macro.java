@@ -86,6 +86,8 @@ public class Macro {
 	}
 	
 	public static Macro makeMacroFromString(String text) {
+		println(text);
+		
 		int index = 0;
 		while(index < text.length() && TextParserUtil.isNormalWhitespace(text.charAt(index))) //Skip whitespaces
 			index++;
@@ -106,8 +108,16 @@ public class Macro {
 		
 		int startOfName = index;
 		
-		while(index < text.length() && TextParserUtil.isIdentifierChar(text.charAt(index)))
-			index++;
+		while(index < text.length()) {
+			char c = text.charAt(index);
+			if(TextParserUtil.isIdentifierChar(c)) {
+				index++;
+			} else if(!TextParserUtil.isAnyWhitespace(c) && !TextParserUtil.isStartOfMacroParameters(c)) {
+				log(ERROR, "The macro name '%s' was directly followed by a special char '%c' ! Blasphemous!", 
+										text.substring(startOfName, index), text.charAt(index));
+				return null;
+			} else break;
+		}
 		
 		if(index == startOfName) {
 			log(ERROR, "The macro definition didn't have a name!");
@@ -115,11 +125,6 @@ public class Macro {
 		}
 		
 		String macroName = text.substring(startOfName, index);
-		
-		if(!TextParserUtil.isStartOfMacroParameters(text.charAt(index))) {
-			log(ERROR, "The macro name '%s' was directly followed by a special char '%c' ! Blasphemous!", macroName, text.charAt(index));
-			return null;
-		}
 		
 		while(index < text.length() && TextParserUtil.isNormalWhitespace(text.charAt(index))) //Skip whitespaces
 			index++;

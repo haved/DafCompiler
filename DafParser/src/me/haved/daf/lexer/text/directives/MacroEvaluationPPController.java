@@ -32,7 +32,7 @@ public class MacroEvaluationPPController implements PreProcessorController {
 	int scope = 0;
 	
 	@Override
-	public boolean allowAdvanceToReturn(PreProcessor pp, InputHandler inputHandler) {	
+	public boolean allowAdvanceToReturn(PreProcessor pp, InputHandler inputHandler) {
 		char c = pp.getCurrentChar();
 		if(!parameterList) {
 			if(TextParserUtil.isStartOfMacroParameters(c)) {
@@ -41,7 +41,6 @@ public class MacroEvaluationPPController implements PreProcessorController {
 				scope = 1;
 				buffer.setLength(0);
 				updateNextSeparator();
-				return false;
 			}
 			else if(TextParserUtil.isNormalWhitespace(c))
 				buffer.append(c);
@@ -50,8 +49,9 @@ public class MacroEvaluationPPController implements PreProcessorController {
 				inputHandler.pushMultipleChars(buffer.toString(), line, col);
 				pushMacroDefinition(inputHandler, line, col);
 				pp.popBackControll();
-				return false;
+				
 			}
+			return false;
 		}
 		
 		if(TextParserUtil.isStartOfMacroParameters(c))

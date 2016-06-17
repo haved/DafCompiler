@@ -40,7 +40,6 @@ public class ExpressionPPController implements PreProcessorController {
 		} else if(!inQuotes && c == EXPRESSION_DIRECTIVE_END) {
 			putElmOnStack(inputHandler, false);
 			if(stack.size()>0) {
-				log(INFO, "Expression evaluated to %s", stack.peek());
 				inputHandler.pushMultipleChars(stack.pop(), this.line, this.col);
 			}
 			pp.popBackControll();
