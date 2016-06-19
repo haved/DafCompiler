@@ -14,7 +14,7 @@ public class MacroEvaluationPPController implements PreProcessorController {
 	private Macro macro;
 	private String[] parameters;
 	
-	int scope = 0;
+	private int scope = 0;
 	private int paramLookingAt = 0;
 	
 	private StringBuilder buffer;
@@ -68,7 +68,8 @@ public class MacroEvaluationPPController implements PreProcessorController {
 		if(TextParserUtil.isEndOfMacroParameters(c))
 			scope--;
 		
-		if(scope == 0) {
+		if(scope <= 0) {
+			logAssert(scope==0);
 			pushMacroDefinition(inputHandler, line, col);
 			pp.popBackControll();
 		}
@@ -97,6 +98,7 @@ public class MacroEvaluationPPController implements PreProcessorController {
 	@Override
 	public boolean allowDirectiveToHappen(String directiveText, int line, int col, PreProcessor pp,
 			InputHandler inputHandler) {
+		logAssert(scope > 0);
 		return true; //Allow everything to happen
 	}
 	
@@ -109,5 +111,4 @@ public class MacroEvaluationPPController implements PreProcessorController {
 	public String getName() {
 		return "Macro Evaluation PreProcController";
 	}
-
 }

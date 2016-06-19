@@ -1,7 +1,3 @@
-//#macro Next<val, max> #val #if #(#val #max<> <) #then #Next<#(#val 1 +), #max> #endif
-
-//#Next<1, 100>
-
-#macro Noe<param> #if #(#param 5 <) #then Halla #param #endif 
-
-#Noe<4>
+#macro Next<val, max>$#(#val 3 % 0 == "Fizz" "" ?)#(#val 5 % 0 == "Buzz" ""?)#(#val 3 % #val 5 % * 0 != #val "" ?)
+#if#(#val #max<><> <)#then#Next<#(#val 1 +),#max>#endif$
+#Next<1, 100>

@@ -59,7 +59,6 @@ public class Macro {
 			stack.pushMacroMapPopCommand(line, col);
 		}
 		
-		println("Pushing to stack: %s", definition);
 		stack.pushMultipleChars(definition, line, col);
 	}
 	
@@ -87,8 +86,6 @@ public class Macro {
 	}
 	
 	public static Macro makeMacroFromString(String text) {
-		println(text);
-		
 		int index = 0;
 		while(index < text.length() && TextParserUtil.isNormalWhitespace(text.charAt(index))) //Skip whitespaces
 			index++;
