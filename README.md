@@ -8,7 +8,15 @@ What daf stands for, you ask? I dunno. **Definitely Adequately Functional**, per
 
 ###### Cool example?
 So far it's just a preprocessor with a macro system. The macro system is cool, though! Use --preproc to only do preprocessing on an input file, and save the output as a file.  
-  
+
+**Grand preprocessor FizzBuzz**
+```
+#macro Next<val, max>$#(#val 3 % 0 == "Fizz" "" ?)#(#val 5 % 0 == "Buzz" ""?)#(#val 3 % #val 5 % * 0 != #val "" ?)
+#if#(#val #max<><> <)#then#Next<#(#val 1 +),#max>#endif$
+#Next<1, 100>
+```
+The code above yeilds all the numbers from 1 to 100, with every multiple of 3 replaced with 'Fizz', every multiple of 5 replaced with 'Buzz' and every multiple of both replaced with 'FizzBuzz'. A true classic! 
+
 **Example of macros**
 ```
 #macro TRANSMIT<whatToDo<something>,somethingElse> ==START== #whatToDo<#somethingElse> ==END_OF_TRANSMISSION==
