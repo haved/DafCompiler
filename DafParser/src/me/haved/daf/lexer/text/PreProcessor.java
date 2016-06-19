@@ -63,7 +63,7 @@ public class PreProcessor implements TextSupplier {
 	private boolean trySetCurrentChar(char c, int line, int col) {
 		if(c=='/')
 			return doCommentChecks(c, line, col);//Try doing comments and stuff
-		else if(c=='#')
+		else if(c=='#' && (controllers.isEmpty() || controllers.peek().lookForDirectives()))
 			return doFlowMacrosAndArithmetic(c, line, col);//Try doing macros, arithmetic and evaluation
 		return forceSetCurrentChar(c, line, col);
 	}

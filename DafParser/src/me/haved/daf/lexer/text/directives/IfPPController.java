@@ -43,6 +43,8 @@ public class IfPPController implements PreProcessorController {
 
 	@Override
 	public boolean allowDirectiveToHappen(String directiveText, int line, int col, PreProcessor pp, InputHandler inputHandler) {	
+		println("Directive: %s", directiveText);
+		
 		if(directiveText.equals(THEN_DIRECTIVE)) {
 			if(!readingExpression) {
 				log(pp.getFile(), line, col, ERROR, "A rouge #%s directive was found within another if directive. What to do?", THEN_DIRECTIVE);

@@ -14,7 +14,7 @@ public class MacroEvaluationPPController implements PreProcessorController {
 	private Macro macro;
 	private String[] parameters;
 	
-	private boolean parameterList = false;
+	int scope = 0;
 	private int paramLookingAt = 0;
 	
 	private StringBuilder buffer;
@@ -29,14 +29,11 @@ public class MacroEvaluationPPController implements PreProcessorController {
 		this.buffer = new StringBuilder();
 	}
 	
-	int scope = 0;
-	
 	@Override
 	public boolean allowAdvanceToReturn(PreProcessor pp, InputHandler inputHandler) {
 		char c = pp.getCurrentChar();
-		if(!parameterList) {
+		if(scope == 0) {
 			if(TextParserUtil.isStartOfMacroParameters(c)) {
-				parameterList = true;
 				paramLookingAt = 0;
 				scope = 1;
 				buffer.setLength(0);
@@ -101,6 +98,11 @@ public class MacroEvaluationPPController implements PreProcessorController {
 	public boolean allowDirectiveToHappen(String directiveText, int line, int col, PreProcessor pp,
 			InputHandler inputHandler) {
 		return true; //Allow everything to happen
+	}
+	
+	@Override
+	public boolean lookForDirectives() {
+		return scope > 0;
 	}
 
 	@Override

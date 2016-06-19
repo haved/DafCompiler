@@ -2,6 +2,6 @@
 
 //#Next<1, 100>
 
-#macro Noe 5
+#macro Noe<param> #if #(#param 5 <) #then Halla #param #endif 
 
-#(4 #Noe<> <)
+#Noe<4>

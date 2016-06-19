@@ -59,6 +59,7 @@ public class Macro {
 			stack.pushMacroMapPopCommand(line, col);
 		}
 		
+		println("Pushing to stack: %s", definition);
 		stack.pushMultipleChars(definition, line, col);
 	}
 	
@@ -110,7 +111,7 @@ public class Macro {
 		
 		while(index < text.length()) {
 			char c = text.charAt(index);
-			if(TextParserUtil.isIdentifierChar(c)) {
+			if(TextParserUtil.isStartOfIdentifier(c)) { //Every char following the first must be a letter or underscore, not a pesky number
 				index++;
 			} else if(!TextParserUtil.isAnyWhitespace(c) && !TextParserUtil.isStartOfMacroParameters(c)) {
 				log(ERROR, "The macro name '%s' was directly followed by a special char '%c' ! Blasphemous!", 

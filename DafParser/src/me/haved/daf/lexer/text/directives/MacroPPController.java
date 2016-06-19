@@ -41,15 +41,13 @@ public class MacroPPController implements PreProcessorController {
 	@Override
 	public boolean allowDirectiveToHappen(String directiveText, int line, int col, PreProcessor pp,
 			InputHandler inputHandler) {
-		
-		definition.append('#');
-		definition.append(directiveText);
-		inputHandler.advanceInput();
-		if(!TextParserUtil.isStartOfMacroParameters(inputHandler.getInputChar()))
-			definition.append("<>");
-		inputHandler.pushCurrentChar();
-		
+		logAssert(false);
 		return false;
+	}
+	
+	@Override
+	public boolean lookForDirectives() {
+		return false; //We don't care for 'em
 	}
 
 	@Override

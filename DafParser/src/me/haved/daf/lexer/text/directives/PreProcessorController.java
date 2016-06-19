@@ -10,4 +10,8 @@ public interface PreProcessorController {
 	public boolean allowDirectiveToHappen(String directiveText, int line, int col, PreProcessor pp, InputHandler inputHandler);
 	
 	public String getName();
+	
+	public default boolean lookForDirectives() {
+		return true;
+	}
 }
