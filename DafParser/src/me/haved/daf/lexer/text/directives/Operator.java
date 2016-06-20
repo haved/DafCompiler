@@ -25,8 +25,8 @@ public class Operator {
 		new Operator("len", objects->Integer.toString(objects[0].toString().length()), 1, TRUE,  FALSE), //We only want the string
 		new Operator("?", Operator::questionColon, 3, n -> n>0, n -> n==0), //The first argument must be int, the rest string
 		new Operator("toChar", Operator::toChar, 1, FALSE, TRUE),
-		new Operator("toInt", Operator::toInt, 1, TRUE, FALSE)//,
-		//new Operator("substring", Operator::substring, 3, TRUE, TRUE)
+		new Operator("toInt", Operator::toInt, 1, TRUE, FALSE),
+		new Operator("substring", Operator::substring, 3, n->n==0, n->n>0)
 		//swap, dup, Xswap, lineNum, colNum, exists, macroStack 
 	};
 	
@@ -143,6 +143,25 @@ public class Operator {
 		}
 		
 		return Integer.toString(text.charAt(0));
+	}
+	
+	private static String substring(Object...objects) {
+		logAssert(objects.length == 3 && objects[0] instanceof String && objects[1] instanceof Integer && objects[2] instanceof Integer);
+		int start = (Integer) objects[1];
+		int end = (Integer) objects[2];
+		String text = objects[0].toString();
+		
+		if(start < 0) {
+			log(ERROR, "The substring operator was given an out of bounds start (too low): '%d'", start);
+		} else if(end < start) {
+			log(ERROR, "The end of a substring operation (%d) was less than the start (%d)", end, start);
+		} else if(end > text.length()) {
+			log(ERROR, "The substring operator was set to end the substring at %d, outside of the string (length: %d)", end, text.length());
+		} else {
+			return text.substring(start, end);
+		}
+		
+		return makeOperatorWarning(text);
 	}
 	
 	private static final String OPERATOR_WARNING = "#OP_WARNING ";
