@@ -27,7 +27,6 @@ public class Operator {
 		new Operator("toChar", Operator::toChar, 1, FALSE, TRUE),
 		new Operator("toInt", Operator::toInt, 1, TRUE, FALSE),
 		new Operator("substring", Operator::substring, 3, n->n==0, n->n>0)
-		//swap, dup, Xswap, lineNum, colNum, exists, macroStack 
 	};
 	
 	private String name;
