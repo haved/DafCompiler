@@ -76,54 +76,79 @@ public class ExpressionPPController implements PreProcessorController {
 	private boolean handleSpecialElement(String elm, InputHandler handler) {
 		for(Operator op:Operator.OPERATORS) {
 			if(elm.equals(op.getName())) {
-				if(stack.size() < op.getParamCount()) {
-					log(handler.getFile(), handler.getInputLine(), handler.getInputCol()-elm.length(), ERROR, 
-							"The operator %s requires %d elements to be on the stack, not just %d", elm, op.getParamCount(), stack.size());
-					log(INFO, "The arguments already present were:");
-					for(int i = 0; i < stack.size(); i++) {
-						log(INFO, stack.get(i));
-					}
-					for(int i = stack.size(); i < op.getParamCount(); i++) {
-						stack.push(""); //Fill it with enough
-					}
-				}
-				
-				Object[] params = new Object[op.getParamCount()];
-				
-				for(int i = params.length -1; i >= 0; i--) {
-					String stackElm = stack.pop();
-					if(op.canTakeInt(i)) {
-						try {
-							params[i] = Integer.parseInt(stackElm);
-							continue;
-						} catch(Exception e) {} //I don't like throwing exceptions on purpose
-					}
-					if(op.canTakeString(i))
-						params[i] = stackElm;
-					else {
-						log(handler.getFile(), handler.getInputLine(), handler.getInputCol(), ERROR, 
-								"Parameter #%d of the %s operator must be an integer! Defaulting to 0", i, op.getName());
-						params[i] = 0;//new Integer(0);
-					}
-				}
-				
-				String result = op.getDoer().doOperator(params);
-				
-				logAssert(result != null);
-				
-				String warning = Operator.parseWarning(result);
-				if(warning != null) {
-					result = warning;
-					log(handler.getFile(), handler.getInputCol(), handler.getInputLine(), WARNING, 
-							"Previous operator fault made the %s operator output: %s", op.getName(), result);
-				}
-				
-				stack.push(result);
-				
+				handleOperator(op, elm, handler);
+				return true;
+			}
+		}
+		for(ExpressionAction action:ExpressionAction.ACTIONS) {
+			if(elm.equals(action.getName())) {
+				handleAction(action, elm, handler);
 				return true;
 			}
 		}
 		return false;
+	}
+	
+	private void handleOperator(Operator op, String elm, InputHandler handler) {
+		if(stack.size() < op.getParamCount()) {
+			log(handler.getFile(), handler.getInputLine(), handler.getInputCol()-elm.length(), ERROR, 
+					"The expression operator %s requires %d elements to be on the stack, not just %d", elm, op.getParamCount(), stack.size());
+			log(INFO, "The arguments already present were:");
+			for(int i = 0; i < stack.size(); i++) {
+				log(INFO, stack.get(i));
+			}
+			for(int i = stack.size(); i < op.getParamCount(); i++) {
+				stack.push(""); //Fill it with enough
+			}
+		}
+		
+		Object[] params = new Object[op.getParamCount()];
+		
+		for(int i = params.length -1; i >= 0; i--) {
+			String stackElm = stack.pop();
+			if(op.canTakeInt(i)) {
+				try {
+					params[i] = Integer.parseInt(stackElm);
+					continue;
+				} catch(Exception e) {} //I don't like throwing exceptions on purpose
+			}
+			if(op.canTakeString(i))
+				params[i] = stackElm;
+			else {
+				log(handler.getFile(), handler.getInputLine(), handler.getInputCol(), ERROR, 
+						"Parameter #%d of the %s operator must be an integer! Defaulting to 0", i, op.getName());
+				params[i] = 0;//new Integer(0);
+			}
+		}
+		
+		String result = op.getDoer().doOperator(params);
+		
+		logAssert(result != null);
+		
+		String warning = Operator.parseWarning(result);
+		if(warning != null) {
+			result = warning;
+			log(handler.getFile(), handler.getInputCol(), handler.getInputLine(), WARNING, 
+					"Previous operator fault made the %s operator output: %s", op.getName(), result);
+		}
+		
+		stack.push(result);
+	}
+	
+	private void handleAction(ExpressionAction action, String elm, InputHandler handler) {
+		if(stack.size() < action.getRequiredParameters()) {
+			log(handler.getFile(), handler.getInputLine(), handler.getInputCol()-elm.length(), ERROR, 
+					"The expression action %s requires %d elements to be on the stack, not just %d", elm, action.getRequiredParameters(), stack.size());
+			log(INFO, "The arguments already present were:");
+			for(int i = 0; i < stack.size(); i++) {
+				log(INFO, stack.get(i));
+			}
+			for(int i = stack.size(); i < action.getRequiredParameters(); i++) {
+				stack.push(""); //Fill it with enough
+			}
+		}
+		
+		action.doAction(stack, handler);
 	}
 	
 	@Override
