@@ -59,6 +59,6 @@ quotation marks are used.
 * **macroStack** Pushes the size of the macro parameter stack
 * **pop**	 Pops the top element
 
-NOTE: **==**, **!=** and **+** are the only operators that work with strings.
+NOTE: **==**, **!=** and **+** are the only operators that work with both ints and strings.
 
 ####Is my macro system turing complete yet?

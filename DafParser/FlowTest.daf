@@ -1,3 +1,5 @@
-macro Next<val, max>$#(#val 3 % 0 == "Fizz" "" ?)#(#val 5 % 0 == "Buzz" ""?)#(#val 3 % #val 5 % * 0 != #val "" ?)
-#if#(#val #max<><> <)#then#Next<#(#val 1 +),#max>#endif$
-#Next<1, 100>
+#macro TRANSMIT<whatToDo<something>,somethingElse> ==START== #whatToDo<#somethingElse> ==END_OF_TRANSMISSION==
+
+#macro DoSomething I'm doing #something!
+
+printf("#TRANSMIT<##DoSomething,cheese>");
