@@ -10,7 +10,7 @@ public class ExpressionAction {
 			new ExpressionAction("swap", 2, (stack, input)->{String s = stack.pop(); String s2 = stack.pop(); stack.push(s); stack.push(s2);}),
 			new ExpressionAction("dup", 1, (stack, input)->{stack.push(stack.peek());}),
 			new ExpressionAction("lineNum", 0, (stack, input)->stack.push(Integer.toString(input.getInputLine()))),
-			new ExpressionAction("lineCol", 0, (stack, input)->stack.push(Integer.toString(input.getInputCol()))),
+			new ExpressionAction("colNum", 0, (stack, input)->stack.push(Integer.toString(input.getInputCol()))),
 			new ExpressionAction("exists", 1, 
 					(stack, input)->stack.push(input.getMacro(stack.peek())!= null ? IfPPController.TRUE_STRING : IfPPController.FALSE_STRING)),
 			new ExpressionAction("macroStack", 0, (stack, input)->stack.push(Integer.toString(input.getMacroStack().size()))),
