@@ -1,6 +1,7 @@
 package me.haved.daf.syxer;
 
 import me.haved.daf.data.Definition;
+import me.haved.daf.data.Type;
 import me.haved.daf.lexer.tokens.TokenType;
 
 import static me.haved.daf.LogHelper.*;
@@ -36,7 +37,9 @@ public class LetDefSyntaxReader implements SyntaxReader {
 			return null;
 		}
 		
-		
+		if(!autoType) {
+			Type type = TypeParser.parseType(buffer);
+		}
 		
 		return null;
 	}
