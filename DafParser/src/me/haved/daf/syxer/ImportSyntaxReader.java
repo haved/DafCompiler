@@ -59,7 +59,7 @@ public class ImportSyntaxReader {
 		bufferer.updateBase(1); //Will set the base to the next token after the semicolon
 		
 		ImportDefinition definition = new ImportDefinition(parts.toArray(new String[parts.size()]));
-		definition.setPosition(startLine, startCol, bufferer.getCurrentToken().getLine(), bufferer.getCurrentToken().getCol());
+		definition.setPosition(startLine, startCol, bufferer.getCurrentToken().getLine(), bufferer.getCurrentToken().getEndCol());
 		return definition;
 	}
 }
