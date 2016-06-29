@@ -40,9 +40,13 @@ public class Token {
 	public int getCol() {
 		return col;
 	}
+	
+	public int getEndCol() {
+		return col + length();
+	}
 
 	public String getText() {
-		return text==null?type.getName():text;
+		return text==null?type.getText():text;
 	}
 
 	public String getErrorLocation() {
@@ -50,12 +54,14 @@ public class Token {
 	}
 	
 	public String getTokenContents() {
-		return type.isSpecial()?String.format("%s: (%s)", type.getName(), text):type.getName();
+		return type.isSpecial()?String.format("%s: (%s)", type.getText(), text):type.getText();
 	}
 	
 	public String getErrorString() {
 		return String.format("%s:\"%s\"", getErrorLocation(), getTokenContents());
 	}
 	
-	
+	public int length() {
+		return text == null ? type.length() : text.length();
+	}
 }

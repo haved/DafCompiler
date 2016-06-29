@@ -1,5 +1,5 @@
 package me.haved.daf.data;
 
-public interface Expression {
-
+public interface Expression extends Node {
+	
 }

@@ -16,23 +16,26 @@ public class ImportSyntaxReader {
 		if(!bufferer.isCurrentTokenOfType(TokenType.IMPORT))
 			return null;
 		
+		int startLine = bufferer.getCurrentToken().getLine();
+		int startCol = bufferer.getCurrentToken().getCol();
+		
 		Token imp = bufferer.getCurrentToken();
 		
 		if(pub)
-			log(imp, ERROR, "An import token can't be public!");
+			log(imp, ERROR, "An import definition can't be public!");
 		
 		ArrayList<String> parts = new ArrayList<String>();
 		boolean lookingForSeparator = false;
 		while(true) {
 			if(!bufferer.advance()) {
-				log(imp, ERROR, "File ended in the middle of an import statement!");
+				log(imp, ERROR, "File ended in the middle of an import");
 				break;
 			}
 			
 			Token t = bufferer.getCurrentToken();
 			if(t.getType() == TokenType.CLASS_ACCESS) {
 				if(!lookingForSeparator) {
-					log(t, ERROR, "An undexpected %s was found in the import statement!", t.getText());
+					log(t, ERROR, "Expected a name or a '%s' in the import", TokenType.SEMICOLON.getText());
 				} else {
 					lookingForSeparator = false;
 				}
@@ -40,7 +43,7 @@ public class ImportSyntaxReader {
 			else if(t.getType() == TokenType.SEMICOLON)
 				break;
 			else if(lookingForSeparator) {
-				log(t, ERROR, "Separator not found in import statement!"); //Lots of exclamation marks in this file's errors!
+				log(t, ERROR, "Expected '%s' or '%s' in the import", TokenType.CLASS_ACCESS.getText(), TokenType.SEMICOLON.getText());
 			}
 			else {
 				if(!TextParserUtil.areLetters(t.getText())) {
@@ -55,6 +58,8 @@ public class ImportSyntaxReader {
 
 		bufferer.updateBase(1); //Will set the base to the next token after the semicolon
 		
-		return new ImportDefinition(parts.toArray(new String[parts.size()]));
+		ImportDefinition definition = new ImportDefinition(parts.toArray(new String[parts.size()]));
+		definition.setPosition(startLine, startCol, bufferer.getCurrentToken().getLine(), bufferer.getCurrentToken().getCol());
+		return definition;
 	}
 }

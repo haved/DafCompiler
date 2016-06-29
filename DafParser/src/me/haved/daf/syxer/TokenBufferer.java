@@ -5,6 +5,8 @@ import java.util.List;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;
 
+import static me.haved.daf.LogHelper.*;
+
 public class TokenBufferer {
 	private List<Token> tokens;
 	private int base;
@@ -38,10 +40,19 @@ public class TokenBufferer {
 	}
 	
 	public void resetToBase() {
+		logAssert(base >= 0);
 		current = base;
 	}
 	
 	public void updateBase(int offset) {
 		base = current+offset;
+	}
+	
+	/**
+	 * If you know you don't need any of the tokens before the next base again, call this, and the base will be forgotten.
+	 * This means the tokens you skip will be forgotten
+	 */
+	public void forgetBase() {
+		base = -1;
 	}
 }

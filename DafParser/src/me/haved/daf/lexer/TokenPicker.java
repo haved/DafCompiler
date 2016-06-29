@@ -111,7 +111,7 @@ public class TokenPicker {
 		
 		bufferer.setNewStart(0); //We are guaranteed to add some token here no matter what
 		for(TokenType type:TokenType.values()) {
-			if(!type.isSpecial() && type.getName().equals(name))
+			if(!type.isSpecial() && type.getText().equals(name))
 				return new Token(type, file, line, col);
 		}
 		

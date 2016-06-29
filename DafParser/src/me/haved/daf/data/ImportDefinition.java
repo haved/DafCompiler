@@ -2,8 +2,7 @@ package me.haved.daf.data;
 
 import java.io.PrintStream;
 
-public class ImportDefinition implements Definition {
-	
+public class ImportDefinition extends NodeBase implements Definition {	
 	private String[] path;
 	
 	public ImportDefinition(String[] path) {

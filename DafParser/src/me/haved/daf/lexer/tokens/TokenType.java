@@ -66,8 +66,12 @@ public enum TokenType {
 		this.special = special;
 	}
 	
-	public String getName() {
+	public String getText() {
 		return text;
+	}
+	
+	public int length() {
+		return text.length();
 	}
 	
 	public boolean isSpecial() {
