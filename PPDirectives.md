@@ -11,6 +11,7 @@ This is a list of all the preprocessor directives in daf, and what they do.
 * **#endif**  			 -  The end of an if - no matter what kind
 * **#else**			 -  The else of an if - no matter what kind
 * **#(**			 -  Marks the start of an expression
+* **##**			 -  Gets evaluated to a single pound symbol
 
 #####Important:
 A lone pound symbol has to be a part of a directive.

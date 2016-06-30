@@ -23,7 +23,7 @@ The code above yeilds all the numbers from 1 to 100, with every multiple of 3 re
 
 #macro DoSomething I'm doing #something!
 
-printf("#TRANSMIT<#DoSomething,cheese>");
+printf("#TRANSMIT<##DoSomething,cheese>");
 ```
    
 The previous code yields as a result (after preprocessing):
