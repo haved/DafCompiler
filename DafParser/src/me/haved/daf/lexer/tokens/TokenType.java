@@ -77,4 +77,8 @@ public enum TokenType {
 	public boolean isSpecial() {
 		return special;
 	}
+	
+	public String toString() {
+		return text;
+	}
 }

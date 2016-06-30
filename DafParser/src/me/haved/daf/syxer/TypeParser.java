@@ -26,7 +26,7 @@ public class TypeParser {
 					return null;
 				}
 			}
-			pointer = new PointerType(null, false);
+			pointer = new PointerType(null, mut);
 		}
 		
 		return null;

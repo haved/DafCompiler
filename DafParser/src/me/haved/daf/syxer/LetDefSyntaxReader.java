@@ -18,22 +18,40 @@ public class LetDefSyntaxReader implements SyntaxReader {
 		
 		buffer.forgetBase();
 		
-		buffer.advance();
+		if(!buffer.advance()) {
+			if(let)
+				log(buffer.getLastToken(), ERROR, "Expected an identifier or '%s' after %s, but got end of file", TokenType.MUT, TokenType.LET);
+			else
+				log(buffer.getLastToken(), ERROR, "Expected an identifier after %s, but got end of file", TokenType.DEF);
+			return null;
+		}
 		
-		if(!buffer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
-			log(buffer.getCurrentToken(), ERROR, "Expected an identifier after %s!", let?"let":"def");
+		boolean mut = false;
+		if(let && buffer.isCurrentTokenOfType(TokenType.MUT)) {
+			mut = true;
+			if(!buffer.advance()) {
+				log(buffer.getLastToken(), ERROR, "Expected an identifier after %s %s", TokenType.LET, TokenType.MUT);
+				return null;
+			}
+		}
+		
+		if(buffer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
+			log(buffer.getCurrentToken(), ERROR, "Expected an identifier%s after %s!", let?" or "+TokenType.MUT:"", let?TokenType.LET:TokenType.DEF);
 			return null;
 		}
 		
 		String identifier = buffer.getCurrentToken().getText();
 		
-		buffer.advance();
+		if(!buffer.advance()) {
+			log(buffer.getLastToken(), ERROR, "Expected a type after %s%s %s", let?TokenType.LET:TokenType.DEF, mut?" "+TokenType.MUT:"", identifier);
+			return null;
+		}
 		
 		boolean autoType = false;
 		if(buffer.isCurrentTokenOfType(TokenType.COLON_ASSIGN))
 			autoType = true;
 		else if(!buffer.isCurrentTokenOfType(TokenType.COLON)) {
-			log(buffer.getCurrentToken(), ERROR, "Expected a colon after %s %s!", let?"let":"def", identifier);
+			log(buffer.getCurrentToken(), ERROR, "Expected a colon after %s%s %s!", let?"let":"def", mut?" "+TokenType.MUT:"", identifier);
 			return null;
 		}
 		

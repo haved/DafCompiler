@@ -14,7 +14,15 @@ public class PointerType extends NodeBase implements Type {
 		return mutable;
 	}
 	
+	public void setMutable(boolean mutable) {
+		this.mutable = mutable;
+	}
+	
 	public Type getBase() {
 		return base;
+	}
+	
+	public void setBase(Type base) {
+		this.base = base;
 	}
 }
