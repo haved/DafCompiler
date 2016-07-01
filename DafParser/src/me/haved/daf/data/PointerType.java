@@ -1,5 +1,7 @@
 package me.haved.daf.data;
 
+import me.haved.daf.lexer.tokens.TokenType;
+
 public class PointerType extends NodeBase implements Type {
 	
 	private Type base;
@@ -24,5 +26,13 @@ public class PointerType extends NodeBase implements Type {
 	
 	public void setBase(Type base) {
 		this.base = base;
+	}
+
+	@Override
+	public String getSignature() {
+		if(mutable)
+			return String.format("%s%s %s", TokenType.ADDRESS, TokenType.MUT, base.getSignature());
+		else
+			return String.format("%s%s", TokenType.ADDRESS, base.getSignature());
 	}
 }

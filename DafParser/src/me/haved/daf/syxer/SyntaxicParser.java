@@ -12,7 +12,6 @@ import me.haved.daf.lexer.tokens.TokenType;
 import static me.haved.daf.LogHelper.*;
 
 public final class SyntaxicParser {
-	
 	private static HashMap<Integer, List<Definition>> definitionsMap = new HashMap<>();
 	
 	public static List<Definition> getDefinitions(RegisteredFile file, List<Token> tokens) {
@@ -31,7 +30,7 @@ public final class SyntaxicParser {
 		return definitions;
 	}
 	
-	private static SyntaxReader[] readers = new SyntaxReader[] {ImportSyntaxReader::makeImportDefinition};
+	private static SyntaxReader[] readers = new SyntaxReader[] {ImportSyntaxReader::makeImportDefinition, LetDefSyntaxReader::makeDefinition};
 	
 	private static void fillDefinitionList(List<Definition> definitions, List<Token> tokens) {
 		
@@ -43,7 +42,10 @@ public final class SyntaxicParser {
 		while(bufferer.hasCurrentToken()) {
 			if(bufferer.isCurrentTokenOfType(TokenType.PUB)) {
 				pub = true;
-				bufferer.advance();
+				if(!bufferer.advance()) {
+					log(bufferer.getLastToken(), ERROR, "Expected *something* after 'pub'");
+					break;
+				}
 				bufferer.updateBase(0);
 				continue;
 			}
@@ -57,6 +59,9 @@ public final class SyntaxicParser {
 					continue mainLoop;
 				}
 			}
+			
+			if(!bufferer.hasCurrentToken())
+				break;
 			
 			log(bufferer.getCurrentToken(), ERROR, "Found token that couldn't be parsed into a definition!");
 			bufferer.advance();

@@ -25,7 +25,7 @@ import me.haved.daf.syxer.SyntaxicParser;
 public class MainDafParser {
 	
 	private static final boolean DEVELOPER = true;
-	private static final String DEFAULT_ARGS = "FlowTest.daf . -P";
+	private static final String DEFAULT_ARGS = "TestFile.daf";
 	public  static void main(String[] args) {
 		if(args.length == 0)
 			if(DEVELOPER) {
@@ -111,8 +111,11 @@ public class MainDafParser {
 		
 		if(inputFile == null) //Never got that far!
 			log(FATAL_ERROR, "An input file needs to be specified. -h for help");
-		else if(outputDirectory == null) //Never got that far!
-			log(FATAL_ERROR, "An output directory needs to be specified. -h for help");
+		else if(outputDirectory == null) { //Never got that far!
+			outputDirectory = ".";
+			log(INFO, "No output directory passed. Using the current directory");
+			//log(FATAL_ERROR, "An output directory needs to be specified. -h for help");
+		}
 		
 		if(onlyDoPreProc)
 			doOnlyPreproc(inputFile, outputDirectory, macros);

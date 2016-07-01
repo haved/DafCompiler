@@ -40,8 +40,12 @@ public class TokenBufferer {
 	}
 	
 	public void resetToBase() {
-		logAssert(base >= 0);
-		current = base;
+		if(base >= 0) //Only if you have a base
+			current = base;
+		else {
+			log(DEBUG, "The TokenBufferer was asked to return to base even though the base was forgotten");
+			base = current;
+		}
 	}
 	
 	public void updateBase(int offset) {
