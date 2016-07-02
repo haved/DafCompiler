@@ -137,10 +137,10 @@ public class LetDefSyntaxReader {
 		if(let) {
 			return new Let(identifier, type, expression, pub);
 		} else {
-			if(expression == null) {
+			/*if(expression == null) {
 				log(startToken, ERROR, "A def statement can't be declared without an expression");
 				return null;
-			}
+			}*/
 			return new Def(identifier, type, expression, pub);
 		}
 	}
