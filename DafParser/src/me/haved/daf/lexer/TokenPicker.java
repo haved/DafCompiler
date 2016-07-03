@@ -27,8 +27,6 @@ public class TokenPicker {
 		finsihedTokens.add(":=");
 		finsihedTokens.add("==");
 		finsihedTokens.add("!=");
-		finsihedTokens.add("<<");
-		finsihedTokens.add(">>");
 		finsihedTokens.add("||");
 		finsihedTokens.add("&&");
 		finsihedTokens.add("(");
@@ -54,7 +52,8 @@ public class TokenPicker {
 		mustBeFollowedBy.put("<", "<=");
 		mustBeFollowedBy.put(">", ">=");
 		mustBeFollowedBy.put("<<", "=");
-		mustBeFollowedBy.put(">>", "=");
+		mustBeFollowedBy.put(">>", "=>");
+		mustBeFollowedBy.put(">>>", "=");
 	}
 	
 	public static Token makeToken(TextBufferer bufferer) {
@@ -104,7 +103,7 @@ public class TokenPicker {
 				}
 			}
 			
-			text.append(bufferer.getCurrentChar());
+			text.append(letter);
 		}
 		
 		name = text.toString();
