@@ -119,7 +119,7 @@ public class LetDefSyntaxReader {
 			return null;
 		}
 		
-		buffer.updateBase(1); //The next token is now the base
+		buffer.updateBase(1); //The base is now the token after the semi-colon
 		
 		if(let) {
 			return new Let(identifier, type, expression, pub);
