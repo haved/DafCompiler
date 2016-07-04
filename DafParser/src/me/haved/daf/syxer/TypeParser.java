@@ -1,16 +1,18 @@
 package me.haved.daf.syxer;
 
 import me.haved.daf.data.PointerType;
+import me.haved.daf.data.Primitive;
+import me.haved.daf.data.PrimitiveType;
 import me.haved.daf.data.Type;
 import me.haved.daf.lexer.tokens.TokenType;
 
 import static me.haved.daf.LogHelper.*;
 
 public class TypeParser {
-	public static Type parseType(TokenBufferer buffer) {
+	public static Type parseType(TokenBufferer buffer, boolean mutable) {
 		
-		Type result;
-		PointerType pointer;
+		PointerType topPointer = null;
+		PointerType bottomPointer = null;
 		
 		while(buffer.isCurrentTokenOfType(TokenType.ADDRESS)) {
 			if(!buffer.advance()) {
@@ -18,17 +20,40 @@ public class TypeParser {
 				return null;
 			}
 			
-			boolean mut = false;
+			if(bottomPointer != null) {
+				PointerType newBottom = new PointerType(null, mutable);
+				bottomPointer.setTarget(newBottom);
+				bottomPointer = newBottom;
+			} else {
+				topPointer = new PointerType(null, mutable);
+				bottomPointer = topPointer;
+			}
+			
+			mutable = false;
 			if(buffer.isCurrentTokenOfType(TokenType.MUT)) {
-				mut = true;
+				mutable = true;
 				if(!buffer.advance()) {
 					log(buffer.getLastToken(), ERROR, "Expected type after last token in file");
 					return null;
 				}
 			}
-			pointer = new PointerType(null, mut);
 		}
 		
-		return null;
+		TokenType tokenType = buffer.getCurrentToken().getType();
+		
+		PrimitiveType primitiveType = null;
+		for(Primitive primitive:Primitive.values()) {
+			if(primitive.fitsTokenType(tokenType)) {
+				primitiveType = new PrimitiveType(primitive, mutable);
+			}
+		}
+		
+		buffer.advance();
+		
+		if(bottomPointer != null) {
+			bottomPointer.setTarget(primitiveType);
+			return topPointer;
+		}
+		return primitiveType;
 	}
 }

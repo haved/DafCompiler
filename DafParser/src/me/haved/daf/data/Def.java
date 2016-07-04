@@ -9,10 +9,6 @@ public class Def extends NodeBase implements Definition, Statement {
 	private Expression expression;
 	private boolean pub;
 	
-	public Def(String name, Expression expression, boolean pub) {
-		
-	}
-	
 	public Def(String name, Type type, Expression expression, boolean pub) {
 		this.name = name;
 		this.type = type;
@@ -22,7 +18,7 @@ public class Def extends NodeBase implements Definition, Statement {
 	
 	@Override
 	public void print(PrintStream out) {
-		out.printf("%sdef %s : %s = %s%n", pub?"pub ":"", name, type.getSignature(), expression.toString());
+		out.printf("%sdef %s : %s = %s;%n", pub?"pub ":"", name, type==null?"null":type.getSignature(), expression==null?"null":expression.toString());
 	}
 
 	@Override

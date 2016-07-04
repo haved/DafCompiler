@@ -4,14 +4,17 @@ import me.haved.daf.lexer.tokens.TokenType;
 
 public class PointerType extends NodeBase implements Type {
 	
-	private Type base;
+	private Type target;
 	private boolean mutable;
 	
-	public PointerType(Type base, boolean mutable) {
-		this.base = base;
+	public PointerType(Type target, boolean mutable) {
+		this.target = target;
 		this.mutable = mutable;
 	}
 	
+	/**
+	 *  @return whether or not the pointer itself is mutable, and not if the type pointed to is mutable
+	 */
 	public boolean isMutable() {
 		return mutable;
 	}
@@ -20,19 +23,19 @@ public class PointerType extends NodeBase implements Type {
 		this.mutable = mutable;
 	}
 	
-	public Type getBase() {
-		return base;
+	public Type getTarget() {
+		return target;
 	}
 	
-	public void setBase(Type base) {
-		this.base = base;
+	public void setTarget(Type target) {
+		this.target = target;
 	}
 
 	@Override
 	public String getSignature() {
 		if(mutable)
-			return String.format("%s%s %s", TokenType.ADDRESS, TokenType.MUT, base.getSignature());
+			return String.format("%s %s%s", TokenType.MUT, TokenType.ADDRESS, target.getSignature());
 		else
-			return String.format("%s%s", TokenType.ADDRESS, base.getSignature());
+			return String.format("%s%s", TokenType.ADDRESS, target.getSignature());
 	}
 }

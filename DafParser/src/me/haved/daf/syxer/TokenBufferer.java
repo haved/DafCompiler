@@ -36,7 +36,7 @@ public class TokenBufferer {
 	}
 	
 	public boolean isCurrentTokenOfType(TokenType type) {
-		return hasCurrentToken() ? getCurrentToken().getType() == type : false;
+		return hasCurrentToken() && getCurrentToken().getType() == type;
 	}
 	
 	public void resetToBase() {

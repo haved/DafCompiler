@@ -3,6 +3,6 @@ import daf.math;
 
 let a:=5;
 def b:int=20;
-let mut b:&int=&a;
-let mut c:&mut &int=&mut b;
-let e:=@@c; //Same as a
+//let mut b:&int=&a;
+//let mut c:&mut &int=&mut b;
+//let e:=@@c; 
