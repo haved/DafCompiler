@@ -19,12 +19,13 @@ public class LetDefSyntaxReader {
 		if(buffer.isCurrentTokenOfType(TokenType.LET))
 			let = true;
 		else if(!buffer.isCurrentTokenOfType(TokenType.DEF)) {
-			skipBasePastSemicolon(buffer);
 			return null;
 		}
 		
 		Token startToken = buffer.getCurrentToken();
 		buffer.forgetBase();
+		
+		println("Started %s", let?"let":"def");
 		
 		//*********************************************** See if there is more after 'let'/'def' ******************************
 		if(!buffer.advance()) {
@@ -79,34 +80,46 @@ public class LetDefSyntaxReader {
 			log(buffer.getCurrentToken(), ERROR, "Expected a colon after %s%s %s!", let?"let":"def", mut?" "+TokenType.MUT:"", identifier);
 			skipBasePastSemicolon(buffer);
 			return null;
-		}
+		}	
 		
+		// ***************************** Current token is either : or := *************************
 		// *************************************** Do type parsing ******************************
 		Type type = null;
 		if(!autoType) {
+			if(!buffer.advance()) { //Skip the : token
+				log(buffer.getLastToken(), ERROR, "Expected type after '%s' in let/def statement. End of file found", TokenType.COLON);
+				skipBasePastSemicolon(buffer);
+				return null;
+			}
 			type = TypeParser.parseType(buffer, mut);
 			if(type==null) { //The TypeParser has already printed error messages
 				skipBasePastSemicolon(buffer);
 				return null;
 			}
-			if(!buffer.hasCurrentToken() || (!buffer.isCurrentTokenOfType(TokenType.ASSIGN) && !buffer.isCurrentTokenOfType(TokenType.SEMICOLON))) {
-				log(buffer.getCurrentToken(), ERROR, "Expected '%s' or semi-colon after type in let/def statement", TokenType.ASSIGN);
-				skipBasePastSemicolon(buffer);
+			if(!buffer.hasCurrentToken()) {
+				log(buffer.getLastToken(), ERROR, "Expected '%s' or semi-colon after type in let/def statement, but file ended", TokenType.ASSIGN);
 				return null;
 			}
 		}
 		
+		//The current token should now be = := or ;
+		
 		// ************************************ Do expression parsing unless semicolon after let mut a:int; ***************************
 		println("Type is now resolved. autoType: %b, currentToken: %s", autoType, buffer.getCurrentToken().getType());
 		Expression expression = null;
-		if(!buffer.isCurrentTokenOfType(TokenType.SEMICOLON) || autoType) { //We have an expression!
-			buffer.advance(); //Advance past the := or =
+		if(buffer.isCurrentTokenOfType(autoType ? TokenType.COLON_ASSIGN : TokenType.ASSIGN)) {
+			buffer.advance(); //Past = or :=
 			expression = null; //Get expression
 			//Get type from expression
-			buffer.advance(); //Just for the time being
-		} 
-		// ************************************ If we don't have an expression, make sure we're a mutable let 
-		else if(!mut) {
+			buffer.advance(); //Past the expression
+		}
+		else if(!buffer.isCurrentTokenOfType(TokenType.SEMICOLON)) { //What?
+			log(buffer.getCurrentToken(), ERROR, "Expected '%s', '%s' or semi-colon in let/def statement", 
+					TokenType.COLON_ASSIGN, TokenType.ASSIGN);
+			skipBasePastSemicolon(buffer);
+			return null;
+		}
+		else if(!mut) { //We know we met a semi-colon, but that was in this case not allowed!
 			log(buffer.getCurrentToken(), ERROR, "Expected an expression. Only mutable let statements can be undefined");
 			buffer.updateBase(1);
 			return null;

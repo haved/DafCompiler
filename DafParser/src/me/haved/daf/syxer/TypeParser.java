@@ -41,19 +41,25 @@ public class TypeParser {
 		
 		TokenType tokenType = buffer.getCurrentToken().getType();
 		
-		PrimitiveType primitiveType = null;
+		Type result = null;
 		for(Primitive primitive:Primitive.values()) {
 			if(primitive.fitsTokenType(tokenType)) {
-				primitiveType = new PrimitiveType(primitive, mutable);
+				result = new PrimitiveType(primitive, mutable);
+				break;
 			}
 		}
 		
-		buffer.advance();
+		if(result == null) {
+			log(buffer.getCurrentToken(), ERROR, "Expected a type (i.e. primitive or pointer)");
+			return null;
+		}
+		
+		buffer.advance(); //Skip the primitive
 		
 		if(bottomPointer != null) {
-			bottomPointer.setTarget(primitiveType);
+			bottomPointer.setTarget(result);
 			return topPointer;
 		}
-		return primitiveType;
+		return result;
 	}
 }
