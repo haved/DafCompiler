@@ -1,5 +1,7 @@
 package me.haved.daf.data;
 
+import me.haved.daf.lexer.tokens.Token;
+
 public class NodeBase {
 	//The end line is the actual line it ends on
 	//The end col however is one past the actual last char
@@ -33,5 +35,12 @@ public class NodeBase {
 		this.col = col;
 		this.endLine = line;
 		this.endCol = col + length;
+	}
+	
+	public void setPosition(Token startToken, Token lastToken) {
+		this.line = startToken.getLine();
+		this.col = startToken.getCol();
+		this.endLine = lastToken.getLine();
+		this.endCol = lastToken.getEndCol();
 	}
 }

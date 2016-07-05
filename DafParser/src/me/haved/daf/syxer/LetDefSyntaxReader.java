@@ -25,8 +25,6 @@ public class LetDefSyntaxReader {
 		Token startToken = buffer.getCurrentToken();
 		buffer.forgetBase();
 		
-		println("Started %s", let?"let":"def");
-		
 		//*********************************************** See if there is more after 'let'/'def' ******************************
 		if(!buffer.advance()) {
 			if(let)
@@ -132,16 +130,22 @@ public class LetDefSyntaxReader {
 			return null;
 		}
 		
+		Token lastToken = buffer.getCurrentToken();
+		
 		buffer.updateBase(1); //The base is now the token after the semi-colon
 		
 		if(let) {
-			return new Let(identifier, type, expression, pub);
+			Let output = new Let(identifier, type, expression, pub);
+			output.setPosition(startToken, lastToken);
+			return output;
 		} else {
 			/*if(expression == null) {
 				log(startToken, ERROR, "A def statement can't be declared without an expression");
 				return null;
 			}*/
-			return new Def(identifier, type, expression, pub);
+			Def output = new Def(identifier, type, expression, pub);
+			output.setPosition(startToken, lastToken);
+			return output;
 		}
 	}
 	
