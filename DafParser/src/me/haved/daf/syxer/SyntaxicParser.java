@@ -50,18 +50,20 @@ public final class SyntaxicParser {
 		mainLoop:
 		while(bufferer.hasCurrentToken()) {
 			if(bufferer.isCurrentTokenOfType(TokenType.PUB)) {
+				if(pub) {
+					log(bufferer.getCurrentToken(), ERROR, "Found '%s' for the second time in a definiton!", TokenType.PUB);
+				}
 				pub = true;
 				if(!bufferer.advance()) {
-					log(bufferer.getLastToken(), ERROR, "Expected *something* after 'pub'");
+					log(bufferer.getLastToken(), ERROR, "Expected *something* after '%s'", TokenType.PUB);
 					break;
 				}
-				bufferer.updateBase(0);
-				continue;
 			}
 			
+			bufferer.updateBase(0); //We now have a base before the definitions
 			for(SyntaxReader p:readers) {
 				Definition d = p.makeDefinition(bufferer, pub);
-				bufferer.resetToBase(); //The destination might have updated the base
+				bufferer.resetToBase(); //The destination might have updated the base. We also might not have a base. Fine either way
 				if(d!=null) {
 					pub = false;
 					definitions.add(d);

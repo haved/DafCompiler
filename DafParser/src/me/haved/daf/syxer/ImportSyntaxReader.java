@@ -16,6 +16,8 @@ public class ImportSyntaxReader {
 		if(!bufferer.isCurrentTokenOfType(TokenType.IMPORT))
 			return null;
 		
+		bufferer.forgetBase();
+		
 		int startLine = bufferer.getCurrentToken().getLine();
 		int startCol = bufferer.getCurrentToken().getCol();
 		
