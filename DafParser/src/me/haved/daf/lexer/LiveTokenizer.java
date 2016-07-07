@@ -58,7 +58,7 @@ public class LiveTokenizer implements TokenBufferer {
 
 	@Override
 	public boolean advance() {
-		if(rememberBase && currentTokenInBuffer > tokenBuffer.size()-1) {
+		if(rememberBase && currentTokenInBuffer < tokenBuffer.size()-1) {
 			currentTokenInBuffer++;
 			return true;
 		}
@@ -71,6 +71,7 @@ public class LiveTokenizer implements TokenBufferer {
 		
 		if(rememberBase) {
 			tokenBuffer.add(next);
+			log(next, DEBUG, "TokenBufferSize: %d", tokenBuffer.size());
 			currentTokenInBuffer++;
 		}
 		else
@@ -111,10 +112,7 @@ public class LiveTokenizer implements TokenBufferer {
 
 	@Override
 	public void resetToBase() {
-		if(!rememberBase)
-			updateBase(0);
-		else
-			this.currentTokenInBuffer = 0;
+		this.currentTokenInBuffer = 0;
 	}
 
 	@Override
