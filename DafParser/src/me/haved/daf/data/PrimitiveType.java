@@ -1,5 +1,7 @@
 package me.haved.daf.data;
 
+import me.haved.daf.lexer.tokens.TokenType;
+
 public class PrimitiveType extends NodeBase implements Type {
 	
 	private Primitive primitive;
@@ -16,6 +18,6 @@ public class PrimitiveType extends NodeBase implements Type {
 
 	@Override
 	public String getSignature() {
-		return primitive.getName();
+		return mutable ? String.format("%s %s", TokenType.MUT, primitive.getName()) : primitive.getName();
 	}
 }

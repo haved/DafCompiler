@@ -3,8 +3,8 @@ import daf.math;
 
 let a:=5;
 def b:int=20;
-let mut f:=4;
+let mut f:char=4;
 let g :&mut int=f; //&f
 let mut b:&int=a; //&
-let mut c:&mut &int=b; //&mut b
+let mut c:&mut int=b; //&mut b
 let e:=c; //@@c 
