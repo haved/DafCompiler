@@ -103,7 +103,7 @@ public class LetDefSyntaxReader {
 		//The current token should now be = := or ;
 		
 		// ************************************ Do expression parsing unless semicolon after let mut a:int; ***************************
-		println("Type is now resolved. autoType: %b, currentToken: %s", autoType, buffer.getCurrentToken().getType());
+		//println("Type is now resolved. autoType: %b, currentToken: %s", autoType, buffer.getCurrentToken().getType());
 		Expression expression = null;
 		if(buffer.isCurrentTokenOfType(autoType ? TokenType.COLON_ASSIGN : TokenType.ASSIGN)) {
 			buffer.advance(); //Past = or :=
