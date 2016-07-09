@@ -2,6 +2,8 @@ package me.haved.daf.data;
 
 import java.io.PrintStream;
 
+import me.haved.daf.data.expression.Expression;
+
 public class Def extends NodeBase implements Definition, Statement {
 	
 	private String name;

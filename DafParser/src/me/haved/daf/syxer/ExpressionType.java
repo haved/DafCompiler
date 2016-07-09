@@ -1,6 +1,6 @@
 package me.haved.daf.syxer;
 
-public class ExpressionType {
+public interface ExpressionType {
 	// + - * / % += -= *= /= &= & | &= |= == != >> << >>>
 	//! new & (&mut) function() @
 }
