@@ -18,7 +18,7 @@ public class OperatorExpression extends NodeBase implements Expression {
 		this.a = a;
 		this.b = b;
 		this.operator = operator;
-		if(operator.evaluatesToBoolean()) {
+		if(this.operator.evaluatesToBoolean()) {
 			this.typeEvaluated = true;
 			this.type = IMMUTABLE_BOOLEAN;
 		}
