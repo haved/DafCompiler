@@ -6,6 +6,7 @@ import java.util.List;
 
 import me.haved.daf.RegisteredFile;
 import me.haved.daf.data.Definition;
+import me.haved.daf.lexer.LiveTokenizer;
 import me.haved.daf.lexer.text.MacroMap;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;
@@ -20,23 +21,21 @@ public final class SyntaxicParser {
 		if(definitionsMap.containsKey(id))
 			return definitionsMap.get(id);
 		
-		return null;
+		return getDefinitions(file, new LiveTokenizer(file, macros));
 	}
 	
 	public static List<Definition> getDefinitions(RegisteredFile file, List<Token> tokens) {
+		log(DEBUG, "Why are you using a static list of tokens?? This is the future!");
 		return getDefinitions(file, new StaticTokenBufferer(tokens));
 	}
 	
 	public static List<Definition> getDefinitions(RegisteredFile file, TokenBufferer bufferer) {
 		int id = file.getId();
-		
 		if(definitionsMap.containsKey(id))
 			return definitionsMap.get(id);
 		
 		ArrayList<Definition> definitions = new ArrayList<>();
-		
 		fillDefinitionList(definitions, bufferer);
-		
 		definitionsMap.put(id, definitions);
 		
 		return definitions;

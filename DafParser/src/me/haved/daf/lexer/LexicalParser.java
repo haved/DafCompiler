@@ -1,7 +1,6 @@
-package me.haved.daf.lexer;
+/*package me.haved.daf.lexer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import me.haved.daf.RegisteredFile;
 import me.haved.daf.lexer.text.PreProcessor;
@@ -14,29 +13,11 @@ import me.haved.daf.lexer.tokens.Token;
 import static me.haved.daf.LogHelper.*;
 
 public class LexicalParser {
-	
-	private static HashMap<Integer, ArrayList<Token>> tokensMap = new HashMap<>();
-	
-	private static Picker[] pickers = {NumberLiteralPicker::makeToken, StringLiteralPicker::makeToken, TokenPicker::makeToken};//Fancy java
-	
-	public static ArrayList<Token> tokenizeFile(RegisteredFile file, MacroMap map) {
-		int fileId = file.getId();
+	public static LiveTokenizer tokenizeFile(RegisteredFile file, MacroMap map) {
 		try {
-			log(DEBUG, "tokenizeFile(%s) with file id %d", file.toString(), fileId);
-			
-			if(tokensMap.containsKey(fileId))
-				return tokensMap.get(fileId);
-			
-			ArrayList<Token> tokens = new ArrayList<>();
 			TextSupplier supplier = new PreProcessor(file, map);
 			TextBufferer bufferer = new TextBufferer(supplier);
-			
-			fillTokenList(tokens, bufferer);
-			
-			supplier.close();
-			tokensMap.put(fileId, tokens);
-			
-			return tokens;
+			return new LiveTokenizer(bufferer);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -71,4 +52,4 @@ public class LexicalParser {
 			bufferer.setNewStart(0);
 		}
 	}
-}
+}*/

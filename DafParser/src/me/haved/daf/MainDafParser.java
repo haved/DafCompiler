@@ -15,11 +15,10 @@ import me.haved.daf.args.HelpOption;
 import me.haved.daf.args.MacroOption;
 import me.haved.daf.args.PreprocOnlyOption;
 import me.haved.daf.data.Definition;
-import me.haved.daf.lexer.LexicalParser;
+import me.haved.daf.lexer.LiveTokenizer;
 import me.haved.daf.lexer.text.PreProcessor;
 import me.haved.daf.lexer.text.TextParserUtil;
 import me.haved.daf.lexer.text.MacroMap;
-import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.syxer.SyntaxicParser;
 
 public class MainDafParser {
@@ -130,10 +129,9 @@ public class MainDafParser {
 	
 		RegisteredFile inputFile = RegisteredFile.registerNewFile(inputFileObject, infileName);
 		
-		List<Token> tokens = LexicalParser.tokenizeFile(inputFile, macros);
+		LiveTokenizer tokenizer = new LiveTokenizer(inputFile, macros); //The future is here
 		terminateIfErrorsOccured();
-		
-		List<Definition> definitions = SyntaxicParser.getDefinitions(inputFile, tokens);
+		List<Definition> definitions = SyntaxicParser.getDefinitions(inputFile, tokenizer);
 		
 		if(definitions != null)
 			for(Definition d:definitions) {
@@ -142,8 +140,6 @@ public class MainDafParser {
 			}
 		
 		terminateIfErrorsOccured();
-		
-		log(DEBUG, "Finished! Got %d tokens and %d definitions!", tokens.size(), definitions.size());
 	}
 	
 	private static void doOnlyPreproc(String infileName, String outputDirName, MacroMap macros) {
