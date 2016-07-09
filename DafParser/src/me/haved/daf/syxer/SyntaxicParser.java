@@ -6,6 +6,7 @@ import java.util.List;
 
 import me.haved.daf.RegisteredFile;
 import me.haved.daf.data.Definition;
+import me.haved.daf.lexer.text.MacroMap;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;
 
@@ -14,8 +15,19 @@ import static me.haved.daf.LogHelper.*;
 public final class SyntaxicParser {
 	private static HashMap<Integer, List<Definition>> definitionsMap = new HashMap<>();
 	
-	public static List<Definition> getDefinitions(RegisteredFile file, List<Token> tokens) {
+	public static List<Definition> getDefinitions(RegisteredFile file, MacroMap macros) {
+		int id = file.getId();
+		if(definitionsMap.containsKey(id))
+			return definitionsMap.get(id);
 		
+		return null;
+	}
+	
+	public static List<Definition> getDefinitions(RegisteredFile file, List<Token> tokens) {
+		return getDefinitions(file, new StaticTokenBufferer(tokens));
+	}
+	
+	public static List<Definition> getDefinitions(RegisteredFile file, TokenBufferer bufferer) {
 		int id = file.getId();
 		
 		if(definitionsMap.containsKey(id))
@@ -23,7 +35,7 @@ public final class SyntaxicParser {
 		
 		ArrayList<Definition> definitions = new ArrayList<>();
 		
-		fillDefinitionList(definitions, tokens);
+		fillDefinitionList(definitions, bufferer);
 		
 		definitionsMap.put(id, definitions);
 		
@@ -32,9 +44,7 @@ public final class SyntaxicParser {
 	
 	private static SyntaxReader[] readers = new SyntaxReader[] {ImportSyntaxReader::makeImportDefinition, LetDefSyntaxReader::makeDefinition};
 	
-	private static void fillDefinitionList(List<Definition> definitions, List<Token> tokens) {
-		
-		TokenBufferer bufferer = new TokenBufferer(tokens);
+	private static void fillDefinitionList(List<Definition> definitions, TokenBufferer bufferer) {
 		
 		boolean pub = false;
 		
