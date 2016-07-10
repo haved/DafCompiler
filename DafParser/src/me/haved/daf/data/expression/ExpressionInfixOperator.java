@@ -10,6 +10,7 @@ public enum ExpressionInfixOperator {
 	
 	private TokenType token;
 	private boolean boolOperator;
+	private boolean onlyMindFirstParam;
 	
 	ExpressionInfixOperator(TokenType token, boolean boolOperator) {
 		this.token = token;

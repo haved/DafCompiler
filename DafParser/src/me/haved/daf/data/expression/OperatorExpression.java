@@ -5,16 +5,18 @@ import me.haved.daf.data.Primitive;
 import me.haved.daf.data.PrimitiveType;
 import me.haved.daf.data.Type;
 
+import static me.haved.daf.LogHelper.*;
+
 public class OperatorExpression extends NodeBase implements Expression {
 	private static final PrimitiveType IMMUTABLE_BOOLEAN = new PrimitiveType(Primitive.BOOLEAN, false);
 	
-	private Exception a, b;
+	private Expression a, b;
 	private ExpressionInfixOperator operator;
 	
 	private boolean typeEvaluated;
 	private Type type;
 	
-	public OperatorExpression(Exception a, Exception b, ExpressionInfixOperator operator) {
+	public OperatorExpression(Expression a, Expression b, ExpressionInfixOperator operator) {
 		this.a = a;
 		this.b = b;
 		this.operator = operator;
@@ -30,6 +32,21 @@ public class OperatorExpression extends NodeBase implements Expression {
 		return typeEvaluated;
 	}
 
+	@Override
+	public boolean tryEvaluatingType() {
+		logAssert(!typeEvaluated);
+		
+		if(!a.isTypeSet() && !a.tryEvaluatingType())
+			return false;
+		
+		if(!b.isTypeSet() && !b.tryEvaluatingType())
+			return false;
+		
+		
+		
+		return true;
+	}
+	
 	@Override
 	public Type getType() {
 		return type;
