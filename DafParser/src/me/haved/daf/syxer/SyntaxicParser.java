@@ -60,7 +60,7 @@ public final class SyntaxicParser {
 				}
 			}
 			
-			bufferer.updateBase(0); //We now have a base before the definitions
+			bufferer.updateBase(0); //We now have a base at the start of the next definition
 			for(SyntaxReader p:readers) {
 				Definition d = p.makeDefinition(bufferer, pub);
 				bufferer.resetToBase(); //The destination might have updated the base. We also might not have a base. Fine either way
@@ -75,8 +75,8 @@ public final class SyntaxicParser {
 				break;
 			
 			log(bufferer.getCurrentToken(), ERROR, "Found token that couldn't be parsed into a definition!");
+			bufferer.forgetBase();
 			bufferer.advance();
-			bufferer.updateBase(0);
 		}
 		
 		if(pub) {
