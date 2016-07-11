@@ -2,6 +2,8 @@ package me.haved.daf.syxer;
 
 import me.haved.daf.data.FunctionCall;
 import me.haved.daf.data.expression.Expression;
+import me.haved.daf.data.expression.ExpressionInfixOperator;
+import me.haved.daf.data.expression.NumberExpression;
 import me.haved.daf.data.expression.VariableExpression;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;
@@ -12,30 +14,31 @@ public class ExpressionParser {
 	public static Expression parseExpression(TokenBufferer bufferer) {
 		Token firstToken = bufferer.getCurrentToken(); //Has to be something
 		
+		ExpressionInfixOperator infix = null;
+		
 		while(true) {
-			if(bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) { //A variable or procedure
-				Expression a;
+			Token startToken = bufferer.getCurrentToken();
+			
+			//Check for start operator
+			
+			Expression a;
+			if(startToken.getType() == TokenType.IDENTIFER) { //A variable or procedure
 				String name = bufferer.getCurrentToken().getText();
 				
 				if(!advanceOrComplain(bufferer))
 					return null;
 				if(bufferer.isCurrentTokenOfType(TokenType.LEFT_PAREN)) { //A procedure call
+					while(!bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN) && bufferer.advance());
+					a = new FunctionCall(name, null).setFunctionCallPosition(startToken, bufferer.getCurrentToken());
 					if(!advanceOrComplain(bufferer))
 						return null;
-					if(!bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) {
-						log(bufferer.getCurrentToken(), ERROR, "For the time being, only empty parameter lists are allowed");
-					}
-					if(!advanceOrComplain(bufferer))
-						return null;
-					a = new FunctionCall(name, null);
 				} else
-					a = new VariableExpression(name);
+					a = new VariableExpression(name).setVariablePosition(startToken); //TODO: Set position
 				
 				//Past variable / function
-				
 			}
-			else {
-				
+			else if(startToken.getType() == TokenType.NUMBER_LITTERAL) {
+				a = new NumberExpression(startToken);
 			}
 		}
 	}

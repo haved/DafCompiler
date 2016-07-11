@@ -2,6 +2,7 @@ package me.haved.daf.data.expression;
 
 import me.haved.daf.data.NodeBase;
 import me.haved.daf.data.Type;
+import me.haved.daf.lexer.tokens.Token;
 
 public class VariableExpression extends NodeBase implements Expression {
 
@@ -33,5 +34,9 @@ public class VariableExpression extends NodeBase implements Expression {
 	public Type getType() {
 		return type;
 	}
-
+	
+	public VariableExpression setVariablePosition(Token token) {
+		this.setPosition(token, token);
+		return this;
+	}
 }

@@ -1,6 +1,7 @@
 package me.haved.daf.data;
 
 import me.haved.daf.data.expression.Expression;
+import me.haved.daf.lexer.tokens.Token;
 
 public class FunctionCall extends NodeBase implements Statement, Expression {
 
@@ -39,5 +40,10 @@ public class FunctionCall extends NodeBase implements Statement, Expression {
 	@Override
 	public Type getType() {
 		return returnType;
+	}
+	
+	public FunctionCall setFunctionCallPosition(Token startToken, Token lastToken) {
+		this.setPosition(startToken, lastToken);
+		return this;
 	}
 }
