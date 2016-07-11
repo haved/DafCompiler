@@ -39,6 +39,8 @@ public class ExpressionParser {
 			}
 			else if(startToken.getType() == TokenType.NUMBER_LITTERAL) {
 				a = new NumberExpression(startToken);
+			} else if(startToken.getType() == TokenType.STRING_LITTERAL) {
+				
 			}
 		}
 	}
