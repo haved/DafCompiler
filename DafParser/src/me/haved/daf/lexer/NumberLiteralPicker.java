@@ -41,12 +41,13 @@ public class NumberLiteralPicker {
 		int line = bufferer.getCurrentLine();
 		int col = bufferer.getCurrentCol();
 		boolean fFound = false;
+		boolean lFound = false;
 		
 		while(true) {
 			if(!bufferer.advance())
 				log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ASSERTION_FAILED, "Text Bufferer ended during a number");//May never stop right here
 		
-			if(fFound)
+			if(fFound || lFound)
 				break;
 			
 			char c = bufferer.getCurrentChar();
@@ -56,18 +57,28 @@ public class NumberLiteralPicker {
 				decimalFound = true;
 			}
 			else if(TextParserUtil.isFloatLetter(c)) {
+				fFound = true;
 				if(!decimalFound) {
 					log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "Float literals must have a decimal point: '%s%c' is illegal!", text.toString(), c);
-					break;
+					continue;
 				}
 				else if(text.length()==1) {
 					log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "Float literals can't be just '%s%c'", text.toString(), c);
-					break;
+					continue;
 				}
-				fFound = true;
-			} else if(!TextParserUtil.isDigit(c)) {
-				break;
 			}
+			else if(TextParserUtil.isLongLetter(c)) {
+				lFound = true;
+				if(decimalFound) {
+					log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "Long litterals can't be decimal numbers.");
+					continue;
+				} else if(text.length() <= (negative ? 1 : 0)) {
+					log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "Long litterals can't be just '%s%c'", text.toString(), c);
+					continue;
+				}
+			}
+			else if(!TextParserUtil.isDigit(c))
+				break;
 			
 			text.append(c);
 		}
@@ -76,7 +87,7 @@ public class NumberLiteralPicker {
 			return null; //We can't just say a '.' is a number literal!
 		}
 		
-		bufferer.setNewStart(0);
+		bufferer.setNewStart(0); //We are one past the number
 		
 		return new Token(TokenType.NUMBER_LITTERAL, file, line, col, text.toString());
 	}
