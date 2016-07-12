@@ -7,7 +7,7 @@ int main() {
   double d = 56.3;
   long int lo = 0xFFFFFFFFFF;
 
-  std::cout << i << l << f << d << lo << std::endl;
+  std::cout << i << " " << l << " " << f << " " << d << " " << lo << std::endl;
 
   //Bottom line is: All litterals are legal, and overflow is permitted
 }

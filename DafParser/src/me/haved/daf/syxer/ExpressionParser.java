@@ -42,11 +42,18 @@ public class ExpressionParser {
 				a = new NumberExpression(startToken).setPosition(startToken);
 			} else if(startToken.getType() == TokenType.STRING_LITTERAL) {
 				a = new StringExpression(startToken.getText()).setPosition(startToken);
+			} else {
+				log(bufferer.getCurrentToken(), ERROR, "Expected an expression!");
+				return null;
 			}
 			
 			bufferer.advance();
 			
 			//Infix operators, ;, ',', (
+			
+			if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
+				return a;
+			}
 		}
 	}
 	
