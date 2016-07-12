@@ -10,39 +10,48 @@ import static me.haved.daf.LogHelper.*;
 
 public class NumberExpression extends NodeBase implements Expression {
 	
-	private long value;
+	private String text;
 	private Type type;
 	
 	public NumberExpression(Token token) {
 		
+		String text = token.getText();
+		
 		if(token.getType() == TokenType.CHAR_LITTERAL) {
 			type = PrimitiveType.UINT8; //char
-			if(token.getText().length() < 1) {
+			if(text.length() < 1) {
 				log(token, ERROR, "A char litteral must have a length of at least 1");
-				value = 'E';
+				this.text = Integer.toString('E');
 				return;
 			}
-			char c = token.getText().charAt(0);
+			char c = text.charAt(0);
 			if(c == '\\') {
-				if(token.getText().length() < 2) {
-					log(token, ERROR, "A char litteral can't have a lone backslash");
-					value = 'E';
+				if(text.length() != 2) {
+					log(token, ERROR, "A char litteral with a backslash must be two letters long (\\u is not possible)");
+					text = Integer.toString('E');
+				}
+				c = text.charAt(1);
+				switch(c) {
+				case 'n': c = '\n'; break;
+				case 't': c = '\t'; break;
+				case 'r': c = '\r'; break;
+				case 'b': c = '\b'; break;
+				case 'f': c = '\f'; break;
+				case '\'':c = '\''; break;
+				case '\"':c = '\"'; break;
+				case '\\': break; // c is already correct
+				case 'u': log(token, ERROR, "\\u is not supported in daf. Just write it as a number litteral, please");
+				default: log(token, ERROR, "\\%c can't be evaluated to anything!", c); break;
 				}
 			}
+			else if(text.length()!=1)
+				log(token, ERROR, "A char can only be one letter long, unless it's a special code");
+			
+			this.text = Integer.toString(c);
 		}
-		else {
-			this.text = token.getText();
-			if(text.contains(".")) {
-				type = text.endsWith("f") ? PrimitiveType.FLOAT : PrimitiveType.DOUBLE;
-			}
-			else {
-				if(text.contains("f")) {
-					log(token, ERROR, "A number litteral may not be a float without a decimal point");
-					text.substring(0, text.indexOf('f'));
-				}
-				type = PrimitiveType.INT32;
-			}
-		}
+		
+		this.type = text.contains(".") ? text.contains("f") ? PrimitiveType.FLOAT : PrimitiveType.DOUBLE : PrimitiveType.INT32;
+		this.text = text;
 	}
 	
 	@Override
