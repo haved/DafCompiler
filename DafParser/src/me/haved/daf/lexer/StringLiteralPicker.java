@@ -13,7 +13,11 @@ public class StringLiteralPicker {
 	public static Token makeToken(TextBufferer bufferer) {
 		char firstLetter = bufferer.getCurrentChar();
 		
-		if(!TextParserUtil.isDoubleQuoteChar(firstLetter))
+		boolean charInstead = false;
+		
+		if(TextParserUtil.isSingleQuoteChar(firstLetter))
+			charInstead = true;
+		else if(!TextParserUtil.isDoubleQuoteChar(firstLetter))
 			return null;
 		
 		RegisteredFile file = bufferer.getFile();
@@ -30,7 +34,7 @@ public class StringLiteralPicker {
 				break;
 			}
 			char letter = bufferer.getCurrentChar();
-			if(TextParserUtil.isDoubleQuoteChar(letter) && !backslash) {
+			if(charInstead ? TextParserUtil.isSingleQuoteChar(letter) : TextParserUtil.isDoubleQuoteChar(letter) && !backslash) {
 				break;
 			}
 			else if(TextParserUtil.isNewlineChar(letter)) {
@@ -45,6 +49,9 @@ public class StringLiteralPicker {
 		//We are now at the ending quote char, so skip one ahead!
 		bufferer.setNewStart(-1);
 		
-		return new Token(TokenType.STRING_LITTERAL, file, line, col, literal.toString());
+		if(charInstead && literal.length() != 1 && !(literal.length()==2 && TextParserUtil.isBackslash(literal.charAt(0))))
+			log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "A char litteral must contain one char, or a special code!");
+		
+		return new Token(charInstead ? TokenType.CHAR_LITTERAL : TokenType.STRING_LITTERAL, file, line, col, literal.toString());
 	}
 }
