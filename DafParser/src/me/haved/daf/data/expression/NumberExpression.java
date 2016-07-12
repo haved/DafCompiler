@@ -54,6 +54,10 @@ public class NumberExpression extends NodeBase implements Expression {
 		this.text = text;
 	}
 	
+	public String getText() {
+		return text;
+	}
+	
 	@Override
 	public boolean isTypeSet() {
 		return true;
