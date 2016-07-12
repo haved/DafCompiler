@@ -4,6 +4,7 @@ import me.haved.daf.data.FunctionCall;
 import me.haved.daf.data.expression.Expression;
 import me.haved.daf.data.expression.ExpressionInfixOperator;
 import me.haved.daf.data.expression.NumberExpression;
+import me.haved.daf.data.expression.StringExpression;
 import me.haved.daf.data.expression.VariableExpression;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;
@@ -19,7 +20,7 @@ public class ExpressionParser {
 		while(true) {
 			Token startToken = bufferer.getCurrentToken();
 			
-			//Check for start operator
+			//Check for start operator or (
 			
 			Expression a;
 			if(startToken.getType() == TokenType.IDENTIFER) { //A variable or procedure
@@ -38,10 +39,14 @@ public class ExpressionParser {
 				//Past variable / function
 			}
 			else if(startToken.getType() == TokenType.NUMBER_LITTERAL) {
-				a = new NumberExpression(startToken);
+				a = new NumberExpression(startToken).setPosition(startToken);
 			} else if(startToken.getType() == TokenType.STRING_LITTERAL) {
-				
+				a = new StringExpression(startToken.getText()).setPosition(startToken);
 			}
+			
+			bufferer.advance();
+			
+			//Infix operators, ;, ',', (
 		}
 	}
 	

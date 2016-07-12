@@ -73,4 +73,9 @@ public class NumberExpression extends NodeBase implements Expression {
 	public Type getType() {
 		return type;
 	}
+	
+	public NumberExpression setPosition(Token token) {
+		setPosition(token, token);
+		return this;
+	}
 }
