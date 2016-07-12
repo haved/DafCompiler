@@ -7,6 +7,7 @@ public class TextParserUtil {
 	public static final char START_OF_MACRO_PARAMETER = '<';
 	public static final char END_OF_MACRO_PARAMETER = '>';
 	public static final char POUND_SYMBOL = '#';
+	public static final char MINUS_SIGN = '-';
 
 	public static boolean containsAnyWhitespace(String s) {
 		for(int i = 0; i < s.length(); i++)
@@ -43,11 +44,13 @@ public class TextParserUtil {
 
 	public static boolean isEndOfMacroParameters(char c) { return c == END_OF_MACRO_PARAMETER; }
 	
-	public static boolean isMinusSign(char c) { return c == '-'; }
+	public static boolean isMinusSign(char c) { return c == MINUS_SIGN; }
 	
 	public static boolean isDecimalChar(char c) { return c == '.'; }
 	
 	public static boolean isFloatLetter(char c) { return c == 'f' || c == 'F'; }
+	
+	public static boolean isLongLetter(char c) { return c == 'l' || c == 'L'; }
 	
 	/** Returns true if the char is a legal char, but not a letter, number, underscore or whitespace
 	 * 

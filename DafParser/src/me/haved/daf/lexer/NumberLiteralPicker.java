@@ -14,9 +14,16 @@ public class NumberLiteralPicker {
 	public static Token makeToken(TextBufferer bufferer) {
 		char firstLetter = bufferer.getCurrentChar();
 		
+		boolean negative = false;
 		boolean decimalFound = false;
 		
-		StringBuilder text = new StringBuilder();
+		if(TextParserUtil.isMinusSign(firstLetter)) {
+			negative = true;
+			if(!bufferer.advance())
+				return null;
+		}
+		
+		firstLetter = bufferer.getCurrentChar();
 		
 		if(TextParserUtil.isDecimalChar(firstLetter)) {
 			decimalFound = true;
@@ -25,6 +32,10 @@ public class NumberLiteralPicker {
 			return null;
 		}
 		
+		StringBuilder text = new StringBuilder();
+		
+		if(negative)
+			text.append(TextParserUtil.MINUS_SIGN);
 		text.append(firstLetter);
 		RegisteredFile file = bufferer.getFile();
 		int line = bufferer.getCurrentLine();
