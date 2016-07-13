@@ -5,42 +5,26 @@ import me.haved.daf.lexer.tokens.Token;
 public class NodeBase {
 	//The end line is the actual line it ends on
 	//The end col however is one past the actual last char
-	protected int line, col, endLine, endCol;
+	protected Token start, end;
 	
 	public int getLine() {
-		return line;
+		return start.getLine();
 	}
 	
 	public int getCol() {
-		return col;
+		return start.getCol();
 	}
 	
 	public int getEndLine() {
-		return endLine;
+		return end.getLine();
 	}
 	
 	public int getEndCol() {
-		return endCol;
-	}
-	
-	public void setPosition(int line, int col, int endLine, int endCol) {
-		this.line = line;
-		this.col = col;
-		this.endLine = endLine;
-		this.endCol = endCol;
-	}
-	
-	public void setPosition(int line, int col, int length) {
-		this.line = line;
-		this.col = col;
-		this.endLine = line;
-		this.endCol = col + length;
+		return end.getEndCol();
 	}
 	
 	public void setPosition(Token startToken, Token lastToken) {
-		this.line = startToken.getLine();
-		this.col = startToken.getCol();
-		this.endLine = lastToken.getLine();
-		this.endCol = lastToken.getEndCol();
+		this.start = startToken;
+		this.end = lastToken;
 	}
 }

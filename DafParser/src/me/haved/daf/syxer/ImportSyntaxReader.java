@@ -18,9 +18,6 @@ public class ImportSyntaxReader {
 		
 		bufferer.forgetBase();
 		
-		int startLine = bufferer.getCurrentToken().getLine();
-		int startCol = bufferer.getCurrentToken().getCol();
-		
 		Token imp = bufferer.getCurrentToken();
 		
 		if(pub)
@@ -57,11 +54,13 @@ public class ImportSyntaxReader {
 				lookingForSeparator = true;
 			}
 		}
+		
+		Token lastToken = bufferer.getCurrentToken();
 
 		bufferer.advance(); //Will advance to the next token after the semicolon
 		
 		ImportDefinition definition = new ImportDefinition(parts.toArray(new String[parts.size()]));
-		definition.setPosition(startLine, startCol, bufferer.getCurrentToken().getLine(), bufferer.getCurrentToken().getEndCol());
+		definition.setPosition(imp, lastToken);
 		return definition;
 	}
 }

@@ -45,6 +45,13 @@ public class OperatorExpression extends NodeBase implements Expression {
 		Type aType = a.getType();
 		Type bType = b.getType();
 		
+		if(operator.integersOnly() && !aType.isInteger() && !bType.isInteger()) {
+			log(start, ERROR, "Operator expected integers, not '%s' and '%s'", aType.getSignature(), bType.getSignature());
+			return false;
+		}
+		
+		type = PrimitiveType.INT32; //Lazy. Oh well. The type system won't be used either way. Let the cpp compiler handle this
+		
 		return true;
 	}
 	

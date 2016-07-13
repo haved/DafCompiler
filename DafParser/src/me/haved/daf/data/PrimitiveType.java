@@ -30,7 +30,6 @@ public class PrimitiveType extends NodeBase implements Type {
 
 	@Override
 	public boolean isInteger() {
-		// TODO Auto-generated method stub
-		return false;
-	}	
+		return primitive.isInteger();
+	}
 }
