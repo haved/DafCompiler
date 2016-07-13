@@ -18,42 +18,46 @@ public class ExpressionParser {
 		ExpressionInfixOperator infix = null;
 		
 		while(true) {
-			Token startToken = bufferer.getCurrentToken();
+			Token token = bufferer.getCurrentToken();
+			log(token, DEBUG, "eyyy");
 			
 			//Check for start operator or (
 			
 			Expression a;
-			if(startToken.getType() == TokenType.IDENTIFER) { //A variable or procedure
+			if(token.getType() == TokenType.IDENTIFER) { //A variable or procedure
 				String name = bufferer.getCurrentToken().getText();
 				
 				if(!advanceOrComplain(bufferer))
 					return null;
 				if(bufferer.isCurrentTokenOfType(TokenType.LEFT_PAREN)) { //A procedure call
 					while(!bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN) && bufferer.advance());
-					a = new FunctionCall(name, null).setFunctionCallPosition(startToken, bufferer.getCurrentToken());
+					a = new FunctionCall(name, null).setFunctionCallPosition(token, bufferer.getCurrentToken());
 					if(!advanceOrComplain(bufferer))
 						return null;
 				} else
-					a = new VariableExpression(name).setVariablePosition(startToken); //TODO: Set position
+					a = new VariableExpression(name).setVariablePosition(token); //TODO: Set position
 				
 				//Past variable / function
 			}
-			else if(startToken.getType() == TokenType.NUMBER_LITTERAL) {
-				a = new NumberExpression(startToken).setPosition(startToken);
-			} else if(startToken.getType() == TokenType.STRING_LITTERAL) {
-				a = new StringExpression(startToken.getText()).setPosition(startToken);
+			else if(token.getType() == TokenType.NUMBER_LITTERAL) {
+				a = new NumberExpression(token).setPosition(token);
+				bufferer.advance();
+			} else if(token.getType() == TokenType.STRING_LITTERAL) {
+				a = new StringExpression(token.getText()).setPosition(token);
+				bufferer.advance();
 			} else {
 				log(bufferer.getCurrentToken(), ERROR, "Expected an expression!");
+				bufferer.advance();
 				return null;
 			}
-			
-			bufferer.advance();
 			
 			//Infix operators, ;, ',', (
 			
 			if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
 				return a;
 			}
+			
+			bufferer.advance(); //I dunno
 		}
 	}
 	

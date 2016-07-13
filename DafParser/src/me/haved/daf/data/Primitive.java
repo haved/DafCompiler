@@ -29,4 +29,8 @@ public enum Primitive {
 				return true;
 		return false;
 	}
+	
+	public boolean isInteger() {
+		return this != BOOLEAN && this != FLOAT && this != DOUBLE;
+	}
 }

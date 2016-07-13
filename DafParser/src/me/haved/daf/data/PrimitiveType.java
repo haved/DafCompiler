@@ -27,4 +27,10 @@ public class PrimitiveType extends NodeBase implements Type {
 	public String getSignature() {
 		return mutable ? String.format("%s %s", TokenType.MUT, primitive.getName()) : primitive.getName();
 	}
+
+	@Override
+	public boolean isInteger() {
+		// TODO Auto-generated method stub
+		return false;
+	}	
 }

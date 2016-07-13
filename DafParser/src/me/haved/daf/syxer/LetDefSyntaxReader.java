@@ -107,9 +107,7 @@ public class LetDefSyntaxReader {
 		Expression expression = null;
 		if(buffer.isCurrentTokenOfType(autoType ? TokenType.COLON_ASSIGN : TokenType.ASSIGN)) {
 			buffer.advance(); //Past = or :=
-			expression = null; //Get expression
-			//Get type from expression
-			buffer.advance(); //Past the expression
+			expression = ExpressionParser.parseExpression(buffer);
 		}
 		else if(!buffer.isCurrentTokenOfType(TokenType.SEMICOLON)) { //What?
 			log(buffer.getCurrentToken(), ERROR, "Expected '%s', '%s' or semi-colon in let/def statement", 

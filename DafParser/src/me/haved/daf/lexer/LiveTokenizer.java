@@ -133,9 +133,11 @@ public class LiveTokenizer implements TokenBufferer {
 
 	@Override
 	public void forgetBase() {
-		rememberBase = false;
-		currentToken = tokenBuffer.get(tokenBuffer.size()-1);
-		tokenBuffer.clear();
+		if(rememberBase) {
+			rememberBase = false;
+			currentToken = tokenBuffer.get(tokenBuffer.size()-1);
+			tokenBuffer.clear();
+		}
 	}
 
 }

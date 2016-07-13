@@ -42,7 +42,8 @@ public class OperatorExpression extends NodeBase implements Expression {
 		if(!b.isTypeSet() && !b.tryEvaluatingType())
 			return false;
 		
-		
+		Type aType = a.getType();
+		Type bType = b.getType();
 		
 		return true;
 	}
@@ -50,5 +51,10 @@ public class OperatorExpression extends NodeBase implements Expression {
 	@Override
 	public Type getType() {
 		return type;
+	}
+	
+	@Override
+	public String toString() {
+		return a.toString() + operator.getText() + b.toString();
 	}
 }

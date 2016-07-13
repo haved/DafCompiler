@@ -78,4 +78,9 @@ public class NumberExpression extends NodeBase implements Expression {
 		setPosition(token, token);
 		return this;
 	}
+	
+	@Override
+	public String toString() {
+		return getText();
+	}
 }

@@ -38,4 +38,9 @@ public class PointerType extends NodeBase implements Type {
 		else
 			return String.format("%s%s", TokenType.ADDRESS, target.getSignature());
 	}
+
+	@Override
+	public boolean isInteger() {
+		return true;
+	}
 }

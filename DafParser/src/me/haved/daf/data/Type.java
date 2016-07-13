@@ -4,4 +4,6 @@ public interface Type extends Node{
 	public boolean isMutable();
 	
 	public String getSignature();
+
+	public boolean isInteger();
 }

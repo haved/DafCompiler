@@ -130,7 +130,7 @@ public class MainDafParser {
 		RegisteredFile inputFile = RegisteredFile.registerNewFile(inputFileObject, infileName);
 		
 		LiveTokenizer tokenizer = new LiveTokenizer(inputFile, macros); //The future is here
-		terminateIfErrorsOccured();
+		terminateIfErrorsOccured(); //Highly unlikely, but might happen (?)
 		List<Definition> definitions = SyntaxicParser.getDefinitions(inputFile, tokenizer);
 		
 		if(definitions != null)
