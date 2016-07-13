@@ -18,4 +18,20 @@ public class FunctionParameter extends NodeBase {
 		this.name = name;
 		this.type = type;
 	}
+	
+	public boolean isReference() {
+		return refType != NOT_A_REF;
+	}
+	
+	public boolean mutableRefrence() {
+		return refType == MUTBL_REF;
+	}
+	
+	public String getName() {
+		return name;
+	}
+	
+	public Type getType() {
+		return type;
+	}
 }

@@ -51,9 +51,10 @@ public class ExpressionParser {
 				return null;
 			}
 			
-			//Infix operators, ;, ',', (
+			//Infix operators, ;, ',', )
 			
-			if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
+			if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON) || bufferer.isCurrentTokenOfType(TokenType.COMMA) 
+					|| bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) {
 				return a;
 			}
 			
