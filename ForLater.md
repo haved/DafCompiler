@@ -1,0 +1,1 @@
+In this file I will note things to rememeber for later. I realized my current project had so much complexity I really could do without.
