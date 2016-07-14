@@ -1,6 +1,8 @@
-package me.haved.daf.data;
+package me.haved.daf.data.statement;
 
+import me.haved.daf.data.NodeBase;
 import me.haved.daf.data.expression.Expression;
+import me.haved.daf.data.type.Type;
 import me.haved.daf.lexer.tokens.Token;
 
 public class FunctionCall extends NodeBase implements Statement, Expression {

@@ -14,7 +14,7 @@ import me.haved.daf.args.CommandOption;
 import me.haved.daf.args.HelpOption;
 import me.haved.daf.args.MacroOption;
 import me.haved.daf.args.PreprocOnlyOption;
-import me.haved.daf.data.Definition;
+import me.haved.daf.data.definition.Definition;
 import me.haved.daf.lexer.LiveTokenizer;
 import me.haved.daf.lexer.text.PreProcessor;
 import me.haved.daf.lexer.text.TextParserUtil;

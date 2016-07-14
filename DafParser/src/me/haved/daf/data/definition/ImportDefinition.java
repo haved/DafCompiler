@@ -1,6 +1,8 @@
-package me.haved.daf.data;
+package me.haved.daf.data.definition;
 
 import java.io.PrintStream;
+
+import me.haved.daf.data.NodeBase;
 
 public class ImportDefinition extends NodeBase implements Definition {	
 	private String[] path;

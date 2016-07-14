@@ -1,9 +1,9 @@
-package me.haved.daf.data;
+package me.haved.daf.data.type;
 
+import me.haved.daf.data.NodeBase;
 import me.haved.daf.lexer.tokens.TokenType;
 
 public class PointerType extends NodeBase implements Type {
-	
 	private Type target;
 	private boolean mutable;
 	
@@ -13,7 +13,7 @@ public class PointerType extends NodeBase implements Type {
 	}
 	
 	/**
-	 *  @return whether or not the pointer itself is mutable, and not if the type pointed to is mutable
+	 *  @return whether or not the type pointed to is mutable
 	 */
 	public boolean isMutable() {
 		return mutable;
@@ -34,13 +34,13 @@ public class PointerType extends NodeBase implements Type {
 	@Override
 	public String getSignature() {
 		if(mutable)
-			return String.format("%s %s%s", TokenType.MUT, TokenType.ADDRESS, target.getSignature());
+			return String.format("%s%s %s", TokenType.ADDRESS, TokenType.MUT, target.getSignature());
 		else
 			return String.format("%s%s", TokenType.ADDRESS, target.getSignature());
 	}
 
 	@Override
 	public boolean isInteger() {
-		return true;
+		return true; //A pointer is an integer in memory
 	}
 }

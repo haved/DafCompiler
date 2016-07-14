@@ -1,4 +1,7 @@
-package me.haved.daf.data;
+package me.haved.daf.data.statement;
+
+import me.haved.daf.data.NodeBase;
+import me.haved.daf.data.type.Type;
 
 public class FunctionParameter extends NodeBase {
 	public static final int NOT_A_REF = 0;

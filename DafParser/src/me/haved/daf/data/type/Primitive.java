@@ -1,9 +1,8 @@
-package me.haved.daf.data;
+package me.haved.daf.data.type;
 
 import me.haved.daf.lexer.tokens.TokenType;
 
-public enum Primitive {
-	
+public enum Primitive implements Type {
 	UINT8	(TokenType.UINT8 , 	TokenType.UBYTE  , 			 TokenType.CHAR)	, INT8				(TokenType.INT8),
 	UINT16	(TokenType.UINT16, 	TokenType.USHORT),	INT16	(TokenType.INT16	, TokenType.SHORT	),
 	UINT32	(TokenType.UINT32, 	TokenType.UINT	),	INT32	(TokenType.INT32	, TokenType.INT		),
@@ -32,5 +31,10 @@ public enum Primitive {
 	
 	public boolean isInteger() {
 		return this != BOOLEAN && this != FLOAT && this != DOUBLE;
+	}	
+
+	@Override
+	public String getSignature() {
+		return name;
 	}
 }

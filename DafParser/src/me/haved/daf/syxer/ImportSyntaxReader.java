@@ -1,7 +1,7 @@
 package me.haved.daf.syxer;
 
-import me.haved.daf.data.Definition;
-import me.haved.daf.data.ImportDefinition;
+import me.haved.daf.data.definition.Definition;
+import me.haved.daf.data.definition.ImportDefinition;
 import me.haved.daf.lexer.text.TextParserUtil;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;

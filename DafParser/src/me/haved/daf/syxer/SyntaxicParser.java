@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import me.haved.daf.RegisteredFile;
-import me.haved.daf.data.Definition;
+import me.haved.daf.data.definition.Definition;
 import me.haved.daf.lexer.LiveTokenizer;
 import me.haved.daf.lexer.text.MacroMap;
 import me.haved.daf.lexer.tokens.Token;

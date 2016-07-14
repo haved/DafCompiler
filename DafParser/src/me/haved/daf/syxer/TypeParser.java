@@ -1,12 +1,12 @@
 package me.haved.daf.syxer;
 
-import me.haved.daf.data.PointerType;
-import me.haved.daf.data.Primitive;
-import me.haved.daf.data.PrimitiveType;
-import me.haved.daf.data.Type;
 import me.haved.daf.lexer.tokens.TokenType;
 
 import static me.haved.daf.LogHelper.*;
+
+import me.haved.daf.data.type.PointerType;
+import me.haved.daf.data.type.Primitive;
+import me.haved.daf.data.type.Type;
 
 public class TypeParser {
 	public static Type parseType(TokenBufferer buffer, boolean mutable) {
@@ -44,7 +44,7 @@ public class TypeParser {
 		Type result = null;
 		for(Primitive primitive:Primitive.values()) {
 			if(primitive.fitsTokenType(tokenType)) {
-				result = new PrimitiveType(primitive, mutable);
+				result = primitive;
 				break;
 			}
 		}

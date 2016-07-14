@@ -1,8 +1,11 @@
-package me.haved.daf.data;
+package me.haved.daf.data.definition;
 
 import java.io.PrintStream;
 
+import me.haved.daf.data.NodeBase;
 import me.haved.daf.data.expression.Expression;
+import me.haved.daf.data.statement.Statement;
+import me.haved.daf.data.type.Type;
 
 public class Def extends NodeBase implements Definition, Statement {
 	

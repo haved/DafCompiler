@@ -1,10 +1,10 @@
 package me.haved.daf.syxer;
 
-import me.haved.daf.data.Def;
-import me.haved.daf.data.Definition;
-import me.haved.daf.data.Let;
-import me.haved.daf.data.Type;
+import me.haved.daf.data.definition.Def;
+import me.haved.daf.data.definition.Definition;
+import me.haved.daf.data.definition.Let;
 import me.haved.daf.data.expression.Expression;
+import me.haved.daf.data.type.Type;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;
 
