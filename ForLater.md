@@ -8,3 +8,6 @@ Let's just say there is a story behind every point on this list.
 - Decide on language features and syntax before you start
 - Write stuff down
 - Learn from your mistakes
+- Massivly simplify lexer and syxer
+- Maybe clam the preprocessor just a tad
+- Don't make buffers all over the place. A current and a lookahead should be all you need.

@@ -5,11 +5,10 @@ import me.haved.daf.lexer.tokens.TokenType;
 
 public interface TokenBufferer {
 	public Token getCurrentToken();
+	public Token getLookaheadToken();
 	public Token getLastToken();
 	public boolean hasCurrentToken();
+	public boolean hasLookaheadToken();
 	public boolean advance();
 	public boolean isCurrentTokenOfType(TokenType type);
-	public void resetToBase();
-	public void updateBase(int offset);
-	public void forgetBase();
 }

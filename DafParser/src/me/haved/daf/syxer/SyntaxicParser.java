@@ -8,7 +8,6 @@ import me.haved.daf.RegisteredFile;
 import me.haved.daf.data.definition.Definition;
 import me.haved.daf.lexer.LiveTokenizer;
 import me.haved.daf.lexer.text.MacroMap;
-import me.haved.daf.lexer.tokens.Token;
 
 import static me.haved.daf.LogHelper.*;
 
@@ -21,11 +20,6 @@ public final class SyntaxicParser {
 			return definitionsMap.get(id);
 		
 		return getDefinitions(file, new LiveTokenizer(file, macros));
-	}
-	
-	public static List<Definition> getDefinitions(RegisteredFile file, List<Token> tokens) {
-		log(DEBUG, "Why are you using a static list of tokens?? This is the future!");
-		return getDefinitions(file, new StaticTokenBufferer(tokens));
 	}
 	
 	public static List<Definition> getDefinitions(RegisteredFile file, TokenBufferer bufferer) {
@@ -42,7 +36,7 @@ public final class SyntaxicParser {
 	
 	private static void fillDefinitionList(List<Definition> definitions, TokenBufferer bufferer) {
 		while(bufferer.hasCurrentToken()) {
-		
+			println("Expression: %s", ExpressionParser.parseExpression(bufferer));
 		}
 	}
 }

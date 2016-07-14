@@ -1,10 +1,11 @@
-import daf.iostream;
-import daf.math;
+//Just do expressions for the time being
 
-let a:=5;
-def b:int=20;
-let mut f:char=4;
-let g :&mut int=f; //&f
-let mut b:&int=a; //&
-let mut c:&mut int=b; //&mut b
-let e:=c; //@@c 
+a;
+5;
+e();
+b+4;
+(a+7);
+a+4*6;
+8*e()+4;
+t(5, 3);
+//g.b(a, 6).d()+4*a;

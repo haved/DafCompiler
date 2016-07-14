@@ -1,7 +1,5 @@
 package me.haved.daf.lexer;
 
-import java.util.ArrayList;
-
 import me.haved.daf.RegisteredFile;
 import me.haved.daf.lexer.text.MacroMap;
 import me.haved.daf.lexer.text.PreProcessor;
@@ -19,36 +17,37 @@ public class LiveTokenizer implements TokenBufferer {
 	
 	private TextBufferer bufferer;
 	
-	private ArrayList<Token> tokenBuffer;
-	private int currentTokenInBuffer;
-	
-	private Token currentToken;
-	private boolean rememberBase;
+	private Token current;
+	private Token lookahead;
 	private boolean done;
 	
 	public LiveTokenizer(RegisteredFile file, MacroMap macros) {
 		this.bufferer = new TextBufferer(new PreProcessor(file, macros));
-		this.tokenBuffer = new ArrayList<>();
-		this.rememberBase = true;
-		this.currentTokenInBuffer = 0;
+		current = getToken();
+		lookahead = getToken();
 		
-		Token first = getToken();
-		if(first == null) {
-			log(file, DEBUG, "Not a single token was to be had from the file!");
+		if(current == null)
 			done = true;
-		} else
-			tokenBuffer.add(first);
 	}
 	
 	@Override
 	public Token getCurrentToken() {
-		return rememberBase ? tokenBuffer.get(currentTokenInBuffer) : currentToken;
+		return current;
+	}
+	
+	@Override
+	public Token getLookaheadToken() {
+		return lookahead;
 	}
 
 	@Override
 	public Token getLastToken() {
-		logAssert(done);
-		return rememberBase ? tokenBuffer.get(currentTokenInBuffer) : currentToken;
+		return current;
+	}
+
+	@Override
+	public boolean hasLookaheadToken() {
+		return lookahead != null;
 	}
 
 	@Override
@@ -58,25 +57,13 @@ public class LiveTokenizer implements TokenBufferer {
 
 	@Override
 	public boolean advance() {
-		if(rememberBase && currentTokenInBuffer < tokenBuffer.size()-1) {
-			currentTokenInBuffer++;
-			return true;
-		}
-		
-		Token next = getToken();
-		if(next == null) {
+		if(lookahead == null || done) {
 			done = true;
 			return false;
 		}
 		
-		if(rememberBase) {
-			tokenBuffer.add(next);
-			log(next, DEBUG, "TokenBufferSize: %d", tokenBuffer.size());
-			currentTokenInBuffer++;
-		}
-		else
-			currentToken = next;
-		
+		current = lookahead;
+		lookahead = getToken();
 		return true;
 	}
 	
@@ -107,37 +94,6 @@ public class LiveTokenizer implements TokenBufferer {
 
 	@Override
 	public boolean isCurrentTokenOfType(TokenType type) {
-		return hasCurrentToken() && getCurrentToken().getType() == type;
+		return current == null ? false : current.getType() == type;
 	}
-
-	@Override
-	public void resetToBase() {
-		this.currentTokenInBuffer = 0;
-	}
-
-	@Override
-	public void updateBase(int offset) {
-		if(rememberBase) {
-			currentToken = tokenBuffer.get(tokenBuffer.size()-1);
-			rememberBase = false;
-			tokenBuffer.clear();
-		}
-		logAssert(offset >= 0);
-		for(int i = offset; i > 0; i--) {
-			advance();
-		}
-		rememberBase = true;
-		tokenBuffer.add(currentToken);
-		this.currentTokenInBuffer = 0;
-	}
-
-	@Override
-	public void forgetBase() {
-		if(rememberBase) {
-			rememberBase = false;
-			currentToken = tokenBuffer.get(tokenBuffer.size()-1);
-			tokenBuffer.clear();
-		}
-	}
-
 }
