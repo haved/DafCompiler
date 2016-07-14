@@ -4,6 +4,7 @@ import me.haved.daf.data.FunctionCall;
 import me.haved.daf.data.expression.Expression;
 import me.haved.daf.data.expression.ExpressionInfixOperator;
 import me.haved.daf.data.expression.NumberExpression;
+import me.haved.daf.data.expression.OperatorExpression;
 import me.haved.daf.data.expression.StringExpression;
 import me.haved.daf.data.expression.VariableExpression;
 import me.haved.daf.lexer.tokens.Token;
@@ -51,11 +52,19 @@ public class ExpressionParser {
 				return null;
 			}
 			
+			token = bufferer.getCurrentToken(); //Past the expression
+			TokenType type = token.getType();
 			//Infix operators, ;, ',', )
 			
-			if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON) || bufferer.isCurrentTokenOfType(TokenType.COMMA) 
-					|| bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) {
+			if(type == TokenType.SEMICOLON || type == TokenType.COMMA || type == TokenType.RIGHT_PAREN) {
 				return a;
+			}
+			
+			for(ExpressionInfixOperator op : ExpressionInfixOperator.values()) {
+				if(op.matchesToken(type)) {
+					//infix = new OperatorExpression(a, null, op);
+					break;
+				}
 			}
 			
 			bufferer.advance(); //I dunno
