@@ -9,7 +9,6 @@ import me.haved.daf.data.definition.Definition;
 import me.haved.daf.lexer.LiveTokenizer;
 import me.haved.daf.lexer.text.MacroMap;
 import me.haved.daf.lexer.tokens.Token;
-import me.haved.daf.lexer.tokens.TokenType;
 
 import static me.haved.daf.LogHelper.*;
 
@@ -41,46 +40,9 @@ public final class SyntaxicParser {
 		return definitions;
 	}
 	
-	private static SyntaxReader[] readers = new SyntaxReader[] {ImportSyntaxReader::makeImportDefinition, LetDefSyntaxReader::makeDefinition};
-	
 	private static void fillDefinitionList(List<Definition> definitions, TokenBufferer bufferer) {
-		
-		boolean pub = false;
-		
-		mainLoop:
 		while(bufferer.hasCurrentToken()) {
-			if(bufferer.isCurrentTokenOfType(TokenType.PUB)) {
-				if(pub) {
-					log(bufferer.getCurrentToken(), ERROR, "Found '%s' for the second time in a definiton!", TokenType.PUB);
-				}
-				pub = true;
-				if(!bufferer.advance()) {
-					log(bufferer.getLastToken(), ERROR, "Expected *something* after '%s'", TokenType.PUB);
-					break;
-				}
-			}
-			
-			bufferer.updateBase(0); //We now have a base at the start of the next definition
-			for(SyntaxReader p:readers) {
-				Definition d = p.makeDefinition(bufferer, pub);
-				bufferer.resetToBase(); //The destination might have updated the base. We also might not have a base. Fine either way
-				if(d!=null) {
-					pub = false;
-					definitions.add(d);
-					continue mainLoop;
-				}
-			}
-			
-			if(!bufferer.hasCurrentToken())
-				break;
-			
-			log(bufferer.getCurrentToken(), ERROR, "Found token that couldn't be parsed into a definition!");
-			bufferer.forgetBase();
-			bufferer.advance();
-		}
 		
-		if(pub) {
-			log(bufferer.getLastToken(), ERROR, "File ended with a public statement!?");
 		}
 	}
 }
