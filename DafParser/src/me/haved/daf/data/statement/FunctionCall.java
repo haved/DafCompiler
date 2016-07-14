@@ -44,8 +44,15 @@ public class FunctionCall extends NodeBase implements Statement, Expression {
 		return returnType;
 	}
 	
-	public FunctionCall setFunctionCallPosition(Token startToken, Token lastToken) {
-		this.setPosition(startToken, lastToken);
-		return this;
+	public String toString() {
+		StringBuilder out = new StringBuilder(name).append("(");
+		if(parameters != null)
+			for(int i = 0; i < parameters.length; i++) {
+				if(i != 0)
+					out.append(" ,");
+				out.append(parameters[i]);
+			}
+		
+		return out.append(")").toString();
 	}
 }

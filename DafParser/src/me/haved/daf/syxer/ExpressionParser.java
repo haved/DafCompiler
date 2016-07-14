@@ -24,27 +24,28 @@ public class ExpressionParser {
 	}
 	
 	private static Expression parseParentheses(TokenBufferer bufferer) {
-		bufferer.advance();
+		bufferer.advance(); //Eat the (
 		Expression expression = parseExpression(bufferer);
-		bufferer.advance();
 		if(!bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) {
 			log(bufferer.getCurrentToken(), ERROR, "Expected a closing ')'"); 
 			//We know the current token is the last token, even if we're out of tokens
 		}
+		bufferer.advance(); //Eat the )
 		return expression;
 	}
 
 	public static Expression parseIdentifierExpression(TokenBufferer bufferer) {
-		String id = bufferer.getCurrentToken().getText();
-		if(!bufferer.advance()) { log(bufferer.getLastToken(), ERROR, "Expected something after expression before EOF"); return null; }
+		String idName = bufferer.getCurrentToken().getText();
+		bufferer.advance(); //'Eat the identifier' as the llvm tutorial says
 		
-		if(!bufferer.isCurrentTokenOfType(TokenType.LEFT_PAREN)) //Not a function call
-			return new VariableExpression(id);
+		if(!bufferer.isCurrentTokenOfType(TokenType.LEFT_PAREN)) //Simple variable
+			return new VariableExpression(idName);
 		
-		if(!bufferer.advance()) { log(bufferer.getLastToken(), ERROR, "Expected ')' before EOF"); return null; }
+		if(!bufferer.advance()) //Eat (
+				{ log(bufferer.getLastToken(), ERROR, "Expected ')' before EOF"); return null; }
 		if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) {
-			bufferer.advance();
-			return new FunctionCall(id, null);
+			bufferer.advance(); //Eat )
+			return new FunctionCall(idName, null);
 		}
 		
 		ArrayList<Expression> params = new ArrayList<>();
@@ -53,16 +54,17 @@ public class ExpressionParser {
 			if(param==null)
 				return null;
 			params.add(param);
-			if(bufferer.isCurrentTokenOfType(TokenType.COLON))
-				bufferer.advance();
-			else if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN))
+			if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN))
 				break;
-			else
+			if(!bufferer.isCurrentTokenOfType(TokenType.COLON))
 				log(bufferer.getCurrentToken(), ERROR, "Expected comma or ')' after function parameter");
+			if(!bufferer.advance()) { //Just to keep this show from running forever.
+				log(bufferer.getLastToken(), ERROR, "Expected ) to end function call. Not EOF!");
+			}
 		} while(true); //I dunno
 		
-		if(!bufferer.advance()) { log(bufferer.getLastToken(), ERROR, "Expected something after function call... Not EOF!"); return null; }
+		bufferer.advance(); //Eat )
 		
-		return new FunctionCall(id, params.toArray(new Expression[params.size()]));
+		return new FunctionCall(idName, params.toArray(new Expression[params.size()]));
 	}
 }
