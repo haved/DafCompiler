@@ -37,6 +37,7 @@ public final class SyntaxicParser {
 	private static void fillDefinitionList(List<Definition> definitions, TokenBufferer bufferer) {
 		while(bufferer.hasCurrentToken()) {
 			println("Expression: %s", ExpressionParser.parseExpression(bufferer));
+			bufferer.advance();
 		}
 	}
 }
