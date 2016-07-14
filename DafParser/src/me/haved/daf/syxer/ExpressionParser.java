@@ -11,6 +11,23 @@ import java.util.ArrayList;
 
 public class ExpressionParser {
 	public static Expression parseExpression(TokenBufferer bufferer) {
+		Expression LHS = parseExpression(bufferer);
+		if(LHS == null)
+			return null;
+		return parseBinaryOpRHS(0, LHS);
+	}
+	
+	//Higher level means lower priority => + has a higher level than *
+	public static Expression parseBinaryOpRHS(int operatorLevel, Expression LHS) {
+		//Check if we are encountering an operator.
+		//If the operator has a lower level, parse the RHS using this function starting with the next expression
+		//If the operator has the same or a higher level, keep going with the new LHS being the old LHS <operator> RHS and with next level
+		//If no operator, return LHS;
+		
+		return LHS;
+	}
+	
+	public static Expression parsePrimary(TokenBufferer bufferer) {
 		switch(bufferer.getCurrentToken().getType()) {
 		default:
 			break;
