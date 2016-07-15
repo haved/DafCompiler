@@ -11,3 +11,4 @@ Let's just say there is a story behind every point on this list.
 - Massivly simplify lexer and syxer
 - Maybe clam the preprocessor just a tad
 - Don't make buffers all over the place. A current and a lookahead should be all you need.
+- Don't have a null token and an advance function that returns false at EOF. Have an EOF token instead
