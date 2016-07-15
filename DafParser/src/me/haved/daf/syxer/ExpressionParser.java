@@ -4,6 +4,7 @@ import me.haved.daf.data.expression.Expression;
 import me.haved.daf.data.expression.VariableExpression;
 import me.haved.daf.data.statement.FunctionCall;
 import me.haved.daf.lexer.tokens.TokenType;
+import me.haved.daf.syxer.Operators.InfixOperator;
 
 import static me.haved.daf.LogHelper.*;
 
@@ -11,16 +12,22 @@ import java.util.ArrayList;
 
 public class ExpressionParser {
 	public static Expression parseExpression(TokenBufferer bufferer) {
-		Expression LHS = parseExpression(bufferer);
+		Expression LHS = parsePrimary(bufferer);
 		if(LHS == null)
 			return null;
-		return parseBinaryOpRHS(0, LHS);
+		return parseBinaryOpRHS(bufferer, 0, LHS);
 	}
 	
 	//Higher level means higher priority => + has a lower level than *
-	public static Expression parseBinaryOpRHS(int operatorLevel, Expression LHS) {
+	public static Expression parseBinaryOpRHS(TokenBufferer bufferer, int operatorLevel, Expression LHS) {
 		//Go as long as the next operator has a lower or same level as the previous operator
 		//When the level increases, set RHS to the result of recursively calling this function
+		
+		while(true) {
+			InfixOperator newOp = Operators.findInfixOperator(bufferer.getCurrentToken().getType());
+			
+			break;
+		}
 		
 		return LHS;
 	}
