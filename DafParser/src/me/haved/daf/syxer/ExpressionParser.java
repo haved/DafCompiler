@@ -17,12 +17,10 @@ public class ExpressionParser {
 		return parseBinaryOpRHS(0, LHS);
 	}
 	
-	//Higher level means lower priority => + has a higher level than *
+	//Higher level means higher priority => + has a lower level than *
 	public static Expression parseBinaryOpRHS(int operatorLevel, Expression LHS) {
-		//Check if we are encountering an operator.
-		//If the operator has a lower level, parse the RHS using this function starting with the next expression
-		//If the operator has the same or a higher level, keep going with the new LHS being the old LHS <operator> RHS and with next level
-		//If no operator, return LHS;
+		//Go as long as the next operator has a lower or same level as the previous operator
+		//When the level increases, set RHS to the result of recursively calling this function
 		
 		return LHS;
 	}

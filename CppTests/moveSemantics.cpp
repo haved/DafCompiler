@@ -34,6 +34,7 @@ MyStringClass::MyStringClass(const MyStringClass &str) { //Copy constructor
     ptr = new char[len+1];
     memcpy(this->ptr, str.ptr, len+1);
     print("Copy constructor");
+    std::cout << ptr << std::endl;
 }
 
 MyStringClass::MyStringClass(MyStringClass &&str) { //Move constructor :)
@@ -84,9 +85,16 @@ MyStringClass::MyStringClass(const MyStringClass &a, const MyStringClass &b) {
     print("Plus constructor");
 }
 
+void func(MyStringClass str) {
+    std::cout << "str!" << std::endl;
+}
+
 int main() {
     {
         MyStringClass text("Hello");
+        {
+            MyStringClass test(text);
+        }
         MyStringClass hello(text);
         text = MyStringClass("World!"); //Note! The destructor is called for the temporary class
         MyStringClass world(std::move(text)); //Text has no meaning anymore
@@ -98,6 +106,9 @@ int main() {
         add = std::move(add+world);
         std::cout << "This time using std::move: '" << add.get() << "'" << std::endl;
     }
-    print("\n");
-    std::cout << MyStringClass(MyStringClass(MyStringClass(MyStringClass("The whole point!")))).get() << std::endl;
+    print("\n\n");
+    MyStringClass text("Eyo, my dude");
+    func(text); //The copy constructor of MyStringClass is called
+    print("Then...");
+    func(std::move(text)); //The move constructor is called :)
 }
