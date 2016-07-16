@@ -63,18 +63,18 @@ public class NumberLiteralPicker {
 					continue;
 				}
 				else if(text.length()==1) {
-					log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "Float literals can't be just '%s%c'", text.toString(), c);
-					continue;
+					//log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "Float literals can't be just '%s%c'", text.toString(), c);
+					return null;
 				}
 			}
 			else if(TextParserUtil.isLongLetter(c)) {
 				lFound = true;
 				if(decimalFound) {
-					log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "Long litterals can't be decimal numbers.");
+					log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "Long literals can't be decimal numbers.");
 					continue;
 				} else if(text.length() <= (negative ? 1 : 0)) {
-					log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "Long litterals can't be just '%s%c'", text.toString(), c);
-					continue;
+					//log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "Long literals can't be just '%s%c'", text.toString(), c);
+					return null;
 				}
 			}
 			else if(!TextParserUtil.isDigit(c))
@@ -89,6 +89,6 @@ public class NumberLiteralPicker {
 		
 		bufferer.setNewStart(0); //We are one past the number
 		
-		return new Token(TokenType.NUMBER_LITTERAL, file, line, col, text.toString());
+		return new Token(TokenType.NUMBER_LITERAL, file, line, col, text.toString());
 	}
 }

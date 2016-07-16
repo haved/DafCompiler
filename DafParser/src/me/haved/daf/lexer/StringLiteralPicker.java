@@ -52,6 +52,6 @@ public class StringLiteralPicker {
 		if(charInstead && literal.length() != 1 && !(literal.length()==2 && TextParserUtil.isBackslash(literal.charAt(0))))
 			log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "A char litteral must contain one char, or a special code!");
 		
-		return new Token(charInstead ? TokenType.CHAR_LITTERAL : TokenType.STRING_LITTERAL, file, line, col, literal.toString());
+		return new Token(charInstead ? TokenType.CHAR_LITERAL : TokenType.STRING_LITERAL, file, line, col, literal.toString());
 	}
 }

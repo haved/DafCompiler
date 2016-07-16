@@ -9,6 +9,7 @@ a*b+c;
 a+b*c-d;
 a+b*c-d-f*c;
 a-a*b+c;
+a-b*c==a-b*c+d.func();
 //5;
 e();
 //b+4;
