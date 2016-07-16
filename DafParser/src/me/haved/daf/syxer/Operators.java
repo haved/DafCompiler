@@ -59,6 +59,10 @@ public class Operators {
 		public boolean returnsBoolean() {
 			return (inOut & (TNRB | TVRB | TBRB)) != 0; 
 		}
+		
+		public String getText() {
+			return tokenType.getText();
+		}
 	}
 	
 	public static InfixOperator findInfixOperator(TokenType type) {

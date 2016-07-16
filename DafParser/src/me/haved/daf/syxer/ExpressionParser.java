@@ -1,6 +1,7 @@
 package me.haved.daf.syxer;
 
 import me.haved.daf.data.expression.Expression;
+import me.haved.daf.data.expression.InfixOperatorExpression;
 import me.haved.daf.data.expression.VariableExpression;
 import me.haved.daf.data.statement.FunctionCall;
 import me.haved.daf.lexer.tokens.TokenType;
@@ -15,24 +16,53 @@ public class ExpressionParser {
 		Expression LHS = parsePrimary(bufferer);
 		if(LHS == null)
 			return null;
-		return parseBinaryOpRHS(bufferer, 0, LHS);
+		return parseBinaryOpRHS(bufferer, LHS);
 	}
 	
 	//Higher level means higher priority => + has a lower level than *
-	public static Expression parseBinaryOpRHS(TokenBufferer bufferer, int operatorLevel, Expression LHS) {
-		//Go as long as the next operator has a lower or same level as the previous operator
-		//When the level increases, set RHS to the result of recursively calling this function
+	//When called, LHS is the LHS of the potential operator that is the current token
+	//The operator value is checked = op
+	//You parse the RHS as well = middle
+	//The next operator value is checked, but the operator is NOT eaten
+	//If the next operator level is higher, start with the middle as the LHS and repeat, to get the RHS, return LHS (op) parseBinaryOpRHS(...)
+	//Else, set the LHS to LHS (op) middle, keep going
+	public static Expression parseBinaryOpRHS(TokenBufferer bufferer, Expression LHS) {
+		InfixOperator op = Operators.findInfixOperator(bufferer.getCurrentToken().getType());
+		if(op == null)
+			return LHS;
+		int opLevel = op.getLevel();
 		
 		while(true) {
-			InfixOperator newOp = Operators.findInfixOperator(bufferer.getCurrentToken().getType());
+			bufferer.advance(); //Eat the operator
+			InfixOperator prevOp = op;
+			int prevLevel = opLevel;
 			
-			break;
+			Expression RHS = parsePrimary(bufferer);
+			if(RHS == null) {
+				log(bufferer.getCurrentToken(), ERROR, "No RHS was found to the operator %s", op);
+				return null;
+			}
+			if(!bufferer.hasCurrentToken()) {
+				log(bufferer.getLastToken(), ERROR, "Expected something after the RHS!", op);
+				return null;
+			}
+			op = Operators.findInfixOperator(bufferer.getCurrentToken().getType()); //Don't eat it
+			
+			if(op == null)
+				return new InfixOperatorExpression(LHS, prevOp, RHS);
+			
+			opLevel = op.getLevel();
+			
+			if(opLevel > prevLevel) // example:  LHS + RHS *
+				return new InfixOperatorExpression(LHS, prevOp, parseBinaryOpRHS(bufferer, RHS));
+			else //example:  LHS * RHS +
+				LHS = new InfixOperatorExpression(LHS, prevOp, RHS);
 		}
-		
-		return LHS;
 	}
 	
 	public static Expression parsePrimary(TokenBufferer bufferer) {
+		if(!bufferer.hasCurrentToken()) //Precisely why we should have ended on EOF_token
+			return null;
 		switch(bufferer.getCurrentToken().getType()) {
 		default:
 			break;
