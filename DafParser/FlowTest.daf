@@ -1,5 +1,0 @@
-#macro TRANSMIT<whatToDo<something>,somethingElse> ==START== #whatToDo<#somethingElse> ==END_OF_TRANSMISSION==
-
-#macro DoSomething I'm doing #something!
-
-printf("#TRANSMIT<##DoSomething,cheese>");
