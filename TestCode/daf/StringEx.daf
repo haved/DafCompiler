@@ -1,0 +1,17 @@
+pub class String {
+    pub String(text:&char) {
+
+    }
+
+    pub String(&other:String) {
+
+    }
+
+    pub move String(&mut other:String) {
+        
+    }
+
+    pub ~String() {
+
+    }
+}
