@@ -16,47 +16,47 @@ public class ExpressionParser {
 		Expression LHS = parsePrimary(bufferer);
 		if(LHS == null)
 			return null;
-		return parseBinaryOpRHS(bufferer, LHS);
+		return parseBinaryOpRHS(bufferer, LHS, 0);
 	}
 	
-	//Higher level means higher priority => + has a lower level than *
-	//When called, LHS is the LHS of the potential operator that is the current token
-	//The operator value is checked = op
-	//You parse the RHS as well = middle
-	//The next operator value is checked, but the operator is NOT eaten
-	//If the next operator level is higher, start with the middle as the LHS and repeat, to get the RHS, return LHS (op) parseBinaryOpRHS(...)
-	//Else, set the LHS to LHS (op) middle, keep going
-	public static Expression parseBinaryOpRHS(TokenBufferer bufferer, Expression LHS) {
-		InfixOperator op = Operators.findInfixOperator(bufferer.getCurrentToken().getType());
+	/**
+	 * Parses expressions with operands between them until the token buffer runs out of operators
+	 * 
+	 * @param bufferer the token source
+	 * @param LHS the left hand side of the operand currently the current token
+	 * @param originOpLevel the precedence of the operand before the LHS
+	 * @return The Expression all the way from the LHS to the end of the operators (that have a higher level than the originOpLevel)
+	 */
+	public static Expression parseBinaryOpRHS(TokenBufferer bufferer, Expression LHS, int originOpLevel) {
+		InfixOperator op = Operators.findInfixOperator(bufferer.getCurrentToken().getType()); //Just get the initial operator
 		if(op == null)
 			return LHS;
 		int opLevel = op.getLevel();
 		
 		while(true) {
-			bufferer.advance(); //Eat the operator
 			InfixOperator prevOp = op;
-			int prevLevel = opLevel;
+			int prevOpLevel = opLevel;
 			
+			bufferer.advance(); //Eat the operator
 			Expression RHS = parsePrimary(bufferer);
-			if(RHS == null) {
-				log(bufferer.getCurrentToken(), ERROR, "No RHS was found to the operator %s", op);
-				return null;
-			}
-			if(!bufferer.hasCurrentToken()) {
-				log(bufferer.getLastToken(), ERROR, "Expected something after the RHS!", op);
-				return null;
-			}
-			op = Operators.findInfixOperator(bufferer.getCurrentToken().getType()); //Don't eat it
-			
+			op = Operators.findInfixOperator(bufferer.getCurrentToken().getType());
 			if(op == null)
-				return new InfixOperatorExpression(LHS, prevOp, RHS);
+				return new InfixOperatorExpression(LHS, prevOp, RHS); //We are done!
 			
 			opLevel = op.getLevel();
 			
-			if(opLevel > prevLevel) // example:  LHS + RHS *
-				return new InfixOperatorExpression(LHS, prevOp, parseBinaryOpRHS(bufferer, RHS));
-			else //example:  LHS * RHS +
-				LHS = new InfixOperatorExpression(LHS, prevOp, RHS);
+			if(opLevel < originOpLevel) { //Say a - b * c == d where prevOp is * and op is ==. We can't eat the == because of the -
+				return new InfixOperatorExpression(LHS, prevOp, RHS);
+			}
+			if(opLevel > prevOpLevel) { //Say a + b * c where + is prevOp and * is op
+				RHS = parseBinaryOpRHS(bufferer, RHS, prevOpLevel);
+				op = Operators.findInfixOperator(bufferer.getCurrentToken().getType());
+				if(op == null)
+					return new InfixOperatorExpression(LHS, prevOp, RHS);
+				opLevel = op.getLevel();
+			}
+			
+			LHS = new InfixOperatorExpression(LHS, prevOp, RHS);
 		}
 	}
 	
