@@ -16,6 +16,6 @@ public class InfixOperatorExpression extends NodeBase implements Expression {
 	
 	@Override
 	public String toString() {
-		return String.format("(%s %s %s)", LHS, op.getText(), RHS);
+		return String.format("(%s%s%s)", LHS, op.getText(), RHS);
 	}
 }

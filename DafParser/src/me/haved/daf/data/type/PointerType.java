@@ -34,9 +34,9 @@ public class PointerType extends NodeBase implements Type {
 	@Override
 	public String getSignature() {
 		if(mutable)
-			return String.format("%s%s %s", TokenType.ADDRESS, TokenType.MUT, target.getSignature());
+			return String.format("%s%s %s", TokenType.getAddressType(), TokenType.MUT, target.getSignature());
 		else
-			return String.format("%s%s", TokenType.ADDRESS, target.getSignature());
+			return String.format("%s%s", TokenType.getAddressType(), target.getSignature());
 	}
 
 	@Override

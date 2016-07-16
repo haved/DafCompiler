@@ -17,7 +17,8 @@ public enum TokenType {
 	INT8, UINT8, INT16, UINT16, INT32, UINT32, INT64, UINT64,
 	USIZE, BOOLEAN, FLOAT, DOUBLE,
 	
-	ADDRESS("&"), SHARED, NEW, DELETE, LEFT_BRACKET("["), RIGHT_BRACKET("]"),
+	//ADDRESS("&"),
+	SHARED, NEW, DELETE, LEFT_BRACKET("["), RIGHT_BRACKET("]"),
 	DUMB,
 	
 	IDENTIFER(true), NUMBER_LITTERAL(true),
@@ -78,7 +79,12 @@ public enum TokenType {
 		return special;
 	}
 	
+	@Override
 	public String toString() {
-		return text;
+		return name();
+	}
+	
+	public static TokenType getAddressType() {
+		return TokenType.BITWISE_AND;
 	}
 }
