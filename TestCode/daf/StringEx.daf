@@ -1,17 +1,37 @@
-pub class String {
-    pub String(text:&char) {
+//import daf.memory; //string.strlen();
+//import string from daf.memory; //strlen();
+//import * from daf.memory; //strlen();
+//import string as str from daf.memory; //str.strlen();
+//import string as is from daf.memory; //string.strlen();
+//import string as str, allocate as alloc from daf.memory;
+//import string, allocate as are from daf.memory; //string.strlen();
+//import * as are from daf.memory; //Same as import daf.memory;
 
+import string, allocate as alloc from daf.memory;
+
+pub class String {
+    text:&char;
+    len:int;
+
+    pub String(text:&char) {
+        len = strlen(text);
+        text = alloc.allocate((len+1)*sizeof(char)) as &char; //Alternative casting, maybe?
+        memcpy();
     }
 
     pub String(&other:String) {
 
     }
 
-    pub move String(&mut other:String) {
+    pub String(&move other:String) {
         
     }
 
     pub ~String() {
+
+    }
+
+    pub &char get() {
 
     }
 }

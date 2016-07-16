@@ -12,3 +12,16 @@ Let's just say there is a story behind every point on this list.
 - Maybe clam the preprocessor just a tad
 - Don't make buffers all over the place. A current and a lookahead should be all you need.
 - Don't have a null token and an advance function that returns false at EOF. Have an EOF token instead
+- Maybe allow for parameters that are just (a:&, b:&mut) when you don't care about the pointer type?
+ - Maybe even allow for returning these, that may be impicitly cast to anything
+- Maybe cast like (exp as type)
+
+#####Import syntax suggestion:
+import daf.memory; //string.strlen()
+import * from daf.memory; //strlen();
+import string from daf.memory; //strlen();
+import string as str from daf.memory; //str.strlen();
+import string as is from daf.memory; //string.strlen();
+import string as is, allocate from daf.memory;
+import string, allocate as are from daf.memory;
+import * as are from daf.memory; //Same as import daf.memory;
