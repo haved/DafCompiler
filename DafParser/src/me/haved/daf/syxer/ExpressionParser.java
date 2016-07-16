@@ -24,10 +24,10 @@ public class ExpressionParser {
 	 * 
 	 * @param bufferer the token source
 	 * @param LHS the left hand side of the operand currently the current token
-	 * @param originOpLevel the precedence of the operand before the LHS
+	 * @param beforeLHS the precedence of the operand before the LHS
 	 * @return The Expression all the way from the LHS to the end of the operators (that have a higher level than the originOpLevel)
 	 */
-	public static Expression parseBinaryOpRHS(TokenBufferer bufferer, Expression LHS, int originOpLevel) {
+	public static Expression parseBinaryOpRHS(TokenBufferer bufferer, Expression LHS, int beforeLHS) {
 		InfixOperator afterRHS = Operators.findInfixOperator(bufferer.getCurrentToken().getType()); //Just get the initial operator
 		if(afterRHS == null) //If there was no operator, return the expression
 			return LHS;
@@ -43,7 +43,7 @@ public class ExpressionParser {
 			if(afterRHS == null)
 				return new InfixOperatorExpression(LHS, afterLHS, RHS); //We are done!
 			
-			if(afterRHS.getLevel() <= originOpLevel) //Say a - b * c == d where afterLHS is * and afterRHS is ==. We can't eat the == because of the -
+			if(afterRHS.getLevel() <= beforeLHS) //Say a - b * c == d where afterLHS is * and afterRHS is ==. We can't eat the == because of the -
 				return new InfixOperatorExpression(LHS, afterLHS, RHS);
 				
 			if(afterRHS.getLevel() > afterLHS.getLevel()) { //Say a + b * c where + is afterLHS and * is op
