@@ -2,9 +2,13 @@
 
 a;
 b();
-a+b*c-d%e==(g&b)||f+g-h*(i+j)!=k;
 ((c));
 d(b());
+a+b*c;
+a*b+c;
+a+b*c-d;
+a+b*c-d-f*c;
+a-a*b+c;
 //5;
 e();
 //b+4;

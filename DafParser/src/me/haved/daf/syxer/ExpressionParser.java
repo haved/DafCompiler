@@ -28,35 +28,32 @@ public class ExpressionParser {
 	 * @return The Expression all the way from the LHS to the end of the operators (that have a higher level than the originOpLevel)
 	 */
 	public static Expression parseBinaryOpRHS(TokenBufferer bufferer, Expression LHS, int originOpLevel) {
-		InfixOperator op = Operators.findInfixOperator(bufferer.getCurrentToken().getType()); //Just get the initial operator
-		if(op == null)
+		InfixOperator afterRHS = Operators.findInfixOperator(bufferer.getCurrentToken().getType()); //Just get the initial operator
+		if(afterRHS == null) //If there was no operator, return the expression
 			return LHS;
-		int opLevel = op.getLevel();
+		//At this point, "after RHS is a lie, but it's be once we're in the while loop"
 		
 		while(true) {
-			InfixOperator prevOp = op;
-			int prevOpLevel = opLevel;
+			InfixOperator afterLHS = afterRHS; //RHS was merged into LHS, so the new afterLHS is the old afterRHS
 			
 			bufferer.advance(); //Eat the operator
 			Expression RHS = parsePrimary(bufferer);
-			op = Operators.findInfixOperator(bufferer.getCurrentToken().getType());
-			if(op == null)
-				return new InfixOperatorExpression(LHS, prevOp, RHS); //We are done!
 			
-			opLevel = op.getLevel();
+			afterRHS = Operators.findInfixOperator(bufferer.getCurrentToken().getType());
+			if(afterRHS == null)
+				return new InfixOperatorExpression(LHS, afterLHS, RHS); //We are done!
 			
-			if(opLevel < originOpLevel) { //Say a - b * c == d where prevOp is * and op is ==. We can't eat the == because of the -
-				return new InfixOperatorExpression(LHS, prevOp, RHS);
-			}
-			if(opLevel > prevOpLevel) { //Say a + b * c where + is prevOp and * is op
-				RHS = parseBinaryOpRHS(bufferer, RHS, prevOpLevel);
-				op = Operators.findInfixOperator(bufferer.getCurrentToken().getType());
-				if(op == null)
-					return new InfixOperatorExpression(LHS, prevOp, RHS);
-				opLevel = op.getLevel();
+			if(afterRHS.getLevel() <= originOpLevel) //Say a - b * c == d where afterLHS is * and afterRHS is ==. We can't eat the == because of the -
+				return new InfixOperatorExpression(LHS, afterLHS, RHS);
+				
+			if(afterRHS.getLevel() > afterLHS.getLevel()) { //Say a + b * c where + is afterLHS and * is op
+				RHS = parseBinaryOpRHS(bufferer, RHS, afterLHS.getLevel());
+				afterRHS = Operators.findInfixOperator(bufferer.getCurrentToken().getType()); //Update the operator after RHS
+				if(afterRHS == null) //If the RHS is the end, just return now
+					return new InfixOperatorExpression(LHS, afterLHS, RHS);
 			}
 			
-			LHS = new InfixOperatorExpression(LHS, prevOp, RHS);
+			LHS = new InfixOperatorExpression(LHS, afterLHS, RHS);
 		}
 	}
 	
