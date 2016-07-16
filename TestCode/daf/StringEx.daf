@@ -1,37 +1,48 @@
-//import daf.memory; //string.strlen();
-//import string from daf.memory; //strlen();
-//import * from daf.memory; //strlen();
-//import string as str from daf.memory; //str.strlen();
-//import string as is from daf.memory; //string.strlen();
-//import string as str, allocate as alloc from daf.memory;
-//import string, allocate as are from daf.memory; //string.strlen();
-//import * as are from daf.memory; //Same as import daf.memory;
-
 import string, allocate as alloc from daf.memory;
 
-pub class String {
-    text:&char;
-    len:int;
+pub class String<T> {
+    text:&T;
+    final len:int; //Perhaps a final keyword?
 
-    pub String(text:&char) {
+    pub String(text:&T) {
         len = strlen(text);
-        text = alloc.allocate((len+1)*sizeof(char)) as &char; //Alternative casting, maybe?
-        memcpy();
+        this->text = alloc.allocate((len+1)*sizeof(T)) as &T; //Alternative casting, maybe?
+        memcpy(this->text, text, len+1);
     }
 
-    pub String(&other:String) {
-
+    pub String(&other:String<T>) {
+        len = other.len;
+        text = alloc.allocate((len+1)*sizeof(T)) as &T;
+        memcpy(text, other.text, len+1);
     }
 
-    pub String(&move other:String) {
-        
+    pub String(&move other:String<T>) { //move semantics imply that the refrence is also mutable
+        len = other.len;
+        text = other.text;
+        other.text = null;
     }
 
-    pub ~String() {
-
+    pub ~String() { //If the class was virtual, demand that this too is virtual
+        alloc.free(text); //Checks if it's 0 automaticly
     }
 
-    pub &char get() {
-
+    pub const method get():&T {
+        return text;
     }
+}
+
+pub typedef string String<char>; //Guess I'll have typedef
+
+import print from daf.iostream;
+
+pub def main:=():int { //A good way of declaring return type?
+    let hello:= { //A bit too advanced perhaps?
+        let text:string("Hello"); //Normal constructor
+        string(move text) //Move constructor
+        //text is destructed here, but no deletion happens
+    };
+    let text:string("World!");
+    let world:string(text); //Copy
+    printf("%s%s", hello.get(), world.get());
+    return 0;
 }
