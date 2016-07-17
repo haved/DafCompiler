@@ -2,6 +2,7 @@ package me.haved.daf.syxer;
 
 import me.haved.daf.data.expression.Expression;
 import me.haved.daf.data.expression.InfixOperatorExpression;
+import me.haved.daf.data.expression.NumberConstantExpression;
 import me.haved.daf.data.expression.VariableExpression;
 import me.haved.daf.data.statement.FunctionCall;
 import me.haved.daf.lexer.tokens.TokenType;
@@ -67,6 +68,8 @@ public class ExpressionParser {
 			return parseIdentifierExpression(bufferer);
 		case LEFT_PAREN:
 			return parseParentheses(bufferer);
+		case NUMBER_LITERAL:
+			return parseNumberConstant(bufferer);
 		}
 		
 		log(bufferer.getCurrentToken(), ERROR, "Expected an expression!"); return null;
@@ -115,5 +118,11 @@ public class ExpressionParser {
 		bufferer.advance(); //Eat )
 		
 		return new FunctionCall(idName, params.toArray(new Expression[params.size()]));
+	}
+	
+	public static Expression parseNumberConstant(TokenBufferer bufferer) {
+		NumberConstantExpression exp = new NumberConstantExpression(bufferer.getCurrentToken());
+		bufferer.advance();
+		return exp;
 	}
 }

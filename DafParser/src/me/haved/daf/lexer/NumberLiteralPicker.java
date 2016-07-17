@@ -35,7 +35,7 @@ public class NumberLiteralPicker {
 		StringBuilder text = new StringBuilder();
 		
 		if(negative)
-			text.append(TextParserUtil.MINUS_SIGN);
+			text.append(TextParserUtil.NUMBER_MINUS_SIGN);
 		text.append(firstLetter);
 		RegisteredFile file = bufferer.getFile();
 		int line = bufferer.getCurrentLine();

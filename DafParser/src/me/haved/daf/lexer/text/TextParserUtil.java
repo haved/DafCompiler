@@ -7,7 +7,8 @@ public class TextParserUtil {
 	public static final char START_OF_MACRO_PARAMETER = '<';
 	public static final char END_OF_MACRO_PARAMETER = '>';
 	public static final char POUND_SYMBOL = '#';
-	public static final char MINUS_SIGN = '-';
+	public static final char NUMBER_MINUS_SIGN = '-';
+	public static final char REAL_DECIMAL_CHAR = '.';
 
 	public static boolean containsAnyWhitespace(String s) {
 		for(int i = 0; i < s.length(); i++)
@@ -44,9 +45,9 @@ public class TextParserUtil {
 
 	public static boolean isEndOfMacroParameters(char c) { return c == END_OF_MACRO_PARAMETER; }
 	
-	public static boolean isMinusSign(char c) { return c == MINUS_SIGN; }
+	public static boolean isMinusSign(char c) { return c == NUMBER_MINUS_SIGN; }
 	
-	public static boolean isDecimalChar(char c) { return c == '.'; }
+	public static boolean isDecimalChar(char c) { return c == REAL_DECIMAL_CHAR; }
 	
 	public static boolean isFloatLetter(char c) { return c == 'f' || c == 'F'; }
 	
