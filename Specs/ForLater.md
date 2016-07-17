@@ -36,6 +36,7 @@ Let's just say there is a story behind every point on this list.
 - The objects themselves can't be immutable (unless const destructor), and are implicitly let mutable
  - This also means the deletion of objects on the heap must happen to a pointer with mutability (unless const destructor)
 - Require the destructor to be virtual to allow polymorphic pointers
+ - As long as a superclass has a virtual destructor, the destructor of all it's subclasses will count as virtual
 
 #####Import syntax suggestion:
 import daf.memory; //string.strlen()

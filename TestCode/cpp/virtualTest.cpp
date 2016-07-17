@@ -95,15 +95,35 @@ class Base {
         }
 };
 
-class Sub : public Base {
+class Mid : public Base {
+    public:
+        Mid(MyStringClass a, MyStringClass b) : Base(std::move(a), std::move(b)) {}
+        ~Mid() {
+            print("Destructing mid");
+        }
+};
+
+class Sub : public Mid {
     MyStringClass field3;
     MyStringClass field4;
     public:
-        Sub(MyStringClass a, MyStringClass b, MyStringClass c, MyStringClass d) : Base(std::move(a), std::move(b)), field3(std::move(c)), field4(std::move(d)) {}
+        Sub(MyStringClass a, MyStringClass b, MyStringClass c, MyStringClass d) : Mid(std::move(a), std::move(b)), field3(std::move(c)), field4(std::move(d)) {}
         ~Sub() {
             std::cout << "Sub being destructed" << std::endl;
         }
 };
+
+void delet(Mid* mid) {
+    int sum = 0;
+    for(int i = 1; i <= 1000; i++) {
+        sum += i;
+    }
+    while(1) {
+        break;
+    }
+    std::cout << sum << std::endl;
+    delete mid;
+}
 
 int main() {
     MyStringClass one("String #1");
@@ -112,11 +132,13 @@ int main() {
     MyStringClass four("too good 4 me"); 
 
     Sub* sub = new Sub(std::move(one), std::move(two), std::move(three), std::move(four));
-    Base* base = sub;
-    std::cout << "Field 1 is: " << base->field.get() << std::endl;
-    base->field = MyStringClass("Eyo, boy");
+    Mid* mid = sub;
+    //Base* base = sub;
+    //std::cout << "Field 1 is: " << base->field.get() << std::endl;
+    //base->field = MyStringClass("Eyo, boy");
+    //delete base;
 
-    delete base;
+    delet(mid);
 
     return 0;
 }
