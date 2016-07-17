@@ -1,9 +1,62 @@
-
 pub class UniquePtr<T> {
-
     ptr:&mut T;
+    deleter:(&mut T);
+
+    pub UniquePtr() {
+        deleter = noopDeleter; //Easy
+    }
 
     pub UniquePtr(ptr:&mut T) {
-        
+        this->ptr = ptr;
+        deleter = normalDeleter;
     }
+
+    pub UniquePtr(ptr:&mut T, deleter:(&mut T)) {
+        this->ptr = ptr;
+        this->deleter = deleter;
+    }
+
+     pub UniquePtr(&mut other:UniquePtr) {
+        this->ptr = other.ptr;
+        this->deleter = other.deleter;
+        other.ptr = null;
+    }
+
+    pub UniquePtr(&move other:UniquePtr) {
+        this->ptr = other.ptr;
+        this->deleter = other.deleter;
+        other.ptr = null;
+    }
+
+    ~UniquePtr() {
+        deleter(ptr);
+    }
+
+    pub method assign(&move other:UniquePtr) {
+        deleter(ptr);
+        ptr = other.ptr;
+        deleter = other.deleter;
+        other.ptr = null;
+    }
+
+    pub method reset() {
+        deleter(ptr);
+        ptr = null;
+    }
+
+    pub method release():&mut T {
+        &mut T tmp = ptr;
+        ptr = null;
+        return tmp;
+    }
+
+    pub method get():&mut T {
+        return ptr;
+    }
+
+    def normalDeleter:=(ptr:&mut T) {
+        delete ptr;
+    }
+
+    pub def noopDeleter:=(ptr:&mut T) {}
 }

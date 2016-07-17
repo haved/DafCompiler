@@ -10,7 +10,7 @@ Let's just say there is a story behind every point on this list.
 - Write stuff down
 - Learn from your mistakes
 - Massivly simplify lexer and syxer
-- Maybe clam the preprocessor just a tad
+- Maybe calm the preprocessor just a tad
 - Don't make buffers all over the place. A current and a lookahead should be all you need.
 - Don't have a null token and an advance function that returns false at EOF. Have an EOF token instead
 
@@ -25,7 +25,7 @@ Let's just say there is a story behind every point on this list.
 - Add **typedef** as well
 - Add **&move** as a refrence type to procedures
  - Automaticly use it when the param is an rvalue
-- Add **&shared** and &unique pointers
+- Add **&shared** and **&unique** pointers
 - When passing a refrence you don't have the **&** symbol in front. (That would be a pointer)
  - This means mut and move refs have the words written before the expression
 - Allow for statements returning expressions?
@@ -33,11 +33,16 @@ Let's just say there is a story behind every point on this list.
 - Have a **base** keyword
 - Have a **final** keyword
 - Remember **const** keyword for methods
-- The objects themselves can't be immutable (unless const destructor), and are implicitly let mutable
+- Objects themselves can't be immutable (unless const destructor), and are implicitly let mutable
  - This also means the deletion of objects on the heap must happen to a pointer with mutability (unless const destructor)
+  - classes with const destructors can only contain primitive fields (that includes normal pointers)
+   - Also superclasses have to have const virtual destructors. 
 - Require the destructor to be virtual to allow polymorphic pointers
  - As long as a superclass has a virtual destructor, the destructor of all it's subclasses will count as virtual
 - Require semicolon after every definition (let, def, typedef, import, class, module) (not methods, but def's inside classes? :/)
+- Parameters in signatures don't need a name. i.e. (&int):int is a legal signature. (But it's still legal)
+ - But if the parameter is a refrence: (&move:&int):int is the syntax
+- Add a way of choosing constructor (other than parameter type)
 
 #####Import syntax suggestion:
 import daf.memory; //string.strlen()
