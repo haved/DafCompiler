@@ -30,7 +30,7 @@ public class FunctionCall extends NodeBase implements Statement, Expression {
 		if(parameters != null)
 			for(int i = 0; i < parameters.length; i++) {
 				if(i != 0)
-					out.append(" ,");
+					out.append(", ");
 				out.append(parameters[i]);
 			}
 		

@@ -108,7 +108,7 @@ public class ExpressionParser {
 			params.add(param);
 			if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN))
 				break;
-			if(!bufferer.isCurrentTokenOfType(TokenType.COLON))
+			if(!bufferer.isCurrentTokenOfType(TokenType.COMMA))
 				log(bufferer.getCurrentToken(), ERROR, "Expected comma or ')' after function parameter");
 			if(!bufferer.advance()) { //Just to keep this show from running forever.
 				log(bufferer.getLastToken(), ERROR, "Expected ) to end function call. Not EOF!");

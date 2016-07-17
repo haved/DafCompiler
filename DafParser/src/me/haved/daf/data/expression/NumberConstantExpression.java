@@ -38,4 +38,9 @@ public class NumberConstantExpression extends NodeBase implements Expression {
 	public boolean isLong() {
 		return loong;
 	}
+	
+	@Override
+	public String toString() {
+		return text;
+	}
 }
