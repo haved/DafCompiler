@@ -4,7 +4,6 @@ import me.haved.daf.data.NodeBase;
 import me.haved.daf.data.expression.Expression;
 
 public class FunctionCall extends NodeBase implements Statement, Expression {
-
 	private String name;
 	private Expression[] parameters;
 	
@@ -25,6 +24,7 @@ public class FunctionCall extends NodeBase implements Statement, Expression {
 		return parameters;
 	}
 	
+	@Override
 	public String toString() {
 		StringBuilder out = new StringBuilder(name).append("(");
 		if(parameters != null)
