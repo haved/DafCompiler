@@ -6,7 +6,7 @@ pub class String<T> {
 
     pub String(text:&T) {
         len = strlen(text);
-        this->text = alloc.allocate((len+1)*sizeof(T)) as &T; //Alternative casting, maybe?
+        this->text = new T[len+1]; //Alternative casting, maybe?
         memcpy(this->text, text, len+1);
     }
 
@@ -23,7 +23,7 @@ pub class String<T> {
     }
 
     pub ~String() { //If the class was virtual, demand that this too is virtual
-        alloc.free(text); //Checks if it's 0 automaticly
+        delete[] text; //Checks if it's 0 automaticly
     }
 
     pub const method get():&T {
@@ -32,17 +32,3 @@ pub class String<T> {
 }
 
 pub typedef string String<char>; //Guess I'll have typedef
-
-import print from daf.iostream;
-
-pub def main:=():int { //A good way of declaring return type?
-    let hello:= { //A bit too advanced perhaps?
-        let text:string("Hello"); //Normal constructor
-        string(move text) //Move constructor
-        //text is destructed here, but no deletion happens
-    };
-    let text:string("World!");
-    let world:string(text); //Copy
-    printf("%s%s", hello.get(), world.get());
-    return 0;
-}

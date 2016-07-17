@@ -1,0 +1,9 @@
+
+pub class UniquePtr<T> {
+
+    ptr:&mut T;
+
+    pub UniquePtr(ptr:&mut T) {
+        
+    }
+}

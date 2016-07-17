@@ -21,6 +21,7 @@ Let's just say there is a story behind every point on this list.
 - Use a module system based on the new import system
  - Have a **module** keyword instead of namespaces
 - Use (int, &&char):int to show return type
+- Remember that && means pointer to pointer, even though the token is bitwise and
 - Add **typedef** as well
 - Add **&move** as a refrence type to procedures
  - Automaticly use it when the param is an rvalue
@@ -34,6 +35,7 @@ Let's just say there is a story behind every point on this list.
 - Remember **const** keyword for methods
 - The objects themselves can't be immutable (unless const destructor), and are implicitly let mutable
  - This also means the deletion of objects on the heap must happen to a pointer with mutability (unless const destructor)
+- Require the destructor to be virtual to allow polymorphic pointers
 
 #####Import syntax suggestion:
 import daf.memory; //string.strlen()
@@ -43,4 +45,4 @@ import string as str from daf.memory; //str.strlen();
 import string as is from daf.memory; //string.strlen();
 import string as is, allocate from daf.memory;
 import string, allocate as are from daf.memory;
-import * as are from daf.memory; //Same as import daf.memory;
+import * as are from daf.memory; //Same as import daf.memory, as long as everything is in modules.
