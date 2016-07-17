@@ -14,6 +14,10 @@ Let's just say there is a story behind every point on this list.
 - Don't make buffers all over the place. A current and a lookahead should be all you need.
 - Don't have a null token and an advance function that returns false at EOF. Have an EOF token instead
 
+######Main problems:
+- **Find a way of storing libraries** (Some kind of header that is still a .daf file?)
+- **Find a way of making generics work**
+
 #####Langauge ideas and quirks:
 - Maybe allow for parameters that are just (a:&, b:&mut) when you don't care about the pointer type?
  - Maybe even allow for returning these, that may be impicitly cast to anything
