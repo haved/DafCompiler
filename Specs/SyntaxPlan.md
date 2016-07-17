@@ -12,7 +12,7 @@ import <module>, <module> from <file>;    //imports the contents of the modules 
 import <module> as<name> from <file>;    //imports only the module named, with a custom name
 import <module> as <is> from <file>;    //import the module keeping it's name
 import <module>, <module> as are from <file>;    //import multiple modules, all keeping their names
-import <\*> from <file>;    //import everything from the file, without module names
+import <*> from <file>;    //import everything from the file, without module names
 import <module> from <this>;    //import a module from the same file (only when the file is being imported(?) )
 ```
 
