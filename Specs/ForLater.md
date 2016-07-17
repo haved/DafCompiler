@@ -37,6 +37,7 @@ Let's just say there is a story behind every point on this list.
  - This also means the deletion of objects on the heap must happen to a pointer with mutability (unless const destructor)
 - Require the destructor to be virtual to allow polymorphic pointers
  - As long as a superclass has a virtual destructor, the destructor of all it's subclasses will count as virtual
+- Require semicolon after every definition (let, def, typedef, import, class, module) (not methods, but def's inside classes? :/)
 
 #####Import syntax suggestion:
 import daf.memory; //string.strlen()
@@ -46,4 +47,5 @@ import string as str from daf.memory; //str.strlen();
 import string as is from daf.memory; //string.strlen();
 import string as is, allocate from daf.memory;
 import string, allocate as are from daf.memory;
-import * as are from daf.memory; //Same as import daf.memory, as long as everything is in modules.
+import * as are from daf.memory; //Same as import daf.memory
+If something in a file is outside of a module, it'll allways be imported, without a name

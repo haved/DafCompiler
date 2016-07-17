@@ -1,4 +1,4 @@
-import string, allocate as alloc from daf.memory;
+import string, memcpy from daf.memory;
 
 pub class String<T> {
     text:&T;
@@ -6,14 +6,14 @@ pub class String<T> {
 
     pub String(text:&T) {
         len = strlen(text);
-        this->text = new T[len+1]; //Alternative casting, maybe?
-        memcpy(this->text, text, len+1);
+        this->text = new T[len+1];
+        memcpy_type(this->text, text, len+1); //memcpy_type takes a template type. length *= sizeof(T);
     }
 
     pub String(&other:String<T>) {
         len = other.len;
-        text = alloc.allocate((len+1)*sizeof(T)) as &T;
-        memcpy(text, other.text, len+1);
+        text = new T[len+1];
+        memcpy_type(text, other.text, len+1);
     }
 
     pub String(&move other:String<T>) { //move semantics imply that the refrence is also mutable
@@ -29,6 +29,6 @@ pub class String<T> {
     pub const method get():&T {
         return text;
     }
-}
+};
 
 pub typedef string String<char>; //Guess I'll have typedef
