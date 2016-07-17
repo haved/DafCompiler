@@ -13,6 +13,8 @@ Let's just say there is a story behind every point on this list.
 - Maybe calm the preprocessor just a tad
 - Don't make buffers all over the place. A current and a lookahead should be all you need.
 - Don't have a null token and an advance function that returns false at EOF. Have an EOF token instead
+- Have - as both an infix and prefix operator. a + -(b+3) is legal
+ - This is instead of parsing the minus sign in front of a number as part of the literal
 
 ####Main problems:
 - **Find a way of storing libraries** (Some kind of header that is still a .daf file?)
