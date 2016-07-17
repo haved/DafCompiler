@@ -17,11 +17,11 @@ public class NumberLiteralPicker {
 		boolean negative = false;
 		boolean decimalFound = false;
 		
-		if(TextParserUtil.isMinusSign(firstLetter)) {
+		/*if(TextParserUtil.isMinusSign(firstLetter)) {
 			negative = true;
 			if(!bufferer.advance())
 				return null;
-		}
+		}*/
 		
 		firstLetter = bufferer.getCurrentChar();
 		
@@ -62,7 +62,7 @@ public class NumberLiteralPicker {
 					log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "Float literals must have a decimal point: '%s%c' is illegal!", text.toString(), c);
 					continue;
 				}
-				else if(text.length()==1) {
+				else if(text.length()<=(negative?2:1)) {
 					//log(file, bufferer.getCurrentLine(), bufferer.getCurrentCol(), ERROR, "Float literals can't be just '%s%c'", text.toString(), c);
 					return null;
 				}
@@ -83,8 +83,8 @@ public class NumberLiteralPicker {
 			text.append(c);
 		}
 		
-		if(decimalFound && text.length()==1) {
-			return null; //We can't just say a '.' is a number literal!
+		if(decimalFound && text.length()<=(negative ? 2 : 1)) {
+			return null; //We can't just say a '.' or "-." is a number literal!
 		}
 		
 		bufferer.setNewStart(0); //We are one past the number

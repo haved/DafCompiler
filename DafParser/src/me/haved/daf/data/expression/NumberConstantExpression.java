@@ -20,5 +20,22 @@ public class NumberConstantExpression extends NodeBase implements Expression {
 		loong = TextParserUtil.isLongLetter(text.charAt(text.length()-1));
 		logAssert(single ? real : true);
 		logAssert(loong ? !real : true);
+		setPosition(number, number);
+	}
+	
+	public String getText() {
+		return text;
+	}
+	
+	public boolean isReal() {
+		return real;
+	}
+	
+	public boolean isSinglePressicion() {
+		return single;
+	}
+	
+	public boolean isLong() {
+		return loong;
 	}
 }
