@@ -1,4 +1,10 @@
 #include <iostream>
+#include <cstring>
+#include <memory>
+
+void print(const char* text) {
+    std::cout << text << std::endl;
+}
 
 class MyStringClass {
     char *ptr;
@@ -28,7 +34,7 @@ MyStringClass::MyStringClass(const MyStringClass &str) { //Copy constructor
     ptr = new char[len+1];
     memcpy(this->ptr, str.ptr, len+1);
     print("Copy constructor");
-    std::cout << ptr << std::endl;
+    std::cout << "Copied:" << ptr << std::endl;
 }
 
 MyStringClass::MyStringClass(MyStringClass &&str) { //Move constructor :)
@@ -84,22 +90,28 @@ class Base {
         MyStringClass field;
         MyStringClass field2;
         Base(MyStringClass a, MyStringClass b) : field(std::move(a)), field2(std::move(b)) {}
-}
+        virtual ~Base() {
+            std::cout << "Base being destructed" << std::endl;
+        }
+};
 
 class Sub : public Base {
     MyStringClass field3;
     MyStringClass field4;
-    Sub(MyStringClass a, MyStringClass b, MyStringClass c, MyStringClass d) : Base(a, b), field3(std::move(c)), field4(std::move(d)) {}
-}
+    public:
+        Sub(MyStringClass a, MyStringClass b, MyStringClass c, MyStringClass d) : Base(std::move(a), std::move(b)), field3(std::move(c)), field4(std::move(d)) {}
+        ~Sub() {
+            std::cout << "Sub being destructed" << std::endl;
+        }
+};
 
 int main() {
-
     MyStringClass one("String #1");
     MyStringClass two("Mah string #2 #blessed");
     MyStringClass three("#tres!");
     MyStringClass four("too good 4 me"); 
 
-    Sub* sub = new Sub(one, two, three, four);
+    Sub* sub = new Sub(std::move(one), std::move(two), std::move(three), std::move(four));
     Base* base = sub;
     std::cout << "Field 1 is: " << base->field.get() << std::endl;
     base->field = MyStringClass("Eyo, boy");
