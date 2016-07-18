@@ -18,7 +18,7 @@ public enum TokenType {
 	USIZE, BOOLEAN, FLOAT, DOUBLE,
 	
 	//ADDRESS("&"),
-	SHARED, NEW, DELETE, LEFT_BRACKET("["), RIGHT_BRACKET("]"),
+	SHARED, UNIQUE, NEW, DELETE, LEFT_BRACKET("["), RIGHT_BRACKET("]"),
 	DUMB,
 	
 	IDENTIFER(true), NUMBER_LITERAL(true),
@@ -81,7 +81,7 @@ public enum TokenType {
 	
 	@Override
 	public String toString() {
-		return name();
+		return text;
 	}
 	
 	public static TokenType getAddressType() {

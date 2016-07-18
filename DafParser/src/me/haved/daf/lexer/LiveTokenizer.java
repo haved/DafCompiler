@@ -32,6 +32,7 @@ public class LiveTokenizer implements TokenBufferer {
 	
 	@Override
 	public Token getCurrentToken() {
+		logAssert(!done);
 		return current;
 	}
 	
@@ -42,7 +43,13 @@ public class LiveTokenizer implements TokenBufferer {
 
 	@Override
 	public Token getLastToken() {
+		logAssert(done);
 		return current;
+	}
+	
+	@Override
+	public Token getLastOrCurrent() {
+		return done ? getLastToken() : getCurrentToken();
 	}
 
 	@Override

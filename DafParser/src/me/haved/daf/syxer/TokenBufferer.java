@@ -7,6 +7,7 @@ public interface TokenBufferer {
 	public Token getCurrentToken();
 	public Token getLookaheadToken();
 	public Token getLastToken();
+	public Token getLastOrCurrent();
 	public boolean hasCurrentToken();
 	public boolean hasLookaheadToken();
 	public boolean advance();
