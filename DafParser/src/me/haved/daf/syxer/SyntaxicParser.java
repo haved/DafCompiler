@@ -42,10 +42,9 @@ public final class SyntaxicParser {
 		}
 	}
 	
-	public static void skipUntilSemicolon(TokenBufferer bufferer, String during) {
+	public static void skipUntilSemicolon(TokenBufferer bufferer) {
 		while(!bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
 			if(!bufferer.advance()) {
-				log(bufferer.getLastToken(), ERROR, "Expected a semi-colon (while skipping %s) before EOF!");
 				return;
 			}
 		}

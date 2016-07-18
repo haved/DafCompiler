@@ -3,6 +3,7 @@ pub class UniquePtr<T> {
     deleter:(&mut T);
 
     pub UniquePtr() {
+        ptr = null; //Doesn't happen by itself
         deleter = noopDeleter; //Easy
     }
 
@@ -52,6 +53,10 @@ pub class UniquePtr<T> {
 
     pub method get():&mut T {
         return ptr;
+    }
+
+    pub method has():boolean {
+        return ptr != null;
     }
 
     def normalDeleter:=(ptr:&mut T) {
