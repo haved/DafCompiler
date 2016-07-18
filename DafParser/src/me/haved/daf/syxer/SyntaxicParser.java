@@ -8,6 +8,7 @@ import me.haved.daf.RegisteredFile;
 import me.haved.daf.data.definition.Definition;
 import me.haved.daf.lexer.LiveTokenizer;
 import me.haved.daf.lexer.text.MacroMap;
+import me.haved.daf.lexer.tokens.TokenType;
 
 import static me.haved.daf.LogHelper.*;
 
@@ -39,5 +40,15 @@ public final class SyntaxicParser {
 			println("Expression: %s", ExpressionParser.parseExpression(bufferer));
 			bufferer.advance();
 		}
+	}
+	
+	public static void skipUntilSemicolon(TokenBufferer bufferer, String during) {
+		while(!bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
+			if(!bufferer.advance()) {
+				log(bufferer.getLastToken(), ERROR, "Expected a semi-colon (while skipping %s) before EOF!");
+				return;
+			}
+		}
+		bufferer.advance();
 	}
 }

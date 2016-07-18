@@ -16,6 +16,8 @@ Let's just say there is a story behind every point on this list.
 - Have - as both an infix and prefix operator. a + -(b+3) is legal
  - This is instead of parsing the minus sign in front of a number as part of the literal
 
+A type ends with '=' ';' '{' ',' (unless in type's own function signature)  
+
 ####Main problems:
 - **Find a way of storing libraries** (Some kind of header that is still a .daf file?)
 - **Find a way of making generics work**
