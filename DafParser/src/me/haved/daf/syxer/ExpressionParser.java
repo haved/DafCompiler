@@ -67,7 +67,7 @@ public class ExpressionParser {
 				log(bufferer.getLastToken(), ERROR, "Expected an expression after %s, not EOF", op);
 				return null;
 			}
-			Expression exp = parseSecondary(bufferer);
+			Expression exp = parsePrimary(bufferer);
 			if(exp == null)
 				return null; //Errors already printed
 			return new PrefixOperatorExpression(op, exp);

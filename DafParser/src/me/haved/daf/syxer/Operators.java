@@ -2,6 +2,8 @@ package me.haved.daf.syxer;
 
 import me.haved.daf.lexer.tokens.TokenType;
 
+import static me.haved.daf.LogHelper.*;
+
 public class Operators {
 	public static final int TAKES_NUMBERS_RETURNS_NUMBER = 0b1, TNRN = 0b1; // + - * / %
 	public static final int TAKES_NUMBERS_RETURNS_BOOL = 0b10, TNRB = 0b10; // > >= < <=
@@ -143,6 +145,8 @@ public class Operators {
 	public static PrefixOperator parsePrefixOperator(TokenBufferer bufferer) {
 		PrefixOperator answer = null;
 		TokenType type = bufferer.getCurrentToken().getType();
+		if(type == TokenType.LOGICAL_AND)
+			log(bufferer.getCurrentToken(), SUGGESTION, "If you really want a pointer to a pointer, stick a space inbetween");
 		for(PrefixOperator op:PrefixOperator.values()) {
 			if(!op.isSpecial() && op.getType() == type) {
 				answer = op;

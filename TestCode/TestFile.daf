@@ -1,6 +1,6 @@
 //Just do expressions for the time being
 
-!a;
+!!!& &mut&a;
 b();
 ((c));
 d(b());
