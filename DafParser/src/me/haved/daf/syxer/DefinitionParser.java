@@ -2,6 +2,8 @@ package me.haved.daf.syxer;
 
 import me.haved.daf.data.definition.Definition;
 import me.haved.daf.data.definition.Let;
+import me.haved.daf.data.expression.Expression;
+import me.haved.daf.data.type.Type;
 import me.haved.daf.lexer.tokens.TokenType;
 
 import static me.haved.daf.LogHelper.*;
@@ -68,17 +70,52 @@ public class DefinitionParser {
 		}
 		
 		if(!letMet) {
-			log();
-			
+			log(bufferer.getCurrentToken(), ERROR, "Expected '%s' before the identifer. What even is this definition??", TokenType.LET);
+			SyntaxicParser.skipUntilSemicolon(bufferer);
+			return null;
 		}
 		
 		if(uncertain && !mut)
 			log(bufferer.getCurrentToken(), WARNING, "An uncertain %s statement has no reason to exist if not mutable", TokenType.LET);
 		
-		if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
-			log(bufferer.getLastOrCurrent(), ERROR, "Expected an identifier after '%s'", TokenType.LET);
+		String identifier = bufferer.getCurrentToken().getText();
+		bufferer.advance(); //Eat the identifier
+		
+		//either : or :=
+		
+		Type type;
+		boolean autoType = false;
+		if(bufferer.isCurrentTokenOfType(TokenType.COLON)) {
+			type = null;
+		} else if(bufferer.isCurrentTokenOfType(TokenType.COLON_ASSIGN)) {
+			autoType = true;
+			type = null;
+		} else {
+			log(bufferer.getLastOrCurrent(), ERROR, "Expected '%s' or '%s' after the identifer '%s' in a let statement", 
+					TokenType.COLON, TokenType.COLON_ASSIGN, identifier);
 			SyntaxicParser.skipUntilSemicolon(bufferer);
+			return null;
 		}
+		
+		//Either =, := or ;
+		
+		if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
+			logAssert(!autoType);
+			if(!uncertain) {
+				log(bufferer.getCurrentToken(), ERROR, "A let statement without an initializer must be declared as uncertain.");
+				bufferer.advance(); //Eat the ;
+				return null;
+			}
+			bufferer.advance(); //Eat the ;
+			return new Let(identifier, type, null, pub);
+		} else if(bufferer.isCurrentTokenOfType(TokenType.COLON_ASSIGN)) {
+			bufferer.advance(); //Eat the :=
+			Expression exp = ExpressionParser.parseExpression(bufferer);
+			
+		} else if(bufferer.isCurrentTokenOfType(TokenType.ASSIGN)) {
+			
+		}
+		
 		
 		return null;
 	}
