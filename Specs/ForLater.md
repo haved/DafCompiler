@@ -15,6 +15,7 @@ Let's just say there is a story behind every point on this list.
 - Don't have a null token and an advance function that returns false at EOF. Have an EOF token instead
 - Have - as both an infix and prefix operator. a + -(b+3) is legal
  - This is instead of parsing the minus sign in front of a number as part of the literal
+- After '(', if not followed by ')', parse an expression. Even if you later find out it's a parameter, it's parsed fine
 
 A type ends with '=' ';' '{' ',' (unless in type's own function signature)  
 
