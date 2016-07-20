@@ -1,2 +1,4 @@
 #/usr/bin/bash
 cp dafln.py /usr/bin/dafln
+mkdir -p /usr/share/daf
+echo "-I bin -L lib" > /usr/share/daf/linker_search.txt

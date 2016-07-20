@@ -1,6 +1,7 @@
 #!/usr/bin/python
 from os.path import expanduser
 
+version = "1.0"
 linker_search_files = ["/usr/share/daf/linker_search.txt", expanduser("~/.daf/linker_search.txt")]
 maxLevel = 10
 
@@ -19,7 +20,7 @@ linker_args = []
 rpath = None
 
 def printHelpMessage():
-    print(
+    print("Help page for dafln v.", version+"\n"+
  """Usage: dafln <OPTION LIST>
 
 List entries:
@@ -52,16 +53,16 @@ def addLibrarySearchDir(dir):
 
 def addObjectFile(arg):
     name = arg[0]
-    for dir in o_search_dirs:
+    for dir in o_search_dirs+[getcwd()]:
         path = join(dir, name)
         if isfile(path):
-            object_files.append(path)
+            if path in object_files:
+                print(arg[1]+":",str(arg[2])+": Object file", name, "was already registered")
+            else:
+                object_files.append(path)
             return
-    path = join(getcwd(), name)
-    if isfile(path):
-        object_files.append(path)
-    else:
-        print(arg[1]+":",str(arg[2])+": Object file", name, "not found in any search directory or in cwd")
+    
+    print(arg[1]+":",str(arg[2])+": Object file", name, "not found in any search directory or in cwd")
 
 def findAndHandleFile(arg, level):
     if handleFile(arg[0], level) == False:
@@ -142,8 +143,12 @@ def main() :
 
     for linker_search in linker_search_files:
         handleFile(linker_search, 0)
-
+    
     handleParameters([(arg, "dafln", 0) for arg in argv][1:], 0)
+
+    if len(object_files) == 0:
+        print("dafln: No input files")
+        exit()
 
     if output == None:
         output = "daf.out"
