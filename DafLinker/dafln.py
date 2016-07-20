@@ -16,6 +16,7 @@ lib_search_dirs = []
 output = None
 linker = None
 linker_args = []
+rpath = None
 
 def printHelpMessage():
     print(
@@ -38,14 +39,16 @@ List entries:
 def getArg(args, index):
     if index >= len(args):
         print(args[index-1][1]+":", str(args[index-1][2])+": error: expected something after", args[index-1][0])
-        return None
+        exit(-1)
     return args[index]
 
 def addSearchDir(dir): #Only used for object file serch dirs
-    o_search_dirs.append(dir[0])
+    wd = getcwd()
+    o_search_dirs.append(join(wd, dir[0]))
 
 def addLibrarySearchDir(dir):
-    lib_search_dirs.append(dir[0])
+    wd = getcwd()
+    lib_search_dirs.append(join(wd, dir[0]))
 
 def addObjectFile(arg):
     pass
@@ -86,31 +89,46 @@ def handleParameters(args, level):
     i = 0
     while i < len(args):
         arg = args[i][0]
-        if arg == "--help":
+        if arg == "-h" or arg == "--help":
             printHelpMessage()
         elif arg == "-F":
             i+=1
             findAndHandleFile(getArg(args, i), level+1)
+        elif arg[:2] == "-l":
+            libraries.append(arg)
         elif arg == "-I":
             i+=1
             addSearchDir(getArg(args, i))
         elif arg == "-L":
             i+=1
             addLibrarySearchDir(getArg(args, i))
-        elif arg[:2] == "-l":
-            libraries.append(arg)
         elif arg == "-o":
             i+=1
             newOut = getArg(args, i)
             if output != None:
                 print(newOut[1]+":", str(newOut[2])+": warning: Setting output name again! (from '", output, "' to '", newOut[0], "')")
             output = newOut[0]
+        elif arg == "-X":
+            i+=1
+            newLinker = getArg(args, i)
+            if linker != None:
+                print(newLinker[1]+":", str(newLinker[2])+": warning: Setting linker again! (from '", linker, "' to '", newLinker[0], "')")
+            linker = newLinker[0]
+        elif arg == "-x":
+            i+=1
+            linker_args.append(getArg(args, i)[0])
+        elif arg == "-rpath":
+            i+=1
+            newRpath = getArg(args, i)
+            if rpath != None:
+                print(newRpath[1]+":", str(newRpath[2])+": warning: Setting rpath again! (from '", rpath, "' to '", newRpath[0], "')")
+            rpath = newRpath[0]
         else:
             addObjectFile(args[i])
         i+=1
 
 def main() :
-    global object_files, libraries, lib_search_dirs, output, linker, linker_args
+    global object_files, libraries, lib_search_dirs, output, linker, linker_args, rpath
 
     for linker_search in linker_search_files:
         handleFile(linker_search, 0)
@@ -121,6 +139,8 @@ def main() :
         linker = "ld"
 
     args = [linker]+linker_args
+    if rpath != None:
+        args += ["-rpath", rpath]
     for dir in lib_search_dirs:
         args+=["-L", dir]
     args += object_files+libraries+["-o", output]
