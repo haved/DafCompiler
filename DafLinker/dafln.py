@@ -6,7 +6,7 @@ maxLevel = 10
 
 from sys import argv
 from subprocess import call
-from os.path import dirname, realpath, split, join
+from os.path import dirname, realpath, split, join, isfile
 from os import chdir, getcwd
 
 object_files = []
@@ -51,22 +51,32 @@ def addLibrarySearchDir(dir):
     lib_search_dirs.append(join(wd, dir[0]))
 
 def addObjectFile(arg):
-    pass
+    name = arg[0]
+    for dir in o_search_dirs:
+        path = join(dir, name)
+        if isfile(path):
+            object_files.append(path)
+            return
+    path = join(getcwd(), name)
+    if isfile(path):
+        object_files.append(path)
+    else:
+        print(arg[1]+":",str(arg[2])+": Object file", name, "not found in any search directory or in cwd")
 
 def findAndHandleFile(arg, level):
     if handleFile(arg[0], level) == False:
         print(arg[1]+":", str(arg[2])+": error: File not found:", arg[0])
 
 def handleFile(filePath, level):
-    if level > maxLevel:
-        print("Aborting: Already", level, "levels in. Recursion?")
-        exit()
     wd = getcwd()
     filePath = join(wd, filePath)
+    fileName = split(filePath)[1]
+    if level > maxLevel:
+        print(fileName+": aborting: Already", level, "levels in. Recursion?")
+        exit()
     args = []
     try:
         file = open(filePath);
-        fileName = split(filePath)[1]
         lineNum = 0
         while True:
             lineNum+=1
@@ -132,6 +142,8 @@ def main() :
 
     for linker_search in linker_search_files:
         handleFile(linker_search, 0)
+
+    handleParameters([(arg, "dafln", 0) for arg in argv][1:], 0)
 
     if output == None:
         output = "daf.out"
