@@ -79,6 +79,7 @@ def addLibrarySearchDir(dir):
         lib_search_dirs.append(fullPath)
 
 def addObjectFile(arg):
+    global triedAddingOF
     triedAddingOF = True
     name = arg[0]
     for dir in o_search_dirs+[getcwd()]:
@@ -90,7 +91,7 @@ def addObjectFile(arg):
                 object_files.append(path)
             return
     
-    logWarning(arg, "Object file'" + name + "'not found in any search directory or in cwd")
+    logWarning(arg, "Object file '" + name + "' not found in any search directory or in cwd")
 
 def addLibrary(arg):
     if arg[0] in libraries:
@@ -186,19 +187,8 @@ def handleParameters(args, level):
             addObjectFile(args[i])
         i+=1
 
-def main() :
-    global object_files, libraries, lib_search_dirs, outputFile, linker, linker_args, rpath, static, shared, soname, triedAddingOF
-
-    for linker_search in linker_search_files:
-        handleFile(linker_search, 0)
-    
-    handleParameters([(arg, exec_name, 0) for arg in argv[1:]], 0)
-
-    if not triedAddingOF:
-        if not handleFile(defaultFile, 0):
-            print(exec_name_colon, "No input files specified, and no default Linkfile found")
-            exit()
-
+def makeArgList():
+    global object_files, libraries, lib_search_dirs, outputFile, linker, linker_args, rpath, static, shared, soname
     if len(object_files) == 0:
         print(exec_name_colon, "No input files")
         exit()
@@ -230,10 +220,32 @@ def main() :
         for dir in lib_search_dirs:
             args+=["-L", dir]
         args += object_files+libraries+["-o", outputFile]
+        return args
+
+def cleanUpArgs(args):
+    wd = join(getcwd(), ".")[:-1]
+    start = len(wd)
+    return [arg[start:] if arg.startswith(wd) else arg for arg in args]
+
+def main():
+    global triedAddingOF, linker_search_files
+    for linker_search in linker_search_files:
+        handleFile(linker_search, 0)
+    
+    handleParameters([(arg, exec_name, 0) for arg in argv[1:]], 0)
+
+    if not triedAddingOF:
+        if not handleFile(defaultFile, 0):
+            print(exec_name_colon, "No input files specified, and no default Linkfile found")
+            exit()
+
+    args = makeArgList()
+    args = cleanUpArgs(args)
 
     for arg in args:
         print(arg, end=' ')
     print("")
+
     retcode = call(args)
     exit(retcode)
 
