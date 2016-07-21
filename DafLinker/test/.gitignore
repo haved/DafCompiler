@@ -1,2 +1,5 @@
-openWindow
+normalExec
+staticExec
+dynamicExec
+lib/
 bin/

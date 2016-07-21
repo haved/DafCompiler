@@ -105,7 +105,8 @@ def findAndHandleFile(arg, level):
         logError(arg, "File not found: " + arg[0])
 
 def handleFile(filePath, level):
-    global maxLevel
+    global maxLevel, triedAddingOF
+    triedAddingOF = True
     wd = getcwd()
     filePath = join(wd, filePath)
     fileName = split(filePath)[1]
@@ -215,14 +216,15 @@ def makeArgList():
         args = [linker]+linker_args
         if shared:
             args += ["-shared", "-fPIC"]
-            if soname:
-                args += ["-soname", soname]
+            if soname!=None:
+                args += ["-Wl,-soname,"+soname]
         if rpath != None:
-            args += ["-rpath", rpath]
+            args += ["-Wl,-rpath,"+rpath]
         for dir in lib_search_dirs:
             args+=["-L", dir]
         args += object_files+libraries+["-o", outputFile]
-        return args
+    
+    return args
 
 def cleanUpArgs(args):
     wd = join(getcwd(), ".")[:-1]
@@ -234,6 +236,8 @@ def main():
     for linker_search in linker_search_files:
         handleFile(linker_search, 0)
     
+    triedAddingOF = False
+
     handleParameters([(arg, exec_name, 0) for arg in argv[1:]], 0)
 
     if not triedAddingOF:

@@ -47,7 +47,7 @@ When placing the file for linking (i.e. in `/usr/local/lib`), name it the soname
 
 Default behaviour:
  - All default library search locations from the linker
- - If no object files or libraries are supplied, dafln will automaticly look for and load *./Linkfile*
+ - If no object files or linkfiles are supplied, dafln will automaticly look for and load *./Linkfile*
  - If no linker is supplied, *ld* will be used
  - If no output file is supplied, *daf.out* is used
  - If a static library is archived, libraries and an rpath will give warnings
