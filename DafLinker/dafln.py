@@ -59,15 +59,18 @@ def getArg(args, index):
     return args[index]
 
 def addSearchDir(dir): #Only used for object file serch dirs
-    wd = getcwd()
-    fullPath = join(wd, dir[0])
+    fullPath = join(getcwd(), dir[0])
     if fullPath in o_search_dirs:
-        print(dir[1]+":", dir[2])
-    o_search_dirs.append(fullPath)
+        logWarning(dir, "Added the object file search directory '"+fullPath+"' a second time")
+    else:
+        o_search_dirs.append(fullPath)
 
 def addLibrarySearchDir(dir):
-    wd = getcwd()
-    lib_search_dirs.append(join(wd, dir[0]))
+    fullPath = join(getcwd(), dir[0])
+    if fullPath in lib_search_dirs:
+        logWarning(dir, "Added the library search directory '"+fullPath+"' a second time")
+    else:
+        lib_search_dirs.append(fullPath)
 
 def addObjectFile(arg):
     triedAddingOF = True
@@ -82,6 +85,12 @@ def addObjectFile(arg):
             return
     
     logWarning(arg, "Object file'" + name + "'not found in any search directory or in cwd")
+
+def addLibrary(arg):
+    if arg[0] in libraries:
+        logWarning(arg, "Added library '"arg[0]"' a second time")
+    else:
+        libraries.append(arg[0])
 
 def findAndHandleFile(arg, level):
     if handleFile(arg[0], level) == False:
@@ -125,7 +134,7 @@ def handleParameters(args, level):
             i+=1
             findAndHandleFile(getArg(args, i), level+1)
         elif arg[:2] == "-l":
-            libraries.append(arg)
+            addLibrary(args[i])
         elif arg == "-I":
             i+=1
             addSearchDir(getArg(args, i))
