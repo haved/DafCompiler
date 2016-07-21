@@ -1,1 +1,0 @@
-bin/main.o lib/libWC.so.1.2 -lsfml-graphics -lsfml-window -lsfml-system -lGL

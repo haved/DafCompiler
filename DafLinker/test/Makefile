@@ -12,13 +12,15 @@ lib/libWC.a: lib/ bin/windowCreator.o
 	echo "bin/windowCreator.o" > Linkfile
 	dafln -o lib/libWC.a -static
 
-dynamicExec: lib/libWC.so.1.2 bin/main.o
-	echo "bin/main.o lib/libWC.so.1.2 -lsfml-graphics -lsfml-window -lsfml-system -lGL" > Linkfile
-	dafln -o dynamicExec -rpath ./lib
+dynamicExec: lib/libWC.so bin/main.o
+	echo "bin/main.o -L lib/ -lWC -lsfml-graphics -lsfml-window -lsfml-system -lGL" > Linkfile
+	dafln -o dynamicExec -rpath .
 
-lib/libWC.so.1.2: lib/ bin/windowCreatorDynamic.o
+lib/libWC.so: lib/ bin/windowCreatorDynamic.o
 	echo "bin/windowCreatorDynamic.o" > Linkfile
-	dafln -o lib/libWC.so.1.2 -shared -soname libWC.so.1.2
+	dafln -o lib/libWC.so.1.2 -shared -soname libWC.so.1.0
+	rm libWC.so.1.0
+	ln -s lib/libWC.so.1.2 libWC.so.1.0
 
 bin/windowCreator.o: bin/ src/windowCreator.cpp
 	g++ -c src/windowCreator.cpp -o bin/windowCreator.o
@@ -37,4 +39,4 @@ lib/:
 
 clean:
 	rm -r bin lib
-	rm normalExec staticExec dynamicExec
+	rm normalExec staticExec dynamicExec libWC.so.1.0
