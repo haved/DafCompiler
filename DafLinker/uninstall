@@ -1,3 +1,0 @@
-#/usr/bin/bash
-rm /usr/bin/dafln
-rm /usr/share/daf/linker_search.txt

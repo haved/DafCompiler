@@ -1,11 +1,15 @@
 #!/usr/bin/python
 from os.path import expanduser
+from sys import argv
 
+exec_name = argv[0] #Whatever is used to call this
 version = "1.0"
 linker_search_files = ["/usr/share/daf/linker_search.txt", expanduser("~/.daf/linker_search.txt")]
 maxLevel = 10
+defaultFile = "Linkfile"
 
-from sys import argv
+exec_name_colon = exec_name+":"
+
 from subprocess import call
 from os.path import dirname, realpath, split, join, isfile
 from os import chdir, getcwd
@@ -18,6 +22,8 @@ output = None
 linker = None
 linker_args = []
 rpath = None
+
+triedAddingOF = False
 
 def printHelpMessage():
     print("Help page for dafln v.", version+"\n"+
@@ -37,36 +43,49 @@ List entries:
     """)
     exit();
 
+def log(arg, text):
+    print(arg[1]+":", str(arg[2]) + text)
+
+def logWarning(arg, text):
+    log(arg,"warning: " + text)
+
+def logError(arg, text):
+    log(arg, "error: " + text)
+
 def getArg(args, index):
     if index >= len(args):
-        print(args[index-1][1]+":", str(args[index-1][2])+": error: expected something after", args[index-1][0])
+        logError(args[index-1], "expected something after " + args[index-1][0])
         exit(-1)
     return args[index]
 
 def addSearchDir(dir): #Only used for object file serch dirs
     wd = getcwd()
-    o_search_dirs.append(join(wd, dir[0]))
+    fullPath = join(wd, dir[0])
+    if fullPath in o_search_dirs:
+        print(dir[1]+":", dir[2])
+    o_search_dirs.append(fullPath)
 
 def addLibrarySearchDir(dir):
     wd = getcwd()
     lib_search_dirs.append(join(wd, dir[0]))
 
 def addObjectFile(arg):
+    triedAddingOF = True
     name = arg[0]
     for dir in o_search_dirs+[getcwd()]:
         path = join(dir, name)
         if isfile(path):
             if path in object_files:
-                print(arg[1]+":",str(arg[2])+": Object file", name, "was already registered")
+                logError(arg, "Object file '" + name + "' was already registered")
             else:
                 object_files.append(path)
             return
     
-    print(arg[1]+":",str(arg[2])+": Object file", name, "not found in any search directory or in cwd")
+    logWarning(arg, "Object file'" + name + "'not found in any search directory or in cwd")
 
 def findAndHandleFile(arg, level):
     if handleFile(arg[0], level) == False:
-        print(arg[1]+":", str(arg[2])+": error: File not found:", arg[0])
+        logError(arg, "File not found: " + arg[0])
 
 def handleFile(filePath, level):
     wd = getcwd()
@@ -117,13 +136,13 @@ def handleParameters(args, level):
             i+=1
             newOut = getArg(args, i)
             if output != None:
-                print(newOut[1]+":", str(newOut[2])+": warning: Setting output name again! (from '", output, "' to '", newOut[0], "')")
+                logWarning(newOut, "Setting output name again! (from '" + output + "' to '" + newOut[0] + "')")
             output = newOut[0]
         elif arg == "-X":
             i+=1
             newLinker = getArg(args, i)
             if linker != None:
-                print(newLinker[1]+":", str(newLinker[2])+": warning: Setting linker again! (from '", linker, "' to '", newLinker[0], "')")
+                logWarning(newLinker, "Setting linker again! (from '" + linker + "' to '" + newLinker[0] + "')")
             linker = newLinker[0]
         elif arg == "-x":
             i+=1
@@ -132,22 +151,27 @@ def handleParameters(args, level):
             i+=1
             newRpath = getArg(args, i)
             if rpath != None:
-                print(newRpath[1]+":", str(newRpath[2])+": warning: Setting rpath again! (from '", rpath, "' to '", newRpath[0], "')")
+                logWarning(newRpath, "Setting rpath again! (from '" + rpath + "' to '" + newRpath[0] + "')")
             rpath = newRpath[0]
         else:
             addObjectFile(args[i])
         i+=1
 
 def main() :
-    global object_files, libraries, lib_search_dirs, output, linker, linker_args, rpath
+    global object_files, libraries, lib_search_dirs, output, linker, linker_args, rpath, triedAddingOF
 
     for linker_search in linker_search_files:
         handleFile(linker_search, 0)
     
-    handleParameters([(arg, "dafln", 0) for arg in argv][1:], 0)
+    handleParameters([(arg, exec_name, 0) for arg in argv[1:]], 0)
+
+    if(not triedAddingOF):
+        if not handleFile(defaultFile, 0):
+            print(exec_name_colon, "No input files specified, and no Linkfile found")
+            exit()
 
     if len(object_files) == 0:
-        print("dafln: No input files")
+        print(exec_name_colon, "No input files")
         exit()
 
     if output == None:
