@@ -7,6 +7,9 @@ version = "1.0"
 linker_search_files = ["/usr/share/daf/linker_search.txt", expanduser("~/.daf/linker_search.txt")]
 maxLevel = 10
 defaultFile = "Linkfile"
+defaultLinker = "ld"
+defaultOutput = "a.out"
+defaultPacker = "ar"
 
 exec_name_colon = exec_name+":"
 
@@ -22,6 +25,9 @@ output = None
 linker = None
 linker_args = []
 rpath = None
+static = False
+shared = False
+soname = None
 
 triedAddingOF = False
 
@@ -162,12 +168,25 @@ def handleParameters(args, level):
             if rpath != None:
                 logWarning(newRpath, "Setting rpath again! (from '" + rpath + "' to '" + newRpath[0] + "')")
             rpath = newRpath[0]
+        elif arg == "-static":
+            static = True
+            if shared:
+                logWarning(args[i], "Changed library to static when already set to shared!")
+                shared = False
+        elif arg == "-shared":
+            shared = True
+            if static:
+                logWarning(args[i], "Changed library to shared when already set to static!")
+                static = False
+        elif arg == "-soname":
+            i+=1
+            soname = getArg(args, i)[0]
         else:
             addObjectFile(args[i])
         i+=1
 
 def main() :
-    global object_files, libraries, lib_search_dirs, output, linker, linker_args, rpath, triedAddingOF
+    global object_files, libraries, lib_search_dirs, output, linker, linker_args, rpath, static, shared, soname, triedAddingOF
 
     for linker_search in linker_search_files:
         handleFile(linker_search, 0)
@@ -184,21 +203,35 @@ def main() :
         exit()
 
     if output == None:
-        output = "daf.out"
+        output = defaultOutput
     if linker == None:
-        linker = "ld"
+        linker = defaultLinker
 
-    args = [linker]+linker_args
-    if rpath != None:
-        args += ["-rpath", rpath]
-    for dir in lib_search_dirs:
-        args+=["-L", dir]
-    args += object_files+libraries+["-o", output]
-    
+    if soname != None and not shared:
+        print(exec_name_colon, "error: Can't handle soname unless linking a shared library")
+        exit()
+
+    args = []
+    if static:
+        for lib in libraries:
+            print(exec_name_colon, "warning: Skipping library:", lib)
+        if rpath != None:
+            print(exec_name_colon, "warning: Skipping rpath:", rpath)
+    else:
+        args = [linker]+linker_args
+        if shared:
+            args += ["-shared", "-fPIC"]
+            if soname:
+                args += ["-soname"]
+        if rpath != None:
+            args += ["-rpath", rpath]
+        for dir in lib_search_dirs:
+            args+=["-L", dir]
+        args += object_files+libraries+["-o", output]
+
     for arg in args:
         print(arg, end=" ")
-    print("")
-
+        print("")
     retcode = call(args)
     exit(retcode)
 
