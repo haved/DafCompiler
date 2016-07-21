@@ -21,7 +21,7 @@ object_files = []
 libraries = []
 o_search_dirs = []
 lib_search_dirs = []
-output = None
+outputFile = None
 linker = None
 linker_args = []
 rpath = None
@@ -66,7 +66,6 @@ def getArg(args, index):
 
 def addSearchDir(dir): #Only used for object file serch dirs
     fullPath = join(getcwd(), dir[0])
-    print(o_search_dirs, "Adding:", fullPath)
     if fullPath in o_search_dirs:
         logWarning(dir, "Added the object file search directory '"+fullPath+"' a second time")
     else:
@@ -132,6 +131,7 @@ def handleFile(filePath, level):
     return True
 
 def handleParameters(args, level):
+    global outputFile
     i = 0
     while i < len(args):
         arg = args[i][0]
@@ -151,9 +151,9 @@ def handleParameters(args, level):
         elif arg == "-o":
             i+=1
             newOut = getArg(args, i)
-            if output != None:
-                logWarning(newOut, "Setting output name again! (from '" + output + "' to '" + newOut[0] + "')")
-            output = newOut[0]
+            if outputFile != None:
+                logWarning(newOut, "Setting output name again! (from '" + outputFile + "' to '" + newOut[0] + "')")
+            outputFile = newOut[0]
         elif arg == "-X":
             i+=1
             newLinker = getArg(args, i)
@@ -187,7 +187,7 @@ def handleParameters(args, level):
         i+=1
 
 def main() :
-    global object_files, libraries, lib_search_dirs, output, linker, linker_args, rpath, static, shared, soname, triedAddingOF
+    global object_files, libraries, lib_search_dirs, outputFile, linker, linker_args, rpath, static, shared, soname, triedAddingOF
 
     for linker_search in linker_search_files:
         handleFile(linker_search, 0)
@@ -203,8 +203,8 @@ def main() :
         print(exec_name_colon, "No input files")
         exit()
 
-    if output == None:
-        output = defaultOutput
+    if outputFile == None:
+        outputFile = defaultOutput
     if linker == None:
         linker = defaultLinker
 
@@ -218,7 +218,7 @@ def main() :
             print(exec_name_colon, "warning: Skipping library:", lib)
         if rpath != None:
             print(exec_name_colon, "warning: Skipping rpath:", rpath)
-        args = [defaultPacker, "rvs", output] + object_files;
+        args = [defaultPacker, "rvs", outputFile] + object_files;
     else:
         args = [linker]+linker_args
         if shared:
@@ -229,11 +229,11 @@ def main() :
             args += ["-rpath", rpath]
         for dir in lib_search_dirs:
             args+=["-L", dir]
-        args += object_files+libraries+["-o", output]
+        args += object_files+libraries+["-o", outputFile]
 
     for arg in args:
-        print(arg, end=" ")
-        print("")
+        print(arg, end=' ')
+    print("")
     retcode = call(args)
     exit(retcode)
 
