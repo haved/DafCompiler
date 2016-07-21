@@ -7,7 +7,7 @@ version = "1.0"
 linker_search_files = ["/usr/share/daf/linker_search.txt", expanduser("~/.daf/linker_search.txt")]
 maxLevel = 10
 defaultFile = "Linkfile"
-defaultLinker = "ld"
+defaultLinker = "c++"
 defaultOutput = "a.out"
 defaultPacker = "ar"
 
@@ -94,6 +94,7 @@ def addObjectFile(arg):
     logWarning(arg, "Object file '" + name + "' not found in any search directory or in cwd")
 
 def addLibrary(arg):
+    global libraries
     if arg[0] in libraries:
         logWarning(arg, "Added library '"+arg[0]+"' a second time")
     else:
@@ -104,6 +105,7 @@ def findAndHandleFile(arg, level):
         logError(arg, "File not found: " + arg[0])
 
 def handleFile(filePath, level):
+    global maxLevel
     wd = getcwd()
     filePath = join(wd, filePath)
     fileName = split(filePath)[1]
@@ -132,7 +134,7 @@ def handleFile(filePath, level):
     return True
 
 def handleParameters(args, level):
-    global outputFile
+    global outputFile, linker, linker_args, rpath, static, shared, soname
     i = 0
     while i < len(args):
         arg = args[i][0]
