@@ -8,7 +8,7 @@ setLoc = "/usr/share/daf"
 
 from sys import argv
 from os.path import join, isfile
-from os import chmod
+from os import chmod, stat
 
 args = argv[1:]
 exec_name = argv[0]
@@ -50,14 +50,14 @@ Options:
             print(exec_name+": error: Expected path after '-rs'")
             exit()
         setLoc = args[index]
-    elif arg == "-I"
+    elif arg == "-I":
         installBin = True
-    elif arg == "-S"
+    elif arg == "-S":
         installSet = True
     elif arg == "-IS":
         installBin = True
         installSet = True
-    elif arg = "-U":
+    elif arg == "-U":
         uninstall = True
     index+=1
 
@@ -75,12 +75,16 @@ if installBin:
         out = open(binPath,   mode='wb')
 
         out.write(src.read())
-        chmod(out, "+x")
-
         src.close()
         out.close()
+
+        mode = stat(binarySrc).st_mode
+        mode |= (mode & 0o444) >> 2 #Only mark executable (0b111) where readable (0b444)
+        chmod(binPath, mode)
     except FileNotFoundError as e:
         print("Something went wrong when installing binary. Root access?")
+    except PermissionError as e:
+        print("You don't have permission to install at ", binPath)
 if installSet:
     setPath = join(setLoc, settingsOut)
     if isfile(setPath):
