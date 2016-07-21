@@ -1,1 +1,1 @@
-bin/main.o bin/windowCreator.o -L ./lib -lDWS -lsfml-graphics -lsfml-window -lsfml-system -lGL
+bin/main.o lib/libWC.so.1.2 -lsfml-graphics -lsfml-window -lsfml-system -lGL
