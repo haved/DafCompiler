@@ -87,17 +87,18 @@ if installBin:
     except FileNotFoundError as e:
         print("Something went wrong when installing binary. Root access?")
     except PermissionError as e:
-        print("You don't have permission to install at ", binPath)
+        print("You don't have permission to install at", binPath)
 if installSet:
     setPath = join(setLoc, settingsOut)
     if isfile(setPath):
         print(setPath, "already exists")
     else:
-        print("Installing settings to: ", setPath)
+        print("Installing settings to:", setPath)
         try:
             file = open(setPath, mode='w')
-            print("-L lib", file=file)
+            print("-I bin -L lib", file=file)
             file.close()
+            chown(setPath, 0, 0)
         except FileNotFoundError as e:
             print("Something went wrong when installing settings. Root access?")
 if uninstall:
