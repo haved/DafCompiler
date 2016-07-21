@@ -50,7 +50,7 @@ List entries:
     exit();
 
 def log(arg, text):
-    print(arg[1]+":", str(arg[2]) + text)
+    print(arg[1]+":", str(arg[2]) +":",text)
 
 def logWarning(arg, text):
     log(arg,"warning: " + text)
@@ -66,6 +66,7 @@ def getArg(args, index):
 
 def addSearchDir(dir): #Only used for object file serch dirs
     fullPath = join(getcwd(), dir[0])
+    print(o_search_dirs, "Adding:", fullPath)
     if fullPath in o_search_dirs:
         logWarning(dir, "Added the object file search directory '"+fullPath+"' a second time")
     else:
@@ -94,7 +95,7 @@ def addObjectFile(arg):
 
 def addLibrary(arg):
     if arg[0] in libraries:
-        logWarning(arg, "Added library '"arg[0]"' a second time")
+        logWarning(arg, "Added library '"+arg[0]+"' a second time")
     else:
         libraries.append(arg[0])
 
@@ -193,9 +194,9 @@ def main() :
     
     handleParameters([(arg, exec_name, 0) for arg in argv[1:]], 0)
 
-    if(not triedAddingOF):
+    if not triedAddingOF:
         if not handleFile(defaultFile, 0):
-            print(exec_name_colon, "No input files specified, and no Linkfile found")
+            print(exec_name_colon, "No input files specified, and no default Linkfile found")
             exit()
 
     if len(object_files) == 0:
