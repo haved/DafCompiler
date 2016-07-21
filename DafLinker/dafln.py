@@ -50,7 +50,7 @@ List entries:
     exit();
 
 def log(arg, text):
-    print(arg[1]+":", str(arg[2]) +":",text)
+    print(arg[1],":",str(arg[2]),": ",text,sep='')
 
 def logWarning(arg, text):
     log(arg,"warning: " + text)

@@ -8,7 +8,9 @@ setLoc = "/usr/share/daf"
 
 from sys import argv
 from os.path import join, isfile
-from os import chmod, stat
+from os import chmod, stat, chown
+from pwd import getpwnam
+from grp import getgrnam
 
 args = argv[1:]
 exec_name = argv[0]
@@ -73,7 +75,7 @@ if installBin:
     try:
         src = open(binarySrc, mode='rb')
         out = open(binPath,   mode='wb')
-
+        
         out.write(src.read())
         src.close()
         out.close()
@@ -81,6 +83,7 @@ if installBin:
         mode = stat(binarySrc).st_mode
         mode |= (mode & 0o444) >> 2 #Only mark executable (0b111) where readable (0b444)
         chmod(binPath, mode)
+        chown(binPath, 0, 0)
     except FileNotFoundError as e:
         print("Something went wrong when installing binary. Root access?")
     except PermissionError as e:
