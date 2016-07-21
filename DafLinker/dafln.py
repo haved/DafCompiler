@@ -217,12 +217,13 @@ def main() :
             print(exec_name_colon, "warning: Skipping library:", lib)
         if rpath != None:
             print(exec_name_colon, "warning: Skipping rpath:", rpath)
+        args = [defaultPacker, "rvs", output] + object_files;
     else:
         args = [linker]+linker_args
         if shared:
             args += ["-shared", "-fPIC"]
             if soname:
-                args += ["-soname"]
+                args += ["-soname", soname]
         if rpath != None:
             args += ["-rpath", rpath]
         for dir in lib_search_dirs:

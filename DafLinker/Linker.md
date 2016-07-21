@@ -26,12 +26,12 @@ List entries:
     -h --help       Print this help message
 ```
 
+Libraries may also be included as object files by placing them in the object file search directories and writing their filenames.
+
 #####Linkfiles
 The current working directory is also a search directory when looking for object files and libraries.
 Linkfiles are parsed just like command options, but also change the working directory to the directory of the Linkfile when loaded.
 Everything behind `#` on a line in a linkfile is a comment.
-  
-Libraries may also be included as object files by placing them in the object file search directories and writing their filenames.
 
 #####Static libraries
 When archiving a static library, the output should be `lib*.a`. The utility `ar` is used, and only the object files are packed together, even if libraries are passed.
