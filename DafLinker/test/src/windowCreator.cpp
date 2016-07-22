@@ -20,3 +20,9 @@ void waitForClose(sf::Window* window) {
 		window->display();
 	}
 }
+int main() {
+	sf::Window* window = allocateWindow("internal", 600, 400);
+	waitForClose(window);
+	deallocateWindow(window);
+	return 0;
+}

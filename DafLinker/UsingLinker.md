@@ -1,43 +1,20 @@
 ## Using the linker
-This file contains examples of linker usage. Both the daf compiler and the daf linker are used to turn codebases into executables and libraries
-This file will be using the following example folder structure:
-```
-project
-   |----src
-   |      |--**code files**
-   |
-   |----bin
-   |      |--**object files**
-   |
-   |----lib
-   |      |--**linked libraries**
-   |           (both static and dynamic)
-   |----Linkfile
-```
-
-#### Using normally
-Compile every daf file:
-```
-daf src/me.mainFile.daf bin/ -F Linkfile
-```
-This will fill a folder *bin/* with `me/mainFile.o`
-It will also add every object file to the Linkfile (relative to the linkfile), if the object file isn't already listed there
-If libraries are used by headers imported in the project, the header often has the line: `linkfile: "-lSDL2";`
-This will add -lSDL2 to the Linkfile as well.
-To link the project, run `dafln -F Linkfile -o myProgram`
-
-#### Using libraries
-If using external libraries, change the following:
- - Include the library's *include/* folder when compiling, using: `-I library/include`
- - Include the library's *bin/* folder when linking, using: `-I library/bin`
- - Include the library's *lib/* folder when linking, using: `-L library/lib`
- - If dynamic libraries are used, make sure the dynamic files from *lib/* are located somewhere readable by your executable
-  - Tip: Use `-rpath .` when linking to allow for dynamic library loading from the same folder, then add symlinks to the dynamic libraries
- - If the library doesn't automaticly add it's link dependencies in its headers, modify *Linkfile* yourself
+#### Compiling a normal program
+`dafln -F Linkfile -o myProgram`  
+The Linkfile contains a list of object files and libraries used.
+These files and libraries can be placed there automaticly by the daf compiler, or written manually.
+`-o myProgram` sets the output file, in this case an executable. 
 
 #### Compiling a static library
-Compile every file into *bin/* as normal. When you run dafln, run `dafln -F Linkfile -o lib/libMyLibrary.a -static` instead.
-The `-static` flag makes *dafln* use the archiving tool *ar* instead of linking. Only object files are archived, and libraries give warnings.
-The output should follow the naming rule `lib<name>.a`
+`dafln -X static_ar ar -F Linkfile -A ./ -o libMyLib.a`  
+`-X static_ar ar` tells dafln that we are archiving a static library using *ar*.
+`-A ./` tells dafln to only allow object files inside our current folder.
+This is in case our project uses external libraries in the Linkfile, that we don't want to archive.
 
-When compiling a dynamic library, linking to libraries is not needed.
+#### Compiling a dynamic library
+The object files passed must be position independent.
+`dafln -F Linkfile -A ./ -shared -linkable libMyLib.so.1.5 -o libMyLib.so.1.0`
+`-A ./` whitelists only local object files.
+`-shared` tells the linker to compile a shared library.
+`-linkable` adds a file used when linking programs, with actual version no.
+`-o` sets the soname and makes a symlink to the linkable file. This one is for runtime linking.

@@ -83,7 +83,7 @@ if installBin:
         mode = stat(binarySrc).st_mode
         mode |= (mode & 0o444) >> 2 #Only mark executable (0b111) where readable (0b444)
         chmod(binPath, mode)
-        chown(binPath, 0, 0)
+        #chown(binPath, 0, 0)
     except FileNotFoundError as e:
         print("Something went wrong when installing binary. Root access?")
     except PermissionError as e:
@@ -98,7 +98,7 @@ if installSet:
             file = open(setPath, mode='w')
             print("-I bin -L lib", file=file)
             file.close()
-            chown(setPath, 0, 0)
+            #chown(setPath, 0, 0)
         except FileNotFoundError as e:
             print("Something went wrong when installing settings. Root access?")
 if uninstall:
