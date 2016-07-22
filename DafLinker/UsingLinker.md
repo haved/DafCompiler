@@ -34,3 +34,10 @@ If using external libraries, change the following:
  - If dynamic libraries are used, make sure the dynamic files from *lib/* are located somewhere readable by your executable
   - Tip: Use `-rpath .` when linking to allow for dynamic library loading from the same folder, then add symlinks to the dynamic libraries
  - If the library doesn't automaticly add it's link dependencies in its headers, modify *Linkfile* yourself
+
+#### Compiling a static library
+Compile every file into *bin/* as normal. When you run dafln, run `dafln -F Linkfile -o lib/libMyLibrary.a -static` instead.
+The `-static` flag makes *dafln* use the archiving tool *ar* instead of linking. Only object files are archived, and libraries give warnings.
+The output should follow the naming rule `lib<name>.a`
+
+When compiling a dynamic library, linking to libraries is not needed.
