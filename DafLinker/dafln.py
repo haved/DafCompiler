@@ -125,15 +125,14 @@ def getArg(args, index):
         logError(args[index-1], "Expected something after " + args[index-1].text)
         exit(1);
     return args[index]
-def getFullPath(arg):
-    if isdir(arg.text):
-        return join(getcwd(), arg.text)
+def appendUniqueDirectory(list, arg, listName):
+    fullPath = join(getcwd(), arg.text)
+    if not isdir(fullPath):
+        logWarning(arg, "The wanted " + listName + "'" + fullPath + "' doesn't exist'")
+    elif fullPath in list:
+        logWarning("The " + listName + " '"+ fullPath + "' is already added")
     else:
-        logWarning(arg, "Directory '"+join(getcwd(), arg.text)+"' not found")
-    return None
-def appendIfReal(list, elm):
-    if elm != None:
-        list.append(elm)
+        list.append(fullPath)
 
 class Input:
     def __init__(self):
@@ -151,29 +150,32 @@ class Input:
         return self.type.makeArgumentList(self)
 
     def addFile(self, arg):
-        for dir in self.file_search:
+        for dir in self.file_search+[getcwd()]:
             path = join(dir, arg.text)
-            if isfile(path):
+            if path in self.files:
+                logWarning(arg, "The file '"+arg.text+"' was already added")
+            elif isfile(path):
                 self.files.append(path)
                 return True
-        if isfile(arg.text):
-            self.files.append(join(getcwd(), arg.text))
-            return True
         logError(arg, "File '"+arg.text+"' wasn't found in any search directory.")
 
     def addLibrary(self, arg):
-        self.files.append(arg.text)
+        if arg.text in self.files:
+            logWarning(arg, "The library '"+arg.text+"' was already added")
+        else:
+            self.files.append(arg.text)
 
     def addFileSearchDir(self, arg):
-        appendIfReal(self.file_search, getFullPath(arg))
+        appendUniqueDirectory(self.file_search, arg, "file search directory")
 
     def addLibrarySearchDir(self, arg):
-        appendIfReal(self.library_search, getFullPath(arg))
+        appendUniqueDirectory(self.library_search, arg, "library search directory")
 
     def addDirToWhitelist(self, arg):
         if(arg.text == "-l"):
             self.whitelistLibraries = True
-        appendIfReal(self.whitelist, getFullPath(arg))
+        else:
+            appendUniqueDirectory(self.whitelist, arg, "whitelist directory")
 
     def handleLinkerTypeChange(self, args, index):
         typeArg = getArg(args, index)
