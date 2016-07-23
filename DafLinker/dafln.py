@@ -19,9 +19,10 @@ class Argument:
 
 class GnuLinkerLinux:
     def makeArgumentList(self, input):
-        return cleanPaths([input.executable] + input.linker_args + input.getFilteredObjectFiles()
+        return cleanPaths([input.executable] + input.linker_args
         + splitTuples([("-L",libImport) for libImport in input.library_search])
-        + input.libraries + ["-o", input.outputFile])
+        + input.getFilteredFilesAndLibs()
+        + ["-o", input.outputFile])
     def parseArgument(self, args, index):
         pass
     def getName(self):
@@ -58,9 +59,9 @@ def showHelpPage():
 
 List entries:
     -F <file>:              Load a linkfile
-    <File>:                 Added as an object file from a object search directory
+    <File>:                 Added as a file from a file search directory
     -l<library>:            Adds a library from a library search directory
-    -I <dir>:               Add a search directory for object files
+    -I <dir>:               Add a search directory for files
     -L <dir>:               Add a search directory for linker libraries
     -A <dir>:               Adds a directory to the object file whitelist
     -o <file>:              Set output file name
@@ -111,11 +112,11 @@ def appendIfReal(list, elm):
 
 class Input:
     def __init__(self):
-        self.object_files = []
-        self.libraries = []
-        self.object_file_search = []
+        self.files = []
+        self.file_search = []
         self.library_search = []
-        self.objWhitelist = []
+        self.whitelist = []
+        self.whitelistLibraries = False
         self.outputFile = None
         self.linker_args = []
         self.type = None
@@ -124,28 +125,30 @@ class Input:
     def makeArgumentList(self):
         return self.type.makeArgumentList(self)
 
-    def addObjectFile(self, arg):
-        for dir in self.object_file_search:
+    def addFile(self, arg):
+        for dir in self.file_search:
             path = join(dir, arg.text)
             if isfile(path):
-                self.object_files.append(path)
+                self.files.append(path)
                 return True
         if isfile(arg.text):
-            self.object_files.append(join(getcwd(), arg.text))
+            self.files.append(join(getcwd(), arg.text))
             return True
-        logError(arg, "Object file "+arg.text+" wasn't found in any search directory.")
+        logError(arg, "File '"+arg.text+"' wasn't found in any search directory.")
 
     def addLibrary(self, arg):
-        self.libraries.append(arg.text)
+        self.files.append(arg.text)
 
-    def addObjectFileSearchDir(self, arg):
-        appendIfReal(self.object_file_search, getFullPath(arg))
+    def addFileSearchDir(self, arg):
+        appendIfReal(self.file_search, getFullPath(arg))
 
     def addLibrarySearchDir(self, arg):
         appendIfReal(self.library_search, getFullPath(arg))
 
-    def addDirToObjectWhitelist(self, arg):
-        appendIfReal(self.objWhitelist, getFullPath(arg))
+    def addDirToWhitelist(self, arg):
+        if(arg.text == "-l"):
+            self.whitelistLibraries = True
+        appendIfReal(self.whitelist, getFullPath(arg))
 
     def handleLinkerTypeChange(self, args, index):
         typeArg = getArg(args, index)
@@ -170,15 +173,19 @@ class Input:
         if self.outputFile == None:
             self.outputFile = "a.out"
     
-    def getFilteredObjectFiles(self):
-        if len(self.objWhitelist) == 0:
-            return self.object_files
+    def getFilteredFilesAndLibs(self):
+        if len(self.whitelist) == 0:
+            return self.files
         out = []
-        for file in self.object_files:
-            for filter in self.objWhitelist:
-                if file.startswith(filter):
+        for file in self.files:
+            if file.startswith("-l"):
+                if self.whitelistLibraries:
                     out.append(file)
-                    break
+            else:
+                for filter in self.whitelist:
+                    if file.startswith(filter):
+                        out.append(file)
+                        break
         return out
     #
     def handleArguments(self, args):
@@ -193,13 +200,13 @@ class Input:
                 self.addLibrary(arg)
             elif argText == "-I":
                 index += 1
-                self.addObjectFileSearchDir(getArg(args, index))
+                self.addFileSearchDir(getArg(args, index))
             elif argText == "-L":
                 index += 1
                 self.addLibrarySearchDir(getArg(args, index))
             elif argText == "-A":
                 index += 1
-                self.addDirToObjectWhitelist(getArg(args, index))
+                self.addDirToWhitelist(getArg(args, index))
             elif argText == "-o":
                 index += 1
                 self.outputFile = getArg(args, index)
@@ -217,7 +224,7 @@ class Input:
                 if newIndex != None and newIndex >= 0:
                     index = newIndex
                 else:
-                    self.addObjectFile(arg)
+                    self.addFile(arg)
             index += 1
 
 def handleFile(filePath, input):

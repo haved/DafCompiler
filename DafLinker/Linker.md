@@ -12,9 +12,9 @@ Usage: dafln <OPTION LIST>
 
 List entries:
     -F <file>:              Load a linkfile
-    <File>:                 Added as an object file from a object search directory
+    <File>:                 Added as a file from a file search directory
     -l<library>:            Adds a library from a library search directory
-    -I <dir>:               Add a search directory for object files
+    -I <dir>:               Add a search directory for files
     -L <dir>:               Add a search directory for linker libraries
     -A <dir>:               Adds a directory to the object file whitelist
     -o <file>:              Set output file name
@@ -22,13 +22,13 @@ List entries:
     -X <link_type> --help:  Print help for specific linker type
     -X <link_type> <exec>:  Set the linker type and what program to use
     -x <arg>:               Pass a single arg to the linker
-    -h --help:              Show this help page  
+    -h --help:              Show this help page 
 ```
 
-Note that also library files can be registered as object files.
-Libraries passed as files will be searched for in the object file search directories, and will be added even in static libraries.
-The filter is used to control what object files are included. With a filter, only whitelisted object files are linked.
-If you wish to whitelist libraries as well, use `-A -l`
+Note that also libraries can be registered as files.
+Libraries passed as files will be searched for in the file search directories, and will be added even in static libraries.
+The filter is used to control what files are included. With a filter, only files in whitelisted folders are linked.
+If you wish to whitelist all libraries as well, use `-A -l`
 
 #### Linker types
 By default, the linker type is *gnu_link_linux* using the gnu ld software to link.
@@ -46,8 +46,9 @@ extra parameters:
     -linkable <library>
 or:
     -rpath <dir>
-desc: Links an executable or a shared library with all the input object files and libraries
-When linkng a shared library, the output is the soname of the library.
+desc: Links an executable or a shared library with all the input files and libraries
+When linkng a shared library, libraries included with `-l` are ignored.
+The output also becomes the soname of the library.
 By supplying `-linkable`, the output becomes a symlink to the linkable file.
 This is to maintain compatability with windows.
 ```
@@ -56,5 +57,5 @@ This is to maintain compatability with windows.
 ```
 example_program: ar
 warnings given: For every library (-l)
-desc: Packs object files into a static library
+desc: Packs the files into a static library
 ```
