@@ -21,7 +21,8 @@ List entries:
     -X --help:              Print list of linker types
     -X <link_type> --help:  Print help for specific linker type
     -X <link_type> <exec>:  Set the linker type and what program to use
-    -x <arg>                Pass a single arg to the linker
+    -x <arg>:               Pass a single arg to the linker
+    -h --help:              Show this help page  
 ```
 
 Note that also library files can be registered as object files.

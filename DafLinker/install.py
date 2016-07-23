@@ -7,10 +7,13 @@ binLoc = "/usr/bin"
 setLoc = "/usr/share/daf"
 
 from sys import argv
-from os.path import join, isfile, isdir
-from os import chmod, stat, chown, makedirs
+from os.path import join, isfile, isdir, split
+from os import chmod, stat, chown, makedirs, chdir
 from pwd import getpwnam
 from grp import getgrnam
+
+#The dafln.py file must be relative to this folder
+chdir(split(__file__)[0])
 
 args = argv[1:]
 exec_name = argv[0]

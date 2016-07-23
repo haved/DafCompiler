@@ -9,7 +9,7 @@ defaultLinkfilePaths = ["/usr/share/daf/linker_search.txt", expandvars("$HOME/.d
 defaultLinkerType = "gnu_link_linux"
 defaultLinkfile = "Linkfile"
 
-exec_name = argv[0]
+exec_name = split(argv[0])[1]
 
 class Argument:
     def __init__(self, text, file, line):
@@ -19,7 +19,9 @@ class Argument:
 
 class GnuLinkerLinux:
     def makeArgumentList(self, input):
-        return [input.executable]
+        return cleanPaths([input.executable] + input.linker_args + input.getFilteredObjectFiles()
+        + splitTuples([("-L",libImport) for libImport in input.library_search])
+        + input.libraries + ["-o", input.outputFile])
     def parseArgument(self, args, index):
         pass
     def getName(self):
@@ -28,6 +30,18 @@ class GnuLinkerLinux:
         return "ld"
     def getOnelineDesc(self):
         return "Using an ld command to link programs or shared libraries"
+    def printHelpMessage(self):
+        print("==="+self.getName()+"===",
+        "example program: ld",
+        "extra parameters:",
+        "    -shared",
+        "    -linkable <library>",
+        "or:",
+        "    -rpath <dir>",
+        "desc: Links an executable or a shared library with all the input object files and libraries",
+        "When linkng a shared library, the output is the soname of the library.",
+        "By supplying `-linkable`, the output becomes a symlink to the linkable file.",
+        "This is to maintain compatability with windows.",sep='\n')
 
 linker_types = [GnuLinkerLinux()]
 def getLinkerType(text):
@@ -39,6 +53,22 @@ def showLinkerTypeHelp():
     print("dafln linker types:")
     for linkerType in linker_types:
         print("    ",(linkerType.getName()+":").ljust(20,' '),linkerType.getOnelineDesc(),sep='')
+def showHelpPage():
+    print("""Help page for dafln\nUsage: dafln <OPTION LIST>
+
+List entries:
+    -F <file>:              Load a linkfile
+    <File>:                 Added as an object file from a object search directory
+    -l<library>:            Adds a library from a library search directory
+    -I <dir>:               Add a search directory for object files
+    -L <dir>:               Add a search directory for linker libraries
+    -A <dir>:               Adds a directory to the object file whitelist
+    -o <file>:              Set output file name
+    -X --help:              Print list of linker types
+    -X <link_type> --help:  Print help for specific linker type
+    -X <link_type> <exec>:  Set the linker type and what program to use
+    -x <arg>:               Pass a single arg to the linker
+    -h --help:              Show this help page""")
 #
 def log(file, line, level, text):
     if line > 0:
@@ -52,6 +82,17 @@ def logError(arg, text):
 def logWarning(arg, text):
     logArg(arg, "warning", text)
 #
+
+def splitTuples(tuples):
+    out = []
+    for tuple in tuples:
+        out += tuple
+    return out
+
+def cleanPaths(paths):
+    wd = join(getcwd(),".")[:-1]
+    start = len(wd)
+    return [path[start:] if path.startswith(wd) else path for path in paths]
 
 def getArg(args, index):
     if index >= len(args):
@@ -76,6 +117,7 @@ class Input:
         self.library_search = []
         self.objWhitelist = []
         self.outputFile = None
+        self.linker_args = []
         self.type = None
         self.executable = None
 
@@ -106,13 +148,38 @@ class Input:
         appendIfReal(self.objWhitelist, getFullPath(arg))
 
     def handleLinkerTypeChange(self, args, index):
-        type = getArg(args, index)
-        if type.text == "--help" or type.text == "-h":
+        typeArg = getArg(args, index)
+        if typeArg.text == "--help" or typeArg.text == "-h":
             showLinkerTypeHelp()
             exit()
+        
+        self.type = getLinkerType(typeArg.text)
+        if self.type == None:
+            logError(typeArg, "Linker type not found: ''",typeArg.text,"'. Aborting.")
+            exit()
+
         index+=1
-        program = getArg(args, index)
+        programArg = getArg(args, index)
+        if(programArg.text == "--help" or programArg.text == "-h"):
+            self.type.printHelpMessage()
+            exit()
         return index
+    #
+    def setDefaultValues(self):
+        assert(self.type != None and self.executable != None)
+        if self.outputFile == None:
+            self.outputFile = "a.out"
+    
+    def getFilteredObjectFiles(self):
+        if len(self.objWhitelist) == 0:
+            return self.object_files
+        out = []
+        for file in self.object_files:
+            for filter in self.objWhitelist:
+                if file.startswith(filter):
+                    out.append(file)
+                    break
+        return out
     #
     def handleArguments(self, args):
         index = 0
@@ -139,6 +206,12 @@ class Input:
             elif argText == "-X":
                 index += 1
                 index = self.handleLinkerTypeChange(args, index)
+            elif argText == "-x":
+                index += 1
+                self.linker_args.append(getArg(args, index).text);
+            elif argText == "-h" or argText == "--help":
+                showHelpPage()
+                exit()
             else:
                 newIndex = self.type.parseArgument(args, index)
                 if newIndex != None and newIndex >= 0:
@@ -180,13 +253,14 @@ def main():
     input = Input()
     input.type = getLinkerType(defaultLinkerType)
     input.executable = input.type.getDefaultExecutable()
-    assert(input.type != None)
+    assert(input.type != None and input.executable != None)
 
     for linkerfile in defaultLinkfilePaths:
         handleFile(linkerfile, input)
 
     input.handleArguments([Argument(arg, exec_name, -1) for arg in argv[1:]])
 
+    input.setDefaultValues()
     args = input.makeArgumentList()
 
     print(exec_name,":",sep='',end=' ')

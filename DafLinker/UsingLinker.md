@@ -22,7 +22,7 @@ dafln -F Linkfile -A ./ -shared -linkable libMyLib.so.1.5 -o libMyLib.so.1.0
 ```
 `-A ./` whitelists only local object files.
 `-shared` tells the linker to compile a shared library.
-`-linkable` adds a file used when linking programs, with actual version no.
+`-linkable` adds a file used when linking programs, with the version number.
 `-o` sets the soname and makes a symlink to the linkable file. This one is for runtime linking.
 
 ## Compiling a cpp project
