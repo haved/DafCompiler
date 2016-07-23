@@ -22,13 +22,23 @@ class GnuLinkerLinux:
         return [input.executable]
     def parseArgument(self, args, index):
         pass
+    def getName(self):
+        return "gnu_link_linux"
     def getDefaultExecutable(self):
         return "ld"
+    def getOnelineDesc(self):
+        return "Using an ld command to link programs or shared libraries"
 
+linker_types = [GnuLinkerLinux()]
 def getLinkerType(text):
-    if text == "gnu_link_linux":
-        return GnuLinkerLinux()
+    for potential in linker_types:
+        if potential.getName() == text:
+            return potential
     return None
+def showLinkerTypeHelp():
+    print("dafln linker types:")
+    for linkerType in linker_types:
+        print("    ",(linkerType.getName()+":").ljust(20,' '),linkerType.getOnelineDesc(),sep='')
 #
 def log(file, line, level, text):
     if line > 0:
@@ -52,7 +62,7 @@ def getFullPath(arg):
     if isdir(arg.text):
         return join(getcwd(), arg.text)
     else:
-        logWarning(arg, "Directory '"+join(getcwd(), arg.text)+"' not found'")
+        logWarning(arg, "Directory '"+join(getcwd(), arg.text)+"' not found")
     return None
 def appendIfReal(list, elm):
     if elm != None:
@@ -95,6 +105,15 @@ class Input:
     def addDirToObjectWhitelist(self, arg):
         appendIfReal(self.objWhitelist, getFullPath(arg))
 
+    def handleLinkerTypeChange(self, args, index):
+        type = getArg(args, index)
+        if type.text == "--help" or type.text == "-h":
+            showLinkerTypeHelp()
+            exit()
+        index+=1
+        program = getArg(args, index)
+        return index
+    #
     def handleArguments(self, args):
         index = 0
         while index < len(args):
@@ -117,7 +136,9 @@ class Input:
             elif argText == "-o":
                 index += 1
                 self.outputFile = getArg(args, index)
-            elif arg
+            elif argText == "-X":
+                index += 1
+                index = self.handleLinkerTypeChange(args, index)
             else:
                 newIndex = self.type.parseArgument(args, index)
                 if newIndex != None and newIndex >= 0:

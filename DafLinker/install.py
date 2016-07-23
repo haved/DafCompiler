@@ -7,8 +7,8 @@ binLoc = "/usr/bin"
 setLoc = "/usr/share/daf"
 
 from sys import argv
-from os.path import join, isfile
-from os import chmod, stat, chown
+from os.path import join, isfile, isdir
+from os import chmod, stat, chown, makedirs
 from pwd import getpwnam
 from grp import getgrnam
 
@@ -84,23 +84,30 @@ if installBin:
         mode |= (mode & 0o444) >> 2 #Only mark executable (0b111) where readable (0b444)
         chmod(binPath, mode)
         #chown(binPath, 0, 0)
-    except FileNotFoundError as e:
-        print("Something went wrong when installing binary. Root access?")
     except PermissionError as e:
         print("You don't have permission to install at", binPath)
+    except FileNotFoundError as e:
+        print(e)
 if installSet:
+    libPath = join(setLoc, "lib")
+    binPath = join(setLoc, "bin")
     setPath = join(setLoc, settingsOut)
-    if isfile(setPath):
-        print(setPath, "already exists")
-    else:
-        print("Installing settings to:", setPath)
-        try:
+    try:
+        if not isdir(libPath):
+            makedirs(libPath)
+        if not isdir(binPath):
+            makedirs(binPath)
+        if isfile(setPath):
+            print(setPath, "already exists")
+        else:
+            print("Installing settings to:", setPath)
             file = open(setPath, mode='w')
             print("-I bin -L lib", file=file)
             file.close()
-            #chown(setPath, 0, 0)
-        except FileNotFoundError as e:
-            print("Something went wrong when installing settings. Root access?")
+    except PermissionError as e:
+        print("You don't have permission to install at", setPath)
+
+
 if uninstall:
     binPath = join(binLoc, binaryOut)
     setPath = join(setLoc, settingsOut)
