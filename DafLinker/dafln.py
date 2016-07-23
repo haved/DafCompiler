@@ -44,7 +44,32 @@ class GnuLinkerLinux:
         "By supplying `-linkable`, the output becomes a symlink to the linkable file.",
         "This is to maintain compatability with windows.",sep='\n')
 
-linker_types = [GnuLinkerLinux()]
+class GppLinux:
+    def makeArgumentList(self, input):
+        return cleanPaths([input.executable] + input.linker_args
+        + splitTuples([("-L",libImport) for libImport in input.library_search])
+        + input.getFilteredFilesAndLibs()
+        + ["-o", input.outputFile])
+    def parseArgument(self, args, index):
+        pass
+    def getName(self):
+        return "g++_linux"
+    def getDefaultExecutable(self):
+        return "g++"
+    def getOnelineDesc(self):
+        return "Using g++ to link c++ programs or shared libraries"
+    def printHelpMessage(self):
+        print("==="+self.getName()+"===",
+        "example program: g++",
+        "extra parameters:",
+        "    -shared",
+        "    -linkable <library>",
+        "or:",
+        "    -rpath <dir>",
+        "desc: Does exactly the same as gnu_link_linux, but includes stdc++ libraries",
+        "May also order c++ libraries correctly for you",sep='\n')
+
+linker_types = [GnuLinkerLinux(), GppLinux()]
 def getLinkerType(text):
     for potential in linker_types:
         if potential.getName() == text:
@@ -166,6 +191,7 @@ class Input:
         if(programArg.text == "--help" or programArg.text == "-h"):
             self.type.printHelpMessage()
             exit()
+        self.executable = programArg.text
         return index
     #
     def setDefaultValues(self):
@@ -209,7 +235,7 @@ class Input:
                 self.addDirToWhitelist(getArg(args, index))
             elif argText == "-o":
                 index += 1
-                self.outputFile = getArg(args, index)
+                self.outputFile = getArg(args, index).text
             elif argText == "-X":
                 index += 1
                 index = self.handleLinkerTypeChange(args, index)
@@ -229,7 +255,8 @@ class Input:
 
 def handleFile(filePath, input):
     args = []
-    fileName = split(filePath)[1]
+
+    fileDir, fileName = split(join(getcwd(), filePath))
 
     try:
         file = open(filePath)
@@ -247,7 +274,7 @@ def handleFile(filePath, input):
     if len(args) == 0:
         return True
     wd = getcwd()
-    chdir(split(filePath)[0])
+    chdir(fileDir)
     input.handleArguments(args)
     chdir(wd)
     return True
@@ -266,6 +293,13 @@ def main():
         handleFile(linkerfile, input)
 
     input.handleArguments([Argument(arg, exec_name, -1) for arg in argv[1:]])
+
+    if len(input.files) == 0:
+        if not "-F" in argv:
+            if not handleFile("Linkfile", input):
+                print("No input files, and no default Linkfile")
+        else:
+            print("No input files")
 
     input.setDefaultValues()
     args = input.makeArgumentList()
