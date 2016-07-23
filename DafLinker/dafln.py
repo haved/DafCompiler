@@ -45,13 +45,50 @@ class GnuLinkerLinux:
         "This is to maintain compatability with windows.",sep='\n')
 
 class GppLinux:
+    def __init__(self):
+        self.shared = False
+        self.linkable = None
+        self.rpath = None
+
     def makeArgumentList(self, input):
-        return cleanPaths([input.executable] + input.linker_args
+        args = [input.executable] + cleanPaths(input.linker_args
         + splitTuples([("-L",libImport) for libImport in input.library_search])
-        + input.getFilteredFilesAndLibs()
-        + ["-o", input.outputFile])
+        + input.getFilteredFilesAndLibs())
+
+        output = input.outputFile
+        if self.shared:
+            args += ["-shared", "-fPIC"]
+            if self.linkable != None:
+                args += ["-Wl,-soname,"+split(self.outputFile)[1]]
+                print("Make the symlink from " + self.outputFile + " pointing to " + self.linkable + "yourself!")
+                output =  self.linkable
+        elif self.linkable != None:
+            logTotalError("Can't have a linkable output unless linking a shared library'")
+            exit()
+        if self.rpath:
+            if self.shared:
+                logTotalError("Can't link a shared library with an rpath! Aborting.'")
+                exit()
+            args.append("-Wl,-rpath,"+self.rpath)
+
+        args += cleanPaths(["-o", output])
+
+        return args
+        
     def parseArgument(self, args, index):
-        pass
+        arg = args[index]
+        argText = arg.text
+        if argText == "-shared":
+            self.shared = True
+        elif argText == "-linkable":
+            index += 1
+            self.linkable = getFullName(getArg(args, index).text)
+        elif argText == "-rpath":
+            index += 1
+            self.rpath = getArg(args, index).text
+        else:
+            return None
+        return index
     def getName(self):
         return "g++_linux"
     def getDefaultExecutable(self):
@@ -107,8 +144,12 @@ def logError(arg, text):
     logArg(arg, "error", text)
 def logWarning(arg, text):
     logArg(arg, "warning", text)
+def logTotalError(text):
+    log(exec_name, -1, "error", text)
 #
 
+def getFullName(file):
+    return join(getcwd(), file)
 def splitTuples(tuples):
     out = []
     for tuple in tuples:
@@ -116,7 +157,7 @@ def splitTuples(tuples):
     return out
 
 def cleanPaths(paths):
-    wd = join(getcwd(),".")[:-1]
+    wd = getFullName(".")[:-1]
     start = len(wd)
     return [path[start:] if path.startswith(wd) else path for path in paths]
 
@@ -126,7 +167,7 @@ def getArg(args, index):
         exit(1);
     return args[index]
 def appendUniqueDirectory(list, arg, listName):
-    fullPath = join(getcwd(), arg.text)
+    fullPath = getFullName(arg.text)
     if not isdir(fullPath):
         logWarning(arg, "The wanted " + listName + "'" + fullPath + "' doesn't exist'")
     elif fullPath in list:
@@ -157,7 +198,7 @@ class Input:
             elif isfile(path):
                 self.files.append(path)
                 return True
-        logError(arg, "File '"+arg.text+"' wasn't found in any search directory.")
+        return False
 
     def addLibrary(self, arg):
         if arg.text in self.files:
@@ -237,7 +278,7 @@ class Input:
                 self.addDirToWhitelist(getArg(args, index))
             elif argText == "-o":
                 index += 1
-                self.outputFile = getArg(args, index).text
+                self.outputFile = getFullName(getArg(args, index).text)
             elif argText == "-X":
                 index += 1
                 index = self.handleLinkerTypeChange(args, index)
@@ -252,13 +293,14 @@ class Input:
                 if newIndex != None and newIndex >= 0:
                     index = newIndex
                 else:
-                    self.addFile(arg)
+                    if not self.addFile(arg):
+                        logError(arg, "The argument '"+arg.text+"' wasn't recognized as neither an option nor a file!")
             index += 1
 
 def handleFile(filePath, input):
     args = []
 
-    fileDir, fileName = split(join(getcwd(), filePath))
+    fileDir, fileName = split(getFullName(filePath))
 
     try:
         file = open(filePath)
