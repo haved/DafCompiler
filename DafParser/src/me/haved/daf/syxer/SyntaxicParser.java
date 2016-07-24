@@ -37,17 +37,17 @@ public final class SyntaxicParser {
 	
 	private static void fillDefinitionList(List<Definition> definitions, TokenBufferer bufferer) {
 		while(bufferer.hasCurrentToken()) {
-			println("Expression: %s", ExpressionParser.parseExpression(bufferer));
-			bufferer.advance();
+			println("Definition: %s", DefinitionParser.parseDefinition(bufferer));
+			skipPastSemicolon(bufferer);
 		}
 	}
 	
-	public static void skipUntilSemicolon(TokenBufferer bufferer) {
+	public static void skipPastSemicolon(TokenBufferer bufferer) {
 		while(!bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
 			if(!bufferer.advance()) {
 				return;
 			}
 		}
-		bufferer.advance();
+		bufferer.advance(); //Eat the ';'
 	}
 }

@@ -19,7 +19,7 @@ public class DefinitionParser {
 		if(type == TokenType.PUB) {
 			pub = true;
 			if(!advanceOrComplain(bufferer, "a definition"))
-				return null;	
+				return null;
 			type = bufferer.getCurrentToken().getType();
 		}
 		
@@ -37,20 +37,19 @@ public class DefinitionParser {
 	public static Let parseLetStatement(TokenBufferer bufferer, boolean pub) {
 		boolean uncertain = false;
 		boolean mut = false;
-		boolean letMet = false;
+		
+		if(bufferer.isCurrentTokenOfType(TokenType.UNCERTAIN)) {
+			uncertain = true;
+			bufferer.advance();
+			if(!bufferer.isCurrentTokenOfType(TokenType.LET)) {
+				log(bufferer.getLastOrCurrent(), ERROR, "Expected '%s' after '%s'", TokenType.LET, TokenType.UNCERTAIN);
+				return null;
+			}
+		}
 		
 		bufferer.advance(); //Eat the 'let'
 		
 		while(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
-			if(bufferer.isCurrentTokenOfType(TokenType.LET)) {
-				if(letMet) {
-					log(bufferer.getCurrentToken(), ERROR, "Was met twice in the same definition. Aborting both.");
-					SyntaxicParser.skipUntilSemicolon(bufferer);
-					return null;
-				}
-				letMet = true;
-				
-			}
 			if(bufferer.isCurrentTokenOfType(TokenType.UNCERTAIN)) {
 				if(uncertain)
 					log(bufferer.getCurrentToken(), WARNING, "Let declared as uncertain twice");
@@ -63,16 +62,9 @@ public class DefinitionParser {
 				if(!advanceOrComplain(bufferer, LET_DURING))
 						return null;
 			} else {
-				log(bufferer.getCurrentToken(), ERROR, "Expected an identifer", TokenType.LET, TokenType.UNCERTAIN); //Uncertain is the only other way
-				SyntaxicParser.skipUntilSemicolon(bufferer);
+				log(bufferer.getCurrentToken(), ERROR, "Expected an identifer after %s", TokenType.LET);
 				return null;
 			}
-		}
-		
-		if(!letMet) {
-			log(bufferer.getCurrentToken(), ERROR, "Expected '%s' before the identifer. What even is this definition??", TokenType.LET);
-			SyntaxicParser.skipUntilSemicolon(bufferer);
-			return null;
 		}
 		
 		if(uncertain && !mut)
@@ -86,38 +78,47 @@ public class DefinitionParser {
 		Type type;
 		boolean autoType = false;
 		if(bufferer.isCurrentTokenOfType(TokenType.COLON)) {
+			bufferer.advance(); //Past ':'
 			type = null;
+			bufferer.advance(); //Past type
 		} else if(bufferer.isCurrentTokenOfType(TokenType.COLON_ASSIGN)) {
 			autoType = true;
 			type = null;
 		} else {
 			log(bufferer.getLastOrCurrent(), ERROR, "Expected '%s' or '%s' after the identifer '%s' in a let statement", 
 					TokenType.COLON, TokenType.COLON_ASSIGN, identifier);
-			SyntaxicParser.skipUntilSemicolon(bufferer);
 			return null;
 		}
 		
 		//Either =, := or ;
 		
 		if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
-			logAssert(!autoType);
+			logAssert(!autoType); //If autoType, it has to be :=
 			if(!uncertain) {
 				log(bufferer.getCurrentToken(), ERROR, "A let statement without an initializer must be declared as uncertain.");
-				bufferer.advance(); //Eat the ;
 				return null;
 			}
-			bufferer.advance(); //Eat the ;
 			return new Let(identifier, type, null, pub);
-		} else if(bufferer.isCurrentTokenOfType(TokenType.COLON_ASSIGN)) {
-			bufferer.advance(); //Eat the :=
-			Expression exp = ExpressionParser.parseExpression(bufferer);
-			
-		} else if(bufferer.isCurrentTokenOfType(TokenType.ASSIGN)) {
-			
+		} else if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
+			return new Let(identifier, type, null, pub);
 		}
 		
+		if(!bufferer.isCurrentTokenOfType(TokenType.COLON_ASSIGN) && !bufferer.isCurrentTokenOfType(TokenType.ASSIGN)) {
+			log(bufferer.getLastOrCurrent(), ERROR, "Expected '%s' or '%s' in %s statement", 
+					TokenType.COLON_ASSIGN, TokenType.ASSIGN, TokenType.LET);
+			return null;
+		}
 		
-		return null;
+		bufferer.advance(); //Eat the := or =
+		Expression exp = ExpressionParser.parseExpression(bufferer);
+		if(exp == null)
+			return null;
+		
+		if(!bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
+			log(bufferer.getLastOrCurrent(), ERROR, "Expected '%s' after expression", TokenType.SEMICOLON);
+		}
+		
+		return new Let(identifier, type, exp, pub);
 	}
 	
 	private static boolean advanceOrComplain(TokenBufferer bufferer, String during) {

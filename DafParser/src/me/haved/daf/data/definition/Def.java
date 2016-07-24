@@ -1,7 +1,5 @@
 package me.haved.daf.data.definition;
 
-import java.io.PrintStream;
-
 import me.haved.daf.data.NodeBase;
 import me.haved.daf.data.expression.Expression;
 import me.haved.daf.data.statement.Statement;
@@ -22,8 +20,8 @@ public class Def extends NodeBase implements Definition, Statement {
 	}
 	
 	@Override
-	public void print(PrintStream out) {
-		out.printf("%sdef %s : %s = %s;%n", pub?"pub ":"", name, type==null?"null":type.getSignature(), expression==null?"null":expression.toString());
+	public String toString() {
+		return String.format("%sdef %s:%s=%s;", pub?"pub ":"",name,type,expression);
 	}
 
 	@Override

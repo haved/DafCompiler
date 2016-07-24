@@ -136,7 +136,7 @@ public class MainDafParser {
 		if(definitions != null)
 			for(Definition d:definitions) {
 				out.println("=============Definition============");
-				d.print(out);
+				out.println(d.toString());
 			}
 		
 		terminateIfErrorsOccured();
