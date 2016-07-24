@@ -104,8 +104,8 @@ public class DefinitionParser {
 		}
 		
 		if(!bufferer.isCurrentTokenOfType(TokenType.COLON_ASSIGN) && !bufferer.isCurrentTokenOfType(TokenType.ASSIGN)) {
-			log(bufferer.getLastOrCurrent(), ERROR, "Expected '%s' or '%s' in %s statement", 
-					TokenType.COLON_ASSIGN, TokenType.ASSIGN, TokenType.LET);
+			log(bufferer.getLastOrCurrent(), ERROR, "Expected '%s', '%s' or '%s' in %s statement", 
+					TokenType.COLON_ASSIGN, TokenType.ASSIGN, TokenType.SEMICOLON, TokenType.LET);
 			return null;
 		}
 		

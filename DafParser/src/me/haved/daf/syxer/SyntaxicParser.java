@@ -42,12 +42,21 @@ public final class SyntaxicParser {
 		}
 	}
 	
-	public static void skipPastSemicolon(TokenBufferer bufferer) {
+	private static void skipPastSemicolon(TokenBufferer bufferer) {
+		if(!bufferer.hasCurrentToken())
+			return;
+		if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
+			bufferer.advance();
+			return;
+		}
+		StringBuilder tokens = new StringBuilder();
 		while(!bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
+			tokens.append(bufferer.getCurrentToken().getText()).append(" ");
 			if(!bufferer.advance()) {
 				return;
 			}
 		}
+		log(bufferer.getCurrentToken(), ERROR, "Expected, got '%s' first", TokenType.SEMICOLON, tokens.toString());
 		bufferer.advance(); //Eat the ';'
 	}
 }
