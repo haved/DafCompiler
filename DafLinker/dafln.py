@@ -61,7 +61,7 @@ class GnuLinkerPosix:
             return None
         return index
     def getNames(self):
-        return ["gnu_link_linux", "gnu_linker_posix"]
+        return ["gnu_linker_posix", "gnu_link_linux"]
     def getDefaultExecutable(self):
         return "ld"
     def getOnelineDesc(self):
@@ -106,7 +106,7 @@ class GppPosix(GnuLinkerPosix):
         return args
         
     def getNames(self):
-        return ["g++_linux", "g++_posix"]
+        return ["g++_posix", "g++_linux"]
     def getDefaultExecutable(self):
         return "g++"
     def getOnelineDesc(self):
@@ -134,7 +134,7 @@ class StaticPosix:
     def parseArgument(self, args, index):
         pass
     def getNames(self):
-        return ["static_linux", "static_posix"]
+        return ["static_posix", "static_linux"]
     def getDefaultExecutable(self):
         return "ar"
     def getOnelineDesc(self):
@@ -155,7 +155,7 @@ def getLinkerType(text):
 def showLinkerTypeHelp():
     print("dafln linker types:")
     for linkerType in linker_types:
-        print("    ",(linkerType.getNames()+":").ljust(20,' '),linkerType.getOnelineDesc(),sep='')
+        print("    ",(linkerType.getNames()[0]+":").ljust(20,' '),linkerType.getOnelineDesc(),sep='')
     print("Pro tip: Use '-static' without the platform to automaticly use it with the default program")
 def showHelpPage():
     print("""Help page for dafln\nUsage: dafln <OPTION LIST>
