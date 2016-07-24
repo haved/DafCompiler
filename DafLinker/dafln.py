@@ -279,7 +279,7 @@ class Input:
         self.executable = programArg.text
         return index
     def trySettingType(self, text):
-        ltype = getLinkerType(text+"_"+os_name)
+        ltype = getLinkerType(text[1:]+"_"+os_name)
         if ltype != None:
             self.type = ltype
             self.executable = ltype.getDefaultExecutable()

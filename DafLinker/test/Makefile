@@ -2,19 +2,19 @@ all: normalExec staticExec dynamicExec
 
 normalExec: bin/windowCreator.o bin/main.o
 	echo "bin/windowCreator.o bin/main.o -lsfml-graphics -lsfml-window -lsfml-system -lGL" > Linkfile
-	dafln -X g++_linux g++ -o normalExec
+	dafln -g++ -o normalExec
 
 staticExec: lib/libWC.a bin/main.o
 	echo "bin/main.o lib/libWC.a -lsfml-graphics -lsfml-window -lsfml-system -lGL" > Linkfile
-	dafln -X g++_linux g++ -o staticExec
+	dafln -g++ -o staticExec
 
 lib/libWC.a: lib/ bin/windowCreator.o
 	echo "bin/windowCreator.o" > Linkfile
-	dafln -X static_ar ar -o lib/libWC.a
+	dafln -static -o lib/libWC.a
 
 dynamicExec: lib/libWC.so bin/main.o
 	echo "bin/main.o -L lib/ -lWC -lsfml-graphics -lsfml-window -lsfml-system -lGL" > Linkfile
-	dafln -X g++_linux g++ -o dynamicExec -rpath .
+	dafln -g++ -o dynamicExec -rpath .
 
 lib/libWC.so: lib/ bin/windowCreatorDynamic.o
 	echo "bin/windowCreatorDynamic.o" > Linkfile
