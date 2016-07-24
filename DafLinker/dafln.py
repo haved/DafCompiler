@@ -17,7 +17,7 @@ class Argument:
         self.file = file
         self.line = line
 
-class GnuLinkerLinux:
+class GnuLinkerPosix:
     def __init__(self):
         self.shared = False
         self.linkable = None
@@ -60,14 +60,14 @@ class GnuLinkerLinux:
         else:
             return None
         return index
-    def getName(self):
-        return "gnu_link_linux"
+    def getNames(self):
+        return ["gnu_link_linux", "gnu_linker_posix"]
     def getDefaultExecutable(self):
         return "ld"
     def getOnelineDesc(self):
         return "Using an ld command to link programs or shared libraries"
     def printHelpMessage(self):
-        print("==="+self.getName()+"===",
+        print("==="+self.getNames()[0]+"===",
         "example program: ld",
         "extra parameters:",
         "    -shared",
@@ -79,7 +79,7 @@ class GnuLinkerLinux:
         "By supplying `-linkable`, the output becomes a symlink to the linkable file.",
         "This is to maintain compatability with windows.",sep='\n')
 
-class GppLinux(GnuLinkerLinux):
+class GppPosix(GnuLinkerPosix):
     def makeArgumentList(self, input):
         args = [input.executable] + cleanPaths(input.linker_args
         + splitTuples([("-L",libImport) for libImport in input.library_search])
@@ -105,14 +105,14 @@ class GppLinux(GnuLinkerLinux):
 
         return args
         
-    def getName(self):
-        return "g++_linux"
+    def getNames(self):
+        return ["g++_linux", "g++_posix"]
     def getDefaultExecutable(self):
         return "g++"
     def getOnelineDesc(self):
         return "Using g++ to link c++ programs or shared libraries"
     def printHelpMessage(self):
-        print("==="+self.getName()+"===",
+        print("==="+self.getNames()[0]+"===",
         "example program: g++",
         "extra parameters:",
         "    -shared",
@@ -122,7 +122,7 @@ class GppLinux(GnuLinkerLinux):
         "desc: Does exactly the same as gnu_link_linux, but includes stdc++ libraries",
         "May also order c++ libraries correctly for you",sep='\n')
 
-class StaticAr:
+class StaticPosix:
     def makeArgumentList(self, input):
         args = [input.executable, "rvs", input.outputFile] + input.linker_args
         for file in input.files:
@@ -133,28 +133,30 @@ class StaticAr:
         return cleanPaths(args)
     def parseArgument(self, args, index):
         pass
-    def getName(self):
-        return "static_ar"
+    def getNames(self):
+        return ["static_linux", "static_posix"]
     def getDefaultExecutable(self):
         return "ar"
     def getOnelineDesc(self):
         return "Using an ar command to arhcive object files into static libraries"
     def printHelpMessage(self):
-        print("==="+self.getName()+"===",
+        print("==="+self.getNames()[0]+"===",
         "example program: ar",
         "desc: Pack all files passed into a static library.",
         "Libraries passed as such will not be included.",
         "Whitelisting your own files might be a good idea.",sep='\n')
-linker_types = [GnuLinkerLinux(), GppLinux(), StaticAr()]
+linker_types = [GnuLinkerPosix(), GppPosix(), StaticPosix()]
+from os import name as os_name
 def getLinkerType(text):
     for potential in linker_types:
-        if potential.getName() == text:
+        if text in potential.getNames():
             return potential
     return None
 def showLinkerTypeHelp():
     print("dafln linker types:")
     for linkerType in linker_types:
-        print("    ",(linkerType.getName()+":").ljust(20,' '),linkerType.getOnelineDesc(),sep='')
+        print("    ",(linkerType.getNames()+":").ljust(20,' '),linkerType.getOnelineDesc(),sep='')
+    print("Pro tip: Use '-static' without the platform to automaticly use it with the default program")
 def showHelpPage():
     print("""Help page for dafln\nUsage: dafln <OPTION LIST>
 
@@ -276,6 +278,13 @@ class Input:
             exit()
         self.executable = programArg.text
         return index
+    def trySettingType(self, text):
+        ltype = getLinkerType(text+"_"+os_name)
+        if ltype != None:
+            self.type = ltype
+            self.executable = ltype.getDefaultExecutable()
+            return True
+        return False
     #
     def setDefaultValues(self):
         assert(self.type != None and self.executable != None)
@@ -333,7 +342,9 @@ class Input:
                 if newIndex != None and newIndex >= 0:
                     index = newIndex
                 else:
-                    if not self.addFile(arg):
+                    if argText.startswith("-") and self.trySettingType(argText):
+                        pass
+                    elif not self.addFile(arg):
                         logError(arg, "The argument '"+arg.text+"' wasn't recognized as neither an option nor a file!")
             index += 1
 
