@@ -9,9 +9,9 @@ These files and libraries can be placed there automaticly by the daf compiler, o
 
 ## Compiling a static library
 ```
-dafln -X static_ar ar -F Linkfile -A ./ -o libMyLib.a
+dafln -static -F Linkfile -A ./ -o libMyLib.a
 ```
-`-X static_ar ar` tells dafln that we are archiving a static library using *ar*.
+`-static` tells dafln that we are archiving a static library using *ar*.
 `-A ./` tells dafln to only allow object files inside our current folder.
 This is in case our project uses external libraries in the Linkfile, that we don't want to archive.
 
@@ -28,6 +28,6 @@ dafln -F Linkfile -A ./ -shared -linkable libMyLib.so.1.5 -o libMyLib.so.1.0
 ## Compiling a cpp project
 When using c++, you often need to include standard c++ libraries. Using g++ to link does this for you.
 ```
-dafln -X g++_linux g++ -F Linkfile -o myProgram
+dafln -g++ -F Linkfile -o myProgram
 ```
-`-X g++_linux g++` changes things internally and uses g++ to link, but dafln does it for you.
+`-g++` uses g++ to link, and changes things internally, but dafln does it for you.
