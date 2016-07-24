@@ -18,13 +18,48 @@ class Argument:
         self.line = line
 
 class GnuLinkerLinux:
+    def __init__(self):
+        self.shared = False
+        self.linkable = None
+        self.rpath = None
     def makeArgumentList(self, input):
-        return cleanPaths([input.executable] + input.linker_args
+        args = [input.executable] + cleanPaths(input.linker_args
         + splitTuples([("-L",libImport) for libImport in input.library_search])
-        + input.getFilteredFilesAndLibs()
-        + ["-o", input.outputFile])
+        + input.getFilteredFilesAndLibs())
+
+        output = input.outputFile
+        if self.shared:
+            args += ["-shared", "-fPIC"]
+            if self.linkable != None:
+                args += ["-soname",split(self.outputFile)[1]]
+                print("Make the symlink from " + self.outputFile + " pointing to " + self.linkable + "yourself!")
+                output =  self.linkable
+        elif self.linkable != None:
+            logTotalError("Can't have a linkable output unless linking a shared library'")
+            exit()
+        if self.rpath:
+            if self.shared:
+                logTotalError("Can't link a shared library with an rpath! Aborting.'")
+                exit()
+            args += ["-rpath",self.rpath]
+
+        args += cleanPaths(["-o", output])
+
+        return args
     def parseArgument(self, args, index):
-        pass
+        arg = args[index]
+        argText = arg.text
+        if argText == "-shared":
+            self.shared = True
+        elif argText == "-linkable":
+            index += 1
+            self.linkable = getFullName(getArg(args, index).text)
+        elif argText == "-rpath":
+            index += 1
+            self.rpath = getArg(args, index).text
+        else:
+            return None
+        return index
     def getName(self):
         return "gnu_link_linux"
     def getDefaultExecutable(self):
@@ -44,12 +79,7 @@ class GnuLinkerLinux:
         "By supplying `-linkable`, the output becomes a symlink to the linkable file.",
         "This is to maintain compatability with windows.",sep='\n')
 
-class GppLinux:
-    def __init__(self):
-        self.shared = False
-        self.linkable = None
-        self.rpath = None
-
+class GppLinux(GnuLinkerLinux):
     def makeArgumentList(self, input):
         args = [input.executable] + cleanPaths(input.linker_args
         + splitTuples([("-L",libImport) for libImport in input.library_search])
@@ -75,20 +105,6 @@ class GppLinux:
 
         return args
         
-    def parseArgument(self, args, index):
-        arg = args[index]
-        argText = arg.text
-        if argText == "-shared":
-            self.shared = True
-        elif argText == "-linkable":
-            index += 1
-            self.linkable = getFullName(getArg(args, index).text)
-        elif argText == "-rpath":
-            index += 1
-            self.rpath = getArg(args, index).text
-        else:
-            return None
-        return index
     def getName(self):
         return "g++_linux"
     def getDefaultExecutable(self):
@@ -106,7 +122,30 @@ class GppLinux:
         "desc: Does exactly the same as gnu_link_linux, but includes stdc++ libraries",
         "May also order c++ libraries correctly for you",sep='\n')
 
-linker_types = [GnuLinkerLinux(), GppLinux()]
+class StaticAr:
+    def makeArgumentList(self, input):
+        args = [input.executable, "rvs", input.outputFile] + input.linker_args
+        for file in input.files:
+            if file.startswith("-l"):
+                logTotalWarning("Ignoring '"+file+"' when archiving static library")
+            else:
+                args.append(file)
+        return cleanPaths(args)
+    def parseArgument(self, args, index):
+        pass
+    def getName(self):
+        return "static_ar"
+    def getDefaultExecutable(self):
+        return "ar"
+    def getOnelineDesc(self):
+        return "Using an ar command to arhcive object files into static libraries"
+    def printHelpMessage(self):
+        print("==="+self.getName()+"===",
+        "example program: ar",
+        "desc: Pack all files passed into a static library.",
+        "Libraries passed as such will not be included.",
+        "Whitelisting your own files might be a good idea.",sep='\n')
+linker_types = [GnuLinkerLinux(), GppLinux(), StaticAr()]
 def getLinkerType(text):
     for potential in linker_types:
         if potential.getName() == text:
@@ -146,8 +185,9 @@ def logWarning(arg, text):
     logArg(arg, "warning", text)
 def logTotalError(text):
     log(exec_name, -1, "error", text)
+def logTotalWarning(text):
+    log(exec_name, -1, "warning", text)#
 #
-
 def getFullName(file):
     return join(getcwd(), file)
 def splitTuples(tuples):
@@ -226,7 +266,7 @@ class Input:
         
         self.type = getLinkerType(typeArg.text)
         if self.type == None:
-            logError(typeArg, "Linker type not found: ''",typeArg.text,"'. Aborting.")
+            logError(typeArg, "Linker type not found: ''"+typeArg.text+"'. Aborting.")
             exit()
 
         index+=1

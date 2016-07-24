@@ -10,7 +10,7 @@ staticExec: lib/libWC.a bin/main.o
 
 lib/libWC.a: lib/ bin/windowCreator.o
 	echo "bin/windowCreator.o" > Linkfile
-	dafln -X g++_linux g++ -o lib/libWC.a -static
+	dafln -X static_ar ar -o lib/libWC.a
 
 dynamicExec: lib/libWC.so bin/main.o
 	echo "bin/main.o -L lib/ -lWC -lsfml-graphics -lsfml-window -lsfml-system -lGL" > Linkfile
