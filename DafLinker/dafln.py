@@ -31,8 +31,7 @@ class GnuLinkerPosix:
         if self.shared:
             args += ["-shared", "-fPIC"]
             if self.linkable != None:
-                args += ["-soname",split(self.outputFile)[1]]
-                print("Make the symlink from " + self.outputFile + " pointing to " + self.linkable + "yourself!")
+                args += ["-soname",split(input.outputFile)[1]]
                 output =  self.linkable
         elif self.linkable != None:
             logTotalError("Can't have a linkable output unless linking a shared library'")
@@ -46,6 +45,9 @@ class GnuLinkerPosix:
         args += cleanPaths(["-o", output])
 
         return args
+    def getWantedSymlinks(self, input):
+        if self.shared and (self.linkable != None):
+            return [(self.linkable, input.outputFile)] #Pointing to src, named dst
     def parseArgument(self, args, index):
         arg = args[index]
         argText = arg.text
@@ -89,8 +91,7 @@ class GppPosix(GnuLinkerPosix):
         if self.shared:
             args += ["-shared", "-fPIC"]
             if self.linkable != None:
-                args += ["-Wl,-soname,"+split(self.outputFile)[1]]
-                print("Make the symlink from " + self.outputFile + " pointing to " + self.linkable + "yourself!")
+                args += ["-Wl,-soname,"+split(input.outputFile)[1]]
                 output =  self.linkable
         elif self.linkable != None:
             logTotalError("Can't have a linkable output unless linking a shared library'")
@@ -131,6 +132,8 @@ class StaticPosix:
             else:
                 args.append(file)
         return cleanPaths(args)
+    def getWantedSymlinks(self, input):
+        pass
     def parseArgument(self, args, index):
         pass
     def getNames(self):
@@ -232,6 +235,9 @@ class Input:
     def makeArgumentList(self):
         return self.type.makeArgumentList(self)
 
+    def getWantedSymlinks(self):
+        return self.type.getWantedSymlinks(self)
+
     def addFile(self, arg):
         for dir in self.file_search+[getcwd()]:
             path = join(dir, arg.text)
@@ -314,8 +320,6 @@ class Input:
             if argText == "-F":
                 index+=1
                 handleFile(getArg(args, index).text, self)
-            elif argText[:2] == "-l":
-                self.addLibrary(arg)
             elif argText == "-I":
                 index += 1
                 self.addFileSearchDir(getArg(args, index))
@@ -339,13 +343,16 @@ class Input:
                 exit()
             else:
                 newIndex = self.type.parseArgument(args, index)
-                if newIndex != None and newIndex >= 0:
+                if (newIndex != None) and (newIndex >= 0):
                     index = newIndex
                 else:
                     if argText.startswith("-") and self.trySettingType(argText):
                         pass
+                    elif argText[:2] == "-l":
+                        self.addLibrary(arg)
                     elif not self.addFile(arg):
                         logError(arg, "The argument '"+arg.text+"' wasn't recognized as neither an option nor a file!")
+                        exit(1)
             index += 1
 
 def handleFile(filePath, input):
@@ -377,6 +384,7 @@ def handleFile(filePath, input):
 
 
 from subprocess import call
+from os import symlink
 
 def main():
     input = Input()
@@ -398,13 +406,22 @@ def main():
 
     input.setDefaultValues()
     args = input.makeArgumentList()
+    wantedSymlinks = input.getWantedSymlinks()
 
     print(exec_name,":",sep='',end=' ')
     for arg in args:
         print(arg, end=' ')
     print("")
 
-    exit(call(args))
+    returnCode = call(args)
+
+    if wantedSymlinks != None:
+        for wantedSymlink in wantedSymlinks:
+            assert(len(wantedSymlink)==2)
+            print(wantedSymlink)
+            symlink(wantedSymlink[0], wantedSymlink[1])
+
+    exit(returnCode)
 
 if __name__ == "__main__":
     main()

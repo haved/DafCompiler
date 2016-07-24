@@ -18,9 +18,7 @@ dynamicExec: lib/libWC.so bin/main.o
 
 lib/libWC.so: lib/ bin/windowCreatorDynamic.o
 	echo "bin/windowCreatorDynamic.o" > Linkfile
-	dafln -X g++_linux g++ -o lib/libWC.so.1.0 -shared
-	rm -f libWC.so.1.2
-	ln -s lib/libWC.so.1.0 libWC.so.1.2
+	dafln -g++ -o libWC.so.1.0 -shared -linkable lib/libWC.so.1.2
 
 bin/windowCreator.o: bin/ src/windowCreator.cpp
 	g++ -c src/windowCreator.cpp -o bin/windowCreator.o
