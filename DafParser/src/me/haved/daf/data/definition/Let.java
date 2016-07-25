@@ -28,9 +28,9 @@ public class Let extends NodeBase implements Definition, Statement {
 	@Override
 	public String toString() {
 		if(expression!=null)
-			return String.format("%slet %s%s : %s = %s;", pub?"pub ":"", name, mut?"mut ":"", type==null?"null":type.getSignature(), expression.toString());
+			return String.format("%slet %s%s : %s = %s;", pub?"pub ":"", mut?"mut ":"", name, type==null?"null":type.getSignature(), expression.toString());
 		else
-			return String.format("%slet %s%s : %s;", pub?"pub ":"", name, mut?"mut ":"", type==null?"null":type.getSignature());
+			return String.format("%slet %s%s : %s;", pub?"pub ":"", mut?"mut ":"", name, type==null?"null":type.getSignature());
 	}
 
 	@Override
