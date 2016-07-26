@@ -4,6 +4,7 @@ import me.haved.daf.data.definition.Definition;
 import me.haved.daf.data.definition.Let;
 import me.haved.daf.data.expression.Expression;
 import me.haved.daf.data.type.Type;
+import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;
 
 import static me.haved.daf.LogHelper.*;
@@ -25,7 +26,6 @@ public class DefinitionParser {
 		
 		switch(type) {
 		case LET: return parseLetStatement(bufferer, pub);
-		case UNCERTAIN: return parseLetStatement(bufferer, pub);
 		default: break;
 		}
 		
@@ -38,15 +38,7 @@ public class DefinitionParser {
 		boolean uncertain = false;
 		boolean mut = false;
 		
-		if(bufferer.isCurrentTokenOfType(TokenType.UNCERTAIN)) {
-			uncertain = true;
-			bufferer.advance();
-			if(!bufferer.isCurrentTokenOfType(TokenType.LET)) {
-				log(bufferer.getLastOrCurrent(), ERROR, "Expected '%s' after '%s'", TokenType.LET, TokenType.UNCERTAIN);
-				return null;
-			}
-		}
-		
+		Token startToken = bufferer.getCurrentToken();
 		bufferer.advance(); //Eat the 'let'
 		
 		while(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
@@ -70,6 +62,34 @@ public class DefinitionParser {
 		if(uncertain && !mut)
 			log(bufferer.getCurrentToken(), WARNING, "An uncertain %s statement has no reason to exist if not mutable", TokenType.LET);
 		
+		Token nameToken = bufferer.getCurrentToken();
+		NameTypeExpr nte = parseNameTypeExpression(bufferer);
+		if(nte==null)
+			return null;
+		
+		if(nte.expression == null && !uncertain)
+			log(nameToken, ERROR, "A %s statement without an initializer must be declared as uncertain.", TokenType.LET);
+		else if(nte.expression != null && uncertain)
+			log(nameToken, ERROR, "A %s statement can't be uncertain when it has an initializer!", TokenType.LET);
+		
+		Let output = new Let(nte.name, mut, nte.type, nte.expression, pub);
+		output.setPosition(startToken, bufferer.getCurrentToken());
+		return output;
+	}
+	
+	private static class NameTypeExpr {
+		public final String name;
+		public final Type type;
+		public final Expression expression;
+		
+		public NameTypeExpr(String name, Type type, Expression expression) {
+			this.name = name;
+			this.type = type;
+			this.expression = expression;
+		}
+	}
+	
+	private static NameTypeExpr parseNameTypeExpression(TokenBufferer bufferer) {
 		String identifier = bufferer.getCurrentToken().getText();
 		bufferer.advance(); //Eat the identifier
 		
@@ -93,31 +113,21 @@ public class DefinitionParser {
 		
 		if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
 			logAssert(!autoType); //If autoType, it has to be :=
-			if(!uncertain) {
-				log(bufferer.getCurrentToken(), ERROR, "A let statement without an initializer must be declared as uncertain.");
-				return null;
-			}
-			return new Let(identifier, mut, type, null, pub);
-		} else if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
-			return new Let(identifier, mut, type, null, pub);
+			return new NameTypeExpr(identifier, type, null);
 		}
 		
 		if(!bufferer.isCurrentTokenOfType(TokenType.COLON_ASSIGN) && !bufferer.isCurrentTokenOfType(TokenType.ASSIGN)) {
-			log(bufferer.getLastOrCurrent(), ERROR, "Expected '%s', '%s' or '%s' in %s statement", 
-					TokenType.COLON_ASSIGN, TokenType.ASSIGN, TokenType.SEMICOLON, TokenType.LET);
+			log(bufferer.getLastOrCurrent(), ERROR, "Expected '%s', '%s' or '%s' in declaration statement", 
+					TokenType.COLON_ASSIGN, TokenType.ASSIGN, TokenType.SEMICOLON);
 			return null;
 		}
 		
 		bufferer.advance(); //Eat the := or =
 		Expression exp = ExpressionParser.parseExpression(bufferer);
 		if(exp == null)
-			return null;
+			return null; //The expression parser prints errors
 		
-		if(!bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
-			log(bufferer.getLastOrCurrent(), ERROR, "Expected '%s' after expression", TokenType.SEMICOLON);
-		}
-		
-		return new Let(identifier, mut, type, exp, pub);
+		return new NameTypeExpr(identifier, type, exp);
 	}
 	
 	private static boolean advanceOrComplain(TokenBufferer bufferer, String during) {

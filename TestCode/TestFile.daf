@@ -2,8 +2,8 @@
 
 let a:&int=4;
 pub let mut b:=a;
-pub uncertain let mut c:&mut int; //Must be mut
+pub let uncertain mut c:&mut int; //Must be uncertain and mut
 //pub def g:&char; //Legal, like extern
 //def g:=&c; //(){};
-let uncertain mut h:float;
-uncertain let mut l:boolean;
+let mut h:float=4;
+let uncertain mut l:boolean;
