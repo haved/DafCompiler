@@ -397,12 +397,13 @@ def main():
 
     input.handleArguments([Argument(arg, exec_name, -1) for arg in argv[1:]])
 
+    if len(input.files) == 0 and not "-F" in argv:
+        if not handleFile("Linkfile", input):
+            print("No input files, and no default Linkfile")
+            exit(1)
     if len(input.files) == 0:
-        if not "-F" in argv:
-            if not handleFile("Linkfile", input):
-                print("No input files, and no default Linkfile")
-        else:
-            print("No input files")
+        print("No input files")
+        exit(1)
 
     input.setDefaultValues()
     args = input.makeArgumentList()
