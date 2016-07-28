@@ -37,26 +37,31 @@ public final class SyntaxicParser {
 	
 	private static void fillDefinitionList(List<Definition> definitions, TokenBufferer bufferer) {
 		while(bufferer.hasCurrentToken()) {
-			println("Definition: %s", DefinitionParser.parseDefinition(bufferer));
-			skipPastSemicolon(bufferer);
+			Definition def = DefinitionParser.parseDefinition(bufferer);
+			println("%s", def);
+			skipPastSemicolon(bufferer, def != null);
 		}
 	}
 	
-	private static void skipPastSemicolon(TokenBufferer bufferer) {
+	private static void skipPastSemicolon(TokenBufferer bufferer, boolean message) {
 		if(!bufferer.hasCurrentToken())
 			return;
 		if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
 			bufferer.advance();
 			return;
 		}
-		StringBuilder tokens = new StringBuilder();
-		while(!bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
-			tokens.append(bufferer.getCurrentToken().getText()).append(" ");
-			if(!bufferer.advance()) {
-				return;
+		if(message) {
+			StringBuilder tokens = new StringBuilder();
+			while(!bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
+				tokens.append(bufferer.getCurrentToken().getText()).append(" ");
+				if(!bufferer.advance())
+					return;
 			}
-		}
-		log(bufferer.getCurrentToken(), ERROR, "Expected, got '%s' first", TokenType.SEMICOLON, tokens.toString());
+			log(bufferer.getCurrentToken(), ERROR, "Expected, got '%s' first", tokens.toString());
+		} else
+			while(!bufferer.isCurrentTokenOfType(TokenType.SEMICOLON))
+				if(!bufferer.advance())
+					return;
 		bufferer.advance(); //Eat the ';'
 	}
 }

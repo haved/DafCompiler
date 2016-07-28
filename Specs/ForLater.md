@@ -16,6 +16,7 @@ Let's just say there is a story behind every point on this list.
 - Have - as both an infix and prefix operator. a + -(b+3) is legal
  - This is instead of parsing the minus sign in front of a number as part of the literal
 - After '(', if not followed by ')', parse an expression. Even if you later find out it's a parameter, it's parsed fine
+- Compine & [mut|shared|unique] tokens into one of three tokens, depending on pointer type
 
 A type ends with '=' ';' '{' ',' (unless in type's own function signature)  
 

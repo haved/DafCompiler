@@ -37,4 +37,11 @@ public enum Primitive implements Type {
 	public String getSignature() {
 		return name;
 	}
+	
+	public static Primitive getPrimitiveForType(TokenType type) {
+		for(Primitive p:Primitive.values())
+			if(p.fitsTokenType(type))
+				return p;
+		return null;
+	}
 }

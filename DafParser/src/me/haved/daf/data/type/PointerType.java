@@ -1,46 +1,67 @@
 package me.haved.daf.data.type;
 
-import me.haved.daf.data.NodeBase;
+import java.util.ArrayList;
+
+import me.haved.daf.LogHelper;
 import me.haved.daf.lexer.tokens.TokenType;
+import me.haved.daf.syxer.TokenBufferer;
 
-public class PointerType extends NodeBase implements Type {
+public class PointerType implements Type {
+	public static TokenType POINTER = TokenType.getAddressType();
+	
+	public static enum TypeOfPointer {
+		IMMUT(null, "& "), MUT(TokenType.MUT, "&mut "), SHARED(TokenType.SHARED, "%shared "), UNIQUE(TokenType.UNIQUE, "&unique");
+		
+		private TokenType type;
+		private String signature;
+		TypeOfPointer(TokenType token, String signature) {
+			this.type = token;
+			this.signature = signature;
+		}
+	}
+	
 	private Type target;
-	private boolean mutable;
+	private TypeOfPointer[] pointers;
 	
-	public PointerType(Type target, boolean mutable) {
+	public PointerType(Type target, TypeOfPointer[] pointers) {
+		LogHelper.logAssert(pointers != null && target != null);
 		this.target = target;
-		this.mutable = mutable;
+		this.pointers = pointers;
 	}
 	
-	/**
-	 *  @return whether or not the type pointed to is mutable
-	 */
-	public boolean isMutable() {
-		return mutable;
-	}
-	
-	public void setMutable(boolean mutable) {
-		this.mutable = mutable;
-	}
-	
-	public Type getTarget() {
-		return target;
-	}
-	
-	public void setTarget(Type target) {
-		this.target = target;
-	}
-
 	@Override
 	public String getSignature() {
-		if(mutable)
-			return String.format("%s%s %s", TokenType.getAddressType(), TokenType.MUT, target.getSignature());
-		else
-			return String.format("%s%s", TokenType.getAddressType(), target.getSignature());
+		StringBuilder builder = new StringBuilder();
+		for(TypeOfPointer top:pointers) {
+			builder.append(top.signature);
+		}
+		return builder.append(target.getSignature()).toString();
 	}
 
 	@Override
 	public boolean isInteger() {
-		return true; //A pointer is an integer in memory
+		return true;
+	}
+
+	public static TypeOfPointer[] parsePointers(TokenBufferer bufferer) {
+		if(!bufferer.isCurrentTokenOfType(POINTER))
+			return null;
+		
+		ArrayList<TypeOfPointer> pointers = new ArrayList<>();
+		
+		outerLoop:
+		do {
+			bufferer.advance();
+			for(TypeOfPointer p:TypeOfPointer.values()) {
+				if(bufferer.isCurrentTokenOfType(p.type)) {
+					pointers.add(p);
+					bufferer.advance();
+					continue outerLoop;
+				}
+			}
+			pointers.add(TypeOfPointer.IMMUT);
+		} while(bufferer.isCurrentTokenOfType(POINTER));
+		
+		return pointers.toArray(new TypeOfPointer[pointers.size()]);
 	}
 }

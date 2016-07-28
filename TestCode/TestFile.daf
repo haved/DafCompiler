@@ -1,8 +1,8 @@
 //Just do let/def for the time being
 
-let a:int=4;
+let a:&int=4;
 pub let mut b:=a;
-pub uncertain let mut c:int; //Must be mut
+pub uncertain let mut c:&mut int; //Must be mut
 //pub def g:&char; //Legal, like extern
 //def g:=&c; //(){};
 let uncertain mut h:float;

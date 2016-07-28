@@ -8,27 +8,29 @@ import me.haved.daf.data.type.Type;
 public class Let extends NodeBase implements Definition, Statement {
 
 	private String name;
+	private boolean mut;
 	private Type type;
 	private Expression expression;
 	private boolean pub;
 	
-	public Let(String name, Type type, Expression expression, boolean pub) {
+	public Let(String name, boolean mut, Type type, Expression expression, boolean pub) {
 		this.name = name;
+		this.mut = mut;
 		this.type = type;
 		this.expression = expression;
 		this.pub = pub;
 	}
 	
-	public Let(String name, Type type, Expression expression) {
-		this(name, type, expression, false);
+	public Let(String name, boolean mut, Type type, Expression expression) {
+		this(name, mut, type, expression, false);
 	}
 	
 	@Override
 	public String toString() {
 		if(expression!=null)
-			return String.format("%slet %s : %s = %s;", pub?"pub ":"", name, type==null?"null":type.getSignature(), expression.toString());
+			return String.format("%slet %s%s : %s = %s;", pub?"pub ":"", name, mut?"mut ":"", type==null?"null":type.getSignature(), expression.toString());
 		else
-			return String.format("%slet %s : %s;", pub?"pub ":"", name, type==null?"null":type.getSignature());
+			return String.format("%slet %s%s : %s;", pub?"pub ":"", name, mut?"mut ":"", type==null?"null":type.getSignature());
 	}
 
 	@Override

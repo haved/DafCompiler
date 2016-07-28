@@ -86,7 +86,7 @@ MyStringClass::MyStringClass(const MyStringClass &a, const MyStringClass &b) {
 }
 
 void func(MyStringClass str) {
-    std::cout << "str!" << std::endl;
+    std::cout << str.get() << std::endl;
 }
 
 int main() {

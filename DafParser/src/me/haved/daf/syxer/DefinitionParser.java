@@ -79,8 +79,7 @@ public class DefinitionParser {
 		boolean autoType = false;
 		if(bufferer.isCurrentTokenOfType(TokenType.COLON)) {
 			bufferer.advance(); //Past ':'
-			type = null;
-			bufferer.advance(); //Past type
+			type = TypeParser.parseType(bufferer);
 		} else if(bufferer.isCurrentTokenOfType(TokenType.COLON_ASSIGN)) {
 			autoType = true;
 			type = null;
@@ -98,9 +97,9 @@ public class DefinitionParser {
 				log(bufferer.getCurrentToken(), ERROR, "A let statement without an initializer must be declared as uncertain.");
 				return null;
 			}
-			return new Let(identifier, type, null, pub);
+			return new Let(identifier, mut, type, null, pub);
 		} else if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
-			return new Let(identifier, type, null, pub);
+			return new Let(identifier, mut, type, null, pub);
 		}
 		
 		if(!bufferer.isCurrentTokenOfType(TokenType.COLON_ASSIGN) && !bufferer.isCurrentTokenOfType(TokenType.ASSIGN)) {
@@ -118,7 +117,7 @@ public class DefinitionParser {
 			log(bufferer.getLastOrCurrent(), ERROR, "Expected '%s' after expression", TokenType.SEMICOLON);
 		}
 		
-		return new Let(identifier, type, exp, pub);
+		return new Let(identifier, mut, type, exp, pub);
 	}
 	
 	private static boolean advanceOrComplain(TokenBufferer bufferer, String during) {
