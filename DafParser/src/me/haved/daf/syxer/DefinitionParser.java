@@ -1,5 +1,6 @@
 package me.haved.daf.syxer;
 
+import me.haved.daf.data.definition.Def;
 import me.haved.daf.data.definition.Definition;
 import me.haved.daf.data.definition.Let;
 import me.haved.daf.data.expression.Expression;
@@ -76,6 +77,20 @@ public class DefinitionParser {
 		output.setPosition(startToken, bufferer.getCurrentToken());
 		return output;
 	}
+
+	public static Def parseDefStatement(TokenBufferer bufferer, boolean pub) {
+		bufferer.advance(); //Eat the 'def'
+		if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
+			log(bufferer.getLastOrCurrent(), ERROR, "Expected an identifier after %s!", TokenType.DEF);
+			return null;
+		}
+		
+		NameTypeExpr nte = parseNameTypeExpression(bufferer);
+		if(nte == null)
+			return null;
+		
+		return new Def(nte.name, nte.type, nte.expression, pub);
+	}
 	
 	private static class NameTypeExpr {
 		public final String name;
@@ -90,6 +105,7 @@ public class DefinitionParser {
 	}
 	
 	private static NameTypeExpr parseNameTypeExpression(TokenBufferer bufferer) {
+		logAssert(bufferer.isCurrentTokenOfType(TokenType.IDENTIFER));
 		String identifier = bufferer.getCurrentToken().getText();
 		bufferer.advance(); //Eat the identifier
 		
