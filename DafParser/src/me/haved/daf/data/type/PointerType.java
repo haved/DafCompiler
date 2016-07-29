@@ -37,6 +37,11 @@ public class PointerType implements Type {
 		}
 		return builder.append(target.getSignature()).toString();
 	}
+	
+	@Override
+	public String toString() {
+		return getSignature();
+	}
 
 	@Override
 	public boolean isInteger() {

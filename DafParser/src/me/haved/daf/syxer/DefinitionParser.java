@@ -27,6 +27,7 @@ public class DefinitionParser {
 		
 		switch(type) {
 		case LET: return parseLetStatement(bufferer, pub);
+		case DEF: return parseDefStatement(bufferer, pub);
 		default: break;
 		}
 		
@@ -47,7 +48,8 @@ public class DefinitionParser {
 				if(uncertain)
 					log(bufferer.getCurrentToken(), WARNING, "Let declared as uncertain twice");
 				uncertain = true;
-				bufferer.advance();
+				if(!advanceOrComplain(bufferer, LET_DURING))
+					return null;
 			} else if(bufferer.isCurrentTokenOfType(TokenType.MUT)) {
 				if(mut)
 					log(bufferer.getCurrentToken(), WARNING, "Let declared as mutable twice");
