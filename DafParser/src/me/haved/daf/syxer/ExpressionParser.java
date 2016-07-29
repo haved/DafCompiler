@@ -95,7 +95,23 @@ public class ExpressionParser {
 	
 	private static Expression parseParentheses(TokenBufferer bufferer) {
 		bufferer.advance(); //Eat the (
+		if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN))
+			return parseFunction(bufferer, null);
+		else if(bufferer.isCurrentTokenOfType(TokenType.getAddressType()))
+			if(bufferer.hasLookaheadToken() && bufferer.getLookaheadToken().getType() == TokenType.MOVE)
+				return parseFunction(bufferer, null);
 		Expression expression = parseExpression(bufferer);
+		if(expression == null) {
+			while(bufferer.hasCurrentToken()) {
+				if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN))
+					break;
+			}
+			bufferer.advance();
+			return null;
+		}
+		if(bufferer.isCurrentTokenOfType(TokenType.COLON)) {
+			return parseFunction(bufferer, expression);
+		}
 		if(!bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) {
 			log(bufferer.getCurrentToken(), ERROR, "Expected a closing ')'"); 
 			//We know the current token is the last token, even if we're out of tokens
@@ -104,6 +120,10 @@ public class ExpressionParser {
 		return expression;
 	}
 
+	private static Expression parseFunction(TokenBufferer bufferer, Expression firstParam) {
+		return null;
+	}
+	
 	public static Expression parseIdentifierExpression(TokenBufferer bufferer) {
 		String idName = bufferer.getCurrentToken().getText();
 		bufferer.advance(); //'Eat the identifier' as the llvm tutorial says
