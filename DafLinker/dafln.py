@@ -2,7 +2,7 @@
 
 from os.path import expandvars
 from sys import argv
-from os import getcwd, chdir
+from os import getcwd, chdir, remove
 from os.path import join, split, isfile, isdir
 
 defaultLinkfilePaths = ["/usr/share/daf/linker_search.txt", expandvars("$HOME/.daf/linker_search.txt")]
@@ -368,9 +368,8 @@ def handleFile(filePath, input):
             line = file.readline()
             if len(line)==0:
                 break
-            for arg in line.split('#')[0].split('\n')[0].split(" "):
-                if len(arg)>0:
-                    args.append(Argument(arg, exec_name, lineC))
+
+            args = [Argument(arg, fileName, lineC) for arg in filter(lambda x: len(x)>0,line.split('#')[0].split('\n')[0].split(' '))]
     except FileNotFoundError as e:
         return False
     if len(args) == 0:
@@ -381,10 +380,18 @@ def handleFile(filePath, input):
     chdir(wd)
     return True
 
-
+from os import symlink
+def handleWantedSymlinks(wantedSymlinks):
+    if wantedSymlinks != None:
+        for wantedSymlink in wantedSymlinks:
+            assert(len(wantedSymlink)==2)
+            wantedSymlink = cleanPaths(wantedSymlink)
+            print(exec_name,": Making symlink. Src: ", wantedSymlink[0], "  Named: ", wantedSymlink[1], sep='')
+            if isfile(wantedSymlink[1]):
+                remove(wantedSymlink[1])
+            symlink(wantedSymlink[0], wantedSymlink[1])
 
 from subprocess import call
-from os import symlink
 
 def main():
     input = Input()
@@ -416,11 +423,7 @@ def main():
 
     returnCode = call(args)
 
-    if wantedSymlinks != None:
-        for wantedSymlink in wantedSymlinks:
-            assert(len(wantedSymlink)==2)
-            print(wantedSymlink)
-            symlink(wantedSymlink[0], wantedSymlink[1])
+    handleWantedSymlinks(wantedSymlinks)
 
     exit(returnCode)
 
