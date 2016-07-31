@@ -1,45 +1,10 @@
 package me.haved.daf.data.type;
 
 import me.haved.daf.data.NodeBase;
+import me.haved.daf.data.statement.FunctionParameter;
 import me.haved.daf.lexer.tokens.TokenType;
 
-public class FunctionType extends NodeBase implements Type {
-	public static class FunctionParameter {
-		public static final int NOT_REFRENCE = 0;
-		public static final int IMMUTABLE_REF = 1;
-		public static final int MUTABLE_REF = 2;
-		public static final int MOVE_REF = 3;
-		
-		private int refType;
-		private String name;
-		private Type type;
-		
-		public FunctionParameter(int refType, String name, Type type) {
-			this.refType = refType;
-			this.name = name;
-			this.type = type;
-		}
-		
-		private static final String[] REF_SIGNS = {"","&","&mut ","&move "};
-		public String getSignature() {
-			if(refType == NOT_REFRENCE && name==null)
-				return type.getSignature();
-			return String.format("%s%s:%s", REF_SIGNS[refType], name!=null?name:"", type.getSignature());
-		}
-		
-		public int getReferenceType() {
-			return refType;
-		}
-		
-		public String getName() {
-			return name;
-		}
-		
-		public Type getType() {
-			return type;
-		}
-	}
-	
+public class FunctionType extends NodeBase implements Type {	
 	private final FunctionParameter[] params;
 	private final Type returnType;
 	

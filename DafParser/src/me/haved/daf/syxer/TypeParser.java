@@ -1,7 +1,7 @@
 package me.haved.daf.syxer;
 
+import me.haved.daf.data.statement.FunctionParameter;
 import me.haved.daf.data.type.FunctionType;
-import me.haved.daf.data.type.FunctionType.FunctionParameter;
 import me.haved.daf.data.type.PointerType;
 import me.haved.daf.data.type.Primitive;
 import me.haved.daf.data.type.Type;
@@ -93,7 +93,7 @@ public class TypeParser {
 	
 	//[[&|&mut|&move| ] [id| ] : | ] Type
 	private static FunctionParameter parseFunctionParameter(TokenBufferer bufferer) {
-		int refType = FunctionParameter.NOT_REFRENCE;
+		int refType = FunctionParameter.NOT_A_REF;
 		if(bufferer.isCurrentTokenOfType(TokenType.getAddressType())) {
 			if(!bufferer.advance()) {
 				log(bufferer.getLastToken(), ERROR, "Expected something after");
@@ -101,12 +101,14 @@ public class TypeParser {
 			}
 			TokenType type = bufferer.getCurrentToken().getType();
 			if(type == TokenType.MUT) {
-				refType = FunctionParameter.MUTABLE_REF;
+				refType = FunctionParameter.MUTBL_REF;
 				bufferer.advance(); //Eat 'mut'
 			}
 			else if(type == TokenType.MOVE) {
-				refType = FunctionParameter.MOVE_REF;
+				refType = FunctionParameter.MOVES_REF;
 				bufferer.advance(); //Eat 'move'
+			} else {
+				refType = FunctionParameter.CONST_REF;
 			}
 			
 			if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFER) && bufferer.isCurrentTokenOfType(TokenType.COLON)) {

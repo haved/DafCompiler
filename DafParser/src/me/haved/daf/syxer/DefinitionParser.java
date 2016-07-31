@@ -79,7 +79,7 @@ public class DefinitionParser {
 		output.setPosition(startToken, bufferer.getCurrentToken());
 		return output;
 	}
-
+	
 	public static Def parseDefStatement(TokenBufferer bufferer, boolean pub) {
 		bufferer.advance(); //Eat the 'def'
 		if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
