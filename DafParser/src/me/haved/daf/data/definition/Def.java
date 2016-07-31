@@ -21,7 +21,7 @@ public class Def extends NodeBase implements Definition, Statement {
 	
 	@Override
 	public String toString() {
-		return String.format("%sdef %s:%s=%s;", pub?"pub ":"",name,type,expression);
+		return String.format("%sdef %s:%s=%s;", pub?"pub ":"",name,type.getSignature(),expression);
 	}
 
 	@Override

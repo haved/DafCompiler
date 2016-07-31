@@ -10,7 +10,7 @@ public class PointerType implements Type {
 	public static TokenType POINTER = TokenType.getAddressType();
 	
 	public static enum TypeOfPointer {
-		IMMUT(null, "& "), MUT(TokenType.MUT, "&mut "), SHARED(TokenType.SHARED, "%shared "), UNIQUE(TokenType.UNIQUE, "&unique");
+		IMMUT(null, "& "), MUT(TokenType.MUT, "&mut "), SHARED(TokenType.SHARED, "&shared "), UNIQUE(TokenType.UNIQUE, "&unique");
 		
 		private TokenType type;
 		private String signature;

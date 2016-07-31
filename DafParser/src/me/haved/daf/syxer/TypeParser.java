@@ -19,8 +19,14 @@ public class TypeParser {
 			return null;
 		}
 		
-		PointerType.TypeOfPointer[] pointer = PointerType.parsePointers(bufferer);
+		PointerType.TypeOfPointer[] pointers = PointerType.parsePointers(bufferer);
 		
+		if(pointers != null)
+			return new PointerType(parsePrimary(bufferer), pointers);
+		return parsePrimary(bufferer);
+	}
+	
+	public static Type parsePrimary(TokenBufferer bufferer) {
 		if(!bufferer.hasCurrentToken()) {
 			log(bufferer.getLastToken(), ERROR, "Expected a type! Not EOF");
 			return null;
@@ -35,9 +41,8 @@ public class TypeParser {
 		Primitive prim = Primitive.getPrimitiveForType(bufferer.getCurrentToken().getType());
 		if(prim != null) {
 			bufferer.advance();
-			return pointer == null ? prim : new PointerType(prim, pointer);
+			return prim;
 		}
-		
 		
 		log(bufferer.getCurrentToken(), ERROR, "Expected a type! Not this shit");
 		bufferer.advance(); //Eat shit
