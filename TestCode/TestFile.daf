@@ -1,9 +1,2 @@
-//Just do let/def for the time being
-
-let a:&int=4;
-pub let mut b:=a;
-pub let uncertain mut c:&mut int; //Must be uncertain and mut
-pub def g:&char; //Legal, like extern
-def g:=&c; //(){};
-let mut h:float=4;
-let uncertain mut l:boolean;
+let a:=5;
+let uncertain mut c:(&move d:int, par:&mut MyClass);

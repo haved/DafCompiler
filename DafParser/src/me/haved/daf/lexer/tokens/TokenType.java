@@ -2,9 +2,9 @@ package me.haved.daf.lexer.tokens;
 
 public enum TokenType {
 
-	IMPORT, EXTENR, NAMESPACE,
+	IMPORT, MODULE, FROM, AS,
 	
-	PUB, PROT, LET, MUT, DEF, UNCERTAIN, ASSIGN("="), COLON_ASSIGN(":="),
+	PUB, PROT, LET, MUT, MOVE, DEF, UNCERTAIN, ASSIGN("="), COLON_ASSIGN(":="),
 	COLON(":"), SEMICOLON(";"), INLINE, LEFT_PAREN("("),
 	COMMA(","), RIGHT_PAREN(")"), SCOPE_START("{"), SCOPE_END("}"),
 	
