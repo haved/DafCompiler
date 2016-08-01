@@ -20,6 +20,14 @@ public class FunctionExpression extends NodeBase implements Expression {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
+		builder.append("(");
+		if(params != null)
+			for(int i = 0; i < params.length; i++) {
+				if(i!=0)
+					builder.append(", ");
+				builder.append(params[i].getSignature());
+			}
+		builder.append(")");
 		return builder.toString();
 	}
 }
