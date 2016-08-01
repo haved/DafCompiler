@@ -35,6 +35,7 @@ public class FunctionExpression extends NodeBase implements Expression {
 		}
 		builder.append(" ");
 		builder.append(statement.getSignature());
+		//Semi-colon added by def / let statement
 		return builder.toString();
 	}
 }
