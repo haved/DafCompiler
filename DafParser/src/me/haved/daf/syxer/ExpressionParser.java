@@ -140,6 +140,15 @@ public class ExpressionParser {
 					} else if(firstParam instanceof PrefixOperatorExpression) {
 						PrefixOperatorExpression param = (PrefixOperatorExpression)firstParam;
 						PrefixOperator op = param.getOperator();
+						if(op == PrefixOperator.MUT_ADDRESS)
+							refType = FunctionParameter.MUTBL_REF;
+						else if(op == PrefixOperator.ADDRESS)
+							refType = FunctionParameter.CONST_REF;
+						else {
+							log(bufferer.getCurrentToken().getFile(), firstParam.getLine(), firstParam.getCol(), 
+									ERROR, "The operator '%s' before a parameter was not recognized!", op.getName());
+							return null;
+						}
 					}
 				}
 			}
