@@ -16,4 +16,12 @@ public class PrefixOperatorExpression extends NodeBase implements Expression {
 	public String getSignature() {
 		return String.format(op.isSpecial() ? "%s %s" : "%s%s", op.getName(), exp);
 	}
+	
+	public Expression getBaseExpression() {
+		return exp;
+	}
+	
+	public PrefixOperator getOperator() {
+		return op;
+	}
 }

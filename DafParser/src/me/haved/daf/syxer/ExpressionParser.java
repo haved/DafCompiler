@@ -128,7 +128,21 @@ public class ExpressionParser {
 		if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) {
 			logAssert(firstParam == null);
 		} else {
-			
+			params = new ArrayList<>();
+			while(true) {
+				
+				int refType = FunctionParameter.NOT_A_REF;
+				String paramName = null;
+				
+				if(params.size() == 0 && firstParam != null) {
+					if(firstParam instanceof VariableExpression) {
+						paramName = ((VariableExpression)firstParam).getName();
+					} else if(firstParam instanceof PrefixOperatorExpression) {
+						PrefixOperatorExpression param = (PrefixOperatorExpression)firstParam;
+						PrefixOperator op = param.getOperator();
+					}
+				}
+			}
 		}
 		
 		return null;
