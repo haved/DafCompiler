@@ -1,10 +1,11 @@
 package me.haved.daf.data.expression;
 
-import java.beans.Statement;
-
 import me.haved.daf.data.NodeBase;
 import me.haved.daf.data.statement.FunctionParameter;
+import me.haved.daf.data.statement.Statement;
 import me.haved.daf.data.type.Type;
+
+import static me.haved.daf.LogHelper.*;
 
 public class FunctionExpression extends NodeBase implements Expression {
 	private FunctionParameter[] params;
@@ -15,10 +16,11 @@ public class FunctionExpression extends NodeBase implements Expression {
 		this.params = params;
 		this.returnType = returnType;
 		this.statement = statement;
+		logAssert(statement != null);
 	}
 	
 	@Override
-	public String toString() {
+	public String getSignature() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("(");
 		if(params != null)
@@ -28,6 +30,11 @@ public class FunctionExpression extends NodeBase implements Expression {
 				builder.append(params[i].getSignature());
 			}
 		builder.append(")");
+		if(returnType != null) {
+			builder.append(":").append(returnType.getSignature());
+		}
+		builder.append(" ");
+		builder.append(statement.getSignature());
 		return builder.toString();
 	}
 }

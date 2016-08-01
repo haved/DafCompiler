@@ -2,7 +2,7 @@ package me.haved.daf.data;
 
 import me.haved.daf.lexer.tokens.Token;
 
-public class NodeBase {
+public abstract class NodeBase implements Node {
 	//The end line is the actual line it ends on
 	//The end col however is one past the actual last char
 	protected int line, col, endLine, endCol;
@@ -28,5 +28,10 @@ public class NodeBase {
 		col = startToken.getCol();
 		endLine = lastToken.getLine();
 		endCol = lastToken.getEndCol();
+	}
+	
+	@Override
+	public String toString() {
+		return getSignature();
 	}
 }

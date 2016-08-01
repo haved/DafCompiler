@@ -10,7 +10,7 @@ public class ImportDefinition extends NodeBase implements Definition {
 	}
 	
 	@Override
-	public String toString() {
+	public String getSignature() {
 		StringBuilder out = new StringBuilder();
 		out.append("import ");
 		for(int i = 0; i < path.length; i++) {

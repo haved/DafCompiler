@@ -40,7 +40,7 @@ public class NumberConstantExpression extends NodeBase implements Expression {
 	}
 	
 	@Override
-	public String toString() {
+	public String getSignature() {
 		return text;
 	}
 }

@@ -5,4 +5,5 @@ public interface Node {
 	public int getCol();
 	public int getEndLine();
 	public int getEndCol();
+	public String getSignature();
 }

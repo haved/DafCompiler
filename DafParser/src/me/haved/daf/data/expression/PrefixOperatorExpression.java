@@ -13,7 +13,7 @@ public class PrefixOperatorExpression extends NodeBase implements Expression {
 	}
 	
 	@Override
-	public String toString() {
+	public String getSignature() {
 		return String.format(op.isSpecial() ? "%s %s" : "%s%s", op.getName(), exp);
 	}
 }

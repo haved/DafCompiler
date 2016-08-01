@@ -33,7 +33,7 @@ public class FunctionCall extends NodeBase implements Statement, Expression {
 	}
 	
 	@Override
-	public String toString() {
+	public String getSignature() {
 		StringBuilder out = new StringBuilder(name).append("(");
 		if(parameters != null)
 			for(int i = 0; i < parameters.length; i++) {

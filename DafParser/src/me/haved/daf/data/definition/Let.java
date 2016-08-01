@@ -26,7 +26,7 @@ public class Let extends NodeBase implements Definition, Statement {
 	}
 	
 	@Override
-	public String toString() {
+	public String getSignature() {
 		if(expression!=null)
 			return String.format("%slet %s%s : %s = %s;", pub?"pub ":"", mut?"mut ":"", name, type==null?"null":type.getSignature(), expression.toString());
 		else

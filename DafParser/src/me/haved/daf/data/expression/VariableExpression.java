@@ -14,7 +14,8 @@ public class VariableExpression extends NodeBase implements Expression {
 		return name;
 	}
 	
-	public String toString() {
+	@Override
+	public String getSignature() {
 		return name;
 	}
 }
