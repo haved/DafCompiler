@@ -6,11 +6,14 @@ import me.haved.daf.data.expression.NumberConstantExpression;
 import me.haved.daf.data.expression.PrefixOperatorExpression;
 import me.haved.daf.data.expression.VariableExpression;
 import me.haved.daf.data.statement.FunctionCall;
+import me.haved.daf.data.statement.FunctionParameter;
 import me.haved.daf.lexer.tokens.TokenType;
 import me.haved.daf.syxer.Operators.InfixOperator;
 import me.haved.daf.syxer.Operators.PrefixOperator;
 
 import static me.haved.daf.LogHelper.*;
+
+import java.util.ArrayList;
 
 public class ExpressionParser {
 	public static Expression parseExpression(TokenBufferer bufferer) {
@@ -121,6 +124,13 @@ public class ExpressionParser {
 	}
 
 	private static Expression parseFunction(TokenBufferer bufferer, Expression firstParam) {
+		ArrayList<FunctionParameter> params = null;
+		if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) {
+			logAssert(firstParam == null);
+		} else {
+			
+		}
+		
 		return null;
 	}
 	
