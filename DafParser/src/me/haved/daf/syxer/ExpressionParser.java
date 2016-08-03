@@ -126,88 +126,90 @@ public class ExpressionParser {
 	}
 
 	private static Expression parseFunction(TokenBufferer bufferer, Expression firstParam) {
-		ArrayList<FunctionParameter> params = null;
-		if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) {
-			logAssert(firstParam == null);
-		} else {
-			params = new ArrayList<>();
-			while(true) {
-				int refType = FunctionParameter.NOT_A_REF;
-				String paramName = null;
-				
-				if(params.size() == 0 && firstParam != null) {
-					if(firstParam instanceof VariableExpression) {
-						paramName = ((VariableExpression)firstParam).getName();
-					} else if(firstParam instanceof PrefixOperatorExpression) {
-						PrefixOperatorExpression param = (PrefixOperatorExpression)firstParam;
-						PrefixOperator op = param.getOperator();
-						if(op == PrefixOperator.MUT_ADDRESS)
-							refType = FunctionParameter.MUTBL_REF;
-						else if(op == PrefixOperator.ADDRESS)
-							refType = FunctionParameter.CONST_REF;
-						else {
-							log(bufferer.getCurrentToken().getFile(), firstParam.getLine(), firstParam.getCol(), 
-									ERROR, "The operator '%s' before a parameter was not recognized!", op.getName());
-						}
-						if(param.getBaseExpression() instanceof VariableExpression) {
-							paramName = ((VariableExpression)param.getBaseExpression()).getName();
-						} else {
-							log(bufferer.getCurrentToken().getFile(), param.getBaseExpression().getLine(), param.getBaseExpression().getCol(), 
-									ERROR, "Expected a parameter name after refrence type!");
-						}
-					} else {
-						log(bufferer.getCurrentToken().getFile(), firstParam.getLine(), firstParam.getCol(),
-								ERROR, "Expected a parameter name and a refrence");
-					}
-				} else {
-					if(bufferer.isCurrentTokenOfType(TokenType.getAddressType())) {
-						bufferer.advance();
-						if(bufferer.isCurrentTokenOfType(TokenType.MUT)) {
-							refType = FunctionParameter.MUTBL_REF;
-							bufferer.advance();
-						}
-						else if(bufferer.isCurrentTokenOfType(TokenType.MOVE)) {
-							refType = FunctionParameter.MOVES_REF;
-							bufferer.advance();
-						}
-						else {
-							refType = FunctionParameter.CONST_REF;
-						}
-					}
-					//Expect name now!
-					if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
-						log(bufferer.getLastOrCurrent(), ERROR, "Expected parameter name in function value!");
-					}
-					paramName = bufferer.getCurrentToken().getText();
-					bufferer.advance();
-				}
-				
-				logAssert(paramName != null);
-				log(DEBUG, paramName);
-				
-				if(!bufferer.isCurrentTokenOfType(TokenType.COLON)) {
-					log(bufferer.getLastOrCurrent(), ERROR, "Expected ':' after parameter name in function value");
-				}
-				bufferer.advance(); //Eat the ':'
-				
-				Type paramType = TypeParser.parseType(bufferer);
-				terminateIfErrorsOccured();
-				log(DEBUG, paramType.getSignature());
-				params.add(new FunctionParameter(refType, paramName, paramType));
-				if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN))
-					break;
-				else if(!bufferer.hasCurrentToken()) {
-					log(bufferer.getLastOrCurrent(), ERROR, "Ran out of tokens while parsing function parameters (expression)");
-					return null;
-				} else if(!bufferer.isCurrentTokenOfType(TokenType.COMMA)) {
-					log(bufferer.getCurrentToken(), ERROR, "Expected a comma between function parameters, or ) to end the parameter list");
-				}
-				bufferer.advance(); //Eat ','
-			}
-		}
+		FunctionParameter[] params = parseFunctionParameters(bufferer, firstParam);
 		logAssert(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN));
 		bufferer.advance(); //Eat the )
-		return new FunctionExpression(params.toArray(new FunctionParameter[params.size()]), null, null);
+		return new FunctionExpression(params, null, null);
+	}
+	
+	private static FunctionParameter[] parseFunctionParameters(TokenBufferer bufferer, Expression firstParam) {
+		if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) {
+			logAssert(firstParam == null);
+			return null;
+		}
+		ArrayList<FunctionParameter> params = new ArrayList<>();
+		while(true) {
+			int refType = FunctionParameter.NOT_A_REF;
+			String paramName = null;
+			
+			if(params.size() == 0 && firstParam != null) {
+				if(firstParam instanceof VariableExpression) {
+					paramName = ((VariableExpression)firstParam).getName();
+				} else if(firstParam instanceof PrefixOperatorExpression) {
+					PrefixOperatorExpression param = (PrefixOperatorExpression)firstParam;
+					PrefixOperator op = param.getOperator();
+					if(op == PrefixOperator.MUT_ADDRESS)
+						refType = FunctionParameter.MUTBL_REF;
+					else if(op == PrefixOperator.ADDRESS)
+						refType = FunctionParameter.CONST_REF;
+					else {
+						log(bufferer.getCurrentToken().getFile(), firstParam.getLine(), firstParam.getCol(), 
+								ERROR, "The operator '%s' before a parameter was not recognized!", op.getName());
+					}
+					if(param.getBaseExpression() instanceof VariableExpression) {
+						paramName = ((VariableExpression)param.getBaseExpression()).getName();
+					} else {
+						log(bufferer.getCurrentToken().getFile(), param.getBaseExpression().getLine(), param.getBaseExpression().getCol(), 
+								ERROR, "Expected a parameter name after refrence type!");
+					}
+				} else {
+					log(bufferer.getCurrentToken().getFile(), firstParam.getLine(), firstParam.getCol(),
+							ERROR, "Expected a parameter name and a refrence");
+				}
+			} else {
+				if(bufferer.isCurrentTokenOfType(TokenType.getAddressType())) {
+					bufferer.advance();
+					if(bufferer.isCurrentTokenOfType(TokenType.MUT)) {
+						refType = FunctionParameter.MUTBL_REF;
+						bufferer.advance();
+					}
+					else if(bufferer.isCurrentTokenOfType(TokenType.MOVE)) {
+						refType = FunctionParameter.MOVES_REF;
+						bufferer.advance();
+					}
+					else {
+						refType = FunctionParameter.CONST_REF;
+					}
+				}
+				//Expect name now!
+				if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
+					log(bufferer.getLastOrCurrent(), ERROR, "Expected parameter name in function value!");
+				}
+				paramName = bufferer.getCurrentToken().getText();
+				bufferer.advance();
+			}
+			
+			logAssert(paramName != null);
+			
+			if(!bufferer.isCurrentTokenOfType(TokenType.COLON)) {
+				log(bufferer.getLastOrCurrent(), ERROR, "Expected ':' after parameter name in function value");
+			}
+			bufferer.advance(); //Eat the ':'
+			
+			Type paramType = TypeParser.parseType(bufferer);
+			terminateIfErrorsOccured();
+			params.add(new FunctionParameter(refType, paramName, paramType));
+			if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN))
+				break;
+			else if(!bufferer.hasCurrentToken()) {
+				log(bufferer.getLastOrCurrent(), ERROR, "Ran out of tokens while parsing function parameters (expression)");
+				return null;
+			} else if(!bufferer.isCurrentTokenOfType(TokenType.COMMA)) {
+				log(bufferer.getCurrentToken(), ERROR, "Expected a comma between function parameters, or ) to end the parameter list");
+			}
+			bufferer.advance(); //Eat ','
+		}
+		return params.toArray(new FunctionParameter[params.size()]);
 	}
 	
 	public static Expression parseIdentifierExpression(TokenBufferer bufferer) {
