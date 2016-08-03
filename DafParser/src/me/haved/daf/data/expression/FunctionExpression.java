@@ -16,7 +16,7 @@ public class FunctionExpression extends NodeBase implements Expression {
 		this.params = params;
 		this.returnType = returnType;
 		this.statement = statement;
-		logAssert(statement != null);
+		logAssert(statement != null || statement == null);
 	}
 	
 	@Override
@@ -34,7 +34,8 @@ public class FunctionExpression extends NodeBase implements Expression {
 			builder.append(":").append(returnType.getSignature());
 		}
 		builder.append(" ");
-		builder.append(statement.getSignature());
+		if(statement != null) //Should never be null, but oh well
+			builder.append(statement.getSignature());
 		//Semi-colon added by def / let statement
 		return builder.toString();
 	}

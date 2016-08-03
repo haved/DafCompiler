@@ -1,3 +1,4 @@
 let a:=5;
 let uncertain mut c:(&move d:int, par:&mut MyClass);
-def memcpy:(dst:&mut void, src:&void, len:int):&mut void=0;
+def memcpy:(dst:&mut void, src:&void, len:int):&mut void;
+def main:=(argc:int, argv:&char);
