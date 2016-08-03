@@ -149,6 +149,17 @@ public class ExpressionParser {
 									ERROR, "The operator '%s' before a parameter was not recognized!", op.getName());
 							return null;
 						}
+						if(param.getBaseExpression() instanceof VariableExpression) {
+							paramName = ((VariableExpression)param.getBaseExpression()).getName();
+						} else {
+							log(bufferer.getCurrentToken().getFile(), param.getBaseExpression().getLine(), param.getBaseExpression().getCol(), 
+									ERROR, "Expected a parameter name after refrence type!");
+							return null;
+						}
+					} else {
+						log(bufferer.getCurrentToken().getFile(), firstParam.getLine(), firstParam.getCol(),
+								ERROR, "Expected a parameter name and a refrence");
+						return null;
 					}
 				}
 			}
