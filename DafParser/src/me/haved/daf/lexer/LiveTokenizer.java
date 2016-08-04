@@ -103,4 +103,12 @@ public class LiveTokenizer implements TokenBufferer {
 	public boolean isCurrentTokenOfType(TokenType type) {
 		return current == null ? false : current.getType() == type;
 	}
+
+	@Override
+	public boolean skipUntilTokenType(TokenType type) {
+		while(hasCurrentToken())
+			if(isCurrentTokenOfType(type))
+				return true;
+		return false;
+	}
 }

@@ -12,4 +12,5 @@ public interface TokenBufferer {
 	public boolean hasLookaheadToken();
 	public boolean advance();
 	public boolean isCurrentTokenOfType(TokenType type);
+	public boolean skipUntilTokenType(TokenType type);
 }

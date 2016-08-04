@@ -100,28 +100,27 @@ public class ExpressionParser {
 	
 	private static Expression parseParentheses(TokenBufferer bufferer) {
 		bufferer.advance(); //Eat the (
-		if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN))
+		if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) //If we have a '()', parse as a function from ')'
 			return parseFunction(bufferer, null);
-		else if(bufferer.isCurrentTokenOfType(TokenType.getAddressType()))
-			if(bufferer.hasLookaheadToken() && bufferer.getLookaheadToken().getType() == TokenType.MOVE)
+		
+		else if(bufferer.isCurrentTokenOfType(TokenType.getAddressType()) 
+				&& bufferer.hasLookaheadToken() && bufferer.getLookaheadToken().getType() == TokenType.MOVE) //If we have '(&move', parse func from &
 				return parseFunction(bufferer, null);
-		Expression expression = parseExpression(bufferer);
-		if(expression == null) {
-			while(bufferer.hasCurrentToken()) {
-				if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN))
-					break;
+		
+		
+		Expression expression = parseExpression(bufferer); // We parse the expression past '('
+		if(expression != null) { //If no expression was parsed, skip the next ')' and return null
+			if(bufferer.isCurrentTokenOfType(TokenType.COLON)) //If we found a colon after the expression, the expression is actually a parameter name
+				return parseFunction(bufferer, expression);
+			
+			if(!bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) { //If it is a normal parenthesized expression, expect ')'
+				log(bufferer.getLastOrCurrent(), ERROR, "Expected a closing ')'"); 
+				bufferer.skipUntilTokenType(TokenType.RIGHT_PAREN);
 			}
-			bufferer.advance();
-			return null;
+		} else {
+			bufferer.skipUntilTokenType(TokenType.RIGHT_PAREN); //No expression means we return null, but skip past ')'
 		}
-		if(bufferer.isCurrentTokenOfType(TokenType.COLON)) {
-			return parseFunction(bufferer, expression);
-		}
-		if(!bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) {
-			log(bufferer.getCurrentToken(), ERROR, "Expected a closing ')'"); 
-			//We know the current token is the last token, even if we're out of tokens
-		}
-		bufferer.advance(); //Eat the )
+		bufferer.advance(); //Eat the ')'
 		return expression;
 	}
 
