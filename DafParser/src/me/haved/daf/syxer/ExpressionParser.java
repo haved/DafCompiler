@@ -126,9 +126,16 @@ public class ExpressionParser {
 
 	private static Expression parseFunction(TokenBufferer bufferer, Expression firstParam) {
 		FunctionParameter[] params = parseFunctionParameters(bufferer, firstParam);
+		if(params == null)
+			bufferer.skipUntilTokenType(TokenType.RIGHT_PAREN); //Not very good error handling
 		logAssert(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN));
 		bufferer.advance(); //Eat the )
-		return new FunctionExpression(params, null, null);
+		Type returnType = null;
+		if(bufferer.isCurrentTokenOfType(TokenType.COLON)) {
+			bufferer.advance(); //Eat the ':'
+			returnType = TypeParser.parseType(bufferer);
+		}
+		return new FunctionExpression(params, returnType, null);
 	}
 	
 	private static FunctionParameter[] parseFunctionParameters(TokenBufferer bufferer, Expression firstParam) {
