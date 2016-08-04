@@ -32,6 +32,6 @@ public abstract class NodeBase implements Node {
 	
 	@Override
 	public String toString() {
-		return getSignature();
+		return String.format("<(%d,%d)-(%d,%d)%s>", getLine(), getCol(), getEndLine(), getEndCol(), getSignature());
 	}
 }
