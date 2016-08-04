@@ -9,6 +9,7 @@ import me.haved.daf.data.expression.VariableExpression;
 import me.haved.daf.data.statement.FunctionCall;
 import me.haved.daf.data.statement.FunctionParameter;
 import me.haved.daf.data.type.Type;
+import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;
 import me.haved.daf.syxer.Operators.InfixOperator;
 import me.haved.daf.syxer.Operators.PrefixOperator;
@@ -219,17 +220,48 @@ public class ExpressionParser {
 	}
 	
 	public static Expression parseIdentifierExpression(TokenBufferer bufferer) {
+		Token firstToken = bufferer.getCurrentToken();
 		String idName = bufferer.getCurrentToken().getText();
 		bufferer.advance(); //'Eat the identifier' as the llvm tutorial says
 		
 		if(bufferer.isCurrentTokenOfType(TokenType.LEFT_PAREN)) //A function
-			return FunctionCall.parseParameters(idName, bufferer);
+			return parseFunctionCall(idName, bufferer).setStart(firstToken);
 		
-		return new VariableExpression(idName); //Simple variable
+		return new VariableExpression(idName).setPosition(firstToken); //Simple variable. Just one token
+	}
+	
+	public static FunctionCall parseFunctionCall(String name, TokenBufferer bufferer) {
+		if(!bufferer.advance()) //Eat '('
+				{ log(bufferer.getLastToken(), ERROR, "Expected ')' before EOF"); return null; }
+		if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) {
+			bufferer.advance(); //Eat ')'
+			return new FunctionCall(name, null);
+		}
+		
+		ArrayList<Expression> params = new ArrayList<>();
+		do {
+			Expression param = ExpressionParser.parseExpression(bufferer);
+			//if(param==null)
+			//	return null;
+			params.add(param);
+			if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN))
+				break;
+			if(!bufferer.isCurrentTokenOfType(TokenType.COMMA))
+				log(bufferer.getCurrentToken(), ERROR, "Expected comma or ')' after function parameter");
+			if(!bufferer.advance()) { //Just to keep this show from running forever.
+				log(bufferer.getLastToken(), ERROR, "Expected ')' to end function call. Not EOF!");
+			}
+		} while(true); //I dunno
+		
+		FunctionCall output = new FunctionCall(name, params.toArray(new Expression[params.size()]));
+		output.setEnd(bufferer.getCurrentToken()); //Beginning gets set outside, since the name is passed
+		bufferer.advance(); //Eat ')'
+		return output;
 	}
 	
 	public static Expression parseNumberConstant(TokenBufferer bufferer) {
 		NumberConstantExpression exp = new NumberConstantExpression(bufferer.getCurrentToken());
+		exp.setPosition(bufferer.getCurrentToken(), bufferer.getCurrentToken());
 		bufferer.advance();
 		return exp;
 	}

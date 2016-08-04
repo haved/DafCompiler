@@ -1,6 +1,7 @@
 package me.haved.daf.data.expression;
 
 import me.haved.daf.data.NodeBase;
+import me.haved.daf.lexer.tokens.Token;
 
 public class VariableExpression extends NodeBase implements Expression {
 	
@@ -17,5 +18,10 @@ public class VariableExpression extends NodeBase implements Expression {
 	@Override
 	public String getSignature() {
 		return name;
+	}
+	
+	public VariableExpression setPosition(Token token) {
+		super.setPosition(token, token);
+		return this;
 	}
 }
