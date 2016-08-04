@@ -4,6 +4,7 @@ import me.haved.daf.data.NodeBase;
 import me.haved.daf.data.statement.FunctionParameter;
 import me.haved.daf.data.statement.Statement;
 import me.haved.daf.data.type.Type;
+import me.haved.daf.lexer.tokens.Token;
 
 import static me.haved.daf.LogHelper.*;
 
@@ -38,5 +39,16 @@ public class FunctionExpression extends NodeBase implements Expression {
 			builder.append(statement.getSignature());
 		//Semi-colon added by def / let statement
 		return builder.toString();
+	}
+	
+	public FunctionExpression setStart(Token token) {
+		this.line = token.getLine();
+		this.col = token.getCol();
+		return this;
+	}
+	
+	public void setEndRightBefore(Token token) { //In no way pretty, but oh well
+		this.endLine = token.getLine();
+		this.endCol = token.getCol();
 	}
 }

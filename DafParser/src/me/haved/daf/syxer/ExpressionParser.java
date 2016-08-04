@@ -35,10 +35,10 @@ public class ExpressionParser {
 	 * @return The Expression all the way from the LHS to the end of the operators (that have a higher level than the originOpLevel)
 	 */
 	public static Expression parseBinaryOpRHS(TokenBufferer bufferer, Expression LHS, int beforeLHS) {
-		InfixOperator afterRHS = Operators.findInfixOperator(bufferer.getCurrentToken().getType()); //Just get the initial operator
+		InfixOperator afterRHS = Operators.findInfixOperator(bufferer.getCurrentToken().getType()); //Just get the operator
 		if(afterRHS == null) //If there was no operator, return the expression
 			return LHS;
-		//At this point, "after RHS is a lie, but it's be once we're in the while loop"
+		//At this point, "after RHS is a lie, but it's true once we're in the while loop"
 		
 		while(true) {
 			InfixOperator afterLHS = afterRHS; //RHS was merged into LHS, so the new afterLHS is the old afterRHS
@@ -48,7 +48,7 @@ public class ExpressionParser {
 			
 			afterRHS = Operators.findInfixOperator(bufferer.getCurrentToken().getType());
 			if(afterRHS == null)
-				return new InfixOperatorExpression(LHS, afterLHS, RHS); //We are done!
+				return new InfixOperatorExpression(LHS, afterLHS, RHS); //We are done! Just merge LHS and RHS
 			
 			if(afterRHS.getLevel() <= beforeLHS) //Say a - b * c == d where afterLHS is * and afterRHS is ==. We can't eat the == because of the -
 				return new InfixOperatorExpression(LHS, afterLHS, RHS);
@@ -60,13 +60,14 @@ public class ExpressionParser {
 					return new InfixOperatorExpression(LHS, afterLHS, RHS);
 			}
 			
-			LHS = new InfixOperatorExpression(LHS, afterLHS, RHS);
+			LHS = new InfixOperatorExpression(LHS, afterLHS, RHS); //Merge LHS and RHS
 		}
 	}
 	
 	public static Expression parsePrimary(TokenBufferer bufferer) {
 		if(!bufferer.hasCurrentToken()) //Precisely why we should have ended on EOF_tokens
 			return null;
+		Token firstToken = bufferer.getCurrentToken();
 		PrefixOperator op = Operators.parsePrefixOperator(bufferer);
 		if(op != null) {
 			if(!bufferer.hasCurrentToken()) {
@@ -76,7 +77,7 @@ public class ExpressionParser {
 			Expression exp = parsePrimary(bufferer);
 			if(exp == null)
 				return null; //Errors already printed
-			return new PrefixOperatorExpression(op, exp);
+			return new PrefixOperatorExpression(op, exp).setStart(firstToken);
 		}
 		return parseSecondary(bufferer);
 	}
@@ -100,32 +101,35 @@ public class ExpressionParser {
 	}
 	
 	private static Expression parseParentheses(TokenBufferer bufferer) {
+		Token firstToken = bufferer.getCurrentToken();
 		bufferer.advance(); //Eat the (
 		if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) //If we have a '()', parse as a function from ')'
-			return parseFunction(bufferer, null);
+			return parseFunction(bufferer, null).setStart(firstToken);
 		
 		else if(bufferer.isCurrentTokenOfType(TokenType.getAddressType()) 
 				&& bufferer.hasLookaheadToken() && bufferer.getLookaheadToken().getType() == TokenType.MOVE) //If we have '(&move', parse func from &
-				return parseFunction(bufferer, null);
-		
+				return parseFunction(bufferer, null).setStart(firstToken);
 		
 		Expression expression = parseExpression(bufferer); // We parse the expression past '('
 		if(expression != null) { //If no expression was parsed, skip the next ')' and return null
 			if(bufferer.isCurrentTokenOfType(TokenType.COLON)) //If we found a colon after the expression, the expression is actually a parameter name
-				return parseFunction(bufferer, expression);
+				return parseFunction(bufferer, expression).setStart(firstToken);
+			
+			if(bufferer.hasCurrentToken())
+				expression.setPosition(firstToken, bufferer.getCurrentToken());
 			
 			if(!bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) { //If it is a normal parenthesized expression, expect ')'
 				log(bufferer.getLastOrCurrent(), ERROR, "Expected a closing ')'"); 
-				bufferer.skipUntilTokenType(TokenType.RIGHT_PAREN);
+				bufferer.skipUntilTokenType(TokenType.RIGHT_PAREN); 
 			}
 		} else {
-			bufferer.skipUntilTokenType(TokenType.RIGHT_PAREN); //No expression means we return null, but skip past ')'
+			bufferer.skipUntilTokenType(TokenType.RIGHT_PAREN); //No expression means we return null, but skip to, then past ')'
 		}
 		bufferer.advance(); //Eat the ')'
 		return expression;
 	}
 
-	private static Expression parseFunction(TokenBufferer bufferer, Expression firstParam) {
+	private static FunctionExpression parseFunction(TokenBufferer bufferer, Expression firstParam) {
 		FunctionParameter[] params = parseFunctionParameters(bufferer, firstParam);
 		if(params == null)
 			bufferer.skipUntilTokenType(TokenType.RIGHT_PAREN); //Not very good error handling
@@ -136,7 +140,9 @@ public class ExpressionParser {
 			bufferer.advance(); //Eat the ':'
 			returnType = TypeParser.parseType(bufferer);
 		}
-		return new FunctionExpression(params, returnType, null);
+		FunctionExpression output = new FunctionExpression(params, returnType, null);
+		output.setEndRightBefore(bufferer.getCurrentToken()); //Really pretty, yeah?
+		return output;
 	}
 	
 	private static FunctionParameter[] parseFunctionParameters(TokenBufferer bufferer, Expression firstParam) {

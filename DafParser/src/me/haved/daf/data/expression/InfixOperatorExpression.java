@@ -12,6 +12,14 @@ public class InfixOperatorExpression extends NodeBase implements Expression {
 		this.LHS = LHS;
 		this.RHS = RHS;
 		this.op = op;
+		if(LHS!=null) {
+			this.line = LHS.getLine();
+			this.col = LHS.getCol();
+		}
+		if(RHS!=null) {
+			this.endLine = RHS.getEndLine();
+			this.endCol = RHS.getEndCol();
+		}
 	}
 	
 	@Override

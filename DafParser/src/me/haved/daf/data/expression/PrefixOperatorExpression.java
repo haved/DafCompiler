@@ -1,6 +1,7 @@
 package me.haved.daf.data.expression;
 
 import me.haved.daf.data.NodeBase;
+import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.syxer.Operators.PrefixOperator;
 
 public class PrefixOperatorExpression extends NodeBase implements Expression {
@@ -10,6 +11,10 @@ public class PrefixOperatorExpression extends NodeBase implements Expression {
 	public PrefixOperatorExpression(PrefixOperator op, Expression exp) {
 		this.op = op;
 		this.exp = exp;
+		if(exp!=null) {
+			this.endLine = exp.getEndLine();
+			this.endCol = exp.getEndCol();
+		}
 	}
 	
 	@Override
@@ -23,5 +28,11 @@ public class PrefixOperatorExpression extends NodeBase implements Expression {
 	
 	public PrefixOperator getOperator() {
 		return op;
+	}
+
+	public PrefixOperatorExpression setStart(Token token) {
+		this.line = token.getLine();
+		this.col = token.getCol();
+		return this;
 	}
 }
