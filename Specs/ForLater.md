@@ -20,6 +20,8 @@ Let's just say there is a story behind every point on this list.
 - Split += into + and = to make it easier
 - Have some sort of assert that is used on user input
  - Make it recoverable (i.e. skipping until semicolon)
+- Have some smarter way of giving errors upon EOF
+- Don't just print the token when logging
 
 A type ends with '=' ';' '{' ',' (unless in type's own function signature)  
 
