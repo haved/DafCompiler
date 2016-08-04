@@ -23,8 +23,6 @@ Let's just say there is a story behind every point on this list.
 - Have some smarter way of giving errors upon EOF
 - Don't just print the token when logging
 
-A type ends with '=' ';' '{' ',' (unless in type's own function signature)  
-
 ####Main problems:
 - **Find a way of storing libraries** (Some kind of header that is still a .daf file?)
 - **Find a way of making generics work**
@@ -61,3 +59,4 @@ A type ends with '=' ';' '{' ',' (unless in type's own function signature)
 - Parameters in signatures don't need a name. i.e. (&int):int is a legal signature. (But it's still legal)
  - But if the parameter is a refrence: (&move:&int):int is the syntax
 - Add a way of choosing constructor (other than parameter type)
+- Add a way of calling methods on an rvalue while still evaluating to the rvalue
