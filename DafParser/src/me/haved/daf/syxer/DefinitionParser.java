@@ -81,6 +81,7 @@ public class DefinitionParser {
 	}
 	
 	public static Def parseDefStatement(TokenBufferer bufferer, boolean pub) {
+		Token firstToken = bufferer.getCurrentToken();
 		bufferer.advance(); //Eat the 'def'
 		if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
 			log(bufferer.getLastOrCurrent(), ERROR, "Expected an identifier after %s!", TokenType.DEF);
@@ -91,7 +92,9 @@ public class DefinitionParser {
 		if(nte == null)
 			return null;
 		
-		return new Def(nte.name, nte.type, nte.expression, pub);
+		Def output = new Def(nte.name, nte.type, nte.expression, pub);
+		output.setPosition(firstToken, bufferer.getCurrentToken());
+		return output;
 	}
 	
 	private static class NameTypeExpr {
