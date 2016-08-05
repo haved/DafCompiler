@@ -95,7 +95,7 @@ public class ExpressionParser {
 			return expression;
 		
 		if(bufferer.isCurrentTokenOfType(TokenType.LEFT_PAREN))
-			return parseFunctionCall(expression, bufferer);
+			return parseWithPostfix(parseFunctionCall(expression, bufferer), bufferer);
 		//TODO: Array access, ++, -- and other postfix operators
 		
 		return expression;
