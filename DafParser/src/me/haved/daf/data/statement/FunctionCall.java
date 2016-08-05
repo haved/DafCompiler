@@ -4,17 +4,20 @@ import me.haved.daf.data.NodeBase;
 import me.haved.daf.data.expression.Expression;
 import me.haved.daf.lexer.tokens.Token;
 
+import static me.haved.daf.LogHelper.*;
+
 public class FunctionCall extends NodeBase implements Statement, Expression {
-	private String name;
+	private Expression expression;
 	private Expression[] parameters;
 	
-	public FunctionCall(String name, Expression[] parameters) {
-		this.name = name;
+	public FunctionCall(Expression expression, Expression[] parameters) {
+		logAssert(expression != null);
+		this.expression = expression;
 		this.parameters = parameters;
 	}
 	
-	public String getName() {
-		return name;
+	public Expression getExpression() {
+		return expression;
 	}
 	
 	public boolean hasParameters() {
@@ -27,7 +30,7 @@ public class FunctionCall extends NodeBase implements Statement, Expression {
 	
 	@Override
 	public String getSignature() {
-		StringBuilder out = new StringBuilder(name).append("(");
+		StringBuilder out = new StringBuilder(expression.getSignature()).append("(");
 		if(parameters != null)
 			for(int i = 0; i < parameters.length; i++) {
 				if(i != 0)

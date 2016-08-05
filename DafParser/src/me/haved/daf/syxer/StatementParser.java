@@ -23,6 +23,10 @@ public class StatementParser {
 		TokenType type = firstToken.getType();
 		if(type == TokenType.SCOPE_START)
 			return parseScope(bufferer);
+		if(type == TokenType.SEMICOLON) {
+			bufferer.advance(); //Eat the semicolon
+			return null; //No statement here (allows for ;;;;;;)
+		}
 		
 		//control statements go here, and are not followed by semi-colon
 		

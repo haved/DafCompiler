@@ -67,6 +67,11 @@ public class ExpressionParser {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param bufferer
+	 * @return an expression with only pre- and post-fix operators
+	 */
 	public static Expression parsePrimary(TokenBufferer bufferer) {
 		if(!bufferer.hasCurrentToken()) //Precisely why we should have ended on EOF_tokens
 			return null;
@@ -82,10 +87,17 @@ public class ExpressionParser {
 				return null; //Errors already printed
 			return new PrefixOperatorExpression(op, exp).setStart(firstToken);
 		}
-		return parseSecondary(bufferer);
+		return parseWithPostfix(parseLoneExpression(bufferer), bufferer);
 	}
 	
-	public static Expression parseSecondary(TokenBufferer bufferer) {
+	public static Expression parseWithPostfix(Expression expression, TokenBufferer bufferer) {
+		if(!bufferer.hasCurrentToken())
+			return expression;
+		
+		return null;
+	}
+	
+	public static Expression parseLoneExpression(TokenBufferer bufferer) {
 		if(!bufferer.hasCurrentToken())
 			return null;
 		switch(bufferer.getCurrentToken().getType()) {
@@ -236,19 +248,15 @@ public class ExpressionParser {
 		Token firstToken = bufferer.getCurrentToken();
 		String idName = bufferer.getCurrentToken().getText();
 		bufferer.advance(); //'Eat the identifier' as the llvm tutorial says
-		
-		if(bufferer.isCurrentTokenOfType(TokenType.LEFT_PAREN)) //A function
-			return parseFunctionCall(idName, bufferer).setStart(firstToken);
-		
 		return new VariableExpression(idName).setPosition(firstToken); //Simple variable. Just one token
 	}
 	
-	public static FunctionCall parseFunctionCall(String name, TokenBufferer bufferer) {
+	public static FunctionCall parseFunctionCall(Expression expression, TokenBufferer bufferer) {
 		if(!bufferer.advance()) //Eat '('
 				{ log(bufferer.getLastToken(), ERROR, "Expected ')' before EOF"); return null; }
 		if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) {
 			bufferer.advance(); //Eat ')'
-			return new FunctionCall(name, null);
+			return new FunctionCall(expression, null);
 		}
 		
 		ArrayList<Expression> params = new ArrayList<>();
@@ -266,7 +274,7 @@ public class ExpressionParser {
 			}
 		} while(true); //I dunno
 		
-		FunctionCall output = new FunctionCall(name, params.toArray(new Expression[params.size()]));
+		FunctionCall output = new FunctionCall(expression, params.toArray(new Expression[params.size()]));
 		output.setEnd(bufferer.getCurrentToken()); //Beginning gets set outside, since the name is passed
 		bufferer.advance(); //Eat ')'
 		return output;
