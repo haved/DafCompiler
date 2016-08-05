@@ -94,7 +94,11 @@ public class ExpressionParser {
 		if(!bufferer.hasCurrentToken())
 			return expression;
 		
-		return null;
+		if(bufferer.isCurrentTokenOfType(TokenType.LEFT_PAREN))
+			return parseFunctionCall(expression, bufferer);
+		//TODO: Array access, ++, -- and other postfix operators
+		
+		return expression;
 	}
 	
 	public static Expression parseLoneExpression(TokenBufferer bufferer) {
