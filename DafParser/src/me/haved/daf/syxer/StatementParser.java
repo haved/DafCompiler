@@ -1,6 +1,8 @@
 package me.haved.daf.syxer;
 
+import me.haved.daf.data.definition.Def;
 import me.haved.daf.data.definition.Let;
+import me.haved.daf.data.expression.Expression;
 import me.haved.daf.data.statement.ScopeStatement;
 import me.haved.daf.data.statement.Statement;
 import me.haved.daf.lexer.tokens.Token;
@@ -32,20 +34,33 @@ public class StatementParser {
 		
 		switch(type) {
 		case LET: output = parseLetStatement(bufferer); break;
-		//case DEF: return parseDefStatement(bufferer);
+		case DEF: output = parseDefStatement(bufferer); break;
 		default: wrong = true; break;
 		}
 		
 		if(wrong) {
-			log(bufferer.getLastOrCurrent(), ERROR, "Expected a real statement. Skipping till semicolon or scope end");
-			while(bufferer.hasCurrentToken()) {
-				if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
+			//Maybe an expression? Still expecting a ; afterwards
+			Token expressionStart = bufferer.getCurrentToken();
+			Expression expression = ExpressionParser.parseExpression(bufferer);
+			if(expression != null && expression instanceof Statement) {
+				output = (Statement) expression;
+				wrong = false;
+			}
+			else {
+				if(expression != null)
+					log(expressionStart, ERROR, "Expected a statement, got the expression: '%s'. "
+							+ "Skipping till semicolon or scope change", expression.getSignature());
+				else
+					log(expressionStart, ERROR, "Expected a statement. Skipping till semicolon or scope change");
+				while(bufferer.hasCurrentToken()) {
+					if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
+						bufferer.advance();
+						return null;
+					} else if(bufferer.isCurrentTokenOfType(TokenType.SCOPE_END) || bufferer.isCurrentTokenOfType(TokenType.SCOPE_START)) {
+						return null;
+					}
 					bufferer.advance();
-					return null;
-				} else if(bufferer.isCurrentTokenOfType(TokenType.SCOPE_END) || bufferer.isCurrentTokenOfType(TokenType.SCOPE_START)) {
-					return null;
 				}
-				bufferer.advance();
 			}
 		}
 		
@@ -74,7 +89,8 @@ public class StatementParser {
 			if(statement != null)
 				statements.add(statement); //The statement ends after itself
 		}
-		ScopeStatement output = new ScopeStatement(statements.toArray(new ScopeStatement[statements.size()]));
+		
+		ScopeStatement output = new ScopeStatement(statements.isEmpty() ? null : statements.toArray(new Statement[statements.size()]));
 		output.setPosition(firstToken, bufferer.getCurrentToken());
 		bufferer.advance(); //Eat the '}'
 		return output;
@@ -88,5 +104,10 @@ public class StatementParser {
 	 */
 	private static Let parseLetStatement(TokenBufferer bufferer) {
 		return DefinitionParser.parseLetStatement(bufferer, false);
+	}
+	
+	// Same as parseLetStatement, just for def
+	private static Def parseDefStatement(TokenBufferer bufferer) {
+		return DefinitionParser.parseDefStatement(bufferer, false);
 	}
 }

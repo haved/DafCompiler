@@ -4,7 +4,10 @@ def memcpy:(dst:&mut void, src:&void, len:int):&mut void;
 def main:=(argc:int, argv:&char):int {
     {
         {
-            turd
+            let mut x:=5;
+            def g:=x;
+            let a:=(x:int,y:int):int{}(4, 5);
+            print(a);
         }
     }
 };
