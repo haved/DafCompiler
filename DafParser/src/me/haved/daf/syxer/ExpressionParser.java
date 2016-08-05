@@ -36,6 +36,8 @@ public class ExpressionParser {
 	 * @return The Expression all the way from the LHS to the end of the operators (that have a higher level than the originOpLevel)
 	 */
 	public static Expression parseBinaryOpRHS(TokenBufferer bufferer, Expression LHS, int beforeLHS) {
+		if(!bufferer.hasCurrentToken())
+			return LHS;
 		InfixOperator afterRHS = Operators.findInfixOperator(bufferer.getCurrentToken().getType()); //Just get the operator
 		if(afterRHS == null) //If there was no operator, return the expression
 			return LHS;

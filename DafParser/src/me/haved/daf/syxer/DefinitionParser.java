@@ -93,7 +93,8 @@ public class DefinitionParser {
 			return null;
 		
 		Def output = new Def(nte.name, nte.type, nte.expression, pub);
-		output.setPosition(firstToken, bufferer.getCurrentToken());
+		if(bufferer.hasCurrentToken())
+			output.setPosition(firstToken, bufferer.getCurrentToken());
 		return output;
 	}
 	
