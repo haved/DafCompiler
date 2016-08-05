@@ -7,6 +7,8 @@ import me.haved.daf.lexer.tokens.TokenType;
 
 import static me.haved.daf.LogHelper.*;
 
+import java.util.ArrayList;
+
 public class StatementParser {
 	public static Statement parseStatement(TokenBufferer bufferer) {
 		if(!bufferer.hasCurrentToken()) {
@@ -29,6 +31,28 @@ public class StatementParser {
 	
 	private static ScopeStatement parseScope(TokenBufferer bufferer) {
 		logAssert(bufferer.isCurrentTokenOfType(TokenType.SCOPE_START));
-		return null;
+		Token firstToken = bufferer.getCurrentToken(); // The '{'
+		bufferer.advance(); //Eat '{'
+		ArrayList<Statement> statements = new ArrayList<>();
+		while(true) {
+			if(!bufferer.hasCurrentToken()) {
+				log(bufferer.getLastToken(), ERROR, "Scope starting at %d:%d never closed!", firstToken.getLine(), firstToken.getCol());
+				return null;
+			}
+			else if(bufferer.isCurrentTokenOfType(TokenType.SCOPE_END))
+				break;
+			
+			Statement statement = parseStatement(bufferer);
+			if(statement == null) { //Error already printed
+				bufferer.skipUntilTokenType(TokenType.SEMICOLON);
+				bufferer.advance();
+			}
+			else
+				statements.add(statement); //The statement ends after itself
+		}
+		ScopeStatement output = new ScopeStatement(statements.toArray(new ScopeStatement[statements.size()]));
+		output.setPosition(firstToken, bufferer.getCurrentToken());
+		bufferer.advance(); //Eat the '}'
+		return output;
 	}
 }
