@@ -8,6 +8,7 @@ import me.haved.daf.data.expression.PrefixOperatorExpression;
 import me.haved.daf.data.expression.VariableExpression;
 import me.haved.daf.data.statement.FunctionCall;
 import me.haved.daf.data.statement.FunctionParameter;
+import me.haved.daf.data.statement.Statement;
 import me.haved.daf.data.type.Type;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;
@@ -134,14 +135,18 @@ public class ExpressionParser {
 		if(params == null)
 			bufferer.skipUntilTokenType(TokenType.RIGHT_PAREN); //Not very good error handling
 		logAssert(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN));
-		bufferer.advance(); //Eat the )
+		bufferer.advance(); //Eat the ')'
+		
+		//Parse return type
 		Type returnType = null;
 		if(bufferer.isCurrentTokenOfType(TokenType.COLON)) {
 			bufferer.advance(); //Eat the ':'
 			returnType = TypeParser.parseType(bufferer);
 		}
-		FunctionExpression output = new FunctionExpression(params, returnType, null);
-		output.setEndRightBefore(bufferer.getCurrentToken()); //Really pretty, yeah?
+		
+		//Parse statement
+		Statement statement = StatementParser.parseStatement(bufferer);
+		FunctionExpression output = new FunctionExpression(params, returnType, statement);
 		return output;
 	}
 	

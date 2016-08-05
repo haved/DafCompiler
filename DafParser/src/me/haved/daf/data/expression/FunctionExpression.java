@@ -17,7 +17,11 @@ public class FunctionExpression extends NodeBase implements Expression {
 		this.params = params;
 		this.returnType = returnType;
 		this.statement = statement;
-		logAssert(statement != null || statement == null);
+		logAssert(statement != null || statement == null); //TODO: Not this
+		if(statement != null) {
+			this.endLine = statement.getEndLine();
+			this.endCol  = statement.getEndCol();
+		}
 	}
 	
 	@Override
@@ -45,10 +49,5 @@ public class FunctionExpression extends NodeBase implements Expression {
 		this.line = token.getLine();
 		this.col = token.getCol();
 		return this;
-	}
-	
-	public void setEndRightBefore(Token token) { //In no way pretty, but oh well
-		this.endLine = token.getLine();
-		this.endCol = token.getCol();
 	}
 }
