@@ -8,25 +8,3 @@ a=a-b*c+d; //(a-(b*c))+d //Rule: once an operator with the same precedence is fo
 a=a.b+g.c; //(a.b)()+((g.c)()())
 ++a;
 };
-
-/*
-parseExpression():
-    return parseSide(0)
-
-parseSide(minimumPrecedence):
-    if has op that is prefix:
-        LHS = op + parseSide(op.precedence+1)
-    else:
-        LHS = parseLoneExpression()
-    while has op that is postfix:
-        if op.precedence < minimumPrecedence:
-            return LHS
-        LHS= LHS+op
-    while true:
-        if op is not infix:
-            return LHS
-        if op.precedence < minimumPrecedence:
-            return LHS
-        RHS = parseSide(op.precedence+1)
-        LHS = LHS op RHS
-*/
