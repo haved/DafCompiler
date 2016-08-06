@@ -6,7 +6,6 @@ import me.haved.daf.data.expression.InfixOperatorExpression;
 import me.haved.daf.data.expression.NumberConstantExpression;
 import me.haved.daf.data.expression.PrefixOperatorExpression;
 import me.haved.daf.data.expression.VariableExpression;
-import me.haved.daf.data.statement.FunctionCall;
 import me.haved.daf.data.statement.FunctionParameter;
 import me.haved.daf.data.statement.Statement;
 import me.haved.daf.data.type.Type;
@@ -206,7 +205,7 @@ public class ExpressionParser {
 		return new VariableExpression(idName).setPosition(firstToken); //Simple variable. Just one token
 	}
 	
-	public static FunctionCall parseFunctionCall(Expression expression, TokenBufferer bufferer) {
+	/*public static FunctionCall parseFunctionCall(Expression expression, TokenBufferer bufferer) {
 		if(!bufferer.advance()) //Eat '('
 				{ log(bufferer.getLastToken(), ERROR, "Expected ')' before EOF"); return null; }
 		if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) {
@@ -233,7 +232,7 @@ public class ExpressionParser {
 		output.setEnd(bufferer.getCurrentToken()); //Beginning gets set outside, since the name is passed
 		bufferer.advance(); //Eat ')'
 		return output;
-	}
+	}*/
 	
 	public static Expression parseNumberConstant(TokenBufferer bufferer) {
 		NumberConstantExpression exp = new NumberConstantExpression(bufferer.getCurrentToken());
