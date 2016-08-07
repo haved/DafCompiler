@@ -37,4 +37,9 @@ public class Let extends NodeBase implements Definition, Statement {
 	public boolean isPublic() {
 		return pub;
 	}
+
+	@Override
+	public boolean isValidStatement() {
+		return true;
+	}
 }

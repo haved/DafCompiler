@@ -52,4 +52,9 @@ public class FunctionCall extends NodeBase implements Statement, Expression {
 		this.endCol = token.getEndCol();
 		return this;
 	}
+
+	@Override
+	public boolean isValidStatement() {
+		return true;
+	}
 }

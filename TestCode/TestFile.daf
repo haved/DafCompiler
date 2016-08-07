@@ -1,13 +1,29 @@
-let a:=5;
-let uncertain mut c:(&move d:int, par:&mut MyClass);
-def memcpy:(dst:&mut void, src:&void, len:int):&mut void;
-def main:=(argc:int, argv:&char):int {
-    {
-        {
-            let mut x:=5;
-            def g:=x;
-            let a:=(x:int,y:int):int{}(4, 5);
-            print(a);
-        }
-    }
+let main:=(){
+a+b*c; //a+(b*c)
+&a+b*c; //(&a)+(b*c)
+-a+b; //(-a)+b;
+&a[0]+b; //&(a[0])+b
+a-b*c+d; //(a-(b*c))+d //Rule: once an operator with the same precedence is found, it is closer to the root.
+a.b()+g.c()(); //(a.b)()+((g.c)()())
 };
+
+/*
+parseExpression:
+    return parseSide(0)
+
+
+parseSide(minimumPrecedence):
+    if has prefix:
+        return op + parseSide(op.precedence)
+    LHS = parsePrimary()
+    while op is Postfix:
+        if op.precedence < minimumPrecedence:
+            return LHS
+        LHS+=op
+    if op is not infix:
+        return LHS
+    if op.precedence < minimumPrecedence:
+        return LHS
+    RHS = parseSide(op.precedence)
+
+*/

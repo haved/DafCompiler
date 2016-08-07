@@ -21,4 +21,9 @@ public class ScopeStatement extends NodeBase implements Statement{
 		builder.append("}");
 		return builder.toString();
 	}
+
+	@Override
+	public boolean isValidStatement() {
+		return true;
+	}
 }

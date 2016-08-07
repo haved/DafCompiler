@@ -32,4 +32,8 @@ public class Def extends NodeBase implements Definition, Statement {
 		return pub;
 	}
 
+	@Override
+	public boolean isValidStatement() {
+		return true;
+	}
 }

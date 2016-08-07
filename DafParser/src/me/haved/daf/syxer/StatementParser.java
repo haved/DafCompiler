@@ -46,7 +46,7 @@ public class StatementParser {
 			//Maybe an expression? Still expecting a ; afterwards
 			Token expressionStart = bufferer.getCurrentToken();
 			Expression expression = ExpressionParser.parseExpression(bufferer);
-			if(expression != null && expression instanceof Statement) {
+			if(expression != null && expression instanceof Statement && ((Statement)expression).isValidStatement()) {
 				output = (Statement) expression;
 				wrong = false;
 			}
