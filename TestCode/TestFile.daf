@@ -10,23 +10,23 @@ a=a.b+g.c; //(a.b)()+((g.c)()())
 };
 
 /*
-parseExpression:
+parseExpression():
     return parseSide(0)
 
-
 parseSide(minimumPrecedence):
-    if has prefix:
-        return op + parseSide(op.precedence)
-    LHS = parsePrimary()
-    while op is Postfix:
+    if has op that is prefix:
+        LHS = op + parseSide(op.precedence+1)
+    else:
+        LHS = parseLoneExpression()
+    while has op that is postfix:
         if op.precedence < minimumPrecedence:
             return LHS
-        LHS+=op
+        LHS= LHS+op
     while true:
         if op is not infix:
             return LHS
         if op.precedence < minimumPrecedence:
             return LHS
-        RHS = parseSide(op.precedence)
+        RHS = parseSide(op.precedence+1)
         LHS = LHS op RHS
 */
