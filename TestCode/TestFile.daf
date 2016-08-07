@@ -6,6 +6,7 @@ a=-a+b; //(-a)+b;
 a=&a+b; //&(a[0])+b
 a=a-b*c+d; //(a-(b*c))+d //Rule: once an operator with the same precedence is found, it is closer to the root.
 a=a.b+g.c; //(a.b)()+((g.c)()())
-++a;
-a=&b+c;
+a();
+a.b();
+a=6-b.c()*4;
 };

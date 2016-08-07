@@ -6,6 +6,7 @@ import me.haved.daf.data.expression.InfixOperatorExpression;
 import me.haved.daf.data.expression.NumberConstantExpression;
 import me.haved.daf.data.expression.PrefixOperatorExpression;
 import me.haved.daf.data.expression.VariableExpression;
+import me.haved.daf.data.statement.FunctionCall;
 import me.haved.daf.data.statement.FunctionParameter;
 import me.haved.daf.data.statement.Statement;
 import me.haved.daf.data.type.Type;
@@ -32,14 +33,14 @@ public class ExpressionParser {
 		else
 			LHS = parseLoneExpression(bufferer);
 		while(true) {
-			PostfixOperator op = Operators.findPostfixOperator(bufferer);
-			if(op == null)
-				break;
-			if(op.getPrecedence() < minimumPrecedence)
-				return LHS; //Let some previous call handle this one
-			LHS = op.evaluate(LHS, bufferer); //Will eat the operator
-		}
-		while(true) {
+			while(true) {
+				PostfixOperator op = Operators.findPostfixOperator(bufferer);
+				if(op == null)
+					break;
+				if(op.getPrecedence() < minimumPrecedence)
+					return LHS; //Let some previous call handle this one
+				LHS = op.evaluate(LHS, bufferer); //Will eat the operator
+			}
 			InfixOperator op = Operators.findInfixOperator(bufferer);
 			if(op == null)
 				return LHS;
@@ -205,7 +206,15 @@ public class ExpressionParser {
 		return new VariableExpression(idName).setPosition(firstToken); //Simple variable. Just one token
 	}
 	
-	/*public static FunctionCall parseFunctionCall(Expression expression, TokenBufferer bufferer) {
+	public static Expression parseNumberConstant(TokenBufferer bufferer) {
+		NumberConstantExpression exp = new NumberConstantExpression(bufferer.getCurrentToken());
+		exp.setPosition(bufferer.getCurrentToken(), bufferer.getCurrentToken());
+		bufferer.advance();
+		return exp;
+	}
+
+	//Called by the () postfix operator
+	public static FunctionCall parseFunctionCall(Expression expression, TokenBufferer bufferer) {
 		if(!bufferer.advance()) //Eat '('
 				{ log(bufferer.getLastToken(), ERROR, "Expected ')' before EOF"); return null; }
 		if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) {
@@ -232,12 +241,5 @@ public class ExpressionParser {
 		output.setEnd(bufferer.getCurrentToken()); //Beginning gets set outside, since the name is passed
 		bufferer.advance(); //Eat ')'
 		return output;
-	}*/
-	
-	public static Expression parseNumberConstant(TokenBufferer bufferer) {
-		NumberConstantExpression exp = new NumberConstantExpression(bufferer.getCurrentToken());
-		exp.setPosition(bufferer.getCurrentToken(), bufferer.getCurrentToken());
-		bufferer.advance();
-		return exp;
 	}
 }
