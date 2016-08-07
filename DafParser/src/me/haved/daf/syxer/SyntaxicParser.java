@@ -39,7 +39,7 @@ public final class SyntaxicParser {
 		while(bufferer.hasCurrentToken()) {
 			Definition def = DefinitionParser.parseDefinition(bufferer);
 			println("%s", def);
-			skipPastSemicolon(bufferer, def != null);
+			skipPastSemicolon(bufferer, def != null); //def != null means errors only occur if the definition was correct
 		}
 	}
 	

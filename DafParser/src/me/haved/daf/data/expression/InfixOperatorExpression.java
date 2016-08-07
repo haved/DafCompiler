@@ -1,9 +1,10 @@
 package me.haved.daf.data.expression;
 
 import me.haved.daf.data.NodeBase;
+import me.haved.daf.data.statement.Statement;
 import me.haved.daf.syxer.Operators.InfixOperator;
 
-public class InfixOperatorExpression extends NodeBase implements Expression {
+public class InfixOperatorExpression extends NodeBase implements Expression, Statement {
 	
 	private Expression LHS, RHS;
 	private InfixOperator op;
@@ -25,5 +26,10 @@ public class InfixOperatorExpression extends NodeBase implements Expression {
 	@Override
 	public String getSignature() {
 		return String.format("(%s%s%s)", LHS, op.getText(), RHS);
+	}
+
+	@Override
+	public boolean isValidStatement() {
+		return op.isStatement();
 	}
 }

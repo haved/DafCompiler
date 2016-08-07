@@ -1,10 +1,11 @@
 package me.haved.daf.data.expression;
 
 import me.haved.daf.data.NodeBase;
+import me.haved.daf.data.statement.Statement;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.syxer.Operators.PrefixOperator;
 
-public class PrefixOperatorExpression extends NodeBase implements Expression {
+public class PrefixOperatorExpression extends NodeBase implements Expression, Statement {
 	private Expression exp;
 	private PrefixOperator op;
 	
@@ -19,7 +20,7 @@ public class PrefixOperatorExpression extends NodeBase implements Expression {
 	
 	@Override
 	public String getSignature() {
-		return String.format(op.isSpecial() ? "%s %s" : "%s%s", op.getName(), exp);
+		return String.format(op.isSpecial() ? "\"%s %s\"" : "\"%s%s\"", op.getName(), exp);
 	}
 	
 	public Expression getBaseExpression() {
@@ -34,5 +35,10 @@ public class PrefixOperatorExpression extends NodeBase implements Expression {
 		this.line = token.getLine();
 		this.col = token.getCol();
 		return this;
+	}
+
+	@Override
+	public boolean isValidStatement() {
+		return op.isStatement();
 	}
 }

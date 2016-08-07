@@ -37,7 +37,7 @@ public enum TokenType {
 	LOGICAL_SHIFT_RIGHT_EQUALS(">>>="), BITWISE_AND_EQUALS("&="), LOGICAL_AND_EQUALS("&&="),
 	BITWISE_OR_EQUALS("|="), LOGICAL_OR_EQUALS("||="), XOR_EQUALS("^="), NOT_EQUALS("!="),
 	EQUALS("=="), LOWER("<"), LOWER_OR_EQUAL("<="), 
-	GREATER(">"), GREATER_OR_EQUAL(">="), Q_MARK("?"),
+	GREATER(">"), GREATER_OR_EQUAL(">="), Q_MARK("?"), SIZEOF,
 	
 	PLUS_PLUS("++"), MINUS_MINUS("--"),
 	

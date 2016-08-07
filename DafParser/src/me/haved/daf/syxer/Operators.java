@@ -4,124 +4,102 @@ import me.haved.daf.lexer.tokens.TokenType;
 
 import static me.haved.daf.LogHelper.*;
 
+import me.haved.daf.data.expression.Expression;
+
 public class Operators {
-	public static final int TAKES_NUMBERS_RETURNS_NUMBER = 0b1, TNRN = 0b1; // + - * / %
-	public static final int TAKES_NUMBERS_RETURNS_BOOL = 0b10, TNRB = 0b10; // > >= < <=
-	public static final int TAKES_VALUES_RETURNS_BOOL = 0b100, TVRB = 0b100; // == !=
-	public static final int TAKES_INTEGERS_RETURNS_INT = 0b1000, TIRI = 0b1000; // &   | << >> >>>  //Bitwise
-	public static final int TAKES_BOOLEANS_RETURNS_BOOL = 0b10000, TBRB = 0b10000; // &&  ||  //Logical
-	public static final int TAKES_CLASS_AND_FIELD_RETURNS_VALUE = 0b100000, TCAFRV = 0b100000; // . ->
 	
 	public static enum InfixOperator {
 		
-		CLASS_ACCESS(TokenType.CLASS_ACCESS, 100, TCAFRV), POINTER_ACCESS(TokenType.POINTER_ACCESS, 100, TCAFRV),
+		CLASS_ACCESS(TokenType.CLASS_ACCESS, 100), POINTER_ACCESS(TokenType.POINTER_ACCESS, 100),
 		
-		MULT(TokenType.MULT, 40, TNRN), DIVIDE(TokenType.DIVIDE, 40, TNRN),
-		MODULO(TokenType.MODULO, 40, TNRN),
+		MULT(TokenType.MULT, 70), DIVIDE(TokenType.DIVIDE, 70),
+		MODULO(TokenType.MODULO, 70),
 		
-		PLUS(TokenType.PLUS, 30, TNRN), MINUS(TokenType.MINUS, 30, TNRN),
+		PLUS(TokenType.PLUS, 60), MINUS(TokenType.MINUS, 60),
 		
-		BITWISE_LEFT_SHIFT(TokenType.SHIFT_LEFT, 25, TIRI), BITWISE_RIGHT_SHIFT(TokenType.LOGICAL_SHIFT_RIGHT, 25, TIRI),
+		BITWISE_LEFT_SHIFT(TokenType.SHIFT_LEFT, 50), BITWISE_RIGHT_SHIFT(TokenType.LOGICAL_SHIFT_RIGHT, 50),
 		
-		GREATER(TokenType.GREATER, 20, TNRB), GREATER_OR_EQUAL(TokenType.GREATER_OR_EQUAL, 20, TNRB), 
-		LOWER(TokenType.LOWER, 20, TNRB), LOWER_OR_EQUAL(TokenType.LOWER_OR_EQUAL, 20, TNRB),
+		GREATER(TokenType.GREATER, 40), GREATER_OR_EQUAL(TokenType.GREATER_OR_EQUAL, 40), 
+		LOWER(TokenType.LOWER, 40), LOWER_OR_EQUAL(TokenType.LOWER_OR_EQUAL, 40),
 		
-		EQUALS(TokenType.EQUALS, 15, TVRB), NOT_EQUAL(TokenType.NOT_EQUALS, 15, TVRB),
+		EQUALS(TokenType.EQUALS, 30), NOT_EQUAL(TokenType.NOT_EQUALS, 30),
 		
-		BITWISE_AND(TokenType.BITWISE_AND, 12, TIRI), BITWISE_XOR(TokenType.XOR, 10, TIRI), BITWISE_OR(TokenType.BITWISE_OR, 8, TIRI), 
+		BITWISE_AND(TokenType.BITWISE_AND, 20), BITWISE_XOR(TokenType.XOR, 15), BITWISE_OR(TokenType.BITWISE_OR, 10), 
 		
-		LOGICAL_AND(TokenType.LOGICAL_AND, 6, TBRB), LOGICAL_OR(TokenType.LOGICAL_OR, 4, TBRB);
+		LOGICAL_AND(TokenType.LOGICAL_AND, 8), LOGICAL_OR(TokenType.LOGICAL_OR, 6),
+		
+		ASSIGN(TokenType.ASSIGN, 4, true);
 		
 		private TokenType tokenType;
-		/** Higher level means higher priority. For instance: * has a higher level than +, because a+b*c==a+(b*c) */
-		private int level;
-		private int inOut;
+		private int precedence;
+		private boolean statement;
 		
-		private InfixOperator(TokenType type, int level, int inOut) {
+		private InfixOperator(TokenType type, int precedence) {
+			this(type, precedence, false);
+		}
+		
+		private InfixOperator(TokenType type, int precedence, boolean statement) {
 			this.tokenType = type;
-			this.level = level;
-			this.inOut = inOut;
+			this.precedence = precedence;
+			this.statement = statement;
 		}
 		
-		/**
-		 * The higher the level, the higher the evaluation priority of the operator.
-		 * For example, multiplication has a higher level / priority than addition.
-		 * This means a+b*b will be parsed as a+(b*c)
-		 * If two operators have the same level (or the second had a lower), 
-		 * the parsing will be straight-forward left to right
-		 * 
-		 * @return the level of the operator
-		 */
-		public int getLevel() {
-			return level;
-		}
-		
-		public boolean takesInteger() {
-			return (inOut & (TNRN | TNRB | TVRB | TIRI)) != 0;
-		}
-		
-		public boolean takesRealNumbers() {
-			return (inOut & (TNRN | TNRB | TVRB)) != 0; //Note to self... give & a higher priority than == and !=
-		}
-		
-		public boolean takesBoolean() {
-			return (inOut & (TVRB | TBRB)) != 0;
-		}
-		
-		public boolean returnsNumber() {
-			return inOut == TNRN;
-		}
-		
-		public boolean returnsInteger() {
-			return inOut == TIRI;
-		}
-		
-		public boolean returnsBoolean() {
-			return (inOut & (TNRB | TVRB | TBRB)) != 0; 
+		public int getPrecedence() {
+			return precedence;
 		}
 		
 		public String getText() {
 			return tokenType.getText();
 		}
+		
+		public boolean isStatement() {
+			return statement;
+		}
 	}
 	
-	public static InfixOperator findInfixOperator(TokenType type) {
-		for(InfixOperator op : InfixOperator.values()) {
-			if(op.tokenType == type)
-				return op;
+	public static InfixOperator findInfixOperator(TokenBufferer bufferer) {
+		if(bufferer.hasCurrentToken()) {
+			TokenType type = bufferer.getCurrentToken().getType();
+			for(InfixOperator op : InfixOperator.values()) {
+				if(op.tokenType == type)
+					return op;
+			}
 		}
 		return null;
 	}
-
-	public static final int P_TAKES_BOOL_RETURNS_BOOL = 0b1, P_TBRB = 0b1; // !
-	public static final int P_TAKES_VARIABLE_RETURNS_PTR = 0b10, P_TVRP = 0b10; // & &mut &shared &unique
-	public static final int P_TAKES_NUMBER_RETURNS_NUMBER = 0b100, P_TNRN = 0b100; // -
-	public static final int P_TAKES_POINTER_RETURNS_VALUE = 0b1000, P_TPRV = 0b1000; // @
 	
 	public static enum PrefixOperator {
-		MINUS(TokenType.MINUS, P_TNRN), ADDRESS(TokenType.getAddressType(), P_TVRP), 
-		MUT_ADDRESS(TokenType.getAddressType().getText()+TokenType.MUT), 
-		SHARED_ADDRESS(TokenType.getAddressType().getText()+TokenType.SHARED), 
-		UNIQUE_ADDRESS(TokenType.getAddressType().getText()+TokenType.UNIQUE), 
-		DEREFERENCE(TokenType.DEREFERENCE, P_TPRV), NOT(TokenType.NOT, P_TBRB);
+		MINUS(TokenType.MINUS, 90), PLUS(TokenType.PLUS, 90), ADDRESS(TokenType.getAddressType(), 90), 
+		MUT_ADDRESS(TokenType.getAddressType().getText()+TokenType.MUT, 90), 
+		SHARED_ADDRESS(TokenType.getAddressType().getText()+TokenType.SHARED, 90), 
+		UNIQUE_ADDRESS(TokenType.getAddressType().getText()+TokenType.UNIQUE, 90), 
+		DEREFERENCE(TokenType.DEREFERENCE, 90), NOT(TokenType.NOT, 90),
+		PLUSS_PLUSS(TokenType.PLUS_PLUS, 90, true), MINUS_MINUS(TokenType.MINUS_MINUS, 90, true),
+		SIZEOF(TokenType.SIZEOF, 90);
 		
 		private TokenType tokenType;
-		private int inOut;
+		private int precedence;
 		private String name;
+		private boolean statement;
 		
-		private PrefixOperator(TokenType tokenType, int inOut) {
-			this.tokenType = tokenType;
-			this.inOut = inOut;
-			this.name = tokenType.getText();
+		private PrefixOperator(TokenType tokenType, int precedence) {
+			this(tokenType, precedence, false);
 		}
 		
-		private PrefixOperator(String name) {
-			inOut = 0;
+		private PrefixOperator(TokenType tokenType, int precedence, boolean statement) {
+			this.tokenType = tokenType;
+			this.name = tokenType.getText();
+			this.precedence = precedence;
+			this.statement = statement;
+		}
+		
+		private PrefixOperator(String name, int precedece) {
 			this.name = name;
+			this.precedence = precedece;
 		}
 		
 		public boolean isSpecial() {
-			return inOut == 0;
+			return tokenType == null;
 		}
 		
 		public TokenType getType() {
@@ -132,9 +110,17 @@ public class Operators {
 			return name;
 		}
 		
+		public int getPrecedence() {
+			return precedence;
+		}
+		
 		@Override
 		public String toString() {
 			return getName();
+		}
+		
+		public boolean isStatement() {
+			return statement;
 		}
 	}
 	
@@ -174,5 +160,51 @@ public class Operators {
 			bufferer.advance();
 		}
 		return answer;
+	}
+
+	public static enum PostfixOperator {
+		PLUS_PLUS(TokenType.PLUS_PLUS, null, 90), MINUS_MINUS(TokenType.MINUS_MINUS, null, 90), 
+		FUNCTION_CALL(TokenType.LEFT_PAREN, null, 90), ARRAY_ACCESS(TokenType.LEFT_BRACKET, null, 90);
+		
+		private TokenType type;
+		private PostfixEvaluator eval;
+		private int precedence;
+		
+		private PostfixOperator(TokenType firstToken, PostfixEvaluator eval, int precedence) {
+			this.type = firstToken;
+			this.eval = eval;
+			this.precedence = precedence;
+		}
+		
+		public TokenType getFirstToken() {
+			return type;
+		}
+		
+		public Expression evaluate(Expression LHS, TokenBufferer bufferer) {
+			if(eval != null)
+				return eval.evaluatePostfix(LHS, bufferer);
+			return null;
+		}
+		
+		public int getPrecedence() {
+			return precedence;
+		}
+		
+		public boolean isStatement() {
+			return this!=ARRAY_ACCESS; //lovely code, yes?
+		}
+	}
+	
+	public static interface PostfixEvaluator {
+		Expression evaluatePostfix(Expression LHS, TokenBufferer bufferer);
+	}
+
+	public static PostfixOperator findPostfixOperator(TokenBufferer bufferer) {
+		if(bufferer.hasCurrentToken())
+			for(PostfixOperator op:PostfixOperator.values()) {
+				if(bufferer.isCurrentTokenOfType(op.getFirstToken()))
+					return op;
+			}
+		return null;
 	}
 }

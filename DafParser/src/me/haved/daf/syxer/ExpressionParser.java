@@ -13,6 +13,7 @@ import me.haved.daf.data.type.Type;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;
 import me.haved.daf.syxer.Operators.InfixOperator;
+import me.haved.daf.syxer.Operators.PostfixOperator;
 import me.haved.daf.syxer.Operators.PrefixOperator;
 
 import static me.haved.daf.LogHelper.*;
@@ -21,83 +22,34 @@ import java.util.ArrayList;
 
 public class ExpressionParser {
 	public static Expression parseExpression(TokenBufferer bufferer) {
-		Expression LHS = parsePrimary(bufferer);
-		if(LHS == null)
-			return null;
-		return parseBinaryOpRHS(bufferer, LHS, 0);
+		return parseSide(bufferer, 0);
 	}
 	
-	/**
-	 * Parses expressions with operands between them until the token buffer runs out of operators
-	 * 
-	 * @param bufferer the token source
-	 * @param LHS the left hand side of the operand currently the current token
-	 * @param beforeLHS the precedence of the operand before the LHS
-	 * @return The Expression all the way from the LHS to the end of the operators (that have a higher level than the originOpLevel)
-	 */
-	public static Expression parseBinaryOpRHS(TokenBufferer bufferer, Expression LHS, int beforeLHS) {
-		if(!bufferer.hasCurrentToken())
-			return LHS;
-		InfixOperator afterRHS = Operators.findInfixOperator(bufferer.getCurrentToken().getType()); //Just get the operator
-		if(afterRHS == null) //If there was no operator, return the expression
-			return LHS;
-		//At this point, "after RHS is a lie, but it's true once we're in the while loop"
-		
+	public static Expression parseSide(TokenBufferer bufferer, int minimumPrecedence) {
+		PrefixOperator preOp = Operators.parsePrefixOperator(bufferer); //Eats the op
+		Expression LHS;
+		if(preOp != null)
+			LHS = new PrefixOperatorExpression(preOp, parseSide(bufferer, preOp.getPrecedence()+1));
+		else
+			LHS = parseLoneExpression(bufferer);
 		while(true) {
-			InfixOperator afterLHS = afterRHS; //RHS was merged into LHS, so the new afterLHS is the old afterRHS
-			
-			bufferer.advance(); //Eat the operator
-			Expression RHS = parsePrimary(bufferer);
-			
-			afterRHS = Operators.findInfixOperator(bufferer.getCurrentToken().getType());
-			if(afterRHS == null)
-				return new InfixOperatorExpression(LHS, afterLHS, RHS); //We are done! Just merge LHS and RHS
-			
-			if(afterRHS.getLevel() <= beforeLHS) //Say a - b * c == d where afterLHS is * and afterRHS is ==. We can't eat the == because of the -
-				return new InfixOperatorExpression(LHS, afterLHS, RHS);
-				
-			if(afterRHS.getLevel() > afterLHS.getLevel()) { //Say a + b * c where + is afterLHS and * is op
-				RHS = parseBinaryOpRHS(bufferer, RHS, afterLHS.getLevel());
-				afterRHS = Operators.findInfixOperator(bufferer.getCurrentToken().getType()); //Update the operator after RHS
-				if(afterRHS == null) //If the RHS is the end, just return now
-					return new InfixOperatorExpression(LHS, afterLHS, RHS);
-			}
-			
-			LHS = new InfixOperatorExpression(LHS, afterLHS, RHS); //Merge LHS and RHS
+			PostfixOperator op = Operators.findPostfixOperator(bufferer);
+			if(op == null)
+				break;
+			if(op.getPrecedence() < minimumPrecedence)
+				return LHS; //Let some previous call handle this one
+			LHS = op.evaluate(LHS, bufferer); //Will eat the operator
 		}
-	}
-	
-	/**
-	 * 
-	 * @param bufferer
-	 * @return an expression with only pre- and post-fix operators
-	 */
-	public static Expression parsePrimary(TokenBufferer bufferer) {
-		if(!bufferer.hasCurrentToken()) //Precisely why we should have ended on EOF_tokens
-			return null;
-		Token firstToken = bufferer.getCurrentToken();
-		PrefixOperator op = Operators.parsePrefixOperator(bufferer);
-		if(op != null) {
-			if(!bufferer.hasCurrentToken()) {
-				log(bufferer.getLastToken(), ERROR, "Expected an expression after %s, not EOF", op);
-				return null;
-			}
-			Expression exp = parsePrimary(bufferer);
-			if(exp == null)
-				return null; //Errors already printed
-			return new PrefixOperatorExpression(op, exp).setStart(firstToken);
+		while(true) {
+			InfixOperator op = Operators.findInfixOperator(bufferer);
+			if(op == null)
+				return LHS;
+			else if(op.getPrecedence() < minimumPrecedence)
+				return LHS;
+			bufferer.advance(); //Eat the op
+			Expression RHS = parseSide(bufferer, op.getPrecedence()+1);
+			LHS = new InfixOperatorExpression(LHS, op, RHS);
 		}
-		return parseWithPostfix(parseLoneExpression(bufferer), bufferer);
-	}
-	
-	public static Expression parseWithPostfix(Expression expression, TokenBufferer bufferer) {
-		if(!bufferer.hasCurrentToken())
-			return expression;
-		
-		if(bufferer.isCurrentTokenOfType(TokenType.LEFT_PAREN))
-			return parseWithPostfix(parseFunctionCall(expression, bufferer), bufferer);
-		
-		return expression;
 	}
 	
 	public static Expression parseLoneExpression(TokenBufferer bufferer) {
