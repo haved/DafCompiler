@@ -76,7 +76,7 @@ public class DefinitionParser {
 			log(nameToken, ERROR, "A %s statement can't be uncertain when it has an initializer!", TokenType.LET);
 		
 		Let output = new Let(nte.name, mut, nte.type, nte.expression, pub);
-		output.setPosition(startToken, bufferer.getCurrentToken());
+		output.setPosition(startToken, bufferer.getLastOrCurrent());
 		return output;
 	}
 	
