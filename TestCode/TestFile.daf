@@ -14,10 +14,10 @@ C++;
 ++c;
 a=c++;
 if(a==3) {
-    print(2);
+    print("Test");
 }
 else if a
-    print(4);
+    print("Test");
 else
     a.b();
 a.b();

@@ -7,6 +7,7 @@ import me.haved.daf.data.expression.InfixOperatorExpression;
 import me.haved.daf.data.expression.NumberConstantExpression;
 import me.haved.daf.data.expression.PostCrementExpression;
 import me.haved.daf.data.expression.PrefixOperatorExpression;
+import me.haved.daf.data.expression.StringConstantExpression;
 import me.haved.daf.data.expression.VariableExpression;
 import me.haved.daf.data.statement.FunctionCall;
 import me.haved.daf.data.statement.FunctionParameter;
@@ -240,7 +241,7 @@ public class ExpressionParser {
 		logAssert(bufferer.isCurrentTokenOfType(TokenType.STRING_LITERAL));
 		Token token = bufferer.getCurrentToken();
 		bufferer.advance();
-		return null;
+		return new StringConstantExpression(token);
 	}
 	
 	//Called by the () postfix operator
