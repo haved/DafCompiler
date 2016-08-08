@@ -20,5 +20,5 @@ else if a
     print("Test");
 else
     a.b();
-a.b();
+a=~a;
 };

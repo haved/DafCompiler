@@ -30,7 +30,7 @@ public enum TokenType {
 	PLUS("+"), MINUS("-"), MULT("*"), DIVIDE("/"), MODULO("%"),
 	SHIFT_LEFT("<<"), ARITHMETIC_SHIFT_RIGHT(">>"), 
 	LOGICAL_SHIFT_RIGHT(">>>"), BITWISE_AND("&"), LOGICAL_AND("&&"),
-	BITWISE_OR("|"), LOGICAL_OR("||"), XOR("^"), NOT("!"), 
+	BITWISE_OR("|"), LOGICAL_OR("||"), XOR("^"), NOT("!"),
 	
 	PLUS_EQUALS("+="), MINUS_EQUALS("-="), MULT_EQUALS("*="), DIVIDE_EQUALS("/="), MODULO_EQUALS("%="),
 	SHIFT_LEFT_EQUALS("<<="), ARITHMETIC_SHIFT_RIGHT_EQUALS(">>="), 
@@ -86,5 +86,9 @@ public enum TokenType {
 	
 	public static TokenType getAddressType() {
 		return TokenType.BITWISE_AND;
+	}
+	
+	public static TokenType getBitwiseNot() {
+		return TokenType.DESTRUCTOR;
 	}
 }

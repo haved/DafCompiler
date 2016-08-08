@@ -73,7 +73,7 @@ public class Operators {
 		MUT_ADDRESS(TokenType.getAddressType().getText()+TokenType.MUT, 90), 
 		SHARED_ADDRESS(TokenType.getAddressType().getText()+TokenType.SHARED, 90), 
 		UNIQUE_ADDRESS(TokenType.getAddressType().getText()+TokenType.UNIQUE, 90), 
-		DEREFERENCE(TokenType.DEREFERENCE, 90), NOT(TokenType.NOT, 90),
+		DEREFERENCE(TokenType.DEREFERENCE, 90), NOT(TokenType.NOT, 90), BITWISE_NOT(TokenType.getBitwiseNot(), 90),
 		PLUSS_PLUSS(TokenType.PLUS_PLUS, 90, true), MINUS_MINUS(TokenType.MINUS_MINUS, 90, true),
 		SIZEOF(TokenType.SIZEOF, 90);
 		
@@ -126,11 +126,13 @@ public class Operators {
 	
 	/**
 	 * Eats the tokens that are part of a prefix operator
+	 * Expects a current token
 	 * 
 	 * @param bufferer
 	 * @return an operator if it's found, else null
 	 */
 	public static PrefixOperator parsePrefixOperator(TokenBufferer bufferer) {
+		logAssert(bufferer.hasCurrentToken());
 		PrefixOperator answer = null;
 		TokenType type = bufferer.getCurrentToken().getType();
 		if(type == TokenType.LOGICAL_AND)

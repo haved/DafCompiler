@@ -36,7 +36,7 @@ public class ExpressionParser {
 		PrefixOperator preOp = Operators.parsePrefixOperator(bufferer); //Eats the op
 		Expression LHS;
 		if(preOp != null) {
-			Expression afterOp = parseSide(bufferer, preOp.getPrecedence()+1, silent);
+			Expression afterOp = parseSide(bufferer, preOp.getPrecedence()+1, false);
 			if(afterOp == null)
 				return null;
 			LHS = new PrefixOperatorExpression(preOp, afterOp);
@@ -63,7 +63,7 @@ public class ExpressionParser {
 			else if(op.getPrecedence() < minimumPrecedence)
 				return LHS;
 			bufferer.advance(); //Eat the op
-			Expression RHS = parseSide(bufferer, op.getPrecedence()+1, silent);
+			Expression RHS = parseSide(bufferer, op.getPrecedence()+1, false);
 			if(RHS == null)
 				return LHS; //null -> //To prevent lots of errors
 			LHS = new InfixOperatorExpression(LHS, op, RHS);
