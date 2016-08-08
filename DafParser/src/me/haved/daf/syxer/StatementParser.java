@@ -52,9 +52,9 @@ public class StatementParser {
 	
 	private static Statement parseExpressionAsStatement(TokenBufferer bufferer) {
 		Token expressionStart = bufferer.getCurrentToken();
-		Expression expression = ExpressionParser.parseExpression(bufferer);
+		Expression expression = ExpressionParser.tryParseExpression(bufferer);
 		if(expression==null) {
-			log(expressionStart, ERROR, "No expression found while looking for statement");
+			log(expressionStart, ERROR, "Expected a statement");
 			return null;
 		}
 		if(expression instanceof Statement) {

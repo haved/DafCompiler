@@ -24,20 +24,24 @@ import java.util.ArrayList;
 
 public class ExpressionParser {
 	public static Expression parseExpression(TokenBufferer bufferer) {
-		return parseSide(bufferer, 0);
+		return parseSide(bufferer, 0, false);
 	}
 	
-	public static Expression parseSide(TokenBufferer bufferer, int minimumPrecedence) {
+	public static Expression tryParseExpression(TokenBufferer bufferer) {
+		return parseSide(bufferer, 0, true);
+	}
+	
+	public static Expression parseSide(TokenBufferer bufferer, int minimumPrecedence, boolean silent) {
 		PrefixOperator preOp = Operators.parsePrefixOperator(bufferer); //Eats the op
 		Expression LHS;
 		if(preOp != null) {
-			Expression afterOp = parseSide(bufferer, preOp.getPrecedence()+1);
+			Expression afterOp = parseSide(bufferer, preOp.getPrecedence()+1, silent);
 			if(afterOp == null)
 				return null;
 			LHS = new PrefixOperatorExpression(preOp, afterOp);
 		}
 		else {
-			LHS = parseLoneExpression(bufferer);
+			LHS = parseLoneExpression(bufferer, silent);
 			if(LHS == null)
 				return null;
 		}
@@ -58,16 +62,19 @@ public class ExpressionParser {
 			else if(op.getPrecedence() < minimumPrecedence)
 				return LHS;
 			bufferer.advance(); //Eat the op
-			Expression RHS = parseSide(bufferer, op.getPrecedence()+1);
+			Expression RHS = parseSide(bufferer, op.getPrecedence()+1, silent);
 			if(RHS == null)
-				return null; //To prevent lots of errors
+				return LHS; //null -> //To prevent lots of errors
 			LHS = new InfixOperatorExpression(LHS, op, RHS);
 		}
 	}
 	
-	public static Expression parseLoneExpression(TokenBufferer bufferer) {
-		if(!bufferer.hasCurrentToken())
+	public static Expression parseLoneExpression(TokenBufferer bufferer, boolean silent) {
+		if(!bufferer.hasCurrentToken()) {
+			log(bufferer.getLastToken(), ERROR, "Expected an expression, got EOF!");
 			return null;
+		}
+			
 		switch(bufferer.getCurrentToken().getType()) {
 		default:
 			break;
@@ -77,9 +84,12 @@ public class ExpressionParser {
 			return parseParentheses(bufferer);
 		case NUMBER_LITERAL:
 			return parseNumberConstant(bufferer);
+		case STRING_LITERAL:
+			return parseStringLiteral(bufferer);
 		}
 		
-		log(bufferer.getCurrentToken(), ERROR, "Expected an expression!");
+		if(!silent)
+			log(bufferer.getCurrentToken(), ERROR, "Expected an expression!");
 		return null;
 	}
 	
@@ -226,6 +236,13 @@ public class ExpressionParser {
 		return exp;
 	}
 
+	public static Expression parseStringLiteral(TokenBufferer bufferer) {
+		logAssert(bufferer.isCurrentTokenOfType(TokenType.STRING_LITERAL));
+		Token token = bufferer.getCurrentToken();
+		bufferer.advance();
+		return null;
+	}
+	
 	//Called by the () postfix operator
 	public static FunctionCall parseFunctionCall(Expression expression, TokenBufferer bufferer) {
 		logAssert(bufferer.isCurrentTokenOfType(TokenType.LEFT_PAREN));
