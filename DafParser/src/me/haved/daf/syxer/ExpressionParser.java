@@ -1,9 +1,11 @@
 package me.haved.daf.syxer;
 
+import me.haved.daf.data.expression.ArrayAccessExpression;
 import me.haved.daf.data.expression.Expression;
 import me.haved.daf.data.expression.FunctionExpression;
 import me.haved.daf.data.expression.InfixOperatorExpression;
 import me.haved.daf.data.expression.NumberConstantExpression;
+import me.haved.daf.data.expression.PostCrementExpression;
 import me.haved.daf.data.expression.PrefixOperatorExpression;
 import me.haved.daf.data.expression.VariableExpression;
 import me.haved.daf.data.statement.FunctionCall;
@@ -28,10 +30,17 @@ public class ExpressionParser {
 	public static Expression parseSide(TokenBufferer bufferer, int minimumPrecedence) {
 		PrefixOperator preOp = Operators.parsePrefixOperator(bufferer); //Eats the op
 		Expression LHS;
-		if(preOp != null)
-			LHS = new PrefixOperatorExpression(preOp, parseSide(bufferer, preOp.getPrecedence()+1));
-		else
+		if(preOp != null) {
+			Expression afterOp = parseSide(bufferer, preOp.getPrecedence()+1);
+			if(afterOp == null)
+				return null;
+			LHS = new PrefixOperatorExpression(preOp, afterOp);
+		}
+		else {
 			LHS = parseLoneExpression(bufferer);
+			if(LHS == null)
+				return null;
+		}
 		while(true) {
 			while(true) {
 				PostfixOperator op = Operators.findPostfixOperator(bufferer);
@@ -40,6 +49,8 @@ public class ExpressionParser {
 				if(op.getPrecedence() < minimumPrecedence)
 					return LHS; //Let some previous call handle this one
 				LHS = op.evaluate(LHS, bufferer); //Will eat the operator
+				if(LHS == null)
+					return null;
 			}
 			InfixOperator op = Operators.findInfixOperator(bufferer);
 			if(op == null)
@@ -48,6 +59,8 @@ public class ExpressionParser {
 				return LHS;
 			bufferer.advance(); //Eat the op
 			Expression RHS = parseSide(bufferer, op.getPrecedence()+1);
+			if(RHS == null)
+				return LHS;
 			LHS = new InfixOperatorExpression(LHS, op, RHS);
 		}
 	}
@@ -215,6 +228,7 @@ public class ExpressionParser {
 
 	//Called by the () postfix operator
 	public static FunctionCall parseFunctionCall(Expression expression, TokenBufferer bufferer) {
+		logAssert(bufferer.isCurrentTokenOfType(TokenType.LEFT_PAREN));
 		if(!bufferer.advance()) //Eat '('
 				{ log(bufferer.getLastToken(), ERROR, "Expected ')' before EOF"); return null; }
 		if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) {
@@ -234,6 +248,7 @@ public class ExpressionParser {
 				log(bufferer.getCurrentToken(), ERROR, "Expected comma or ')' after function parameter");
 			if(!bufferer.advance()) { //Just to keep this show from running forever.
 				log(bufferer.getLastToken(), ERROR, "Expected ')' to end function call. Not EOF!");
+				return null;
 			}
 		} while(true); //I dunno
 		
@@ -241,5 +256,27 @@ public class ExpressionParser {
 		output.setEnd(bufferer.getCurrentToken()); //Beginning gets set outside, since the name is passed
 		bufferer.advance(); //Eat ')'
 		return output;
+	}
+	
+	public static ArrayAccessExpression parseArrayAccess(Expression expression, TokenBufferer bufferer) {
+		logAssert(bufferer.isCurrentTokenOfType(TokenType.LEFT_BRACKET));
+		bufferer.advance(); //Eat the '['
+		Expression access = parseExpression(bufferer);
+		if(access == null) {
+			bufferer.skipUntilTokenType(TokenType.RIGHT_BRACKET);
+			bufferer.advance(); //Eat the ']'
+		}
+		else if(bufferer.isCurrentTokenOfType(TokenType.RIGHT_BRACKET))
+			bufferer.advance(); //Eat the ']'
+		else
+			log(bufferer.getCurrentToken(), ERROR, "Expected ] after array access index");
+		return new ArrayAccessExpression(expression, access);
+	}
+	
+	public static PostCrementExpression parsePostCrementExpression(Expression expression, TokenBufferer bufferer) {
+		logAssert(bufferer.isCurrentTokenOfType(TokenType.PLUS_PLUS) || bufferer.isCurrentTokenOfType(TokenType.MINUS_MINUS));
+		int crement = bufferer.isCurrentTokenOfType(TokenType.PLUS_PLUS) ? PostCrementExpression.INCREMENT : PostCrementExpression.DECREMENT;
+		bufferer.advance(); //Eat the '++' or '--'
+		return new PostCrementExpression(expression, crement);
 	}
 }
