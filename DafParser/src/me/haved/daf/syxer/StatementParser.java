@@ -21,11 +21,10 @@ public class StatementParser {
 		
 		Token firstToken = bufferer.getCurrentToken();
 		TokenType type = firstToken.getType();
-		if(type == TokenType.SCOPE_START)
-			return parseScope(bufferer);
-		if(type == TokenType.SEMICOLON) {
-			bufferer.advance(); //Eat the semicolon
-			return null; //No statement here (allows for ;;;;;;)
+		switch(type) {
+		case SCOPE_START: return parseScope(bufferer);
+		case SEMICOLON: bufferer.advance(); return null;
+		default: break;
 		}
 		
 		//control statements go here, and are not followed by semi-colon
@@ -41,38 +40,71 @@ public class StatementParser {
 		case DEF: output = parseDefStatement(bufferer); break;
 		default: wrong = true; break;
 		}
+		if(wrong) //Try parsing an expression instead
+			output = parseExpressionAsStatement(bufferer);
 		
-		if(wrong) {
-			//Maybe an expression? Still expecting a ; afterwards
-			Token expressionStart = bufferer.getCurrentToken();
-			Expression expression = ExpressionParser.parseExpression(bufferer);
-			if(expression != null && expression instanceof Statement && ((Statement)expression).isValidStatement()) {
-				output = (Statement) expression;
-				wrong = false;
-			}
-			else {
-				if(expression != null)
-					log(expressionStart, ERROR, "Expected a statement, got the expression: '%s'. "
-							+ "Skipping till semicolon or scope change", expression.getSignature());
-				else
-					log(expressionStart, ERROR, "Expected a statement. Skipping till semicolon or scope change");
-				while(bufferer.hasCurrentToken()) {
-					if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
-						bufferer.advance();
-						return null;
-					} else if(bufferer.isCurrentTokenOfType(TokenType.SCOPE_END) || bufferer.isCurrentTokenOfType(TokenType.SCOPE_START)) {
-						return null;
-					}
-					bufferer.advance();
-				}
+		return assureStatementEnd(bufferer, output);
+	}
+	
+	private static Statement parseExpressionAsStatement(TokenBufferer bufferer) {
+		Token expressionStart = bufferer.getCurrentToken();
+		Expression expression = ExpressionParser.parseExpression(bufferer);
+		if(expression==null) {
+			log(expressionStart, ERROR, "No expression found while looking for statement");
+			return null;
+		}
+		if(expression instanceof Statement) {
+			Statement statement = (Statement) expression;
+			if(statement.isValidStatement()) {
+				return statement;
 			}
 		}
-		
-		if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON))
+		log(expressionStart, ERROR, "Expacted a statement. Got the expression '%s'", expression.getSignature());
+		return null;
+	}
+	
+	/** Makes sure the TokenBufferer ends right after a semi-colon.
+	 * If the output is null, skips past first ';', or until '{' or '}'
+	 * If a semi-colon isn't found, nothing happens.
+	 * If you both have a bad statement and are missing a semicolon, the next statement will be skipped :(
+	 * 
+	 * @param bufferer the token bufferer
+	 * @param output the statement before the wanted end
+	 * @return output
+	 */
+	private static Statement assureStatementEnd(TokenBufferer bufferer, Statement output) {
+		if(output == null) { //Skip until semicolon or scope end
+			if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON))
+				bufferer.advance(); //Eat ';'
+			else if(bufferer.hasCurrentToken()) {
+				Token firstToken = bufferer.getCurrentToken();
+				StringBuilder skipped = new StringBuilder();
+				int prevLine=firstToken.getLine(), prevColEnd=firstToken.getEndCol();
+				while(bufferer.hasCurrentToken()) {
+					Token token = bufferer.getCurrentToken();
+					for(int i = prevLine; i < token.getLine(); i++) {
+						prevColEnd = 1;
+						skipped.append("\n");
+					}
+					for(int i = prevColEnd; i < token.getCol(); i++) {
+						skipped.append(" ");
+					}
+					skipped.append(token.getText());
+					prevLine = token.getLine();
+					prevColEnd = token.getEndCol();
+					if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
+						bufferer.advance(); //Eat ';'
+						break;
+					} else if(bufferer.isCurrentTokenOfType(TokenType.SCOPE_END) || bufferer.isCurrentTokenOfType(TokenType.SCOPE_START))
+						break;
+					bufferer.advance();
+				}
+				log(firstToken, ERROR, "Skipped '%s' to try to find the next statement", skipped.toString());
+			}
+		} else if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON))
 			bufferer.advance();
 		else
 			log(bufferer.getLastOrCurrent(), ERROR, "Expected a semicolon after statement");
-		
 		return output;
 	}
 	
