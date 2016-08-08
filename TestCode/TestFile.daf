@@ -8,5 +8,9 @@ a=a-b*c+d; //(a-(b*c))+d //Rule: once an operator with the same precedence is fo
 a=a.b+g.c; //(a.b)()+((g.c)()())
 a();
 a.b();
-a=6-b.c()*4;
+a=-b.c()*4;
+a=&a[a];
+C++;
+++c;
+a=c++;
 };

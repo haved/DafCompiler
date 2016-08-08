@@ -163,8 +163,10 @@ public class Operators {
 	}
 
 	public static enum PostfixOperator {
-		PLUS_PLUS(TokenType.PLUS_PLUS, null, 90), MINUS_MINUS(TokenType.MINUS_MINUS, null, 90), 
-		FUNCTION_CALL(TokenType.LEFT_PAREN, ExpressionParser::parseFunctionCall, 90), ARRAY_ACCESS(TokenType.LEFT_BRACKET, null, 90);
+		PLUS_PLUS(TokenType.PLUS_PLUS, ExpressionParser::parsePostCrementExpression, 100), 
+		MINUS_MINUS(TokenType.MINUS_MINUS, ExpressionParser::parsePostCrementExpression, 100), 
+		FUNCTION_CALL(TokenType.LEFT_PAREN, ExpressionParser::parseFunctionCall, 100), 
+		ARRAY_ACCESS(TokenType.LEFT_BRACKET, ExpressionParser::parseArrayAccess, 100);
 		
 		private TokenType type;
 		private PostfixEvaluator eval;
@@ -188,10 +190,6 @@ public class Operators {
 		
 		public int getPrecedence() {
 			return precedence;
-		}
-		
-		public boolean isStatement() {
-			return this!=ARRAY_ACCESS; //lovely code, yes?
 		}
 	}
 	
