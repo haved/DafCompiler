@@ -6,6 +6,7 @@ import me.haved.daf.data.expression.Expression;
 import me.haved.daf.data.statement.IfStatement;
 import me.haved.daf.data.statement.ScopeStatement;
 import me.haved.daf.data.statement.Statement;
+import me.haved.daf.data.statement.WhileStatement;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;
 
@@ -31,6 +32,7 @@ public class StatementParser {
 		//control statements go here, and are not followed by semi-colon
 		switch(type) {
 		case IF: return parseIfStatement(bufferer);
+		case WHILE: return parseWhileStatement(bufferer);
 		default: break;
 		}
 		
@@ -153,10 +155,29 @@ public class StatementParser {
 		logAssert(bufferer.isCurrentTokenOfType(TokenType.IF));
 		bufferer.advance(); //Eat 'if'
 		Expression conditional = ExpressionParser.parseExpression(bufferer);
+		if(conditional == null)
+			return null; //Dangerous, because the next statement might be parsed.
 		Statement action = parseStatement(bufferer);
+		if(action == null)
+			return null;
 		if(!bufferer.isCurrentTokenOfType(TokenType.ELSE))
 			return new IfStatement(conditional, action);
 		bufferer.advance(); //Eat the 'else'
-		return new IfStatement(conditional, action, parseStatement(bufferer));
+		Statement elseAction = StatementParser.parseStatement(bufferer);
+		if(elseAction == null)
+			return null;
+		return new IfStatement(conditional, action, elseAction);
+	}
+	
+	private static WhileStatement parseWhileStatement(TokenBufferer bufferer) {
+		logAssert(bufferer.isCurrentTokenOfType(TokenType.WHILE));
+		bufferer.advance(); //Eat 'while'
+		Expression conditional = ExpressionParser.parseExpression(bufferer);
+		if(conditional == null)
+			return null;
+		Statement action = StatementParser.parseStatement(bufferer);
+		if(action == null)
+			return null;
+		return new WhileStatement(conditional, action);
 	}
 }
