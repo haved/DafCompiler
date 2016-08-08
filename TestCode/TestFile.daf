@@ -13,6 +13,12 @@ a=&a[a];
 C++;
 ++c;
 a=c++;
-a+b+c*d.......
- .;
+if(a==3) {
+    print(2);
+}
+else if a
+    print(4);
+else
+    a.b();
+a.b();
 };

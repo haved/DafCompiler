@@ -14,11 +14,10 @@ public class ScopeStatement extends NodeBase implements Statement{
 	public String getSignature() {
 		StringBuilder builder = new StringBuilder().append("{");
 		if(statements!=null) {
-			builder.append("\n");
 			for(int i = 0; i < statements.length; i++)
-				builder.append(statements[i].getSignature()).append("\n"); //Statements that use semi-colon have that in their signature
+				builder.append("\n").append(statements[i].getSignature()); //Statements that use semi-colon have that in their signature
 		}
-		builder.append("}");
+		builder.append("\n}");
 		return builder.toString();
 	}
 

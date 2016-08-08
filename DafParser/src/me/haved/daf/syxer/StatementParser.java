@@ -3,6 +3,7 @@ package me.haved.daf.syxer;
 import me.haved.daf.data.definition.Def;
 import me.haved.daf.data.definition.Let;
 import me.haved.daf.data.expression.Expression;
+import me.haved.daf.data.statement.IfStatement;
 import me.haved.daf.data.statement.ScopeStatement;
 import me.haved.daf.data.statement.Statement;
 import me.haved.daf.lexer.tokens.Token;
@@ -28,7 +29,10 @@ public class StatementParser {
 		}
 		
 		//control statements go here, and are not followed by semi-colon
-		
+		switch(type) {
+		case IF: return parseIfStatement(bufferer);
+		default: break;
+		}
 		
 		//If you're here, you want a semicolon behind the statement
 		
@@ -62,8 +66,8 @@ public class StatementParser {
 		log(expressionStart, ERROR, "Expacted a statement. Got the expression '%s'", expression.getSignature());
 		return null;
 	}
-	
-	/** Makes sure the TokenBufferer ends right after a semi-colon.
+	/** 
+	 * Makes sure the TokenBufferer ends right after a semi-colon.
 	 * If the output is null, skips past first ';', or until '{' or '}'
 	 * If a semi-colon isn't found, nothing happens.
 	 * If you both have a bad statement and are missing a semicolon, the next statement will be skipped :(
@@ -131,7 +135,6 @@ public class StatementParser {
 		bufferer.advance(); //Eat the '}'
 		return output;
 	}
-	
 	/**
 	 * Reads from the bufferer and parses a Let statement. Leaves the bufferer right at the semi-colon / after the expression
 	 * 
@@ -141,9 +144,19 @@ public class StatementParser {
 	private static Let parseLetStatement(TokenBufferer bufferer) {
 		return DefinitionParser.parseLetStatement(bufferer, false);
 	}
-	
 	// Same as parseLetStatement, just for def
 	private static Def parseDefStatement(TokenBufferer bufferer) {
 		return DefinitionParser.parseDefStatement(bufferer, false);
+	}
+	
+	private static IfStatement parseIfStatement(TokenBufferer bufferer) {
+		logAssert(bufferer.isCurrentTokenOfType(TokenType.IF));
+		bufferer.advance(); //Eat 'if'
+		Expression conditional = ExpressionParser.parseExpression(bufferer);
+		Statement action = parseStatement(bufferer);
+		if(!bufferer.isCurrentTokenOfType(TokenType.ELSE))
+			return new IfStatement(conditional, action);
+		bufferer.advance(); //Eat the 'else'
+		return new IfStatement(conditional, action, parseStatement(bufferer));
 	}
 }
