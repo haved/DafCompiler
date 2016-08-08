@@ -60,7 +60,7 @@ public class ExpressionParser {
 			bufferer.advance(); //Eat the op
 			Expression RHS = parseSide(bufferer, op.getPrecedence()+1);
 			if(RHS == null)
-				return LHS;
+				return null; //To prevent lots of errors
 			LHS = new InfixOperatorExpression(LHS, op, RHS);
 		}
 	}

@@ -131,7 +131,7 @@ public class StatementParser {
 		bufferer.advance(); //Eat the '}'
 		return output;
 	}
-
+	
 	/**
 	 * Reads from the bufferer and parses a Let statement. Leaves the bufferer right at the semi-colon / after the expression
 	 * 
