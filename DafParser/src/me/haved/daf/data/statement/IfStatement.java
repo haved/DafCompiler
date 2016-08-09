@@ -15,7 +15,7 @@ public class IfStatement extends NodeBase implements Statement {
 	}
 	
 	public IfStatement(Expression conditional, Statement action, Statement elseAction) {
-		logAssert(conditional != null && action != null);
+		logAssert(conditional != null);
 		this.conditional = conditional;
 		this.action = action;
 		this.elseAction = elseAction;

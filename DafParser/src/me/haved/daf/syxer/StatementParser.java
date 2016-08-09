@@ -3,6 +3,7 @@ package me.haved.daf.syxer;
 import me.haved.daf.data.definition.Def;
 import me.haved.daf.data.definition.Let;
 import me.haved.daf.data.expression.Expression;
+import me.haved.daf.data.statement.ForStatement;
 import me.haved.daf.data.statement.IfStatement;
 import me.haved.daf.data.statement.ScopeStatement;
 import me.haved.daf.data.statement.Statement;
@@ -15,7 +16,12 @@ import static me.haved.daf.LogHelper.*;
 import java.util.ArrayList;
 
 public class StatementParser {
+	
 	public static Statement parseStatement(TokenBufferer bufferer) {
+		return parseStatement(bufferer, TokenType.SEMICOLON);
+	}
+	
+	private static Statement parseStatement(TokenBufferer bufferer, TokenType endToken) {
 		if(!bufferer.hasCurrentToken()) {
 			log(bufferer.getLastToken(), ERROR, "Expected a statement! Got EOF");
 			return null;
@@ -33,6 +39,7 @@ public class StatementParser {
 		switch(type) {
 		case IF: return parseIfStatement(bufferer);
 		case WHILE: return parseWhileStatement(bufferer);
+		case FOR : return parseForStatement(bufferer);
 		default: break;
 		}
 		
@@ -49,7 +56,7 @@ public class StatementParser {
 		if(wrong) //Try parsing an expression instead
 			output = parseExpressionAsStatement(bufferer);
 		
-		return assureStatementEnd(bufferer, output);
+		return assureStatementEnd(bufferer, output, endToken);
 	}
 	
 	private static Statement parseExpressionAsStatement(TokenBufferer bufferer) {
@@ -78,9 +85,9 @@ public class StatementParser {
 	 * @param output the statement before the wanted end
 	 * @return output
 	 */
-	private static Statement assureStatementEnd(TokenBufferer bufferer, Statement output) {
+	private static Statement assureStatementEnd(TokenBufferer bufferer, Statement output, TokenType endToken) {
 		if(output == null) { //Skip until semicolon or scope end
-			if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON))
+			if(bufferer.isCurrentTokenOfType(endToken))
 				bufferer.advance(); //Eat ';'
 			else if(bufferer.hasCurrentToken()) {
 				Token firstToken = bufferer.getCurrentToken();
@@ -98,8 +105,8 @@ public class StatementParser {
 					skipped.append(token.getText());
 					prevLine = token.getLine();
 					prevColEnd = token.getEndCol();
-					if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
-						bufferer.advance(); //Eat ';'
+					if(bufferer.isCurrentTokenOfType(endToken)) {
+						bufferer.advance(); //Eat 'endToken'
 						break;
 					} else if(bufferer.isCurrentTokenOfType(TokenType.SCOPE_END) || bufferer.isCurrentTokenOfType(TokenType.SCOPE_START))
 						break;
@@ -107,10 +114,10 @@ public class StatementParser {
 				}
 				log(firstToken, ERROR, "Skipped '%s' to try to find the next statement", skipped.toString());
 			}
-		} else if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON))
+		} else if(bufferer.isCurrentTokenOfType(endToken))
 			bufferer.advance();
 		else
-			log(bufferer.getLastOrCurrent(), ERROR, "Expected a semicolon after statement");
+			log(bufferer.getLastOrCurrent(), ERROR, "Expected '%s' after statement", endToken);
 		return output;
 	}
 	
@@ -158,14 +165,10 @@ public class StatementParser {
 		if(conditional == null)
 			return null; //Dangerous, because the next statement might be parsed.
 		Statement action = parseStatement(bufferer);
-		if(action == null)
-			return null;
 		if(!bufferer.isCurrentTokenOfType(TokenType.ELSE))
 			return new IfStatement(conditional, action);
 		bufferer.advance(); //Eat the 'else'
 		Statement elseAction = StatementParser.parseStatement(bufferer);
-		if(elseAction == null)
-			return null;
 		return new IfStatement(conditional, action, elseAction);
 	}
 	
@@ -176,8 +179,36 @@ public class StatementParser {
 		if(conditional == null)
 			return null;
 		Statement action = StatementParser.parseStatement(bufferer);
-		if(action == null)
-			return null;
 		return new WhileStatement(conditional, action);
 	}
+
+    private static ForStatement parseForStatement(TokenBufferer bufferer) {
+		logAssert(bufferer.isCurrentTokenOfType(TokenType.FOR));
+		bufferer.advance(); //Eat 'for'
+		if(!bufferer.isCurrentTokenOfType(TokenType.LEFT_PAREN)) {
+		    log(bufferer.getLastOrCurrent(), ERROR, "Expected '(' after 'for'");
+		    return null;
+		}
+		bufferer.advance(); //Eat '('
+		Statement initial = parseStatement(bufferer); //Will eat the semicolon, even if we just have a semicolon
+		if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
+		    log(bufferer.getCurrentToken(), ERROR, "A for-loop must have a condition");
+		    return null;
+		}
+		Expression conditional = ExpressionParser.parseExpression(bufferer);
+		if(conditional == null)
+		    return null;
+		if(!bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
+		    log(bufferer.getLastOrCurrent(), ERROR, "Expected ';' after conditional in for-loop");
+		    return null;
+		}
+		bufferer.advance(); //Eat ';'
+		Statement increment = null;
+		if(!bufferer.isCurrentTokenOfType(TokenType.RIGHT_PAREN)) {
+			increment = parseStatement(bufferer, TokenType.RIGHT_PAREN); //Eats the ')'
+		} else
+			bufferer.advance(); //Eat the ')'
+		Statement action = parseStatement(bufferer);
+		return new ForStatement(initial, conditional, increment, action);
+    }
 }

@@ -24,4 +24,6 @@ a=~a;
     while(1) {
         print(true);
     }
+for(let a:=4; a < 5; a++)
+    print(a);
 };

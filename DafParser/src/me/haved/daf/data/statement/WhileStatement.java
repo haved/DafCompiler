@@ -11,7 +11,7 @@ public class WhileStatement extends NodeBase implements Statement, Expression{
 	private Statement action;
 	
 	public WhileStatement(Expression condition, Statement action) {
-		logAssert(condition != null && action != null);
+		logAssert(condition != null);
 		this.condition = condition;
 		this.action = action;
 	}

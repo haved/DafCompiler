@@ -22,7 +22,8 @@ Let's just say there is a story behind every point on this list.
  - Make it recoverable (i.e. skipping until semicolon)
 - Have some smarter way of giving errors upon EOF
 - Don't just print the token when logging
-- Pack '()', '[]' and '{}' together when tokenizing, to make error recovery easier
+- Maybe pack '()', '[]' and '{}' together when tokenizing, to make error recovery easier
+- Allow logger to use same token as previous log message
 
 ####Main problems:
 - **Find a way of storing libraries** (Some kind of header that is still a .daf file?)
