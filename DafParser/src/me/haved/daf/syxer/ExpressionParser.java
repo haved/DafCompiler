@@ -1,6 +1,7 @@
 package me.haved.daf.syxer;
 
 import me.haved.daf.data.expression.ArrayAccessExpression;
+import me.haved.daf.data.expression.BooleanConstantExpression;
 import me.haved.daf.data.expression.Expression;
 import me.haved.daf.data.expression.FunctionExpression;
 import me.haved.daf.data.expression.InfixOperatorExpression;
@@ -87,6 +88,9 @@ public class ExpressionParser {
 			return parseNumberConstant(bufferer);
 		case STRING_LITERAL:
 			return parseStringLiteral(bufferer);
+		case TRUE: //Fancy syntax
+		case FALSE:
+			return parseBooleanConstant(bufferer);
 		}
 		
 		if(!silent)
@@ -242,6 +246,13 @@ public class ExpressionParser {
 		Token token = bufferer.getCurrentToken();
 		bufferer.advance();
 		return new StringConstantExpression(token);
+	}
+	
+	public static BooleanConstantExpression parseBooleanConstant(TokenBufferer bufferer) {
+		Token token = bufferer.getCurrentToken();
+		bufferer.advance(); //Eat 'true' or 'false'
+		//logAssert(bufferer.isCurrentTokenOfType(TokenType.TRUE) || bufferer.isCurrentTokenOfType(TokenType.FALSE)); //Checked in constructor
+		return new BooleanConstantExpression(token);
 	}
 	
 	//Called by the () postfix operator

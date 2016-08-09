@@ -22,6 +22,6 @@ else
     a.b();
 a=~a;
     while(1) {
-        print("Eyo")
+        print(true);
     }
 };
