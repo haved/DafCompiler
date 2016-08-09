@@ -3,12 +3,15 @@ package me.haved.daf.syxer;
 import me.haved.daf.data.definition.Def;
 import me.haved.daf.data.definition.Definition;
 import me.haved.daf.data.definition.Let;
+import me.haved.daf.data.definition.ModuleDefinition;
 import me.haved.daf.data.expression.Expression;
 import me.haved.daf.data.type.Type;
 import me.haved.daf.lexer.tokens.Token;
 import me.haved.daf.lexer.tokens.TokenType;
 
 import static me.haved.daf.LogHelper.*;
+
+import java.util.ArrayList;
 
 public class DefinitionParser {
 	public static Definition parseDefinition(TokenBufferer bufferer) {
@@ -28,6 +31,7 @@ public class DefinitionParser {
 		}
 		
 		switch(type) {
+		case MODULE: return parseModule(bufferer, pub);
 		case LET: return parseLetStatement(bufferer, pub);
 		case DEF: return parseDefStatement(bufferer, pub);
 		default: break;
@@ -37,6 +41,36 @@ public class DefinitionParser {
 		return null;
 	}
 	
+	public static ModuleDefinition parseModule(TokenBufferer bufferer, boolean pub) {
+		logAssert(bufferer.isCurrentTokenOfType(TokenType.MODULE));
+		Token firstToken = bufferer.getCurrentToken();
+		bufferer.advance(); //Eat 'module'
+		if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
+			log(bufferer.getLastOrCurrent(), ERROR, "Expected an identifier after 'module'");
+			return null;
+		}
+		String name = bufferer.getCurrentToken().getText();
+		bufferer.advance(); //Eat the identifier;
+		if(!bufferer.isCurrentTokenOfType(TokenType.SCOPE_START)) {
+			log(bufferer.getLastOrCurrent(), ERROR, "Expected '{' after 'module %s'", name);
+			return null;
+		}
+		bufferer.advance(); //Eat the '{'
+		
+		ArrayList<Definition> definitions = new ArrayList<>();
+		SyntaxicParser.fillDefinitionList(definitions, bufferer);
+		
+		if(bufferer.isCurrentTokenOfType(TokenType.SCOPE_END))
+			bufferer.advance(); //Eat '}'
+		else
+			log(bufferer.getLastOrCurrent(), ERROR, "Expected the module '%s' to end with }", name);
+		
+		
+		ModuleDefinition output = new ModuleDefinition(name, definitions.toArray(new Definition[definitions.size()]), pub);
+		output.setPosition(firstToken, bufferer.getCurrentToken());
+		
+		return output;
+	}
 	
 	public static Let parseLetStatement(TokenBufferer bufferer, boolean pub) {
 		boolean uncertain = false;

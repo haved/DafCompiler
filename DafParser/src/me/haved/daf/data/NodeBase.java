@@ -26,8 +26,13 @@ public abstract class NodeBase implements Node {
 	public void setPosition(Token startToken, Token lastToken) {
 		line = startToken.getLine();
 		col = startToken.getCol();
-		endLine = lastToken.getLine();
-		endCol = lastToken.getEndCol();
+		if(lastToken != null) {
+			endLine = lastToken.getLine();
+			endCol = lastToken.getEndCol();
+		} else {
+			endLine = -1;
+			endCol = -1;
+		}
 	}
 	
 	@Override
