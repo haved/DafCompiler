@@ -10,6 +10,6 @@ module MyCode {
 
 let main:=(argc:int, argv:& &char):int {
     let mut uncertain answer:int;
-    MyCode.addToRef(5, 8, answer);
+    MyCode::addToRef(5, 8, answer);
     print(answer);
 };

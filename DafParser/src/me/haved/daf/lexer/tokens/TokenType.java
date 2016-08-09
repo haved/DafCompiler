@@ -25,6 +25,8 @@ public enum TokenType {
 	STRING_LITERAL(true), CHAR_LITERAL(true),
 	TRUE, FALSE, NULL,
 	
+	MODULE_ACCESS("::"),
+	
 	CLASS_ACCESS("."), DEREFERENCE("@"), POINTER_ACCESS("->"),
 	
 	PLUS("+"), MINUS("-"), MULT("*"), DIVIDE("/"), MODULO("%"),

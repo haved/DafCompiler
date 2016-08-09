@@ -10,6 +10,8 @@ public class Operators {
 	
 	public static enum InfixOperator {
 		
+		MODULE_ACCESS(TokenType.MODULE_ACCESS, 1000),
+		
 		CLASS_ACCESS(TokenType.CLASS_ACCESS, 100), POINTER_ACCESS(TokenType.POINTER_ACCESS, 100),
 		
 		MULT(TokenType.MULT, 70), DIVIDE(TokenType.DIVIDE, 70),

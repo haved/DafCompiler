@@ -43,7 +43,7 @@ public class TokenPicker {
 		finsihedTokens.add("->");
 		
 		mustBeFollowedBy.put("=", "=");
-		mustBeFollowedBy.put(":", "=");
+		mustBeFollowedBy.put(":", ":=");
 		mustBeFollowedBy.put("!", "=");
 		mustBeFollowedBy.put("+", "+=");
 		mustBeFollowedBy.put("-", "-=");
