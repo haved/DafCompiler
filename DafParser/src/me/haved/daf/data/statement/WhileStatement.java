@@ -18,7 +18,7 @@ public class WhileStatement extends NodeBase implements Statement, Expression{
 	
 	@Override
 	public String getSignature() {
-		return String.format("while(%s) %s", condition.getSignature(), action.getSignature());
+		return String.format("while(%s) %s", condition.getSignature(), action);
 	}
 
 	@Override

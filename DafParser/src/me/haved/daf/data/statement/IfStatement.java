@@ -23,8 +23,8 @@ public class IfStatement extends NodeBase implements Statement {
 	
 	@Override
 	public String getSignature() {
-		return elseAction == null ? String.format("if(%s)\n%s", conditional.getSignature(), action.getSignature()) :
-			String.format("if(%s)\n%s\nelse\n%s", conditional.getSignature(), action.getSignature(), elseAction.getSignature());
+		return elseAction == null ? String.format("if(%s)\n%s", conditional.getSignature(), action) :
+			String.format("if(%s)\n%s\nelse\n%s", conditional.getSignature(), action, elseAction);
 	}
 
 	@Override

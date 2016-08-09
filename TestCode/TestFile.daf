@@ -27,5 +27,11 @@ a=~a;
 for(let a:=4; a < 5; a++)
     print(a);
 for(;a<b;);
-for(;a;);
+for(;a;)
+if(noe) {
+    noeAnnet();;;;;;;;
+}
+else if(noeAnnetNoe);
+else
+    siste();
 };
