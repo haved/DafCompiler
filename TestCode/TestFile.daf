@@ -1,37 +1,7 @@
-let main:=(){
-let mut a:int=0;
-a=a+b*c; //a+(b*c)
-a=&a+b*c; //(&a)+(b*c)
-a=-a+b; //(-a)+b;
-a=&a+b; //&(a[0])+b
-a=a-b*c+d; //(a-(b*c))+d //Rule: once an operator with the same precedence is found, it is closer to the root.
-a=a.b+g.c; //(a.b)()+((g.c)()())
-a();
-a.b();
-a=-b.c()*4;
-a=&a[a];
-C++;
-++c;
-a=c++;
-if(a==3) {
-    print("Test");
-}
-else if a
-    print("Test");
-else
-    a.b();
-a=~a;
-    while(1) {
-        print(true);
-    }
-for(let a:=4; a < 5; a++)
-    print(a);
-for(;a<b;);
-for(;a;)
-if(noe) {
-    noeAnnet();;;;;;;;
-}
-else if(noeAnnetNoe);
-else
-    siste();
+module MyCode {
+
+};
+
+let main:=(argc:int, argv:&&char):int {
+
 };

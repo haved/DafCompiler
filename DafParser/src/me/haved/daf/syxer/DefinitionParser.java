@@ -20,8 +20,10 @@ public class DefinitionParser {
 		TokenType type = bufferer.getCurrentToken().getType();
 		if(type == TokenType.PUB) {
 			pub = true;
-			if(!advanceOrComplain(bufferer, "a definition"))
+			if(!bufferer.advance()) {
+				log(bufferer.getLastToken(), ERROR, "Expected a defintion after '%s'", TokenType.PUB);
 				return null;
+			}
 			type = bufferer.getCurrentToken().getType();
 		}
 		
@@ -31,11 +33,11 @@ public class DefinitionParser {
 		default: break;
 		}
 		
-		log(bufferer.getCurrentToken(), ERROR, "Couldn't parse definition from token");
+		log(bufferer.getCurrentToken(), ERROR, "Expected a definition");
 		return null;
 	}
 	
-	private static final String LET_DURING = "a let statement";
+	
 	public static Let parseLetStatement(TokenBufferer bufferer, boolean pub) {
 		boolean uncertain = false;
 		boolean mut = false;
@@ -48,16 +50,16 @@ public class DefinitionParser {
 				if(uncertain)
 					log(bufferer.getCurrentToken(), WARNING, "Let declared as uncertain twice");
 				uncertain = true;
-				if(!advanceOrComplain(bufferer, LET_DURING))
-					return null;
 			} else if(bufferer.isCurrentTokenOfType(TokenType.MUT)) {
 				if(mut)
 					log(bufferer.getCurrentToken(), WARNING, "Let declared as mutable twice");
 				mut = true;
-				if(!advanceOrComplain(bufferer, LET_DURING))
-						return null;
-			} else {
+			} else { //elseOr would also be cool daf syntax
 				log(bufferer.getCurrentToken(), ERROR, "Expected an identifer after %s", TokenType.LET);
+				return null;
+			}
+			if(!bufferer.advance()) {
+				log(bufferer.getLastToken(), ERROR, "Expected an idenftifier after %s. Not EOF", TokenType.LET);
 				return null;
 			}
 		}
@@ -150,13 +152,5 @@ public class DefinitionParser {
 			return null; //The expression parser prints errors
 		
 		return new NameTypeExpr(identifier, type, exp);
-	}
-	
-	private static boolean advanceOrComplain(TokenBufferer bufferer, String during) {
-		if(!bufferer.advance()) {
-			log(bufferer.getLastToken(), ERROR, "Expected more when parsing %s. Not EOF!", during);
-			return false;
-		}
-		return true;
 	}
 }
