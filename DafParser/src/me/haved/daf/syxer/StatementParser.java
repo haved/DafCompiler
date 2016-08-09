@@ -112,7 +112,7 @@ public class StatementParser {
 						break;
 					bufferer.advance();
 				}
-				log(firstToken, ERROR, "Skipped '%s' to try to find the next statement", skipped.toString());
+				log(firstToken, WARNING, "Skipped '%s' to try to find the next statement", skipped.toString());
 			}
 		} else if(bufferer.isCurrentTokenOfType(endToken))
 			bufferer.advance();
