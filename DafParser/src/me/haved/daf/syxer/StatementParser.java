@@ -5,6 +5,7 @@ import me.haved.daf.data.definition.Let;
 import me.haved.daf.data.expression.Expression;
 import me.haved.daf.data.statement.ForStatement;
 import me.haved.daf.data.statement.IfStatement;
+import me.haved.daf.data.statement.ReturnStatement;
 import me.haved.daf.data.statement.ScopeStatement;
 import me.haved.daf.data.statement.Statement;
 import me.haved.daf.data.statement.WhileStatement;
@@ -51,6 +52,7 @@ public class StatementParser {
 		switch(type) {
 		case LET: output = parseLetStatement(bufferer); break;
 		case DEF: output = parseDefStatement(bufferer); break;
+		case RETURN: output = parseReturnStatement(bufferer); break;
 		default: wrong = true; break;
 		}
 		if(wrong) //Try parsing an expression instead
@@ -144,6 +146,18 @@ public class StatementParser {
 		bufferer.advance(); //Eat the '}'
 		return output;
 	}
+	
+	
+	private static ReturnStatement parseReturnStatement(TokenBufferer bufferer) {
+		logAssert(bufferer.isCurrentTokenOfType(TokenType.RETURN));
+		Token firstToken = bufferer.getCurrentToken();
+		bufferer.advance(); //Eat 'return'
+		Expression value = ExpressionParser.parseExpression(bufferer);
+		if(value == null)
+			return null;
+		return new ReturnStatement(value).setStart(firstToken);
+	}
+	
 	/**
 	 * Reads from the bufferer and parses a Let statement. Leaves the bufferer right at the semi-colon / after the expression
 	 * 

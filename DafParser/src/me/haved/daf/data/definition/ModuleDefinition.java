@@ -27,8 +27,8 @@ public class ModuleDefinition extends NodeBase implements Definition {
 				builder.append(definitons[i]).append("\n");
 			}
 			builder.append("}");
-		} else
-			builder.append(";");
+		}
+		builder.append(";");
 		return builder.toString();
 	}
 

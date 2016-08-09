@@ -67,7 +67,7 @@ public class DefinitionParser {
 		
 		
 		ModuleDefinition output = new ModuleDefinition(name, definitions.toArray(new Definition[definitions.size()]), pub);
-		output.setPosition(firstToken, bufferer.getCurrentToken());
+		output.setPosition(firstToken, bufferer.hasCurrentToken()?bufferer.getCurrentToken():null);
 		
 		return output;
 	}

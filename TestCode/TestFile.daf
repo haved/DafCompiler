@@ -1,7 +1,7 @@
 module MyCode {
     let add:=(a:int, b:int):int/*inline*/{
-        let mut c:=a+b;
-        //return a+b;
+        let c:=a+b;
+        return c;
     };
     let addToRef:=(a:int, b:int, &mut c:int) {
         c=a+b;
