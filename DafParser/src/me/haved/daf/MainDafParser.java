@@ -132,13 +132,39 @@ public class MainDafParser {
 		LiveTokenizer tokenizer = new LiveTokenizer(inputFile, macros); //The future is here
 		terminateIfErrorsOccured(); //Highly unlikely, but might happen (?)
 		List<Definition> definitions = SyntaxicParser.getDefinitions(inputFile, tokenizer);
-		
 		if(definitions != null)
 			for(Definition d:definitions) {
 				println(d.getSignature());
 			}
 		
-		terminateIfErrorsOccured();
+		terminateIfErrorsOccured(); //A lot more likely
+		
+		File outputDir = new File(outputDirName);
+		String pathBase = getPathAndFirstName(inputFileObject, outputDir);
+		File cppOutput = new File(pathBase+".cpp");
+		File hOutput   = new File(pathBase+".h");
+		assureFiles(outputDir, cppOutput, hOutput);
+		
+		
+	}
+	
+	private static void assureFiles(File outputDir, File cppOutput, File hOutput) {
+		if(outputDir.isFile())
+			log(FATAL_ERROR, "The supplied output directory is a file!");
+		if(!outputDir.isDirectory())
+			log(FATAL_ERROR, "The supplied output directory doesn't exist!");
+		if(!cppOutput.canWrite())
+			log(FATAL_ERROR, "Can't write to '%s'", cppOutput.getPath());
+		else if(!hOutput.canWrite())
+			log(FATAL_ERROR, "Can't write to '%s'", hOutput  .getPath());
+	}
+	
+	private static String getPathAndFirstName(File inputFileObject, File outputDir) {
+		String fullInfileName = inputFileObject.getName();
+		int indexOfDot = fullInfileName.indexOf('.');
+		String firstName = indexOfDot < 0 ? fullInfileName : fullInfileName.substring(0, indexOfDot);
+		
+		return outputDir.getPath()+File.pathSeparatorChar + firstName;
 	}
 	
 	private static void doOnlyPreproc(String infileName, String outputDirName, MacroMap macros) {
