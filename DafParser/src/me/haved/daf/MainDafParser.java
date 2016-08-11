@@ -14,6 +14,7 @@ import me.haved.daf.args.CommandOption;
 import me.haved.daf.args.HelpOption;
 import me.haved.daf.args.MacroOption;
 import me.haved.daf.args.PreprocOnlyOption;
+import me.haved.daf.codegen.MainCodegen;
 import me.haved.daf.data.definition.Definition;
 import me.haved.daf.lexer.LiveTokenizer;
 import me.haved.daf.lexer.text.PreProcessor;
@@ -145,7 +146,7 @@ public class MainDafParser {
 		File hOutput   = new File(pathBase+".h");
 		assureFiles(outputDir, cppOutput, hOutput);
 		
-		
+		MainCodegen.generateCppAndHeader(definitions, cppOutput, hOutput);
 	}
 	
 	private static void assureFiles(File outputDir, File cppOutput, File hOutput) {
