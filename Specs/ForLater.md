@@ -24,6 +24,7 @@ Let's just say there is a story behind every point on this list.
 - Don't just print the token when logging
 - Maybe pack '()', '[]' and '{}' together when tokenizing, to make error recovery easier
 - Allow logger to use same token as previous log message
+- Format logging like: '<token>: error: Expected primary-expression before <token>'
 
 ####Main problems:
 - **Find a way of storing libraries** (Some kind of header that is still a .daf file?)
