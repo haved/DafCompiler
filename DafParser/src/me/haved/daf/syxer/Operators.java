@@ -30,7 +30,12 @@ public class Operators {
 		
 		LOGICAL_AND(TokenType.LOGICAL_AND, 8), LOGICAL_OR(TokenType.LOGICAL_OR, 6),
 		
-		ASSIGN(TokenType.ASSIGN, 4, true);
+		ASSIGN(TokenType.ASSIGN, 4, true),
+		PLUS_ASSIGN(TokenType.PLUS_EQUALS, 4, true), MINUS_ASSIGN(TokenType.MINUS_EQUALS, 4, true),
+		MULT_ASSIGN(TokenType.MULT_EQUALS, 4, true), DIV_ASSIGN(TokenType.ASSIGN, 4, true), MOD_ASSIGN(TokenType.ASSIGN, 4, true),
+		LEFT_SHIFT_ASSIGN(TokenType.SHIFT_LEFT_EQUALS, 4, true), RIGHT_SHIFT_ASSIGN(TokenType.ARITHMETIC_SHIFT_RIGHT_EQUALS, 4, true),
+		BIT_AND_ASSIGN(TokenType.BITWISE_AND_EQUALS, 4, true), BIT_XOR_ASSIGN(TokenType.XOR_EQUALS, 4, true), 
+		OR_ASSIGN(TokenType.BITWISE_OR_EQUALS, 4, true);
 		
 		private TokenType tokenType;
 		private int precedence;
