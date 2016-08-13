@@ -1,6 +1,6 @@
 import string, memcpy from daf.memory;
 
-pub class String<T> {
+pub typedef String:=class<T> {
     text:&T;
     final len:int; //Perhaps a final keyword?
 
@@ -25,7 +25,7 @@ pub class String<T> {
     pub ~String() { //If the class was virtual, demand that this too is virtual
         delete[] text; //Checks if it's 0 automaticly
     }
-
+    
     pub const method get():&T {
         return text;
     }
