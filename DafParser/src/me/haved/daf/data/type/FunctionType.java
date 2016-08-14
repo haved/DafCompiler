@@ -44,17 +44,18 @@ public class FunctionType extends NodeBase implements Type {
 	public String getCppSignature(String name) {
 		StringBuilder out = new StringBuilder();
 		if(returnType != null)
-			out.append(returnType).append(" ");
+			out.append(returnType.codegenCpp()).append(" ");
 		else
 			out.append("void ");
 		out.append(name).append("(");
-		for(int i = 0; i < params.length; i++) {
-			if(i != 0)
-				out.append(", ");
-			out.append(params[i].getType().codegenCpp());
-			if(params[i].getName()!=null)
-				out.append(" ").append(params[i].getName());
-		}
+		if(params != null)
+			for(int i = 0; i < params.length; i++) {
+				if(i != 0)
+					out.append(", ");
+				out.append(params[i].getType().codegenCpp());
+				if(params[i].getName()!=null)
+					out.append(" ").append(params[i].getName());
+			}
 		out.append(")");
 		return out.toString();
 	}

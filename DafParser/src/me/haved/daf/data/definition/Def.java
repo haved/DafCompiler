@@ -44,10 +44,12 @@ public class Def extends NodeBase implements Definition, Statement {
 	public void codegenDefinitionCpp(PrintWriter cpp, PrintWriter h) {
 		if(expression == null) {
 			h.print("extern ");
-			if(type instanceof FunctionType)
-				h.println(((FunctionType) type).getCppSignature(name));
+			if(type instanceof FunctionType) {
+				h.print(((FunctionType) type).getCppSignature(name));
+				h.println(";");
+			}
 			else
-				h.printf("%s %s;%n", name, type.codegenCpp());
+				h.printf("%s %s;%n", type.codegenCpp(), name);
 		}
 		else if(expression instanceof FunctionExpression)
 			((FunctionExpression) expression).codegenCppAsFunction(cpp, h, name);

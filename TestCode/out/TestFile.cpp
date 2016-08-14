@@ -1,2 +1,3 @@
 namespace MyCode {
 }
+void main(){}

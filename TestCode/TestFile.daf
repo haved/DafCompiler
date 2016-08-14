@@ -1,5 +1,6 @@
 module MyCode {
     def a:int;
+    def call:(a:&mut int, b:int):int;
 };
 
 let a:=5;
