@@ -63,10 +63,22 @@ public class FunctionCall extends NodeBase implements Statement, Expression {
 	@Override
 	public void codegenStatementCpp(PrintWriter cpp) {
 		codegenExpressionCpp(cpp);
+		cpp.println(";");
 	}
 	
 	@Override
 	public void codegenExpressionCpp(PrintWriter cpp) {
-		logAssert(false);
+		expression.codegenExpressionCpp(cpp);
+		if(parameters == null || parameters.length == 0)
+			cpp.print("()");
+		else {
+			cpp.print("(");
+			for(int i = 0; i < parameters.length; i++) {
+				if(i != 0)
+					cpp.print(", ");
+				parameters[i].codegenExpressionCpp(cpp);
+			}
+			cpp.print(")");
+		}
 	}
 }

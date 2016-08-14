@@ -32,6 +32,12 @@ public class ScopeStatement extends NodeBase implements Statement{
 	
 	@Override
 	public void codegenStatementCpp(PrintWriter cpp) {
-		logAssert(false);
+		if(statements != null)
+		cpp.println("{ ");
+		for(Statement statement:statements) {
+			logAssert(statement != null); //No real point, but rehearsing for later, you know.
+			statement.codegenStatementCpp(cpp);
+		}
+		cpp.println("}");
 	}
 }

@@ -3,8 +3,6 @@ module MyCode {
     def call:(a:&mut int, b:int):int;
 };
 
-let a:=5;
-
 def main:=() {
     print("Hi!");
 };

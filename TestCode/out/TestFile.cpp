@@ -1,3 +1,5 @@
 namespace MyCode {
 }
-void main(){}
+void main(){ 
+print("Hi!");
+}
