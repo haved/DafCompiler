@@ -1,9 +1,11 @@
 package me.haved.daf.data.definition;
 
+import java.io.PrintWriter;
+
 import me.haved.daf.data.Node;
 
 public interface Definition extends Node {
-	//void print(PrintStream out);
+	public boolean isPublic();
 	
-	boolean isPublic();
+	public void codegenCpp(PrintWriter cpp, PrintWriter h);
 }

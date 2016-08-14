@@ -23,6 +23,8 @@ public class MainCodegen {
 	}
 	
 	private static void writeCpp(List<Definition> definitions, PrintWriter cpp, PrintWriter h) {
-		
+		for(int i = 0; i < definitions.size(); i++) {
+			definitions.get(i).codegenCpp(cpp, h);
+		}
 	}
 }

@@ -1,5 +1,7 @@
 package me.haved.daf.data.definition;
 
+import java.io.PrintWriter;
+
 import me.haved.daf.data.NodeBase;
 import me.haved.daf.data.expression.Expression;
 import me.haved.daf.data.statement.Statement;
@@ -41,5 +43,10 @@ public class Let extends NodeBase implements Definition, Statement {
 	@Override
 	public boolean isValidStatement() {
 		return true;
+	}
+
+	@Override
+	public void codegenCpp(PrintWriter cpp, PrintWriter h) {
+		
 	}
 }

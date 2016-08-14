@@ -1,5 +1,7 @@
 package me.haved.daf.data.definition;
 
+import java.io.PrintWriter;
+
 import me.haved.daf.data.NodeBase;
 
 public class ImportDefinition extends NodeBase implements Definition {
@@ -12,5 +14,10 @@ public class ImportDefinition extends NodeBase implements Definition {
 	@Override
 	public boolean isPublic() {
 		return false;
+	}
+
+	@Override
+	public void codegenCpp(PrintWriter cpp, PrintWriter h) {
+		
 	}
 }

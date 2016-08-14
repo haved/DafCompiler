@@ -1,9 +1,10 @@
 package me.haved.daf.data.definition;
 
+import java.io.PrintWriter;
+
 import me.haved.daf.data.NodeBase;
 
 public class ModuleDefinition extends NodeBase implements Definition {
-	
 	private String name;
 	private Definition[] definitons;
 	private boolean pub;
@@ -35,5 +36,16 @@ public class ModuleDefinition extends NodeBase implements Definition {
 	@Override
 	public boolean isPublic() {
 		return false;
+	}
+
+	@Override
+	public void codegenCpp(PrintWriter cpp, PrintWriter h) {
+		cpp.printf("namespace %s {%n", name);
+		h.printf("namespace %s {%n", name);
+		for(Definition def:definitons) {
+			def.codegenCpp(cpp, h);
+		}
+		cpp.println("}");
+		cpp.println("}");
 	}
 }

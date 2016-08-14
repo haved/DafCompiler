@@ -1,8 +1,12 @@
 package me.haved.daf.data.type;
 
+import java.io.PrintWriter;
+
 import me.haved.daf.data.NodeBase;
 import me.haved.daf.data.statement.FunctionParameter;
 import me.haved.daf.lexer.tokens.TokenType;
+
+import static me.haved.daf.LogHelper.*;
 
 public class FunctionType extends NodeBase implements Type {	
 	private final FunctionParameter[] params;
@@ -31,5 +35,10 @@ public class FunctionType extends NodeBase implements Type {
 	@Override
 	public boolean isInteger() {
 		return false;
+	}
+
+	@Override
+	public void codegenCpp(PrintWriter out) {
+		logAssert(false);
 	}
 }

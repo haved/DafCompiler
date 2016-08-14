@@ -1,15 +1,7 @@
 module MyCode {
-    let add:=(a:int, b:int):int/*inline*/{
-        let c:=a+b;
-        return c;
-    };
-    let addToRef:=(a:int, b:int, &mut c:int) {
-        c=a+b;
-    };
+
 };
 
-let main:=(argc:int, argv:& &char):int {
-    let mut uncertain answer:int;
-    MyCode::addToRef(5, 8, answer);
-    print(answer);
+def main:=() {
+    print("Hi!");
 };

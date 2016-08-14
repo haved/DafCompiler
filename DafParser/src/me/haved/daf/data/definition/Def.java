@@ -1,12 +1,13 @@
 package me.haved.daf.data.definition;
 
+import java.io.PrintWriter;
+
 import me.haved.daf.data.NodeBase;
 import me.haved.daf.data.expression.Expression;
 import me.haved.daf.data.statement.Statement;
 import me.haved.daf.data.type.Type;
 
 public class Def extends NodeBase implements Definition, Statement {
-	
 	private String name;
 	private Type type;
 	private Expression expression;
@@ -35,5 +36,14 @@ public class Def extends NodeBase implements Definition, Statement {
 	@Override
 	public boolean isValidStatement() {
 		return true;
+	}
+
+	@Override
+	public void codegenCpp(PrintWriter cpp, PrintWriter h) {
+		if(expression == null) {
+			h.print("extern ");
+			type.codegenCpp(h);
+			h.printf(" %s;%n", name);
+		}
 	}
 }

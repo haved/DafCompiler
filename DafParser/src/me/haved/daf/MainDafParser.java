@@ -136,9 +136,9 @@ public class MainDafParser {
 			log(FATAL_ERROR, "The supplied output directory is a file!");
 		if(!outputDir.isDirectory())
 			log(FATAL_ERROR, "The supplied output directory doesn't exist!");
-		if(!cppOutput.canWrite())
+		if(cppOutput.isFile() && !cppOutput.canWrite())
 			log(FATAL_ERROR, "Can't write to '%s'", cppOutput.getPath());
-		else if(!hOutput.canWrite())
+		else if(hOutput.isFile() && !hOutput.canWrite())
 			log(FATAL_ERROR, "Can't write to '%s'", hOutput  .getPath());
 		
 		RegisteredFile inputFile = RegisteredFile.registerNewFile(inputFileObject, infileName);
@@ -150,7 +150,7 @@ public class MainDafParser {
 		int indexOfDot = fullInfileName.indexOf('.');
 		String firstName = indexOfDot < 0 ? fullInfileName : fullInfileName.substring(0, indexOfDot);
 		
-		return outputDir.getPath()+File.pathSeparatorChar + firstName;
+		return outputDir.getPath()+File.separatorChar + firstName;
 	}
 	
 	private static void parseFile(RegisteredFile inputFile, File cppOutput, File hOutput, MacroMap macros) {
