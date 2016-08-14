@@ -64,6 +64,10 @@ public class Def extends NodeBase implements Definition, Statement {
 
 	@Override
 	public void codegenStatementCpp(PrintWriter cpp) {
-		logAssert(false);
+		logAssert(!pub);
+		logAssert(expression!=null);
+		cpp.printf("#define %s ", name);
+		expression.codegenExpressionCpp(cpp);
+		cpp.println();
 	}
 }
