@@ -2,5 +2,5 @@
 namespace MyCode {
 }
 void main(){ 
-print("Hi!");
+printf("Hi!");
 }

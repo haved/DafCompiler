@@ -55,6 +55,11 @@ public class Def extends NodeBase implements Definition, Statement {
 		}
 		else if(expression instanceof FunctionExpression)
 			((FunctionExpression) expression).codegenCppAsFunction(cpp, h, name);
+		else {
+			h.printf("#define %s ", name);
+			expression.codegenExpressionCpp(h);
+			h.println();
+		}
 	}
 
 	@Override
