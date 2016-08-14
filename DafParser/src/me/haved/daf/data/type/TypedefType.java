@@ -1,7 +1,5 @@
 package me.haved.daf.data.type;
 
-import java.io.PrintWriter;
-
 public class TypedefType implements Type {
 	
 	private String ident;
@@ -21,7 +19,7 @@ public class TypedefType implements Type {
 	}
 
 	@Override
-	public void codegenCpp(PrintWriter out) {
-		
+	public String codegenCpp() {
+		return null;
 	}
 }

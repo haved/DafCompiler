@@ -39,13 +39,13 @@ public class ModuleDefinition extends NodeBase implements Definition {
 	}
 
 	@Override
-	public void codegenCpp(PrintWriter cpp, PrintWriter h) {
+	public void codegenDefinitionCpp(PrintWriter cpp, PrintWriter h) {
 		cpp.printf("namespace %s {%n", name);
 		h.printf("namespace %s {%n", name);
 		for(Definition def:definitons) {
-			def.codegenCpp(cpp, h);
+			def.codegenDefinitionCpp(cpp, h);
 		}
 		cpp.println("}");
-		cpp.println("}");
+		h.println("}");
 	}
 }

@@ -17,7 +17,7 @@ public class ImportDefinition extends NodeBase implements Definition {
 	}
 
 	@Override
-	public void codegenCpp(PrintWriter cpp, PrintWriter h) {
+	public void codegenDefinitionCpp(PrintWriter cpp, PrintWriter h) {
 		
 	}
 }

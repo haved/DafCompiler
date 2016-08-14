@@ -7,5 +7,5 @@ import me.haved.daf.data.Node;
 public interface Definition extends Node {
 	public boolean isPublic();
 	
-	public void codegenCpp(PrintWriter cpp, PrintWriter h);
+	public void codegenDefinitionCpp(PrintWriter cpp, PrintWriter h);
 }

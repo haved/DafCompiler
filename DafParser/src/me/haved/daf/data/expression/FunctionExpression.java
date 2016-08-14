@@ -3,19 +3,20 @@ package me.haved.daf.data.expression;
 import me.haved.daf.data.NodeBase;
 import me.haved.daf.data.statement.FunctionParameter;
 import me.haved.daf.data.statement.Statement;
+import me.haved.daf.data.type.FunctionType;
 import me.haved.daf.data.type.Type;
 import me.haved.daf.lexer.tokens.Token;
 
 import static me.haved.daf.LogHelper.*;
 
+import java.io.PrintWriter;
+
 public class FunctionExpression extends NodeBase implements Expression {
-	private FunctionParameter[] params;
-	private Type returnType;
+	private FunctionType type;
 	private Statement statement;
 	
 	public FunctionExpression(FunctionParameter[] params, Type returnType, Statement statement) {
-		this.params = params;
-		this.returnType = returnType;
+		this.type = new FunctionType(params, returnType);
 		this.statement = statement;
 		logAssert(statement != null || statement == null); //TODO: Not this
 		if(statement != null) {
@@ -28,15 +29,15 @@ public class FunctionExpression extends NodeBase implements Expression {
 	public String getSignature() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("(");
-		if(params != null)
-			for(int i = 0; i < params.length; i++) {
+		if(type.params != null)
+			for(int i = 0; i < type.params.length; i++) {
 				if(i!=0)
 					builder.append(", ");
-				builder.append(params[i].getSignature());
+				builder.append(type.params[i].getSignature());
 			}
 		builder.append(")");
-		if(returnType != null) {
-			builder.append(":").append(returnType.getSignature());
+		if(type.returnType != null) {
+			builder.append(":").append(type.returnType.getSignature());
 		}
 		builder.append(" ");
 		if(statement != null) //Should never be null, but oh well
@@ -49,5 +50,17 @@ public class FunctionExpression extends NodeBase implements Expression {
 		this.line = token.getLine();
 		this.col = token.getCol();
 		return this;
+	}
+	
+	public FunctionType getType() {
+		return type;
+	}
+
+	public void codegenCppAsFunction(PrintWriter cpp, PrintWriter h, String name) {
+		String signature = type.getCppSignature(name);
+		h.print(signature);
+		h.println(";");
+		cpp.print(signature);
+		cpp.println("{}");
 	}
 }

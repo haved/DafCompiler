@@ -46,7 +46,7 @@ public class Let extends NodeBase implements Definition, Statement {
 	}
 
 	@Override
-	public void codegenCpp(PrintWriter cpp, PrintWriter h) {
+	public void codegenDefinitionCpp(PrintWriter cpp, PrintWriter h) {
 		
 	}
 }

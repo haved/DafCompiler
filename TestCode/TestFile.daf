@@ -1,6 +1,8 @@
 module MyCode {
-
+    def a:int;
 };
+
+let a:=5;
 
 def main:=() {
     print("Hi!");

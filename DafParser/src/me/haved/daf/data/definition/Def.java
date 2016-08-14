@@ -4,7 +4,9 @@ import java.io.PrintWriter;
 
 import me.haved.daf.data.NodeBase;
 import me.haved.daf.data.expression.Expression;
+import me.haved.daf.data.expression.FunctionExpression;
 import me.haved.daf.data.statement.Statement;
+import me.haved.daf.data.type.FunctionType;
 import me.haved.daf.data.type.Type;
 
 public class Def extends NodeBase implements Definition, Statement {
@@ -39,11 +41,15 @@ public class Def extends NodeBase implements Definition, Statement {
 	}
 
 	@Override
-	public void codegenCpp(PrintWriter cpp, PrintWriter h) {
+	public void codegenDefinitionCpp(PrintWriter cpp, PrintWriter h) {
 		if(expression == null) {
 			h.print("extern ");
-			type.codegenCpp(h);
-			h.printf(" %s;%n", name);
+			if(type instanceof FunctionType)
+				h.println(((FunctionType) type).getCppSignature(name));
+			else
+				h.printf("%s %s;%n", name, type.codegenCpp());
 		}
+		else if(expression instanceof FunctionExpression)
+			((FunctionExpression) expression).codegenCppAsFunction(cpp, h, name);
 	}
 }

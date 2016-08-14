@@ -16,6 +16,10 @@ public class MainCodegen {
 			PrintWriter cppOut = new PrintWriter(new FileWriter(cppFile));
 			PrintWriter hOut   = new PrintWriter(new FileWriter(header));
 			writeCpp(definitions, cppOut, hOut);
+			cppOut.flush();
+			hOut.flush();
+			cppOut.close();
+			hOut.close();
 		} catch(IOException e) {
 			e.printStackTrace();
 			log(FATAL_ERROR, "Failed to open file writer for output files");
@@ -24,7 +28,7 @@ public class MainCodegen {
 	
 	private static void writeCpp(List<Definition> definitions, PrintWriter cpp, PrintWriter h) {
 		for(int i = 0; i < definitions.size(); i++) {
-			definitions.get(i).codegenCpp(cpp, h);
+			definitions.get(i).codegenDefinitionCpp(cpp, h);
 		}
 	}
 }

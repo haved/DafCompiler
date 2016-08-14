@@ -1,7 +1,5 @@
 package me.haved.daf.data.type;
 
-import java.io.PrintWriter;
-
 import me.haved.daf.lexer.tokens.TokenType;
 
 public enum Primitive implements Type {
@@ -44,8 +42,8 @@ public enum Primitive implements Type {
 	}
 	
 	@Override
-	public void codegenCpp(PrintWriter out) {
-		out.print(cppName);
+	public String codegenCpp() {
+		return cppName;
 	}
 	
 	public static Primitive getPrimitiveForType(TokenType type) {
