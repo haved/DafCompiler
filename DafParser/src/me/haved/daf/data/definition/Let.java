@@ -1,5 +1,7 @@
 package me.haved.daf.data.definition;
 
+import static me.haved.daf.LogHelper.logAssert;
+
 import java.io.PrintWriter;
 
 import me.haved.daf.data.NodeBase;
@@ -48,5 +50,10 @@ public class Let extends NodeBase implements Definition, Statement {
 	@Override
 	public void codegenDefinitionCpp(PrintWriter cpp, PrintWriter h) {
 		
+	}
+	
+	@Override
+	public void codegenStatementCpp(PrintWriter cpp) {
+		logAssert(false);
 	}
 }

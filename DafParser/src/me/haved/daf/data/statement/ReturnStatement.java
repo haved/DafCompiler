@@ -6,6 +6,8 @@ import me.haved.daf.lexer.tokens.Token;
 
 import static me.haved.daf.LogHelper.*;
 
+import java.io.PrintWriter;
+
 public class ReturnStatement extends NodeBase implements Statement{
 
 	private Expression value;
@@ -31,5 +33,10 @@ public class ReturnStatement extends NodeBase implements Statement{
 	@Override
 	public boolean isValidStatement() {
 		return true;
+	}
+	
+	@Override
+	public void codegenStatementCpp(PrintWriter cpp) {
+		logAssert(false);
 	}
 }

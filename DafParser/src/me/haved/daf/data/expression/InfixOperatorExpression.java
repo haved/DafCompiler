@@ -1,9 +1,13 @@
 package me.haved.daf.data.expression;
 
+import java.io.PrintWriter;
+
 import me.haved.daf.data.NodeBase;
 import me.haved.daf.data.statement.Statement;
 import me.haved.daf.syxer.Operators.InfixOperator;
 
+import static me.haved.daf.LogHelper.*
+;
 public class InfixOperatorExpression extends NodeBase implements Expression, Statement {
 	
 	private Expression LHS, RHS;
@@ -31,5 +35,16 @@ public class InfixOperatorExpression extends NodeBase implements Expression, Sta
 	@Override
 	public boolean isValidStatement() {
 		return op.isStatement();
+	}
+
+	@Override
+	public void codegenStatementCpp(PrintWriter cpp) {
+		logAssert(isValidStatement());
+		
+	}
+	
+	@Override
+	public void codegenExpressionCpp(PrintWriter cpp) {
+		logAssert(false);
 	}
 }

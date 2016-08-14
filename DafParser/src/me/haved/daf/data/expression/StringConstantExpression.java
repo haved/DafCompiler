@@ -6,6 +6,8 @@ import me.haved.daf.lexer.tokens.TokenType;
 
 import static me.haved.daf.LogHelper.*;
 
+import java.io.PrintWriter;
+
 public class StringConstantExpression extends NodeBase implements Expression {
 
 	private String text;
@@ -20,5 +22,9 @@ public class StringConstantExpression extends NodeBase implements Expression {
 	public String getSignature() {
 		return String.format("\"%s\"", text);
 	}
-
+	
+	@Override
+	public void codegenExpressionCpp(PrintWriter cpp) {
+		cpp.printf("\"%s\"", text);
+	}
 }

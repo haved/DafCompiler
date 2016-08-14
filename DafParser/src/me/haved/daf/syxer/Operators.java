@@ -129,6 +129,16 @@ public class Operators {
 		public boolean isStatement() {
 			return statement;
 		}
+		
+		public String getCppName() {
+			if(this == DEREFERENCE)
+				return "*";
+			else if(this == MUT_ADDRESS)
+				return "&";
+			else if(this == SHARED_ADDRESS || this == UNIQUE_ADDRESS)
+				logAssert(false);
+			return tokenType.getText();
+		}
 	}
 	
 	/**

@@ -5,6 +5,8 @@ import me.haved.daf.data.expression.Expression;
 
 import static me.haved.daf.LogHelper.*;
 
+import java.io.PrintWriter;
+
 public class ForStatement extends NodeBase implements Statement {
     
     private Statement initial;
@@ -29,4 +31,9 @@ public class ForStatement extends NodeBase implements Statement {
     public boolean isValidStatement() {
     	return true;
     }
+    
+    @Override
+	public void codegenStatementCpp(PrintWriter cpp) {
+		logAssert(false);
+	}
 }

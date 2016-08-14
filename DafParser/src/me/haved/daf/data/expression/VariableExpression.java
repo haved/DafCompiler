@@ -1,5 +1,7 @@
 package me.haved.daf.data.expression;
 
+import java.io.PrintWriter;
+
 import me.haved.daf.data.NodeBase;
 import me.haved.daf.lexer.tokens.Token;
 
@@ -23,5 +25,10 @@ public class VariableExpression extends NodeBase implements Expression {
 	public VariableExpression setPosition(Token token) {
 		super.setPosition(token, token);
 		return this;
+	}
+	
+	@Override
+	public void codegenExpressionCpp(PrintWriter cpp) {
+		cpp.print(name);
 	}
 }

@@ -6,6 +6,8 @@ import me.haved.daf.lexer.tokens.TokenType;
 
 import static me.haved.daf.LogHelper.*;
 
+import java.io.PrintWriter;
+
 public class BooleanConstantExpression extends NodeBase implements Expression {
 
 	private boolean value;
@@ -21,5 +23,10 @@ public class BooleanConstantExpression extends NodeBase implements Expression {
 	@Override
 	public String getSignature() {
 		return value ? "true" : "false";
+	}
+	
+	@Override
+	public void codegenExpressionCpp(PrintWriter cpp) {
+		logAssert(false);
 	}
 }

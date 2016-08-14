@@ -9,6 +9,8 @@ import me.haved.daf.data.statement.Statement;
 import me.haved.daf.data.type.FunctionType;
 import me.haved.daf.data.type.Type;
 
+import static me.haved.daf.LogHelper.*;
+;
 public class Def extends NodeBase implements Definition, Statement {
 	private String name;
 	private Type type;
@@ -53,5 +55,10 @@ public class Def extends NodeBase implements Definition, Statement {
 		}
 		else if(expression instanceof FunctionExpression)
 			((FunctionExpression) expression).codegenCppAsFunction(cpp, h, name);
+	}
+
+	@Override
+	public void codegenStatementCpp(PrintWriter cpp) {
+		logAssert(false);
 	}
 }

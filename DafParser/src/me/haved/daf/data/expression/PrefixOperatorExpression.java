@@ -1,5 +1,9 @@
 package me.haved.daf.data.expression;
 
+import static me.haved.daf.LogHelper.logAssert;
+
+import java.io.PrintWriter;
+
 import me.haved.daf.data.NodeBase;
 import me.haved.daf.data.statement.Statement;
 import me.haved.daf.lexer.tokens.Token;
@@ -40,5 +44,17 @@ public class PrefixOperatorExpression extends NodeBase implements Expression, St
 	@Override
 	public boolean isValidStatement() {
 		return op.isStatement();
+	}
+	
+	@Override
+	public void codegenExpressionCpp(PrintWriter cpp) {
+		cpp.print(op.getCppName());
+		Expression.packExpressionInParenthesies(cpp, exp);
+	}
+	
+	@Override
+	public void codegenStatementCpp(PrintWriter cpp) {
+		logAssert(isValidStatement());
+		codegenExpressionCpp(cpp);
 	}
 }

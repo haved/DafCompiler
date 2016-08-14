@@ -5,6 +5,8 @@ import me.haved.daf.data.expression.Expression;
 
 import static me.haved.daf.LogHelper.*;
 
+import java.io.PrintWriter;
+
 public class IfStatement extends NodeBase implements Statement {
 
 	private Expression conditional;
@@ -30,5 +32,10 @@ public class IfStatement extends NodeBase implements Statement {
 	@Override
 	public boolean isValidStatement() {
 		return true;
+	}
+	
+	@Override
+	public void codegenStatementCpp(PrintWriter cpp) {
+		logAssert(false);
 	}
 }

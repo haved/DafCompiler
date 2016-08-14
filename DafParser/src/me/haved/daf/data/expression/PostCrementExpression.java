@@ -5,6 +5,8 @@ import me.haved.daf.data.statement.Statement;
 
 import static me.haved.daf.LogHelper.*;
 
+import java.io.PrintWriter;
+
 public class PostCrementExpression extends NodeBase implements Expression, Statement {
 	
 	public static final int INCREMENT = 0;
@@ -31,5 +33,16 @@ public class PostCrementExpression extends NodeBase implements Expression, State
 	@Override
 	public boolean isValidStatement() {
 		return true;
+	}
+	
+	@Override
+	public void codegenExpressionCpp(PrintWriter cpp) {
+		expression.codegenExpressionCpp(cpp);
+	}
+	
+	@Override
+	public void codegenStatementCpp(PrintWriter cpp) {
+		logAssert(isValidStatement());
+		codegenExpressionCpp(cpp);
 	}
 }

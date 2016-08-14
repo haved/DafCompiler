@@ -6,6 +6,8 @@ import me.haved.daf.lexer.tokens.Token;
 
 import static me.haved.daf.LogHelper.*;
 
+import java.io.PrintWriter;
+
 public class FunctionCall extends NodeBase implements Statement, Expression {
 	private Expression expression;
 	private Expression[] parameters;
@@ -56,5 +58,15 @@ public class FunctionCall extends NodeBase implements Statement, Expression {
 	@Override
 	public boolean isValidStatement() {
 		return true;
+	}
+	
+	@Override
+	public void codegenStatementCpp(PrintWriter cpp) {
+		codegenExpressionCpp(cpp);
+	}
+	
+	@Override
+	public void codegenExpressionCpp(PrintWriter cpp) {
+		logAssert(false);
 	}
 }

@@ -1,5 +1,9 @@
 package me.haved.daf.data.statement;
 
+import static me.haved.daf.LogHelper.logAssert;
+
+import java.io.PrintWriter;
+
 import me.haved.daf.data.NodeBase;
 
 public class ScopeStatement extends NodeBase implements Statement{
@@ -24,5 +28,10 @@ public class ScopeStatement extends NodeBase implements Statement{
 	@Override
 	public boolean isValidStatement() {
 		return true;
+	}
+	
+	@Override
+	public void codegenStatementCpp(PrintWriter cpp) {
+		logAssert(false);
 	}
 }

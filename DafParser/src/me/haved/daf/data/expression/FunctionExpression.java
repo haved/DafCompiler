@@ -61,6 +61,11 @@ public class FunctionExpression extends NodeBase implements Expression {
 		h.print(signature);
 		h.println(";");
 		cpp.print(signature);
-		cpp.println("{}");
+		statement.codegenStatementCpp(cpp);
+	}
+	
+	@Override
+	public void codegenExpressionCpp(PrintWriter cpp) {
+		logAssert(false);
 	}
 }

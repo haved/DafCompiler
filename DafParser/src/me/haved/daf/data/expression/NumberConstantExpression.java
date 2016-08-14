@@ -6,6 +6,8 @@ import me.haved.daf.lexer.tokens.Token;
 
 import static me.haved.daf.LogHelper.*;
 
+import java.io.PrintWriter;
+
 public class NumberConstantExpression extends NodeBase implements Expression {
 	
 	private boolean real;
@@ -42,5 +44,10 @@ public class NumberConstantExpression extends NodeBase implements Expression {
 	@Override
 	public String getSignature() {
 		return text;
+	}
+	
+	@Override
+	public void codegenExpressionCpp(PrintWriter cpp) {
+		cpp.print(text);
 	}
 }

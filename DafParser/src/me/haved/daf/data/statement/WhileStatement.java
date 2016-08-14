@@ -5,7 +5,9 @@ import me.haved.daf.data.expression.Expression;
 
 import static me.haved.daf.LogHelper.*;
 
-public class WhileStatement extends NodeBase implements Statement, Expression{
+import java.io.PrintWriter;
+
+public class WhileStatement extends NodeBase implements Statement {
 
 	private Expression condition;
 	private Statement action;
@@ -24,5 +26,10 @@ public class WhileStatement extends NodeBase implements Statement, Expression{
 	@Override
 	public boolean isValidStatement() {
 		return true;
+	}
+	
+	@Override
+	public void codegenStatementCpp(PrintWriter cpp) {
+		logAssert(false);
 	}
 }
