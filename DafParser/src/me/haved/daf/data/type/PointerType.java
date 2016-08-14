@@ -1,5 +1,6 @@
 package me.haved.daf.data.type;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import me.haved.daf.LogHelper;
@@ -46,6 +47,24 @@ public class PointerType implements Type {
 	@Override
 	public boolean isInteger() {
 		return true;
+	}
+	
+	@Override
+	public void codegenCpp(PrintWriter out) {
+		doCodegen(out, 0);
+	}
+	
+	private void doCodegen(PrintWriter out, int index) {
+		if(index < pointers.length) {
+			switch(pointers[index]) {
+			case MUT: 
+				doCodegen(out, index+1); out.print('*'); break;
+			case IMMUT:
+				out.print("( const("); doCodegen(out, index+1); out.println("))"); break;
+			default: break;
+			}
+		} else
+			target.codegenCpp(out);
 	}
 
 	public static TypeOfPointer[] parsePointers(TokenBufferer bufferer) {
