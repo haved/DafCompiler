@@ -15,6 +15,9 @@ public class MainCodegen {
 		try {
 			PrintWriter cppOut = new PrintWriter(new FileWriter(cppFile));
 			PrintWriter hOut   = new PrintWriter(new FileWriter(header));
+			cppOut.printf("#include \"%s\"%n", header.getName());
+			hOut.println("#pragma once");
+			hOut.println("#include \"daf.h\"");
 			writeCpp(definitions, cppOut, hOut);
 			cppOut.flush();
 			hOut.flush();
