@@ -5,7 +5,12 @@ import java.io.PrintWriter;
 import me.haved.daf.data.NodeBase;
 
 public class ImportDefinition extends NodeBase implements Definition {
-
+	private String[] parts;
+	
+	public ImportDefinition(String[] parts) {
+		this.parts = parts;
+	}
+	
 	@Override
 	public String getSignature() {
 		return null;
