@@ -62,6 +62,10 @@ public class Operators {
 		public boolean isStatement() {
 			return statement;
 		}
+		
+		public String getCppName() {
+			return tokenType.getText(); //No difference
+		}
 	}
 	
 	public static InfixOperator findInfixOperator(TokenBufferer bufferer) {

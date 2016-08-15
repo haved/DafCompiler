@@ -37,12 +37,14 @@ public class PostCrementExpression extends NodeBase implements Expression, State
 	
 	@Override
 	public void codegenExpressionCpp(PrintWriter cpp) {
-		expression.codegenExpressionCpp(cpp);
+		Expression.packExpressionInParenthesies(cpp, expression);
+		cpp.print(crement==INCREMENT?"++":"--");
 	}
 	
 	@Override
 	public void codegenStatementCpp(PrintWriter cpp) {
 		logAssert(isValidStatement());
 		codegenExpressionCpp(cpp);
+		cpp.println(";");
 	}
 }

@@ -56,5 +56,6 @@ public class PrefixOperatorExpression extends NodeBase implements Expression, St
 	public void codegenStatementCpp(PrintWriter cpp) {
 		logAssert(isValidStatement());
 		codegenExpressionCpp(cpp);
+		cpp.println(";");
 	}
 }

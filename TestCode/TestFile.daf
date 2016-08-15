@@ -7,6 +7,13 @@ def a:=3;
 let a:int=4;
 let mut b:int=3;
 
+def doStuff:=(a:int, b:int, sum:&mut int, product:&mut int) {
+    a++;
+    --a;
+    @sum=a+b;
+    @product=a*b;
+};
+
 def main:=() {
     let a:=4;
     let mut b:int=5;

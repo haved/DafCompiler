@@ -40,11 +40,14 @@ public class InfixOperatorExpression extends NodeBase implements Expression, Sta
 	@Override
 	public void codegenStatementCpp(PrintWriter cpp) {
 		logAssert(isValidStatement());
-		
+		codegenExpressionCpp(cpp);
+		cpp.println(";");
 	}
 	
 	@Override
 	public void codegenExpressionCpp(PrintWriter cpp) {
-		logAssert(false);
+		LHS.codegenExpressionCpp(cpp);
+		cpp.print(op.getCppName());
+		RHS.codegenExpressionCpp(cpp);
 	}
 }
