@@ -4,6 +4,7 @@ module MyCode {
 };
 
 def a:=3;
+let a:int=4;
 
 def main:=() {
     printf("Hi!");

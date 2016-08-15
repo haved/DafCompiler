@@ -1,6 +1,6 @@
 package me.haved.daf.data.definition;
 
-import static me.haved.daf.LogHelper.logAssert;
+import static me.haved.daf.LogHelper.*;
 
 import java.io.PrintWriter;
 
@@ -49,7 +49,14 @@ public class Let extends NodeBase implements Definition, Statement {
 
 	@Override
 	public void codegenDefinitionCpp(PrintWriter cpp, PrintWriter h) {
-		
+		if(type == null)
+			log(FATAL_ERROR, "Sorry, but a global let statement can't be without type");
+		if(expression == null)
+			log(FATAL_ERROR, "Sorry, but a global let statement can't be without expression");
+		cpp.printf("%s %s = ", type.codegenCpp(), name);
+		expression.codegenExpressionCpp(cpp);
+		cpp.println(";");
+		h.printf("extern %s %s;%n", type.codegenCpp(), name);
 	}
 	
 	@Override

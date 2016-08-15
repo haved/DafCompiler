@@ -51,7 +51,7 @@ public class Def extends NodeBase implements Definition, Statement {
 				h.println(";");
 			}
 			else
-				h.printf("%s %s;%n", type.codegenCpp(), name);
+				h.printf("const %s %s;%n", type.codegenCpp(), name);
 		}
 		else if(expression instanceof FunctionExpression)
 			((FunctionExpression) expression).codegenCppAsFunction(cpp, h, name);
