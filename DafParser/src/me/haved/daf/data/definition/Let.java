@@ -53,14 +53,21 @@ public class Let extends NodeBase implements Definition, Statement {
 			log(FATAL_ERROR, "Sorry, but a global let statement can't be without type");
 		if(expression == null)
 			log(FATAL_ERROR, "Sorry, but a global let statement can't be without expression");
-		cpp.printf("%s %s = ", type.codegenCpp(), name);
+		cpp.printf("%s%s %s = ", mut?"":"const ", type.codegenCpp(), name);
 		expression.codegenExpressionCpp(cpp);
 		cpp.println(";");
-		h.printf("extern %s %s;%n", type.codegenCpp(), name);
+		h.printf("extern %s%s %s;%n", mut?"":"const ", type.codegenCpp(), name);
 	}
 	
 	@Override
 	public void codegenStatementCpp(PrintWriter cpp) {
-		logAssert(false);
+		if(!mut)
+			cpp.print("const ");
+		cpp.printf("%s %s", type==null?"auto":type.codegenCpp(), name);
+		if(expression!=null) {
+			cpp.printf(" = ");
+			expression.codegenExpressionCpp(cpp);
+		}
+		cpp.println(";");
 	}
 }

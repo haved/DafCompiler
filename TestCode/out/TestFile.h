@@ -5,5 +5,6 @@ extern const int a;
 extern int call(int * a, int b);
 }
 #define a 3
-extern int a;
+extern const int a;
+extern int b;
 void main();
