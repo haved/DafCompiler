@@ -61,9 +61,8 @@ public class PointerType implements Type {
 		else {
 			switch(pointers[index]) {
 			case MUT:
-				doCodegen(builder, index+1); builder.append(" *"); break;
 			case IMMUT:
-				builder.append("( const ("); doCodegen(builder, index+1); builder.append(" *))"); break;
+				doCodegen(builder, index+1); builder.append(" *"); break;
 			default:
 				break;
 			}

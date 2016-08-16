@@ -19,11 +19,12 @@ public class FunctionType extends NodeBase implements Type {
 	public String getSignature() {
 		StringBuilder sign = new StringBuilder();
 		sign.append(TokenType.LEFT_PAREN);
-		for(int i = 0; i < params.length; i++) {
-			if(i!=0)
-				sign.append(", ");
-			sign.append(params[i].getSignature());
-		}
+		if(params != null)
+			for(int i = 0; i < params.length; i++) {
+				if(i!=0)
+					sign.append(", ");
+				sign.append(params[i].getSignature());
+			}
 		sign.append(TokenType.RIGHT_PAREN);
 		if(returnType != null)
 			sign.append(returnType.getSignature());

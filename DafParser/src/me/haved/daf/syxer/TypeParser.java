@@ -87,7 +87,8 @@ public class TypeParser {
 			returnType = parseType(bufferer);
 		}
 		
-		//Get return type
+		if(params == null)
+			return new FunctionType(null, returnType);
 		return new FunctionType(params.toArray(new FunctionParameter[params.size()]), returnType);
 	}
 	

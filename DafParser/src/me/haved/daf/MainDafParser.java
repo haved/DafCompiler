@@ -94,7 +94,7 @@ public class MainDafParser {
 		if(outputDir.isFile())
 			log(FATAL_ERROR, "The supplied output directory is a file!");
 		if(!outputDir.isDirectory())
-			log(FATAL_ERROR, "The supplied output directory doesn't exist!");
+			outputDir.mkdirs();
 		if(cppOutput.isFile() && !cppOutput.canWrite())
 			log(FATAL_ERROR, "Can't write to '%s'", cppOutput.getPath());
 		else if(hOutput.isFile() && !hOutput.canWrite())

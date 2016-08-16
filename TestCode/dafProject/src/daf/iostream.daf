@@ -1,4 +1,3 @@
 import "<cstdio>";
 
-def printf:(); //Function. Takes anything because no typecheking
 def print:=printf; //Alias
