@@ -1,6 +1,0 @@
-import daf.iostream;
-
-def main:=(argc:int, argv:& & char):int {
-	print("Hello daf!\n");
-	return 0;
-};

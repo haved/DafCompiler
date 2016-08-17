@@ -1,0 +1,23 @@
+import daf.iostream;
+
+typedef Array:=class<T> {
+	length:int;
+	array:T[];
+	pub constructor default:=(array:T[], length:int) {
+		this->length = length;
+		this->array = array;
+	};
+	pub method 
+	pub def access:=@
+	pub def fastAcess:=@array[T];
+	pub def /*mut*/ Length:=length; //Getter only
+};
+
+def main:=(argc:int, argv:& &char):int {
+	print("The daf compiler!\n");
+	parseParameters(argc, argv);
+}
+
+def parseParameters(params:Array<char>) {
+
+}

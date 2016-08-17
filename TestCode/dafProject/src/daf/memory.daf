@@ -1,0 +1,4 @@
+import "<cmemory>"
+
+def memory_alloc:=malloc;
+def memory_free:=free;
