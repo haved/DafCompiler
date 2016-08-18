@@ -1,5 +1,6 @@
 package me.haved.daf.data.definition;
 
+import java.io.File;
 import java.io.PrintWriter;
 
 import me.haved.daf.data.NodeBase;
@@ -41,6 +42,16 @@ public class ImportDefinition extends NodeBase implements Definition {
 
 	@Override
 	public void codegenDefinitionCpp(PrintWriter cpp, PrintWriter h) {
-		
+		if(cppLib) {
+			h.printf("#include %s%n", cppLibName);
+		} else {
+			h.print("#include <");
+			for(int i = 0; i < parts.length; i++) {
+				if(i!=0)
+					h.print(File.separator);
+				h.print(parts[i]);
+			}
+			h.println(">");
+		}
 	}
 }
