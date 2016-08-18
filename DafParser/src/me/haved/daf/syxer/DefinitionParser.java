@@ -2,6 +2,7 @@ package me.haved.daf.syxer;
 
 import me.haved.daf.data.definition.Def;
 import me.haved.daf.data.definition.Definition;
+import me.haved.daf.data.definition.ImportDefinition;
 import me.haved.daf.data.definition.Let;
 import me.haved.daf.data.definition.ModuleDefinition;
 import me.haved.daf.data.expression.Expression;
@@ -38,6 +39,20 @@ public class DefinitionParser {
 		}
 		
 		log(bufferer.getCurrentToken(), ERROR, "Expected a definition");
+		return null;
+	}
+	
+	public static ImportDefinition parseImportDefinition(TokenBufferer bufferer, boolean pub) {
+		if(pub)
+			log(bufferer.getCurrentToken(), ERROR, "An import definition can't be declared public");
+		logAssert(bufferer.isCurrentTokenOfType(TokenType.IMPORT));
+		bufferer.advance(); //Eat the 'import'
+		if(bufferer.isCurrentTokenOfType(TokenType.STRING_LITERAL)) {
+			String cppLib = bufferer.getCurrentToken().getText();
+			bufferer.advance(); //Eat string literal
+			//Don't eat semicolon. Done for us :)
+			return new ImportDefinition(cppLib);
+		}
 		return null;
 	}
 	
