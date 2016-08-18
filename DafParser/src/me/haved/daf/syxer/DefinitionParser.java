@@ -32,6 +32,7 @@ public class DefinitionParser {
 		}
 		
 		switch(type) {
+		case IMPORT: return parseImport(bufferer, pub);
 		case MODULE: return parseModule(bufferer, pub);
 		case LET: return parseLetStatement(bufferer, pub);
 		case DEF: return parseDefStatement(bufferer, pub);
@@ -42,17 +43,48 @@ public class DefinitionParser {
 		return null;
 	}
 	
-	public static ImportDefinition parseImportDefinition(TokenBufferer bufferer, boolean pub) {
+	public static ImportDefinition parseImport(TokenBufferer bufferer, boolean pub) {
 		if(pub)
 			log(bufferer.getCurrentToken(), ERROR, "An import definition can't be declared public");
 		logAssert(bufferer.isCurrentTokenOfType(TokenType.IMPORT));
+		Token firstToken = bufferer.getCurrentToken();
 		bufferer.advance(); //Eat the 'import'
 		if(bufferer.isCurrentTokenOfType(TokenType.STRING_LITERAL)) {
 			String cppLib = bufferer.getCurrentToken().getText();
+			ImportDefinition out = new ImportDefinition(cppLib);
+			out.setPosition(firstToken, bufferer.getCurrentToken());
 			bufferer.advance(); //Eat string literal
 			//Don't eat semicolon. Done for us :)
-			return new ImportDefinition(cppLib);
+			return out;
 		}
+		else if(bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
+			ArrayList<String> parts = new ArrayList<String>();
+			parts.add(bufferer.getCurrentToken().getText());
+			bufferer.advance();
+			while(true) {
+				if(bufferer.isCurrentTokenOfType(TokenType.CLASS_ACCESS)) {
+					bufferer.advance(); //Eat the '.'
+					if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
+						log(bufferer.getLastOrCurrent(), ERROR, "Expected an identifier after 'import *.'");
+						return null;
+					}
+					else {
+						parts.add(bufferer.getCurrentToken().getText());
+						bufferer.advance(); //Eat the identifier
+					}
+				} else if(bufferer.isCurrentTokenOfType(TokenType.SEMICOLON)) {
+					ImportDefinition out = new ImportDefinition(parts.toArray(new String[parts.size()]));
+					out.setPosition(firstToken, bufferer.getCurrentToken());
+					//Don't eat ';'
+					return out;
+				}
+				
+				if(!bufferer.hasCurrentToken()) {
+					log(bufferer.getLastToken(), ERROR, "File ended during import statement");
+				}
+			}
+		}
+		log(bufferer.getLastOrCurrent(), ERROR, "Expected a string literal or an identifier after 'import'");
 		return null;
 	}
 	

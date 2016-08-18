@@ -51,7 +51,7 @@ public class ImportDefinition extends NodeBase implements Definition {
 					h.print(File.separator);
 				h.print(parts[i]);
 			}
-			h.println(">");
+			h.println(".h>");
 		}
 	}
 }

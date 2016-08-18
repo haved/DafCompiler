@@ -1,4 +1,6 @@
-//import "<iostream>";
+import "<iostream>";
+import daf.iostream;
+import daf.math;
 
 module MyCode {
     def a:int;
