@@ -34,7 +34,7 @@ public class TypeParser {
 		
 		if(bufferer.isCurrentTokenOfType(TokenType.LEFT_PAREN)) //Hurrah! A function
 			return parseFunctionSignature(bufferer);
-		else if(bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) //A typedef!
+		else if(bufferer.isCurrentTokenOfType(TokenType.IDENTIFIER)) //A typedef!
 			return parseTypedef(bufferer);
 		
 		
@@ -50,7 +50,7 @@ public class TypeParser {
 	}
 	
 	private static Type parseTypedef(TokenBufferer bufferer) {
-		logAssert(bufferer.isCurrentTokenOfType(TokenType.IDENTIFER));
+		logAssert(bufferer.isCurrentTokenOfType(TokenType.IDENTIFIER));
 		String ident = bufferer.getCurrentToken().getText();
 		bufferer.advance(); //Eat identifier
 		return new TypedefType(ident);
@@ -111,14 +111,14 @@ public class TypeParser {
 				refType = FunctionParameter.CONST_REF;
 			}
 			
-			if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFER) && bufferer.isCurrentTokenOfType(TokenType.COLON)) {
+			if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFIER) && bufferer.isCurrentTokenOfType(TokenType.COLON)) {
 				log(bufferer.getLastOrCurrent(), ERROR, "Expected an identifier or '%s' in the function signature", TokenType.COLON);
 				return null;
 			}
 		}
 		
 		String name = null;
-		if(bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
+		if(bufferer.isCurrentTokenOfType(TokenType.IDENTIFIER)) {
 			name = bufferer.getCurrentToken().getText();
 			bufferer.advance(); //Eat identifier
 		}

@@ -119,6 +119,6 @@ public class TokenPicker {
 			return null;
 		}
 		
-		return new Token(TokenType.IDENTIFER, file, line, col, name);
+		return new Token(TokenType.IDENTIFIER, file, line, col, name);
 	}
 }

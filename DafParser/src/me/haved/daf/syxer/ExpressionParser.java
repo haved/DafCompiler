@@ -80,7 +80,7 @@ public class ExpressionParser {
 		switch(bufferer.getCurrentToken().getType()) {
 		default:
 			break;
-		case IDENTIFER:
+		case IDENTIFIER:
 			return parseIdentifierExpression(bufferer);
 		case LEFT_PAREN:
 			return parseParentheses(bufferer);
@@ -197,7 +197,7 @@ public class ExpressionParser {
 					}
 				}
 				//Expect name now!
-				if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
+				if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFIER)) {
 					log(bufferer.getLastOrCurrent(), ERROR, "Expected parameter name in function value!");
 				}
 				paramName = bufferer.getCurrentToken().getText();

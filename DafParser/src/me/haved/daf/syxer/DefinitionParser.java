@@ -57,14 +57,14 @@ public class DefinitionParser {
 			//Don't eat semicolon. Done for us :)
 			return out;
 		}
-		else if(bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
+		else if(bufferer.isCurrentTokenOfType(TokenType.IDENTIFIER)) {
 			ArrayList<String> parts = new ArrayList<String>();
 			parts.add(bufferer.getCurrentToken().getText());
 			bufferer.advance();
 			while(true) {
 				if(bufferer.isCurrentTokenOfType(TokenType.CLASS_ACCESS)) {
 					bufferer.advance(); //Eat the '.'
-					if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
+					if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFIER)) {
 						log(bufferer.getLastOrCurrent(), ERROR, "Expected an identifier after 'import *.'");
 						return null;
 					}
@@ -92,7 +92,7 @@ public class DefinitionParser {
 		logAssert(bufferer.isCurrentTokenOfType(TokenType.MODULE));
 		Token firstToken = bufferer.getCurrentToken();
 		bufferer.advance(); //Eat 'module'
-		if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
+		if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFIER)) {
 			log(bufferer.getLastOrCurrent(), ERROR, "Expected an identifier after 'module'");
 			return null;
 		}
@@ -126,7 +126,7 @@ public class DefinitionParser {
 		Token startToken = bufferer.getCurrentToken();
 		bufferer.advance(); //Eat the 'let'
 		
-		while(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
+		while(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFIER)) {
 			if(bufferer.isCurrentTokenOfType(TokenType.UNCERTAIN)) {
 				if(uncertain)
 					log(bufferer.getCurrentToken(), WARNING, "Let declared as uncertain twice");
@@ -166,7 +166,7 @@ public class DefinitionParser {
 	public static Def parseDefStatement(TokenBufferer bufferer, boolean pub) {
 		Token firstToken = bufferer.getCurrentToken();
 		bufferer.advance(); //Eat the 'def'
-		if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFER)) {
+		if(!bufferer.isCurrentTokenOfType(TokenType.IDENTIFIER)) {
 			log(bufferer.getLastOrCurrent(), ERROR, "Expected an identifier after %s!", TokenType.DEF);
 			return null;
 		}
@@ -194,7 +194,7 @@ public class DefinitionParser {
 	}
 	
 	private static NameTypeExpr parseNameTypeExpression(TokenBufferer bufferer) {
-		logAssert(bufferer.isCurrentTokenOfType(TokenType.IDENTIFER));
+		logAssert(bufferer.isCurrentTokenOfType(TokenType.IDENTIFIER));
 		String identifier = bufferer.getCurrentToken().getText();
 		bufferer.advance(); //Eat the identifier
 		
