@@ -2,9 +2,9 @@ DAF_DIR := src
 CPP_DIR := cpp
 OBJ_DIR:= obj
 
-DAF_FILES := $(wildcard $(DAF_DIR)/*.daf)
-CPP_FILES := $(addprefix $(CPP_DIR)/,$(notdir $(DAF_FILES:.daf=.cpp)))
-OBJ_FILES := $(addprefix $(OBJ_DIR)/,$(notdir $(CPP_FILES:.cpp=.o)))
+DAF_FILES := $(shell cd $(DAF_DIR) && find -name '*.daf')
+CPP_FILES := $(addprefix $(CPP_DIR)/,$(DAF_FILES:.daf=.cpp))
+OBJ_FILES := $(addprefix $(OBJ_DIR)/,$(DAF_FILES:.daf=.o))
 CPP_FLAGS := -I CPP_DIR
 
 OUTPUT_FILE := output

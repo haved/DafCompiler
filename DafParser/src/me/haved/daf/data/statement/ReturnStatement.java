@@ -37,6 +37,9 @@ public class ReturnStatement extends NodeBase implements Statement{
 	
 	@Override
 	public void codegenStatementCpp(PrintWriter cpp) {
-		logAssert(false);
+		cpp.print("return ");
+		if(value != null)
+			value.codegenExpressionCpp(cpp);
+		cpp.println(";");
 	}
 }
