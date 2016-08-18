@@ -1,0 +1,3 @@
+#!/usr/bin/bash
+export DAF_CLASSPATH=~/Development/daf/DafCompiler/DafParser/bin/
+java -classpath $DAF_CLASSPATH me.haved.daf.MainDafParser "$@"
