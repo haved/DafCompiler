@@ -6,9 +6,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 import me.haved.daf.args.CommandOption;
 import me.haved.daf.args.HelpOption;
@@ -18,54 +16,15 @@ import me.haved.daf.codegen.MainCodegen;
 import me.haved.daf.data.definition.Definition;
 import me.haved.daf.lexer.LiveTokenizer;
 import me.haved.daf.lexer.text.PreProcessor;
-import me.haved.daf.lexer.text.TextParserUtil;
 import me.haved.daf.lexer.text.MacroMap;
 import me.haved.daf.syxer.SyntaxicParser;
 
 public class MainDafParser {
 	
-	private static final boolean DEVELOPER = true;
-	private static final String DEFAULT_ARGS = "../TestCode/TestFile.daf ../TestCode/out";
 	public  static void main(String[] args) {
-		if(args.length == 0)
-			if(DEVELOPER) {
-				
-				String line = null;
-				
-				if(DEFAULT_ARGS==null) {
-					log(SUPER_DEBUG, "Enter arguments:");
-					try (Scanner in = new Scanner(System.in)) {
-						line = in.nextLine();
-					}
-				}
-				
-				if(line == null || line.isEmpty())
-					line = DEFAULT_ARGS;
-				
-				ArrayList<String> myArgs = new ArrayList<>();
-				int start = 0;
-				boolean inQuotes = false;
-				for(int i = 0; i < line.length()+1; i++) {
-					char c = i < line.length() ? line.charAt(i) : ' ';
-					if(TextParserUtil.isNormalWhitespace(c) & !inQuotes) {
-						if(start<i)
-							myArgs.add(line.substring(start, i));
-						start = i+1;
-					} else if(TextParserUtil.isDoubleQuoteChar(c)) {
-						if(inQuotes)
-							myArgs.add(line.substring(start, i)); //Not including the quotes
-						inQuotes = !inQuotes;
-						start = i+1;
-					}
-				}
-				
-				args = new String[myArgs.size()];
-				myArgs.toArray(args);
-			}
-			else
-				log(FATAL_ERROR, "No input files passed. -h for help");
-		
 		LogHelper.startSummaryTime();
+		if(args.length == 0)
+			log(FATAL_ERROR, "No input files passed. -h for help");
 		
 		parseInput(args);
 		
