@@ -2,25 +2,84 @@ import "<iostream>";
 import daf.iostream;
 import daf.math;
 
-module MyCode {
-    def a:int;
-    def call:(a:&mut int, b:int):int;
+typedef NativeAssign:=interface for Primitive, Pointer;
+
+typedef CopyMethod:=interface {
+    copy:method (&other:this); //Has to be legal, as well as &mut this
+    //^ It not being virtual makes pointers to CopyMethod impossible;
 };
 
-def a:=3;
-let a:int=4;
-let mut b:int=3;
-
-def doStuff:=(a:int, b:int, sum:&mut int, product:&mut int) {
-    a++;
-    --a;
-    @sum=a+b;
-    @product=a*b;
+typedef MoveAMethod:=interface { //Not possible to make a poly-pointer to this one either
+    moveA:method(&move other:this);
 };
+
+typedef Array:=<T> {
+    array:T[mut];
+    length:int;
+    pub copyNative:=constrcutor(array:T[mut], length:int) {
+        this->array = new T[length];
+        arrayCopy<T>(this->array, array, length);
+        this->length = length;
+    };
+    pub alloc:=constructor<T:EmptyConstructor>(length:int) {
+        this->array = new T[length];
+        this->length = length;
+    };
+    pub fillNew:=constrcutor(func:(index:int):T, length:int) {
+        array = new T[length](func);
+        //let a:=func(0); //Is smart so that the returned class is allocated here, and not on the stack and then moved
+    };
+    pub copy:=constructor(&mut other:Array<T>) { //Mutable reference
+        this->array = new T[other.length];
+        arrayCopy<T>(this->array, other.array, length);
+        this->length = length;
+    };
+    pub moveC:=constrcutor(&move other:Array<T>) { //Move an rvalue :)
+        this->array = other.array;
+        other.array = null;
+        this->length = other.length;
+    };
+    pub dest:=destructor() {
+        delete[] array; //Must be mutable
+    };
+    pub const accessMethod:=method(index:int):&mut T {
+        assert(index>=0&&index<index);
+        &mut array[index]
+    };
+    pub const mut access:=<index:int>@accessMethod(index);
+    pub const mut unchekedAccess:=<index:int>array[index];
+    pub const accessImmut:=<index:int>array[index];
+    pub const Length:=this->length;
+
+    pub const filter:=method<T:NativeAssign|CopyMethod>(check:(T):boolean):Array<T> {
+        let tmp:= new T[length];
+        let mut index:=0;
+        for(let mut i:=0; i < length; i++)
+            if(check(unchekedAccess<i>))
+                <T:NativeAssign>tmp[index++]=unckecedAccess<i>;|<T:CopyMethod>tmp[index++].copy(unchekedAccess<i>);
+        Array<T>.copyNative(tmp, index)
+    };
+};
+
+def isPrime:=(n:int) {
+    if(n<2)
+        return false;
+    else if(n==2)
+        return true;
+    
+    let max = Math.sqrt(n);
+    for(let mut i:=2; i<=max; i++)
+        if(n%i==0)
+            return false;
+    return true;
+};
+
+let myPrimes:=(max:int):Array<int> {
+    let numbers:Array<int>.fillNew((n:int){n}, max);
+    numbers.filter(isPrime)
+}(40);
 
 def main:=() {
-    let a:=4;
-    let mut b:int=5;
-    let uncertain mut x:int;
-    printf("Hi!");
-};
+    print("Compile time primes: ");
+    printArray<int>(myPrimes);
+}
