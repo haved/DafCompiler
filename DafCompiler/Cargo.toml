@@ -1,0 +1,6 @@
+[package]
+name = "daf_compiler"
+version = "0.1.0"
+authors = ["haved <krogstie.havard@gmail.com>"]
+
+[dependencies]
