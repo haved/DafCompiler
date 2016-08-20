@@ -1,0 +1,5 @@
+import daf.iostream;
+
+def main:=(argc:int, argv:& &char):int {
+	print("The daf compiler!\n");
+}

@@ -1,4 +1,3 @@
-import "<iostream>";
 import daf.iostream;
 import daf.math;
 
@@ -16,7 +15,7 @@ typedef MoveAMethod:=interface { //Not possible to make a poly-pointer to this o
 typedef Array:=<T> {
     array:T[mut];
     length:int;
-    pub copyNative:=constrcutor(array:T[mut], length:int) {
+    pub copyNative:=constructor(array:T[mut], length:int) {
         this->array = new T[length];
         arrayCopy<T>(this->array, array, length);
         this->length = length;
@@ -25,16 +24,15 @@ typedef Array:=<T> {
         this->array = new T[length];
         this->length = length;
     };
-    pub fillNew:=constrcutor(func:(index:int):T, length:int) {
+    pub fillNew:=constructor(func:(index:int):T, length:int) {
         array = new T[length](func);
-        //let a:=func(0); //Is smart so that the returned class is allocated here, and not on the stack and then moved
     };
-    pub copy:=constructor(&mut other:Array<T>) { //Mutable reference
-        this->array = new T[other.length];
+    pub copy:=constructor<T:CopyConstructor>(&mut other:Array<T>) { //Mutable reference
+
         arrayCopy<T>(this->array, other.array, length);
         this->length = length;
     };
-    pub moveC:=constrcutor(&move other:Array<T>) { //Move an rvalue :)
+    pub moveC:=constructor(&move other:Array<T>) { //Move an rvalue :)
         this->array = other.array;
         other.array = null;
         this->length = other.length;
@@ -76,10 +74,12 @@ def isPrime:=(n:int) {
 
 let myPrimes:=(max:int):Array<int> {
     let numbers:Array<int>.fillNew((n:int){n}, max);
-    numbers.filter(isPrime)
+    numbers.filter(isPrime) //Is placed at myPrimes, and kept in the binary
 }(40);
 
 def main:=() {
     print("Compile time primes: ");
     printArray<int>(myPrimes);
 }
+
+print("Fun stuff :)"); //Legal
