@@ -26,6 +26,7 @@ Let's just say there is a story behind every point on this list.
 - Allow logger to use same token as previous log message
 - Format logging like: '<token>: error: Expected primary-expression before <token>'
 - Exact rule: You can't have a polymorphic pointer to a superclass if it doesn't have a virtual destructor
+- If an object is returned and used as a parameter, allocte the stack space once somehow
 
 ####Main problems:
 - **Find a way of storing libraries** (Some kind of header that is still a .daf file?)
@@ -35,8 +36,6 @@ Let's just say there is a story behind every point on this list.
 - If your superclass has a virtual destructor, you have one too
 
 ####Langauge ideas and quirks:
-- Maybe allow for parameters that are just (a:&, b:&mut) when you don't care about the pointer type?
- - Maybe even allow for returning these, that may be impicitly cast to anything
 - Maybe cast like (exp **as** type)
 - Use a module system based on the new import system
  - Have a **module** keyword instead of namespaces
@@ -48,19 +47,20 @@ Let's just say there is a story behind every point on this list.
 - Add **&shared** and **&unique** pointers
 - When passing a refrence you don't have the **&** symbol in front. (That would be a pointer)
  - This means mut and move refs have the words written before the expression
-- Allow for statements returning expressions?
-- Demand that **virtual** classes have **virtual** destructors
+- Allow for statements returning expressions
 - Have a **base** keyword
 - Have a **final** keyword
 - Remember **const** keyword for methods
-- Objects themselves can't be immutable (unless const destructor), and are implicitly let mutable
- - This also means the deletion of objects on the heap must happen to a pointer with mutability (unless const destructor)
+- Objects themselves can't be immutable (unless const destructor)
+ - This also means the deletion of objects on the heap must happen to a pointer with mutability (even with const destructor)
   - classes with const destructors can only contain primitive fields (that includes normal pointers)
-   - Also superclasses have to have const destructors. (and be virtual if polymorphic pointers are used) 
 - Require the destructor to be virtual to allow polymorphic pointers
  - As long as a superclass has a virtual destructor, the destructor of all it's subclasses will count as virtual
-- Require semicolon after every definition (let, def, typedef, import, class, module) (not methods, but def's inside classes? :/)
+- Require semicolon after every definition (let, def, typedef, import, module)
 - Parameters in signatures don't need a name. i.e. (&int):int is a legal signature. (But it's still legal)
  - But if the parameter is a refrence: (&move:&int):int is the syntax
-- Add a way of choosing constructor (other than parameter type)
 - Add a way of calling methods on an rvalue while still evaluating to the rvalue
+- Allow = on objects when declared
+- Allow arrays to be initialized with a custom function
+- Save array size with array, both on heap and stack
+- Allow for dynamic amount of arguments and argument forwarding.
