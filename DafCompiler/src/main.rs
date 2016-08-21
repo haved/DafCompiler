@@ -9,12 +9,17 @@ struct Input {
     searchDirs:Vec<String>
 }
 
-fn main() {
-    let input = handle_args(env::args().collect());
-    handle_input(&input)
+struct FileForParsing {
+    input:String,
+    output:String,
+    recursive:bool
 }
 
-fn handle_input(input:&Input) {
+fn main() {
+    let filesForParsing = handle_input(handle_args(env::args().collect()));
+}
+
+fn handle_input(input:Input) -> Vec<FileForParsing> {
     let inputCount = input.inputFiles.len();
     if inputCount == 0 {
         logger::logDaf(logger::FATAL_ERROR, "No input files passed");
@@ -23,7 +28,18 @@ fn handle_input(input:&Input) {
     if (inputCount > 1 || input.recursive) && !outputDir {
         logger::logDaf(logger::FATAL_ERROR, "When compiling multiple files, the output must be a directory");
     }
+    
+    let mut filesForParsing = Vec::new();
 
+    for inputFile in input.inputFiles {
+        let mut outputFile = String::from(&input.output as &str);
+        if outputDir {
+            outputFile.push_str(&inputFile);
+        }
+        filesForParsing.push(FileForParsing {input: inputFile, output: outputFile, recursive: input.recursive});
+    }
+
+    filesForParsing
 }
 
 fn handle_args(args:Vec<String>) -> Input {
