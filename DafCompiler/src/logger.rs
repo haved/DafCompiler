@@ -1,4 +1,6 @@
 
+use std::process::exit;
+
 pub const FATAL_ERROR: usize = 0;
 pub const ERROR: usize = 1;
 pub const WARNING : usize = 2;
@@ -15,4 +17,7 @@ pub fn logDaf(level:usize, message:&str) {
 
 pub fn log(location:&str, level:usize, message:&str) {
     println!("{}: {}: {}", location, LOG_LEVELS[level], message);
+    if level == FATAL_ERROR {
+        exit(-1);
+    }
 }

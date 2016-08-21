@@ -11,19 +11,24 @@ struct Input {
 
 fn main() {
     let input = handle_args(env::args().collect());
+    handle_input(&input)
 }
 
-/*
-dafc --path src/ me.haved.Main -o bin/ -r //Finds me/haved/Main.daf in src/ and makes bin/me/haved/Main.o, as well as all files imported by Main.daf recursivly
-dafc me.haved.Main -r -o output.o //Packs all files imported by ./me/haved/Main.daf into output.o
-dafc Main //Places the the output file at ./Main.o
-Usage: dafc [inputFile]* [--path searchPath] [-r] [-o outputDir/File]
-*/
+fn handle_input(input:&Input) {
+    let inputCount = input.inputFiles.len();
+    if inputCount == 0 {
+        logger::logDaf(logger::FATAL_ERROR, "No input files passed");
+    }
+    let outputDir = input.output.chars().last() == Some('/');
+    if (inputCount > 1 || input.recursive) && !outputDir {
+        logger::logDaf(logger::FATAL_ERROR, "When compiling multiple files, the output must be a directory");
+    }
+
+}
 
 fn handle_args(args:Vec<String>) -> Input {
     if args.len() <= 1 {
         logger::logDaf(logger::FATAL_ERROR, "No input file specified");
-        exit(-1);
     }
 
     let mut input = Input {output: String::new(), inputFiles: Vec::new(), recursive: false, searchDirs: Vec::new()};
@@ -35,18 +40,14 @@ fn handle_args(args:Vec<String>) -> Input {
             index+=1;
             if index >= args.len() {
                 logger::logDaf(logger::FATAL_ERROR, "Expected a path after '--path'");
-                exit(-1);
             }
-            println!("Path added: {}", &args[index]);
             input.searchDirs.push((&args[index]).to_string());
         } else if arg.eq("-r") {
-            println!("Recursive parsing");
             input.recursive = true;
         } else if arg.eq("-o") {
             index+=1;
             if index >= args.len() {
                 logger::logDaf(logger::FATAL_ERROR, "Expected an output file or directory after '-o'");
-                exit(-1);
             }
             input.output = (&args[index]).to_string();
         } else if arg.eq("--help") {
@@ -62,6 +63,12 @@ fn handle_args(args:Vec<String>) -> Input {
 }
 
 fn print_help_message() {
+    /*
+    dafc --path src/ me.haved.Main -o bin/ -r //Finds me/haved/Main.daf in src/ and makes bin/me/haved/Main.o, as well as all files imported by Main.daf recursivly
+    dafc Main //Places the the output file at ./Main.o
+    Usage: dafc [inputFile]* [--path searchPath] [-r] [-o outputDir/File]
+    */ 
+    
     println!("
     Help page for dafc:
 
