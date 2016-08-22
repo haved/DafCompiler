@@ -1,5 +1,6 @@
 use std::env;
 use std::process::exit;
+use std::path::{Path, PathBuf};
 mod logger;
 
 struct Input {
@@ -16,28 +17,48 @@ struct FileForParsing {
 }
 
 fn main() {
-    let filesForParsing = handle_input(handle_args(env::args().collect()));
-    for ffp in filesForParsing {
-        parse_file(&ffp);
+    let mut input = handle_args(env::args().collect());
+    if input.searchDirs.len() == 0 {
+        input.searchDirs.push(String::from(".")); //If no search dirs are specified, try this one
+    }
+    if input.output.len() == 0 {
+        input.output.push_str("./"); //Make the output in this folder
+    }
+    let mut filesForParsing = handle_input(&input);
+    //Files for parsing might be relative to serach dirs
+    assure_file_existance(&mut filesForParsing, &input.searchDirs); //Will search for and make input files exist
+}
+
+fn assure_file_existance(files:&mut Vec<FileForParsing>, searchDirs:&Vec<String>) {
+    for ffp in files {
+        let mut found = false;
+        for searchDir in searchDirs {
+            let mut pathTry:PathBuf = Path::new(searchDir).join(&ffp.input);
+            if pathTry.is_file() {
+                ffp.input = String::from(pathTry.to_str().unwrap_or("Path try error"));
+                found = true;
+                break;
+            } else {
+                pathTry.set_extension("daf");
+                if pathTry.is_file() {
+                    ffp.input = String::from(pathTry.to_str().unwrap_or("Path try error"));
+                    found = true;
+                    break;
+                }
+            }
+        }
+        if !found {
+            logger::logDaf(logger::FATAL_ERROR, &format!("The file {} wasn't found", ffp.input));
+        }
     }
 }
 
-fn parse_file(ffp:&FileForParsing) {
-    if ffp.recursive {
-        print!("Recursivly p")
-    }
-    else {
-        print!("P");
-    }
-    println!("arsing file: {} to file {}", ffp.input, ffp.output);
-}
-
-fn handle_input(input:Input) -> Vec<FileForParsing> {
-    let inputCount = input.inputFiles.len();
+fn handle_input(input:&Input) -> Vec<FileForParsing> {
+    let inputCount = 1;//input.inputFiles.len();
     if inputCount == 0 {
         logger::logDaf(logger::FATAL_ERROR, "No input files passed");
     }
-    let outputDir = input.output.chars().last() == Some('/');
+    let outputDir = true;//input.output.chars().last() == Some('/');
     if (inputCount > 1 || input.recursive) && !outputDir {
         logger::logDaf(logger::FATAL_ERROR, "When compiling multiple files, the output must be a directory");
     }
