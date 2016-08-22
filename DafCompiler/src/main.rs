@@ -17,6 +17,19 @@ struct FileForParsing {
 
 fn main() {
     let filesForParsing = handle_input(handle_args(env::args().collect()));
+    for ffp in filesForParsing {
+        parse_file(&ffp);
+    }
+}
+
+fn parse_file(ffp:&FileForParsing) {
+    if ffp.recursive {
+        print!("Recursivly p")
+    }
+    else {
+        print!("P");
+    }
+    println!("arsing file: {} to file {}", ffp.input, ffp.output);
 }
 
 fn handle_input(input:Input) -> Vec<FileForParsing> {
