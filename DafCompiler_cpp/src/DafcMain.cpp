@@ -10,7 +10,7 @@ using std::vector;
 struct CommandInput {
     vector<std::string> searchDirs;
     vector<std::string> inputFiles;
-    bool recursive;
+    bool recursive=false;
     std::string output;
 };
 
@@ -38,12 +38,12 @@ CommandInput handleArgs(int argc, char** argv) {
             i++;
             if(i>=argc)
                 logDaf(FATAL_ERROR, "Expected an output file or directory after '-o'");
-            if (output.output.size()!=0) {
+            if (output.output.size()!=0)
                 logDafC(WARNING) << "Overriding '" << output.output << "' as output" << std::endl;
-                fatalErrorExit();
-            }
             output.output.assign(argv[i]);
         } else if(strcmp(argv[i], "-r")==0) {
+            if(output.recursive)
+                logDaf(WARNING, "Duplicate option '-r'");
             output.recursive = true;
         } else if(strcmp(argv[i], "--help")==0) {
             printHelpPage();
@@ -58,4 +58,5 @@ CommandInput handleArgs(int argc, char** argv) {
 
 int main(int argc, char** argv) {
     CommandInput input = handleArgs(argc, argv);
+
 }
