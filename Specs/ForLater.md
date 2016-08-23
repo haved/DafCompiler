@@ -27,6 +27,12 @@ Let's just say there is a story behind every point on this list.
 - Format logging like: '<token>: error: Expected primary-expression before <token>'
 - Exact rule: You can't have a polymorphic pointer to a superclass if it doesn't have a virtual destructor
 - If an object is returned and used as a parameter, allocte the stack space once somehow
+- Allow for warnings for:
+ - Returning pointers
+ - Doing pointer arithmetic
+ - Assigning a pointer
+ - Having null-pointers
+- Also have an option for defaulting every uncertain value to X, making discovering of uncertain bugs easier.
 
 ####Main problems:
 - **Find a way of storing libraries** (Some kind of header that is still a .daf file?)

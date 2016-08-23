@@ -56,6 +56,8 @@ CommandInput handleArgs(int argc, char** argv) {
     return output;
 }
 
+FileForParsing
+
 int main(int argc, char** argv) {
     CommandInput input = handleArgs(argc, argv);
 
