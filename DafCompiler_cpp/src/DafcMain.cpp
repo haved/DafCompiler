@@ -14,6 +14,17 @@ struct CommandInput {
     std::string output;
 };
 
+struct FileForParsing {
+    std::string inputFile;
+    std::string outputFile;
+    bool recursive;
+    FileForParsing(std::string inputFile, std::string outputFile, bool recursive) {
+        this->inputFile = inputFile;
+        this->outputFile = outputFile;
+        this->recursive = recursive;
+    }
+};
+
 void printHelpPage() {
     std::cout   << "  Help page for dafc:" << std::endl
                 << "  Usage: dafc [options] inputFiles" << std::endl
@@ -53,12 +64,32 @@ CommandInput handleArgs(int argc, char** argv) {
         }
     }
 
+    output.inputFiles.shrink_to_fit();
+    output.searchDirs.shrink_to_fit();
     return output;
 }
 
-FileForParsing
+void assureCommandInput(CommandInput& input) {
+    if(input.searchDirs.size()==0)
+        input.searchDirs.push_back(".");
+    if(input.output.size()==0)
+        input.output.assign("./");
+}
+
+vector<FileForParsing> handleCommandInput(CommandInput& input) {
+    if(input.inputFiles.size() == 0)
+        logDaf(FATAL_ERROR, "No input files");
+    //Check if output directory or file
+    vector<FileForParsing> ffps(input.inputFiles.size());
+    bool failed = false;
+    for(int i = 0; i < input.inputFiles.size(); i++) {
+        ffps.push_back(FileForParsing(input.inputFiles))
+    }
+    return ffp;
+}
 
 int main(int argc, char** argv) {
     CommandInput input = handleArgs(argc, argv);
-
+    assureDefaultInput(input);
+    handleCommandInput(input);
 }
