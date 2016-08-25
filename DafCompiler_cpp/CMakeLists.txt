@@ -11,6 +11,11 @@ file(GLOB MySources
 	src/*.cpp
 )
 
+FIND_PACKAGE( Boost 1.40 COMPONENTS system filesystem REQUIRED )
+INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
+
 add_executable(DafCompiler ${MySources})
 
 target_include_directories(DafCompiler PUBLIC "${CMAKE_SOURCE_DIR}/src")
+
+TARGET_LINK_LIBRARIES(DafCompiler ${Boost_LIBRARIES} )

@@ -3,25 +3,31 @@
 #include <string>
 #include <cstring>
 #include <cstdlib>
+#include <boost/filesystem.hpp>
 #include "DafLogger.h"
 
 using std::vector;
 
+namespace fs = boost::filesystem;
+
 struct CommandInput {
-    vector<std::string> searchDirs;
+    vector<fs::path> searchDirs;
     vector<std::string> inputFiles;
     bool recursive=false;
     std::string output;
 };
 
+unsigned int FileForParsingNextId = 0;
 struct FileForParsing {
-    std::string inputFile;
-    std::string outputFile;
+    fs::path inputFile;
+    fs::path outputFile;
     bool recursive;
-    FileForParsing(std::string inputFile, std::string outputFile, bool recursive) {
+    unsigned int ID;
+    FileForParsing(const fs::path& inputFile, const fs::path& outputFile, bool recursive) {
         this->inputFile = inputFile;
         this->outputFile = outputFile;
         this->recursive = recursive;
+        this->ID = FileForParsingNextId++; //Give a unique ID (overlap not happening anytime soon)
     }
 };
 
@@ -44,7 +50,12 @@ CommandInput handleArgs(int argc, char** argv) {
             i++;
             if(i>=argc)
                 logDaf(FATAL_ERROR, "Expected a search directory after '--path'");
-            output.searchDirs.push_back(std::string(argv[i]));
+            fs::path searchDir(argv[i]);
+            if(!fs::is_directory(searchDir)) {
+                logDafC(FATAL_ERROR) << "The search path '" << searchDir << "' doesn't exist" << std::endl;
+                terminateIfErrors();
+            }
+            output.searchDirs.push_back(searchDir);
         } else if(strcmp(argv[i], "-o")==0) {
             i++;
             if(i>=argc)
@@ -76,20 +87,61 @@ void assureCommandInput(CommandInput& input) {
         input.output.assign("./");
 }
 
+bool isOutputDir(std::string& output) {
+    return output[output.size()-1]=='/'; //We can assert that the length is more than 0
+}
+
 vector<FileForParsing> handleCommandInput(CommandInput& input) {
     if(input.inputFiles.size() == 0)
         logDaf(FATAL_ERROR, "No input files");
-    //Check if output directory or file
-    vector<FileForParsing> ffps(input.inputFiles.size());
-    bool failed = false;
-    for(int i = 0; i < input.inputFiles.size(); i++) {
-        ffps.push_back(FileForParsing(input.inputFiles))
+    bool outputDir = isOutputDir(input.output);
+    if(!outputDir && (input.recursive || input.inputFiles.size() > 1))
+        logDaf(FATAL_ERROR, "With multiple input files, the output must be a directory");
+    vector<FileForParsing> ffps;
+    fs::path oExtension("o");
+    for(unsigned int i = 0; i < input.inputFiles.size(); i++) {
+        fs::path inputFile(input.inputFiles[i]);
+        if(!outputDir)
+            ffps.push_back(FileForParsing(inputFile, fs::path(input.output), input.recursive));
+        else {
+            fs::path dir(input.output);
+            fs::path file = inputFile;
+            ffps.push_back(FileForParsing(inputFile, dir/file, input.recursive));
+        }
     }
-    return ffp;
+    return ffps;
+}
+
+bool tryMakeFilePathReal(FileForParsing& ffp, fs::path searchDir) {
+    return false;
+}
+
+//Looks for the input files in the search directories, and moves their path there
+//Also changes . to / in input and output
+void assureInputOutput(vector<FileForParsing>& ffps, vector<fs::path>& searchDirs) {
+    for(unsigned int i = 0; i < ffps.size(); i++) {
+        for(unsigned int searchI = 0; searchI < searchDirs.size(); searchI++) {
+            if(tryMakeFilePathReal(ffps[i], searchDirs[searchI]))
+                goto outerLoop; //Shoo the goto away
+        }
+        logDafC(ERROR) << "Input file " << ffps[i].inputFile << " not in a search path" << std::endl;
+        outerLoop:; //I know, right. Amazing code
+    }
+    terminateIfErrors();
+}
+
+void printFilesForParsing(vector<FileForParsing>& ffps) {
+    logDaf(NOTE, "Files for parsing:");
+    for(unsigned int i = 0; i < ffps.size(); i++) {
+        std::cout << ffps[i].ID << ": " << ffps[i].inputFile << " -> " << ffps[i].outputFile << std::endl;
+    }
 }
 
 int main(int argc, char** argv) {
     CommandInput input = handleArgs(argc, argv);
-    assureDefaultInput(input);
-    handleCommandInput(input);
+    assureCommandInput(input); //Does default stuff
+    vector<FileForParsing> ffps = handleCommandInput(input);
+    assureInputOutput(ffps, input.searchDirs);
+    //Remove duplicates
+    printFilesForParsing(ffps);
 }
