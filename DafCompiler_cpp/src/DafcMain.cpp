@@ -22,11 +22,13 @@ struct FileForParsing {
     fs::path inputFile;
     fs::path outputFile;
     bool recursive;
+    bool fullParse; //If it is to be output
     unsigned int ID;
-    FileForParsing(const fs::path& inputFile, const fs::path& outputFile, bool recursive) {
+    FileForParsing(const fs::path& inputFile, const fs::path& outputFile, bool recursive, bool fullParse) {
         this->inputFile = inputFile;
         this->outputFile = outputFile;
         this->recursive = recursive;
+        this->fullParse = fullParse;
         this->ID = FileForParsingNextId++; //Give a unique ID (overlap not happening anytime soon)
     }
 };
@@ -142,6 +144,6 @@ int main(int argc, char** argv) {
     assureCommandInput(input); //Does default stuff
     vector<FileForParsing> ffps = handleCommandInput(input);
     assureInputOutput(ffps, input.searchDirs);
-    //Remove duplicates
+    //Error on duplicates
     printFilesForParsing(ffps);
 }
