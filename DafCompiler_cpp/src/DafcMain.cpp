@@ -103,13 +103,7 @@ vector<FileForParsing> handleCommandInput(CommandInput& input) {
     fs::path oExtension("o");
     for(unsigned int i = 0; i < input.inputFiles.size(); i++) {
         fs::path inputFile(input.inputFiles[i]);
-        if(!outputDir)
-            ffps.push_back(FileForParsing(inputFile, fs::path(input.output), input.recursive));
-        else {
-            fs::path dir(input.output);
-            fs::path file = inputFile;
-            ffps.push_back(FileForParsing(inputFile, dir/file, input.recursive));
-        }
+        ffps.push_back(FileForParsing(inputFile, outputDir ? fs::path(input.output)/inputFile : fs::path(input.output), input.recursive, true));
     }
     return ffps;
 }
