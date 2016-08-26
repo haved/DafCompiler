@@ -21,12 +21,14 @@ unsigned int FileForParsingNextId = 0;
 struct FileForParsing {
     fs::path inputFile;
     fs::path outputFile;
+    bool outputFileSet;
     bool recursive;
-    bool fullParse; //If it is to be output
+    bool fullParse; //If there is to be an output
     unsigned int ID;
-    FileForParsing(const fs::path& inputFile, const fs::path& outputFile, bool recursive, bool fullParse) {
+    FileForParsing(const fs::path& inputFile, const fs::path& outputFile, bool outputFileSet, bool recursive, bool fullParse) {
         this->inputFile = inputFile;
         this->outputFile = outputFile;
+        this->outputFileSet = outputFileSet;
         this->recursive = recursive;
         this->fullParse = fullParse;
         this->ID = FileForParsingNextId++; //Give a unique ID (overlap not happening anytime soon)
@@ -103,25 +105,82 @@ vector<FileForParsing> handleCommandInput(CommandInput& input) {
     fs::path oExtension("o");
     for(unsigned int i = 0; i < input.inputFiles.size(); i++) {
         fs::path inputFile(input.inputFiles[i]);
-        ffps.push_back(FileForParsing(inputFile, outputDir ? fs::path(input.output)/inputFile : fs::path(input.output), input.recursive, true));
+        ffps.push_back(FileForParsing(inputFile, outputDir ? fs::path(input.output)/inputFile : fs::path(input.output), !outputDir, input.recursive, true));
     }
     return ffps;
 }
 
-bool tryMakeFilePathReal(FileForParsing& ffp, fs::path searchDir) {
-    return false;
+bool tryMakeFilePathReal(FileForParsing& ffp, vector<fs::path> searchDirs) {
+    const fs::path dafExt(".daf");
+    const fs::path oExt(".o");
+    //First try just using every search directory without modifying name
+    bool done = false;
+    for(unsigned int i = 0; i < searchDirs.size(); i++) {
+        auto path = searchDirs[i]/ffp.inputFile;
+        if(fs::exists(path)) {
+            ffp.inputFile = std::move(path); //Move semantics y'all
+            done = true;
+            break;
+        }
+    }
+    if(!done && ffp.inputFile.extension().compare(dafExt)!=0) { //No daf extension?
+        //Then try adding .daf to the end
+        for(unsigned int i = 0; i < searchDirs.size(); i++) {
+            fs::path path = (searchDirs[i]/ffp.inputFile).concat(dafExt.string());
+            if(fs::exists(path)) {
+                ffp.inputFile = std::move(path);
+                done = true;
+                break;
+            }
+        }
+    }
+    //Try changing dots to slashes. One by one.
+    //Both with .daf and possibly without
+    for(unsigned int i = 0; !done && i < searchDirs.size(); i++) {
+        std::string withoutDafString(ffp.inputFile.string());
+        bool withDafVersion = fs::path(withoutDafString).extension().compare(dafExt)!=0;
+        while(true) {
+            size_t dotIndex = withoutDafString.find('.');
+            if(dotIndex == std::string::npos) //No dot found
+                break;
+            withoutDafString[dotIndex] = '/';
+            fs::path path = searchDirs[i] / fs::path(withoutDafString);
+            if(fs::exists(path)) {
+                ffp.inputFile = std::move(path);
+                done = true;
+                break;
+            } else if(withDafVersion) {
+                path = path.concat(dafExt.string());
+                if(fs::exists(path)) {
+                    ffp.inputFile = std::move(path);
+                    done = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    if(!done)
+        return false;
+
+    if(!ffp.outputFileSet) {
+        if(ffp.outputFile.extension().compare(dafExt)==0) //Replace an eventual file extension with .o
+            ffp.outputFile.replace_extension(oExt);
+        else
+            ffp.outputFile = ffp.outputFile.concat(oExt.string());
+    }
+    return true;
+
+    return true;
 }
 
 //Looks for the input files in the search directories, and moves their path there
 //Also changes . to / in input and output
 void assureInputOutput(vector<FileForParsing>& ffps, vector<fs::path>& searchDirs) {
     for(unsigned int i = 0; i < ffps.size(); i++) {
-        for(unsigned int searchI = 0; searchI < searchDirs.size(); searchI++) {
-            if(tryMakeFilePathReal(ffps[i], searchDirs[searchI]))
-                goto outerLoop; //Shoo the goto away
-        }
+        if(tryMakeFilePathReal(ffps[i], searchDirs))
+            continue;
         logDafC(ERROR) << "Input file " << ffps[i].inputFile << " not in a search path" << std::endl;
-        outerLoop:; //I know, right. Amazing code
     }
     terminateIfErrors();
 }
