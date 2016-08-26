@@ -17,7 +17,7 @@ void logDaf(const std::string& location, int logLevel, const std::string& text) 
     if(logLevel == ERROR && errorsOccured < ERROR_OCCURED)
         errorsOccured = ERROR_OCCURED;
     else if(logLevel == FATAL_ERROR) {
-        errorsOccured = FATAL_ERROR;
+        errorsOccured = FATAL_OCCURED;
         terminateIfErrors();
     }
 }
@@ -30,7 +30,7 @@ std::ostream& logDafC(const std::string& location, int logLevel) {
     if(logLevel == ERROR && errorsOccured < ERROR_OCCURED)
         errorsOccured = ERROR_OCCURED;
     else if(logLevel == FATAL_ERROR)
-        errorsOccured = FATAL_ERROR;
+        errorsOccured = FATAL_OCCURED;
     return std::cout << location << ": " << logLevelNames[logLevel] << ": ";
 }
 
