@@ -167,5 +167,22 @@ vector<FileForParsing> parseParameters(int argc, const char** argv) {
     assureCommandInput(input); //Does default stuff
     vector<FileForParsing> ffps = handleCommandInput(input);
     assureInputOutput(ffps, input.searchDirs);
+    removeDuplicates(ffps, true);
     return ffps;
+}
+
+bool removeDuplicates(vector<FileForParsing>& ffps, bool log) {
+    bool removed = false;
+    for(unsigned int i = 0; i < ffps.size(); i++) {
+        for(unsigned int j = i+1; j < ffps.size(); j++) {
+            if(ffps[i].inputFile==ffps[j].inputFile) {
+                removed = true;
+                if(log)
+                    logDafC(ERROR) << "File input twice: " << ffps[j].inputFile << std::endl;
+                ffps.erase(ffps.begin()+j);
+                j--;
+            }
+        }
+    }
+    return removed;
 }

@@ -17,3 +17,4 @@ struct FileForParsing {
 };
 
 vector<FileForParsing> parseParameters(int argc, const char** argv);
+bool removeDuplicates(vector<FileForParsing>& ffps, bool log);

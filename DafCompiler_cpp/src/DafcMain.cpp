@@ -13,6 +13,6 @@ void printFilesForParsing(vector<FileForParsing>& ffps) {
 
 int main(int argc, const char** argv) {
     vector<FileForParsing> ffps = parseParameters(argc, argv);
-    //Error on duplicates
     printFilesForParsing(ffps);
+    terminateIfErrors();
 }
