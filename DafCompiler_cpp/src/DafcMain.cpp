@@ -7,7 +7,7 @@ using std::vector;
 void printFilesForParsing(vector<FileForParsing>& ffps) {
     logDaf(NOTE, "Files for parsing:");
     for(unsigned int i = 0; i < ffps.size(); i++) {
-        std::cout << ffps[i].ID << ": " << ffps[i].inputFile << " -> " << ffps[i].outputFile << std::endl;
+        std::cout << ffps[i].ID << ": " << ffps[i].inputName<< ": " << ffps[i].inputFile << " -> " << ffps[i].outputFile << std::endl;
     }
 }
 
