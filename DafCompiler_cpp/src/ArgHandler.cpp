@@ -1,6 +1,3 @@
-/*#include <iostream>
-#include <cstring>
-#include <cstdlib>*/
 #include "ArgHandler.h"
 #include "DafLogger.h"
 
@@ -14,8 +11,10 @@ struct CommandInput {
 };
 
 unsigned int FileForParsingNextId = 0;
-FileForParsing::FileForParsing(const fs::path& inputFile, const fs::path& outputFile, bool outputFileSet, bool recursive, bool fullParse) {
-    this->inputFile = inputFile;
+FileForParsing::FileForParsing(const fs::path& inputName, const fs::path& outputFile, bool outputFileSet, bool recursive, bool fullParse) {
+    this->inputName = inputName; //Just the name without the search path
+    this->inputFile = fs::path(""); //Eventually holds the path
+    this->canonicalInput = fs::path(""); //Eventually holds canonical input path
     this->outputFile = outputFile;
     this->outputFileSet = outputFileSet;
     this->recursive = recursive;
@@ -98,17 +97,21 @@ vector<FileForParsing> handleCommandInput(CommandInput& input) {
     return ffps;
 }
 
+bool isInputFile(const fs::path& path) {
+    return fs::is_regular_file(path);
+}
+
 bool tryMakeFilePathReal(FileForParsing& ffp, vector<fs::path> searchDirs) {
     const fs::path dafExt(".daf");
     const fs::path oExt(".o");
 
     bool done = false;
-    std::string attempt(ffp.inputFile.string());
-    bool tryWithDaf = ffp.inputFile.extension()!=dafExt;
+    std::string attempt(ffp.inputName.string());
+    bool tryWithDaf = ffp.inputName.extension()!=dafExt;
     while(!done) {
         for(unsigned int i = 0; i < searchDirs.size(); i++) {
             fs::path fullAttempt = searchDirs[i]/fs::path(attempt);
-            if(fs::is_regular(fullAttempt)) {
+            if(isInputFile(fullAttempt)) {
                 ffp.inputFile = fullAttempt;
                 if(!ffp.outputFileSet)
                     ffp.outputFile = ffp.outputFile/attempt;
@@ -117,7 +120,7 @@ bool tryMakeFilePathReal(FileForParsing& ffp, vector<fs::path> searchDirs) {
             }
             if(tryWithDaf) {
                 fullAttempt = fullAttempt.concat(dafExt.string());
-                if(fs::is_regular(fullAttempt)) {
+                if(isInputFile(fullAttempt)) {
                     ffp.inputFile = fullAttempt;
                     if(!ffp.outputFileSet)
                         ffp.outputFile = ffp.outputFile/attempt;
@@ -153,29 +156,24 @@ bool tryMakeFilePathReal(FileForParsing& ffp, vector<fs::path> searchDirs) {
 
 //Looks for the input files in the search directories, and moves their path there
 //Also changes . to / in input and output
+//Also saves the canonical input file path
 void assureInputOutput(vector<FileForParsing>& ffps, vector<fs::path>& searchDirs) {
     for(unsigned int i = 0; i < ffps.size(); i++) {
         if(tryMakeFilePathReal(ffps[i], searchDirs))
             continue;
-        logDafC(ERROR) << "Input file " << ffps[i].inputFile << " not in a search path" << std::endl;
+        logDafC(ERROR) << "Input file " << ffps[i].inputName << " not in a search path" << std::endl;
     }
     terminateIfErrors();
-}
-
-vector<FileForParsing> parseParameters(int argc, const char** argv) {
-    CommandInput input = handleArgs(argc, argv);
-    assureCommandInput(input); //Does default stuff
-    vector<FileForParsing> ffps = handleCommandInput(input);
-    assureInputOutput(ffps, input.searchDirs);
-    removeDuplicates(ffps, true);
-    return ffps;
+    for(unsigned int i = 0; i < ffps.size(); i++) {
+        ffps[i].canonicalInput = fs::canonical(ffps[i].inputFile);
+    }
 }
 
 bool removeDuplicates(vector<FileForParsing>& ffps, bool log) {
     bool removed = false;
     for(unsigned int i = 0; i < ffps.size(); i++) {
         for(unsigned int j = i+1; j < ffps.size(); j++) {
-            if(ffps[i].inputFile==ffps[j].inputFile) {
+            if(ffps[i].canonicalInput==ffps[j].canonicalInput) {
                 removed = true;
                 if(log)
                     logDafC(ERROR) << "File input twice: " << ffps[j].inputFile << std::endl;
@@ -185,4 +183,13 @@ bool removeDuplicates(vector<FileForParsing>& ffps, bool log) {
         }
     }
     return removed;
+}
+
+vector<FileForParsing> parseParameters(int argc, const char** argv) {
+    CommandInput input = handleArgs(argc, argv);
+    assureCommandInput(input); //Does default stuff
+    vector<FileForParsing> ffps = handleCommandInput(input);
+    assureInputOutput(ffps, input.searchDirs);
+    removeDuplicates(ffps, true);
+    return ffps;
 }
