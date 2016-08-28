@@ -176,7 +176,7 @@ bool removeDuplicates(vector<FileForParsing>& ffps, bool log) {
             if(ffps[i].canonicalInput==ffps[j].canonicalInput) {
                 removed = true;
                 if(log)
-                    logDafC(ERROR) << "File input twice: " << ffps[j].inputFile << std::endl;
+                    logDafC(ERROR) << "File input twice: " << ffps[i].inputFile << std::endl;
                 ffps.erase(ffps.begin()+j);
                 j--;
             }
