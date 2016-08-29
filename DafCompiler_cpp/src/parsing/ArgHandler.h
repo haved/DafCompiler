@@ -2,6 +2,8 @@
 #include <vector>
 #include <string>
 #include <boost/filesystem.hpp>
+#include <memory>
+#include "parsing/Parser.h"
 
 namespace fs = boost::filesystem;
 using std::vector;
@@ -14,7 +16,7 @@ struct FileForParsing {
     bool outputFileSet;
     bool recursive;
     bool fullParse; //If there is to be an output
-    unsigned int ID;
+    ParsedFile* parsedFile;
     FileForParsing(const fs::path& inputName, const fs::path& outputFile, bool outputFileSet, bool recursive, bool fullParse);
 };
 

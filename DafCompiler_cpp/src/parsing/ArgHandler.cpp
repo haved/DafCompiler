@@ -10,7 +10,7 @@ struct CommandInput {
     std::string output;
 };
 
-unsigned int FileForParsingNextId = 0;
+//unsigned int FileForParsingNextId = 0;
 FileForParsing::FileForParsing(const fs::path& inputName, const fs::path& outputFile, bool outputFileSet, bool recursive, bool fullParse) {
     this->inputName = inputName; //Just the name without the search path
     this->inputFile = fs::path(""); //Eventually holds the path
@@ -19,7 +19,8 @@ FileForParsing::FileForParsing(const fs::path& inputName, const fs::path& output
     this->outputFileSet = outputFileSet;
     this->recursive = recursive;
     this->fullParse = fullParse;
-    this->ID = FileForParsingNextId++; //Give a unique ID (overlap not happening anytime soon)
+    this->parsedFile = nullptr; //Oh god no
+    //this->ID = FileForParsingNextId++; //Give a unique ID (overlap not happening anytime soon)
 }
 
 void printHelpPage() {
