@@ -14,10 +14,10 @@ enum TokenType {
     CONSTRUCTOR, DESTRUCTOR, METHOD, THIS, CONST, VIRTUAL, OVERRIDE,
 
     IF, ELSE, ELSELSE, FOR, WHILE, DO,
-    CONTINUE, BREAK, RETRY, RETURN,
+    CONTINUE, BREAK, RETRY, RETURN/*,
 
     EOF, ERROR,
-    IDENTIFIER=230, NUMBER_LITERAL, CHAR_LITERAL, STRING_LITERAL,
+    IDENTIFIER=230, NUMBER_LITERAL, CHAR_LITERAL, STRING_LITERAL,*/
 };
 #define FIRST_SPECIAL_TOKEN 200
 #define FIRST_TEXT_TOKEN 230
@@ -31,7 +31,7 @@ struct Token {
 };
 
 struct Lexer {
-    ifstream infile;
+    std::ifstream infile;
     bool done;
     Token currentToken;
     Token nextToken;
