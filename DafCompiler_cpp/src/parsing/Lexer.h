@@ -7,7 +7,7 @@ namespace fs = boost::filesystem;
 
 enum TokenType {
     PUB=0,LET,DEF,MUT,UNCERTAIN,ASSIGN,DECLARE,TYPE_SEPARATOR,
-    STATEMENT_END, INLINE, LEFT_PAREN, MOVE, COMMA, RIGHT_PAREN,
+    STATEMENT_END, LEFT_PAREN, MOVE, COMMA, RIGHT_PAREN,
     SCOPE_START, SCOPE_END,
 
     PROT, ABSTRACT, EXTENDS, IMPLEMENTS, INTERFACE,
@@ -30,6 +30,8 @@ struct Token {
     int endCol;
     Token();
 };
+
+const char* getTokenText(const Token& type);
 
 class Lexer {
 private:

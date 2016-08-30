@@ -7,7 +7,7 @@
     file->fullyParsed = fullParse;
     Lexer lexer(destFile);
     do {
-        std::cout << lexer.getCurrentToken().type << std::endl;
+        std::cout << getTokenText(lexer.getCurrentToken()) << std::endl;
         if(lexer.getCurrentToken().type == END)
             break;
         lexer.advance();
