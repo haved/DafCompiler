@@ -14,10 +14,10 @@ enum TokenType {
     CONSTRUCTOR, DESTRUCTOR, METHOD, THIS, CONST, VIRTUAL, OVERRIDE,
 
     IF, ELSE, ELSELSE, FOR, WHILE, DO,
-    CONTINUE, BREAK, RETRY, RETURN/*,
+    CONTINUE, BREAK, RETRY, RETURN,
 
-    EOF, ERROR,
-    IDENTIFIER=230, NUMBER_LITERAL, CHAR_LITERAL, STRING_LITERAL,*/
+    END=200, ERROR,
+    IDENTIFIER=230,STRING_LITERAL,CHAR_LITERAL,NUMBER_LITERAL
 };
 #define FIRST_SPECIAL_TOKEN 200
 #define FIRST_TEXT_TOKEN 230
@@ -28,19 +28,25 @@ struct Token {
     int line;
     int col;
     int endCol;
+    Token();
 };
 
-struct Lexer {
+class Lexer {
+private:
     std::ifstream infile;
     bool done;
-    Token currentToken;
-    Token nextToken;
+    Token token1;
+    Token token2;
+    Token& currentToken;
+    Token& lookaheadToken;
     char currentChar;
-    char nextChar;
+    char lookaheadChar;
+    void advanceChar();
+public:
+    Lexer(const fs::path& file);
+    bool advance();
+    inline Token& getCurrentToken() {return currentToken;}
+    inline Token& getLookahead() {return lookaheadToken;}
 };
-
-Lexer startLexer(const fs::path& file);
-
-bool advanceLexer(Lexer& lexer);
 
 
