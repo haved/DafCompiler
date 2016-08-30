@@ -1,11 +1,12 @@
 #include "parsing/Parser.h"
 #include "parsing/Lexer.h"
+#include "parsing/ArgHandler.h"
 #include <iostream>
 
- std::unique_ptr<ParsedFile> parseFileSyntax(const fs::path& destFile, bool fullParse) {
+ std::unique_ptr<ParsedFile> parseFileSyntax(const FileForParsing& ffp, bool fullParse) {
     auto file = std::make_unique<ParsedFile>();
     file->fullyParsed = fullParse;
-    Lexer lexer(destFile);
+    Lexer lexer(ffp);
     do {
         std::cout << getTokenText(lexer.getCurrentToken()) << std::endl;
         if(lexer.getCurrentToken().type == END)

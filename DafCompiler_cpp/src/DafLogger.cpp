@@ -22,15 +22,24 @@ void logDaf(const std::string& location, int logLevel, const std::string& text) 
     }
 }
 
-std::ostream& logDafC(int logLevel) {
-    return logDafC(DEFAULT_LOCATION, logLevel);
-}
-
-std::ostream& logDafC(const std::string& location, int logLevel) {
+void logDafUpdateLevel(int logLevel) {
     if(logLevel == ERROR && errorsOccured < ERROR_OCCURED)
         errorsOccured = ERROR_OCCURED;
     else if(logLevel == FATAL_ERROR)
         errorsOccured = FATAL_OCCURED;
+}
+
+std::ostream& logDafC(int logLevel) {
+    return logDafC(DEFAULT_LOCATION, logLevel);
+}
+
+std::ostream& logDafC(const fs::path& fileName, int line, int col, int logLevel) {
+    logDafUpdateLevel(logLevel);
+    return std::cout << fileName.string() << ": " << line << ":" << col << ": " << logLevelNames[logLevel] << ": ";
+}
+
+std::ostream& logDafC(const std::string& location, int logLevel) {
+    logDafUpdateLevel(logLevel);
     return std::cout << location << ": " << logLevelNames[logLevel] << ": ";
 }
 

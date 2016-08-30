@@ -3,7 +3,8 @@
 #include <string>
 #include <boost/filesystem.hpp>
 #include <memory>
-#include "parsing/Parser.h"
+
+class ParsedFile;
 
 namespace fs = boost::filesystem;
 using std::vector;
