@@ -35,7 +35,7 @@ bool isPartOfText(char c) {
 }
 
 bool isLegalSpecialChar(char c) {
-    return c >= '!';// && (c <= '/' || (c >= ':' && (c <= '@' || (c >= '[' && (c <= '_' || (c >= '{' && c c <= '}'))))));
+    return (c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '_') || (c >= '{' && c <= '}');
 }
 
 bool Lexer::advance() {
@@ -54,6 +54,7 @@ bool Lexer::advance() {
             }
             else if(!isLegalSpecialChar(currentChar)) {
                 logDafC(fileForParsing.inputName, line, col, ERROR) << "Character not legal: " << currentChar << std::endl;
+                advanceChar();
                 continue;
             }
             std::string word;
@@ -64,7 +65,7 @@ bool Lexer::advance() {
                     break;
                 word.push_back(currentChar);
             }
-            std::cout << "Found token: " << word << std::endl;
+            std::cout << "Found word: " << word << std::endl;
             break;
         }
         advanceChar();
@@ -80,10 +81,9 @@ void Lexer::advanceChar() {
         col += 4;
     else
         col++;
+
     std::swap(currentChar, lookaheadChar);
-    if(infile.eof())
+    if(!infile.get(lookaheadChar))
         lookaheadChar = EOF;
-    else
-        infile.get(lookaheadChar);
 }
 
