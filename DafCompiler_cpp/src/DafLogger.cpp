@@ -1,4 +1,5 @@
 #include "DafLogger.h"
+#include "parsing/ArgHandler.h"
 #include <cstdlib>
 
 std::string logLevelNames[] = {"fatal_error", "error", "warning", "note", "message"};
@@ -33,9 +34,9 @@ std::ostream& logDafC(int logLevel) {
     return logDafC(DEFAULT_LOCATION, logLevel);
 }
 
-std::ostream& logDafC(const fs::path& fileName, int line, int col, int logLevel) {
+std::ostream& logDafC(const FileForParsing& file, int line, int col, int logLevel) {
     logDafUpdateLevel(logLevel);
-    return std::cout << fileName.string() << ": " << line << ":" << col << ": " << logLevelNames[logLevel] << ": ";
+    return std::cout << file.inputName.string() << ": " << line << ":" << col << ": " << logLevelNames[logLevel] << ": ";
 }
 
 std::ostream& logDafC(const std::string& location, int logLevel) {

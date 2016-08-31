@@ -53,7 +53,7 @@ bool Lexer::advance() {
                 specialChars = false;
             }
             else if(!isLegalSpecialChar(currentChar)) {
-                logDafC(fileForParsing.inputName, line, col, ERROR) << "Character not legal: " << currentChar << std::endl;
+                logDafC(fileForParsing, line, col, ERROR) << "Character not legal: " << currentChar << std::endl;
                 advanceChar();
                 continue;
             }
@@ -82,8 +82,28 @@ void Lexer::advanceChar() {
     else
         col++;
 
-    std::swap(currentChar, lookaheadChar);
+    currentChar = lookaheadChar;
     if(!infile.get(lookaheadChar))
         lookaheadChar = EOF;
+
+    if(currentChar == '/') {
+        if(lookaheadChar == '/') {
+            while(currentChar != EOF && currentChar != '\n') {
+                advanceChar();
+            }
+            //We stay at the \n or EOF
+        }
+        else if(lookaheadChar == '*') {
+            while(currentChar != '*' || lookaheadChar != '/') {
+                advanceChar();
+                if(currentChar == EOF) {
+                    logDafC(fileForParsing, line, col, ERROR) << "File ended during multi-line comment" << std::endl;
+                    break;
+                }
+            }
+            advanceChar(); //Skip the '*'
+            advanceChar(); //Skip the '/' too
+        }
+    }
 }
 

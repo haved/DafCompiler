@@ -1,1 +1,7 @@
 def a:=b;
+//Testing a comment :)
+a+=f; //Yep
+/* Multi
+line /*stacked*/
+Amazing*/
+let mut b := d;

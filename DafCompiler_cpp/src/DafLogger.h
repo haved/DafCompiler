@@ -12,9 +12,11 @@ namespace fs = boost::filesystem;
 
 #define DEFAULT_LOCATION "dafc"
 
+struct FileForParsing;
+
 void logDaf(int logLevel, const std::string& text);
 void logDaf(const std::string& location, int logLevel, const std::string& text);
 std::ostream& logDafC(int logLevel);
 std::ostream& logDafC(const std::string& location, int logLevel);
-std::ostream& logDafC(const fs::path& fileName, int line, int col, int logLevel);
+std::ostream& logDafC(const FileForParsing& file, int line, int col, int logLevel);
 void terminateIfErrors();
