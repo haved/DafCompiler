@@ -4,7 +4,13 @@ const char* TOKEN_TEXT[] = {"pub", "let", "def", "mut", "uncertain", "=", ":=", 
 
     "prot", "abstract", "extends", "implements", "interface", "constructor", "destructor", "method", "this", "const", "virtual", "override",
 
-    "if", "else", "elselse", "for", "while", "do", "continue", "break", "retry", "return"};
+    "if", "else", "elselse", "for", "while", "do", "continue", "break", "retry", "return",
+
+    "char", "short", "ushort", "int", "uint", "long", "ulong",
+    "int8", "uint8", "int16", "uint16", "int32", "uint32", "int64", "uint64", "usize", "boolean", "float", "double",
+    "shared", "unique", "new", "delete", "[", "]", "dumb", "::", ".", "@", "->",
+    "+", "-", "*", "/", "%", "<<", ">>", ">>>", "&", "&&", "|", "||", "^", "!"
+    };
 
 const char* getTokenText(const Token& token) {
     if(token.type >= (sizeof(TOKEN_TEXT)/sizeof(char*))) {
