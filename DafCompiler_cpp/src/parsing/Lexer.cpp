@@ -51,29 +51,36 @@ bool Lexer::advance() {
             break;
         }
         else {
-            bool specialChars = true;
             if(isStartOfText(currentChar)) {
-                specialChars = false;
+                std::string word;
+                word.push_back(currentChar);
+                int startCol = col;
+                while(true) {
+                    advanceChar();
+                    if(!isPartOfText(currentChar))
+                        break;
+                    word.push_back(currentChar);
+                }
+                if(!setTokenFromWord(lookaheadToken, word, true, line, startCol, col)) {
+                    logDafC(fileForParsing, line, startCol, ERROR) << "Token '" << word << "' not recognized" << std::endl;
+                    continue;
+                }
+                break;
             }
-            else if(!isLegalSpecialChar(currentChar)) {
+            else if(isLegalSpecialChar(currentChar)) {
+                std::string letter;
+                letter.push_back(currentChar);
+                advanceChar();
+                if(!setTokenFromWord(lookaheadToken, letter, false, line, col, col+1)) {
+                    logDafC(fileForParsing, line, col, ERROR) << "Special char '" << currentChar << "' not a token" << std::endl;
+                    continue;
+                }
+                break;
+            } else {
                 logDafC(fileForParsing, line, col, ERROR) << "Character not legal: " << currentChar << std::endl;
                 advanceChar();
                 continue;
             }
-            std::string word;
-            word.push_back(currentChar);
-            int startCol = col;
-            while(true) {
-                advanceChar();
-                if((specialChars && !isLegalSpecialChar(currentChar)) || (!specialChars && !isPartOfText(currentChar)))
-                    break;
-                word.push_back(currentChar);
-            }
-            if(!setTokenFromWord(lookaheadToken, word, !specialChars, line, startCol, col)) {
-                logDafC(fileForParsing, line, startCol, ERROR) << "Token '" << word << "' not recognized" << std::endl;
-                continue;
-            }
-            break;
         }
         assert(false); //Make sure we always end properly
     }

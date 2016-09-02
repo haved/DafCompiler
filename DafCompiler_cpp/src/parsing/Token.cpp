@@ -8,8 +8,10 @@ const char* TOKEN_TEXT[] = {"pub", "let", "def", "mut", "uncertain", "=", ":=", 
 
     "char", "short", "ushort", "int", "uint", "long", "ulong",
     "int8", "uint8", "int16", "uint16", "int32", "uint32", "int64", "uint64", "usize", "boolean", "float", "double",
-    "shared", "unique", "new", "delete", "[", "]", "dumb", "::", ".", "@", "->",
-    "+", "-", "*", "/", "%", "<<", ">>", ">>>", "&", "&&", "|", "||", "^", "!"
+    "shared", "unique", "new", "delete", "[", "]", "dumb", ".", "@",
+    "+", "-", "*", "/", "%", "&", "|", "^", "!",
+
+    "::", "->", "<<", ">>", ">>>", "&&", "||"
     };
 
 const char* getTokenText(const Token& token) {
