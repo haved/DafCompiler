@@ -24,3 +24,29 @@ Token::Token() {
     this->col = 0;
     this->endCol = 0;
 }
+
+bool setTokenFromWord(Token& token, const std::string& text, bool identifier, int line, int startCol, int endCol) {
+    token.line = line;
+    token.col = startCol;
+    token.endCol = endCol;
+    for(unsigned int tokenType = 0; tokenType < sizeof(TOKEN_TEXT)/sizeof(char*); tokenType++) {
+        if(text==TOKEN_TEXT[tokenType]) {
+            token.type = static_cast<TokenType>(tokenType);
+            return true;
+        }
+    }
+    if(identifier) {
+        token.type = IDENTIFIER;
+        token.text = text;
+        return true;
+    }
+    return false;
+}
+
+void setProperEOFToken(Token& token, int line, char col) {
+    token.text = "";
+    token.type = END;
+    token.line = line;
+    token.col = col;
+    token.endCol = col;
+}

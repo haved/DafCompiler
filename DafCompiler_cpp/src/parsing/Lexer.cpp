@@ -42,9 +42,12 @@ bool Lexer::advance() {
     std::swap(currentToken, lookaheadToken);
     //Now set the look-ahead token
     while(true) {
-        if(isWhitespace(currentChar));
+        if(isWhitespace(currentChar)) {
+            advanceChar();
+            continue;
+        }
         else if(isEOF(currentChar)) {
-            lookaheadToken.type = END;
+            setProperEOFToken(lookaheadToken, line, col);
             break;
         }
         else {
@@ -59,16 +62,20 @@ bool Lexer::advance() {
             }
             std::string word;
             word.push_back(currentChar);
+            int startCol = col;
             while(true) {
                 advanceChar();
                 if((specialChars && !isLegalSpecialChar(currentChar)) || (!specialChars && !isPartOfText(currentChar)))
                     break;
                 word.push_back(currentChar);
             }
-            std::cout << "Found word: " << word << std::endl;
+            if(!setTokenFromWord(lookaheadToken, word, !specialChars, line, startCol, col)) {
+                logDafC(fileForParsing, line, startCol, ERROR) << "Token '" << word << "' not recognized" << std::endl;
+                continue;
+            }
             break;
         }
-        advanceChar();
+        assert(false); //Make sure we always end properly
     }
     return currentToken.type != END;
 }

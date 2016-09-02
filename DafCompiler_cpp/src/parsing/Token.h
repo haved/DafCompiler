@@ -23,8 +23,12 @@ struct Token {
     std::string text;
     int line;
     int col;
-    int endCol;
+    int endCol; //The letter after the text is over
     Token();
 };
 
-const char* getTokenText(const Token& type);
+const char* getTokenText(const Token& token);
+
+bool setTokenFromWord(Token& token, const std::string& word, bool identifier, int line, int startCol, int endCol);
+
+void setProperEOFToken(Token& token, int line, char col);
