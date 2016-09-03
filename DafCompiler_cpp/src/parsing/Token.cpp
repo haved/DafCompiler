@@ -1,17 +1,24 @@
 #include "parsing/Token.h"
 
-const char* TOKEN_TEXT[] = {"pub", "let", "def", "mut", "uncertain", "=", ":=", ":", ";", "(", "move", ",", ")", "{", "}",
+const char* TOKEN_TEXT[] = {
+    "pub", "let", "def", "mut", "uncertain", "move",
 
-    "prot", "abstract", "extends", "implements", "interface", "constructor", "destructor", "method", "this", "const", "virtual", "override",
+    "prot", " abstract", " extends", " implements", " interface",
+    "constructor", " destructor", " method", " this", " const",
+    "inline", " virtual", " override",
 
-    "if", "else", "elselse", "for", "while", "do", "continue", "break", "retry", "return",
+    "if", " else", " elselse", " for", " while", " do",
+    "continue", " break", " retry", " return",
 
-    "char", "short", "ushort", "int", "uint", "long", "ulong",
-    "int8", "uint8", "int16", "uint16", "int32", "uint32", "int64", "uint64", "usize", "boolean", "float", "double",
-    "shared", "unique", "new", "delete", "[", "]", "dumb", ".", "@",
-    "+", "-", "*", "/", "%", "&", "|", "^", "!",
+    "char", " short", " ushort", " int", " uint", " long", " ulong",
+    "int8", " uint8", " int16", " uint16", " int32", " uint32",
+    "int64", " uint64", " usize", " boolean", " float", " double",
 
-    "::", "->", "<<", ">>", ">>>", "&&", "||"
+    "shared", " unique", " new", " delete", " dumb",
+
+    "size_of", " type_of", " length_of",
+
+    "true", " false", " null"
     };
 
 const char* getTokenText(const Token& token) {
@@ -48,6 +55,10 @@ bool setTokenFromWord(Token& token, const std::string& text, bool identifier, in
         token.text = text;
         return true;
     }
+    return false;
+}
+
+bool mergeTokens(Token& first, Token& second) {
     return false;
 }
 
