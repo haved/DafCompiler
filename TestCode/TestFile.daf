@@ -5,3 +5,9 @@ a+=f; //Yep
 line /*stacked*/
 Amazing*/
 let mut b := d;
+def func:=(&mut myObj:MyClass):MyClass {
+	return myObj;
+}
+typedef MyClass := class {
+	pub value:int=20;
+}

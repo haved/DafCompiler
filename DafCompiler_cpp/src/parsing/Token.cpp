@@ -51,6 +51,20 @@ const char* COMPOSITE_TOKENS[] = {
     "==", "++", "--"
 };
 
+struct TokenMerge {
+    TokenType first;
+    TokenType second;
+    TokenType result;
+    TokenMerge(TokenType p_first, TokenType p_second, TokenType p_result) : first(p_first), second(p_second), result(p_result) {}
+};
+
+TokenMerge TOKEN_MERGES[] = {
+TokenMerge(TYPE_SEPARATOR,ASSIGN,DECLARE), TokenMerge(TYPE_SEPARATOR, TYPE_SEPARATOR, MODULE_ACCESS),
+TokenMerge(LOWER, LOWER, LSL), TokenMerge(GREATER, GREATER, ASR), TokenMerge(ASR, GREATER, LSL),
+TokenMerge(BITWISE_AND, MUT, MUT_REF), TokenMerge(BITWISE_AND, MOVE, MOVE_REF),
+TokenMerge(BITWISE_AND, UNIQUE, UNIQUE_PTR), TokenMerge(BITWISE_AND, SHARED, SHARED_PTR)
+};
+
 const char* getTokenText(const Token& token) {
     if(token.type < (sizeof(TOKEN_TEXT)/sizeof(*TOKEN_TEXT)))
         return TOKEN_TEXT[token.type];
@@ -105,18 +119,9 @@ bool setTokenFromSpecialChar(Token& token, char c, int line, int col) {
     return false;
 }
 
-struct TokenMerge {
-    TokenType first;
-    TokenType second;
-    TokenType result;
-    TokenMerge(TokenType p_first, TokenType p_second, TokenType p_result) : first(p_first), second(p_second), result(p_result) {}
-};
-
-TokenMerge TOKEN_MERGES[] = {
-TokenMerge(TYPE_SEPARATOR,ASSIGN,DECLARE)
-};
-
 bool mergeTokens(Token& first, const Token& second) {
+    if(first.line != second.line || first.endCol != second.col) //You can't put a comment inside a token
+        return false;
     for(unsigned int i = 0; i < sizeof(TOKEN_MERGES)/sizeof(*TOKEN_MERGES); i++) {
         TokenMerge& merg = TOKEN_MERGES[i];
         if(merg.first == first.type && merg.second == second.type) {
