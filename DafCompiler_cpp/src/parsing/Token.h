@@ -19,15 +19,14 @@ enum TokenType {
 
     SIZE_OF, TYPE_OF, LENGTH_OF,
 
-    TRUE, FALSE, NULL,
+    TRUE, FALSE, NULL_LITERAL,
 
     ASSIGN = 100, TYPE_SEPARATOR, STATEMENT_END, LEFT_PAREN, COMMA, RIGHT_PAREN,
     SCOPE_START, SCOPE_END, CLASS_ACCESS, DEREFERENCE,
     LEFT_BRACKET, RIGHT_BRACKET,
 
     PLUS, MINUS, MULT, DIVIDE, MODULO,
-    BITWISE_AND, BITWISE_OR, XOR, NOT,
-    BITWISE_NOT
+    BITWISE_AND, BITWISE_OR, XOR, NOT, BITWISE_NOT,
     LOWER, GREATER, Q_MARK,
 
     DECLARE=200, MODULE_ACCESS,
@@ -59,6 +58,6 @@ bool setTokenFromWord(Token& token, const std::string& word, int line, int start
 
 bool setTokenFromSpecialChar(Token& token, char c, int line, int col);
 
-bool mergeTokens(Token& first, Token& second);
+bool mergeTokens(Token& first, const Token& second);
 
 void setProperEOFToken(Token& token, int line, char col);

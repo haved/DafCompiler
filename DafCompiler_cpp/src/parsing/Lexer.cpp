@@ -41,49 +41,51 @@ bool isLegalSpecialChar(char c) {
 bool Lexer::advance() {
     std::swap(currentToken, lookaheadToken);
     //Now set the look-ahead token
-    while(true) {
-        if(isWhitespace(currentChar)) {
-            advanceChar();
-            continue;
-        }
-        else if(isEOF(currentChar)) {
-            setProperEOFToken(lookaheadToken, line, col);
-            break;
-        }
-        else {
-            if(isStartOfText(currentChar)) {
-                std::string word;
-                word.push_back(currentChar);
-                int startCol = col;
-                while(true) {
-                    advanceChar();
-                    if(!isPartOfText(currentChar))
-                        break;
-                    word.push_back(currentChar);
-                }
-                if(!setTokenFromWord(lookaheadToken, word, true, line, startCol, col)) {
-                    logDafC(fileForParsing, line, startCol, ERROR) << "Token '" << word << "' not recognized" << std::endl;
-                    continue;
-                }
-                break;
-            }
-            else if(isLegalSpecialChar(currentChar)) {
-                std::string letter;
-                letter.push_back(currentChar);
-                advanceChar();
-                if(!setTokenFromWord(lookaheadToken, letter, false, line, col, col+1)) {
-                    logDafC(fileForParsing, line, col, ERROR) << "Special char '" << currentChar << "' not a token" << std::endl;
-                    continue;
-                }
-                break;
-            } else {
-                logDafC(fileForParsing, line, col, ERROR) << "Character not legal: " << currentChar << std::endl;
+    do {
+        while(true) {
+            if(isWhitespace(currentChar)) {
                 advanceChar();
                 continue;
             }
+            else if(isEOF(currentChar)) {
+                setProperEOFToken(lookaheadToken, line, col);
+                break;
+            }
+            else {
+                if(isStartOfText(currentChar)) {
+                    std::string word;
+                    word.push_back(currentChar);
+                    int startCol = col;
+                    while(true) {
+                        advanceChar();
+                        if(!isPartOfText(currentChar))
+                            break;
+                        word.push_back(currentChar);
+                    }
+                    if(!setTokenFromWord(lookaheadToken, word, line, startCol, col)) {
+                        logDafC(fileForParsing, line, startCol, ERROR) << "Token '" << word << "' not recognized" << std::endl;
+                        continue;
+                    }
+                    break;
+                }
+                else if(isLegalSpecialChar(currentChar)) {
+                    char c = currentChar;
+                    advanceChar();
+                    if(!setTokenFromSpecialChar(lookaheadToken, c, line, col)) {
+                        logDafC(fileForParsing, line, col, ERROR) << "Special char '" << currentChar << "' not a token" << std::endl;
+                        continue;
+                    }
+                    break;
+                } else {
+                    logDafC(fileForParsing, line, col, ERROR) << "Character not legal: " << currentChar << std::endl;
+                    advanceChar();
+                    continue;
+                }
+            }
+            assert(false); //Make sure we always end properly
         }
-        assert(false); //Make sure we always end properly
     }
+    while(mergeTokens(currentToken, lookaheadToken));
     return currentToken.type != END;
 }
 
