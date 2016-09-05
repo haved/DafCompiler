@@ -7,13 +7,7 @@
     auto file = std::make_unique<ParsedFile>();
     file->fullyParsed = fullParse;
     Lexer lexer(ffp);
-    do {
-        std::cout << getTokenText(lexer.getCurrentToken()) << std::endl;
-        if(lexer.getCurrentToken().type == END)
-            break;
-        lexer.advance();
-    } while(true);
-    //Make lexer for file
+
     //Go through file and parse syntax
     //If !fullParse:
     //  Skip contents of definitions. Only signature is important.

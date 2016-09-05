@@ -16,7 +16,7 @@ Let's just say there is a story behind every point on this list.
 - Have - as both an infix and prefix operator. a + -(b+3) is legal
  - This is instead of parsing the minus sign in front of a number as part of the literal
 - After '(', if not followed by ')', parse an expression. Even if you later find out it's a parameter, it's parsed fine
-- Compine & [mut|shared|unique] tokens into one of three tokens, depending on pointer type
+- Compine & [mut|move|shared|unique] tokens into one of four tokens, depending on type
 - Split += into + and = to make it easier
 - Have some sort of assert that is used on user input
  - Make it recoverable (i.e. skipping until semicolon)
@@ -39,7 +39,8 @@ Let's just say there is a story behind every point on this list.
 - **Find a way of making generics work**
 
 ####Remember:
-- If your superclass has a virtual destructor, you have one too
+- You must explicitly keep methods virtual
+- Also in interfaces, methods must be virtual
 
 ####Langauge ideas and quirks:
 - Maybe cast like (exp **as** type)
@@ -70,3 +71,19 @@ Let's just say there is a story behind every point on this list.
 - Allow arrays to be initialized with a custom function
 - Save array size with array, both on heap and stack
 - Allow for dynamic amount of arguments and argument forwarding.
+
+
+typedef a:= interface {
+  a:int; //Requires a public integer
+  b:virtual int; //Requires a public integer, that can be accessed with a polymorphic pointer
+
+};
+
+typedef b:=class implemenets a {
+  pub a:int=20;
+  pub b:=a;
+  c:=virtual inline():int {
+    b
+  };
+  d:virtual int= 
+};
