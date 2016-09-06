@@ -7,10 +7,36 @@ typedef MyInterface:= interface {
 typedef MyClass:= class implements MyInterface {
 	pub a:int = 40;
 	pub b:int = 20;
+	def const:=constructor(&mut this, a:int, b:int) {
+		this.a = a;
+		this.b = b;
+	};
 	def MyMethod:=(&mut this, a:int) {
 		this.a = a;
 	};
 	def MyConst:=(&this, &mut a:int) {
 		a = this.a;
-	}
+	};
+	def MyStatic:=virtual() { //Why it'd be virtual I don't know, but it's possible
+		
+	};
+	def StaticInline:=inline(a:int, b:int):MyClass {
+		return altern<a,b>;
+	};
+	def altern:=<let a:int, let b:int>MyClass.const(a,b);
+
 };
+
+def takeArray:=<T>(array:[]T) {
+
+};
+
+def main:=() {
+	let names:[10] &mut char={"one","two","three","four","five","six","seven","eight","nine","ten"};
+	let dynamic:[..]int;
+	dynamic.push(20);
+	takeArray<&mut char>(names);
+	takeArray<int>(dynamic.fixed);
+
+	let dynamic2:[..]int={3,6,7,2};
+}
