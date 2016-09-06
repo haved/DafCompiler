@@ -1,0 +1,16 @@
+typedef MyInterface:= interface {
+	a:int;
+	b:virtual method():int;
+	c:virtual method(a:int, b:int):int;
+};
+
+typedef MyClass:= class implements MyInterface {
+	pub a:int = 40;
+	pub b:int = 20;
+	def MyMethod:=(&mut this, a:int) {
+		this.a = a;
+	};
+	def MyConst:=(&this, &mut a:int) {
+		a = this.a;
+	}
+};
