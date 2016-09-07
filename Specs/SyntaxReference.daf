@@ -38,7 +38,6 @@ def main:=() {
 	takeArray<&mut char>(names);
 	takeArray<int>(dynamic.fixed_mut);
 
-	let dynamic2:&mut[..]=new [20]int={5,2,8,6,9};
-	print(dynamic2.pop()); //Prints: '2' or panics if no elm are there. The size is not update by itself
+	let dynamic2:&mut[..]int=new [20]int({2, 6, 7}, (x:int):int {0}); //The rest are set to 0
 	delete dynamic2;
 }
