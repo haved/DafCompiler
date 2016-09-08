@@ -5,22 +5,32 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <boost/optional.hpp>
 
 using std::unique_ptr;
+using boost::optional;
 
 class Expression {
  public:
-  virtual ~Expression()=0;
+  virtual ~Expression();
   virtual bool isStatement()=0;
   virtual Type* getType();
   inline bool isTypeKnown() {
-    return typeKnown;
+    return type;
   }
-  virtual bool findType();
+  virtual bool findType()=0;
  protected:
   TextRange range;
-  unique_ptr<Type> type;
-  bool typeKnown;
+  optional<unique_ptr<Type>> type;
+};
+
+
+class VariableExpression : public Expression {
+private:
+  std::string name;
+public:
+  VariableExpression(const std::string& name);
+  //override bool isStatement();
 };
 
 enum ConstantType {
@@ -91,11 +101,4 @@ private:
   //TODO: Insert function body
 public:
   FunctionExpression();
-};
-
-class VariableExpression : public Expression {
-private:
-  std::string name;
-public:
-  VariableExpression(const std::string& name);
 };

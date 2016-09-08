@@ -1,7 +1,18 @@
+def a;
+def let b;
+def mut c;
+def let mut g;
 def b:int;
-def a:=b;
+/*def a:=b;
 def main:int=20;
 def test2 := main;
+let one:=3; //Yeah
+let mut eyo:=4;
+def let yetAnother:int=one;
+def mut whyHello:=eyo;
+def let mut there:=whyHello;
+*/
+
 //Testing a comment :)
 //Yep
 /* Multi

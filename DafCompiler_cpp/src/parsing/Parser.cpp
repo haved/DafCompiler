@@ -11,18 +11,39 @@ using std::unique_ptr;
 using boost::optional;
 using boost::none;
 
-optional<unique_ptr<Definition>> parseDefDefinition(Lexer& lexer, bool pub) {
-  assert(lexer.expectToken(DEF));
+optional<unique_ptr<Definition>> parseLetDefDefinition(Lexer& lexer, bool pub) {
+  bool def = lexer.currType()==DEF;
+  if(def)
+    lexer.advance();
+
+  bool let = lexer.currType()==LET;
+  if(let)
+    lexer.advance();
+  bool mut = lexer.currType()==MUT;
+  if(mut) {
+    lexer.advance();
+    let = true; //let may be ommited when mutable, but it's still an lvalue
+  }
+
+  assert(def||let);
+
+  if(!lexer.expectToken(IDENTIFIER)) {
+    return none;
+  }
+
+  std::string name = lexer.getCurrentToken().text;
+
   if(lexer.expectToken(STATEMENT_END))
     lexer.advance(); //Eat the ';' as promised
   return none;
 }
 
 optional<unique_ptr<Definition>> parseDefinition(Lexer& lexer, bool pub) {
-  TokenType currentToken = lexer.getCurrentToken().type;
+  TokenType currentToken = lexer.currType();
   switch(currentToken) {
   case DEF:
-      return parseDefDefinition(lexer, pub);
+  case LET:
+      return parseLetDefDefinition(lexer, pub);
   default:
     break;
   }
@@ -31,6 +52,10 @@ optional<unique_ptr<Definition>> parseDefinition(Lexer& lexer, bool pub) {
 }
 
 optional<unique_ptr<Expression>> parseExpression(Lexer& lexer) {
+  Token& curr = lexer.getCurrentToken();
+  switch(curr.type) {
+    
+  }
   return std::unique_ptr<Expression>(nullptr);
 }
 
