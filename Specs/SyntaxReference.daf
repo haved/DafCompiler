@@ -7,7 +7,7 @@ typedef MyInterface:= interface {
 typedef MyClass:= class implements MyInterface {
 	pub a:int = 40;
 	pub b:int = 20;
-	def const:=constructor(&mut this, a:int, b:int) {
+	pub def const:=constructor(&mut this, a:int, b:int) {
 		this.a = a;
 		this.b = b;
 	};
@@ -23,22 +23,45 @@ typedef MyClass:= class implements MyInterface {
 	def StaticInline:=inline(a:int, b:int):MyClass {
 		return altern<a,b>;
 	};
-	def altern:=<let a:int, let b:int>MyClass.const(a,b);
-
+	def altern:=<let a:int let b:int>MyClass.const(a,b);
+	def getA:=<&this>a;
+	def mut getAMut:int =<&this>a; //A bit dirty, but ah well
+	def increaseADef:void=<&this>a++;
+	def increaseAFunc:=inline(&this) {
+		a++;
+	};
 };
+
+//Typedefs have their types passed first
+typedef owner<T>:= T;
 
 def takeArray:=<T>(array:[]mut T) {
 	print(array.length);
 };
 
-def main:=() {
+def main:<let mut a:int>()=<let mut a:int>() {
 	//Having 10 there makes the .length return 10 at compile time. Can also be passed to functions that take [10]&[]char
 	let names:[10]&[]char={"one","two","three","four","five","six","seven","eight","nine","ten"};
 	let dynamic:&[..]mut int=new [0]int();
 	dynamic.push(20);
+	delete dynamic;
 	takeArray<&mut char>(names);
 	takeArray<int>(dynamic.fixed_mut); //Gets you &[]mut int;
 
 	let dynamic2:&mut[..]int=new [20]int({2, 6, 7}, (x:int):int {0}); //The rest are set to 0
 	delete dynamic2;
+
+	let myObj := new_shared_ptr<MyClass>().const(20, 45); //Calling a constructor on a &shared mut uncertain T -> &shared mut T
 }
+
+def defaultMalloc:=(size:usize):&mut void {
+	null //Great alloc, I know
+};
+
+def new_shared_ptr:=<T, let alloc:(size:usize):&mut void>():&shared mut uncertain T { //hehe
+	let ptr := alloc(sizeof(usize)+sizeof(T));
+	&shared mut uncertain T(ptr as &usize,(ptr:&mut uncertain)free(ptr));
+	//First the pointer to the counter (set to 1 by this constructor), and then the object. Finally the deleter
+};
+|
+<T>new_shared_ptr<T,defaultMalloc>;
