@@ -47,7 +47,7 @@ optional<unique_ptr<Definition>> parseDefinition(Lexer& lexer, bool pub) {
   switch(currentToken) {
   case DEF:
   case LET:
-      return parseLetDefDefinition(lexer, pub);
+    return parseLetDefDefinition(lexer, pub);
   default:
     break;
   }
@@ -69,15 +69,15 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer) {
 };
 
 void skipPastStatementEndOrToScope(Lexer& lexer) {
-    while(lexer.hasCurrentToken()) {
-        if(lexer.currType() == STATEMENT_END) {
-            lexer.advance();
-            break;
-        }
-        else if(lexer.currType() == SCOPE_START || lexer.currType() == SCOPE_END)
-            break;
-        lexer.advance();
+  while(lexer.hasCurrentToken()) {
+    if(lexer.currType() == STATEMENT_END) {
+      lexer.advance();
+      break;
     }
+    else if(lexer.currType() == SCOPE_START || lexer.currType() == SCOPE_END)
+      break;
+    lexer.advance();
+  }
 }
 
 std::unique_ptr<ParsedFile> parseFileSyntax(const FileForParsing& ffp, bool fullParse) {

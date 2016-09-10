@@ -28,79 +28,79 @@ bool Lexer::expectToken(const TokenType& type) {
 }
 
 bool isWhitespace(char c) {
-    return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+  return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }
 
 inline bool isEOF(char c) {
-    return c == EOF;
+  return c == EOF;
 }
 
 bool isStartOfText(char c) {
-    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
 bool isDigit(char c) {
-    return c >= '0' && c <= '9';
+  return c >= '0' && c <= '9';
 }
 
 bool isPartOfText(char c) {
-    return isStartOfText(c) || isDigit(c);
+  return isStartOfText(c) || isDigit(c);
 }
 
 bool isLegalSpecialChar(char c) {
-    return (c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '_') || (c >= '{' && c <= '}');
+  return (c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '_') || (c >= '{' && c <= '}');
 }
 
 bool Lexer::advance() {
-    std::swap(currentToken, lookaheadToken);
-    //Now set the look-ahead token
-    do {
-        while(true) {
-            if(isWhitespace(currentChar)) {
-                advanceChar();
-                continue;
-            }
-            else if(isEOF(currentChar)) {
-                setProperEOFToken(lookaheadToken, line, col);
-                break;
-            }
-            else {
-                if(isStartOfText(currentChar)) {
-                    std::string word;
-                    word.push_back(currentChar);
-                    int startCol = col, startLine = line;
-                    while(true) {
-                        advanceChar();
-                        if(!isPartOfText(currentChar))
-                            break;
-                        word.push_back(currentChar);
-                    }
-                    if(!setTokenFromWord(lookaheadToken, word, startLine, startCol, col)) {
-                        logDaf(fileForParsing, line, startCol, ERROR) << "Token '" << word << "' not recognized" << std::endl;
-                        continue;
-                    }
-                    break;
-                }
-                else if(isLegalSpecialChar(currentChar)) {
-                    char c = currentChar;
-                    int startCol = col, startLine = line;
-                    advanceChar();
-                    if(!setTokenFromSpecialChar(lookaheadToken, c, startLine, startCol)) {
-                        logDaf(fileForParsing, line, col, ERROR) << "Special char '" << currentChar << "' not a token" << std::endl;
-                        continue;
-                    }
-                    break;
-                } else {
-                    logDaf(fileForParsing, line, col, ERROR) << "Character not legal: " << currentChar << std::endl;
-                    advanceChar();
-                    continue;
-                }
-            }
-            assert(false); //Make sure we always end properly
+  std::swap(currentToken, lookaheadToken);
+  //Now set the look-ahead token
+  do {
+    while(true) {
+      if(isWhitespace(currentChar)) {
+        advanceChar();
+        continue;
+      }
+      else if(isEOF(currentChar)) {
+        setProperEOFToken(lookaheadToken, line, col);
+        break;
+      }
+      else {
+        if(isStartOfText(currentChar)) {
+          std::string word;
+          word.push_back(currentChar);
+          int startCol = col, startLine = line;
+          while(true) {
+            advanceChar();
+            if(!isPartOfText(currentChar))
+              break;
+            word.push_back(currentChar);
+          }
+          if(!setTokenFromWord(lookaheadToken, word, startLine, startCol, col)) {
+            logDaf(fileForParsing, line, startCol, ERROR) << "Token '" << word << "' not recognized" << std::endl;
+            continue;
+          }
+          break;
         }
+        else if(isLegalSpecialChar(currentChar)) {
+          char c = currentChar;
+          int startCol = col, startLine = line;
+          advanceChar();
+          if(!setTokenFromSpecialChar(lookaheadToken, c, startLine, startCol)) {
+            logDaf(fileForParsing, line, col, ERROR) << "Special char '" << currentChar << "' not a token" << std::endl;
+            continue;
+          }
+          break;
+        } else {
+          logDaf(fileForParsing, line, col, ERROR) << "Character not legal: " << currentChar << std::endl;
+          advanceChar();
+          continue;
+        }
+      }
+      assert(false); //Make sure we always end properly
     }
-    while(mergeTokens(currentToken, lookaheadToken));
-    return currentToken.type != END_TOKEN;
+  }
+  while(mergeTokens(currentToken, lookaheadToken));
+  return currentToken.type != END_TOKEN;
 }
 
 void Lexer::advanceChar() {
@@ -127,13 +127,13 @@ void Lexer::advanceChar() {
       while(currentChar != '*' || lookaheadChar != '/') {
         advanceChar();
         if(currentChar == EOF) {
-                  logDaf(fileForParsing, line, col, ERROR) << "File ended during multi-line comment" << std::endl;
-                    break;
-                }
-            }
-            advanceChar(); //Skip the '*'
-            advanceChar(); //Skip the '/' too
+          logDaf(fileForParsing, line, col, ERROR) << "File ended during multi-line comment" << std::endl;
+          break;
         }
+      }
+      advanceChar(); //Skip the '*'
+      advanceChar(); //Skip the '/' too
     }
+  }
 }
 
