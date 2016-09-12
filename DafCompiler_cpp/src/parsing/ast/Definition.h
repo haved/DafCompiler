@@ -19,11 +19,16 @@ protected:
     TextRange range;
 };
 
+enum DefType {
+    DEF_NORMAL,
+    DEF_LET,
+    DEF_MUT
+};
+
 class Def : public Definition {
 private:
-    bool let;
-    bool mut;
+    DefType defType;
     std::unique_ptr<Type> type;
 public:
-    Def();
+    Def(DefType defType);
 };
