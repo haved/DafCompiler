@@ -1,24 +1,14 @@
-def func:=():int { //Normal
-	return 20;
+let mut f:=5;
+def lval g:=f; //lvalue but immutable
+def h:=5; //Not an lvalue
+def c:=&mut f; //Not an lvalue
+def mut d:=@c; //Mutable lvalue
+d++;
+
+def func:=() {
+
 };
 
-def funcWithParam:=(&mut a:MyClass) {
-	print(a.getName());
+def inlineFunc:=$() {
+
 };
-
-let a := 4; //Should be def unless a pointer is needed.
-def b := a*2;
-def c := 3;
-def timesTwoFunc:=(factor:int) factor*2; // { and } may be omitted
-def timesTwoInline:=inline(factor:int) { //Pass by reference is a good idea, but not needed
-	return factor*2;
-};
-
-def using:=() {
-	let mut num:=30;
-	num = timesTwo<num>;
-	num = timesTwoFunc(num);
-	num = timesTwoInline(num);
-	let text:="Eyo";
-
-}
