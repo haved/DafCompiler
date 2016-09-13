@@ -1,14 +1,43 @@
 let mut f:=5;
-def lval g:=f; //lvalue but immutable
+def let g:=f; //lvalue but immutable
 def h:=5; //Not an lvalue
 def c:=&mut f; //Not an lvalue
-def mut d:=@c; //Mutable lvalue
+def /*let*/ mut d:=@c; //Mutable lvalue, sey let if you want to
 d++;
 
-def func:=() {
+def func:=() { //A normal function
 
 };
 
-def inlineFunc:=$() {
+def swap:=$(T implements Assignable)(&mut a:T, &mut b:T) {
+	T temp = a;
+	a = b;
+	b = a;
+};
 
+def swapAndGet:=inline(&struct:MyStruct):int { //Inline function mimicing the syntax of normal functions
+	swap!(&mut int)(struct.current,struct.other);
+	return @struct.current;
+};
+
+def swapAndGetTwo:$(def MyStruct):mut int=$(def struct:MyStruct):mut int { //True inline with only compile-time args
+	swap!(&mut int)(struct.current,struct.other);
+	return @struct.current; //Gives you a mutable lvalue in this case
+};
+
+def timesTwo:=$(def a:$T):T a*2; //Of type $(def $T):T //True inline function
+
+def timesTwoQuick:=<def a:int> a*2; //Of type int, but needs to have an integer passed
+
+typedef MyStruct := class {
+	a:int=3;
+	b:int=2;
+	current:&mut int;
+	other:&mut int;
+};
+
+def main:=() {
+	func();
+	inlineFunc();
+	
 };
