@@ -9,8 +9,8 @@ def func:=() { //A normal function
 
 };
 
-def swap:=$(T implements Assignable)(&mut a:T, &mut b:T) {
-	T temp = a;
+def swap:=$(T implements Assignable)(&mut a:T, &mut b:T) { //A function with a template
+	let temp:= a;
 	a = b;
 	b = a;
 };
@@ -21,7 +21,7 @@ def swapAndGet:=inline(&struct:MyStruct):int { //Inline function mimicing the sy
 };
 
 def swapAndGetTwo:$(def MyStruct):mut int=$(def struct:MyStruct):mut int { //True inline with only compile-time args
-	swap!(&mut int)(struct.current,struct.other);
+	swap!(&mut int)(mut struct.current,mut struct.other);
 	return @struct.current; //Gives you a mutable lvalue in this case
 };
 
@@ -30,14 +30,18 @@ def timesTwo:=$(def a:$T):T a*2; //Of type $(def $T):T //True inline function
 def timesTwoQuick:=<def a:int> a*2; //Of type int, but needs to have an integer passed
 
 typedef MyStruct := class {
-	a:int=3;
-	b:int=2;
-	current:&mut int;
-	other:&mut int;
+	a:int;
+	b:int;
+	pub current:&mut int;
+	pub other:&mut int;
+	pub def make := constructor(&mut this, a:int, b:int) {
+		this.a = a;
+		this.b = b;
+		this.current = &mut a;
+		this.other = &mut b;
+	};
 };
 
 def main:=() {
-	func();
-	inlineFunc();
-	
+	MyStruct 
 };
