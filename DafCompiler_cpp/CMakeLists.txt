@@ -16,10 +16,15 @@ file(GLOB MySourcesParsing
 	src/parsing/*.cpp
 )
 
+file(GLOB MySourcesParsingAst
+	src/parsing/ast/*.h
+	src/parsing/ast/*.cpp
+)
+
 FIND_PACKAGE( Boost 1.40 COMPONENTS system filesystem REQUIRED )
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 
-add_executable(DafCompiler ${MySources} ${MySourcesParsing})
+add_executable(DafCompiler ${MySources} ${MySourcesParsing} ${MySourcesParsingAst})
 
 target_include_directories(DafCompiler PUBLIC "${CMAKE_SOURCE_DIR}/src")
 #target_include_directories(DafCompiler PUBLIC "${CMAKE_SOURCE_DIR}/src/parsing")
