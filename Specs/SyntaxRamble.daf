@@ -15,13 +15,13 @@ def swap:=$(T implements Assignable)(&mut a:T, &mut b:T) { //A function with a t
 	b = a;
 };
 
-def swapAndGet:=inline(&struct:MyStruct):int { //Inline function mimicing the syntax of normal functions
-	swap!(&mut int)(struct.current,struct.other);
+def swapAndGet:=inline(&mut struct:MyStruct):int { //Inline function mimicing the syntax of normal functions
+	swap!(&mut int)(mut struct.current, mut struct.other);
 	return @struct.current;
 };
 
-def swapAndGetTwo:$(def MyStruct):mut int=$(def struct:MyStruct):mut int { //True inline with only compile-time args
-	swap!(&mut int)(mut struct.current,mut struct.other);
+def swapAndGetTwo:$(def mut MyStruct):mut int=$(def struct:MyStruct):mut int { //True inline with only compile-time args
+	swap!(&mut int)(mut struct.current, mut struct.other);
 	return @struct.current; //Gives you a mutable lvalue in this case
 };
 
@@ -43,5 +43,9 @@ typedef MyStruct := class {
 };
 
 def main:=() {
-	MyStruct 
+	let myTwo:=MyStruct.make(30, 40); //Curr: 30
+	assertEquals(swapAndGet(mut myTwo), 40); //Curr: 40
+	swapAndGetTwo!() = 20; //Curr: 20, Other: 40
+	assertEquals(@myTwo.current, timesTwo!(10));
+	assertEquals(@myTwo.other,   timesTwoQuick<20>);
 };
