@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.4.3)
 project (DafCompiler)
 set(DafCompiler_VERSION_MAJOR 1)
 
@@ -21,12 +21,22 @@ file(GLOB MySourcesParsingAst
 	src/parsing/ast/*.cpp
 )
 
+#Find Boost
 FIND_PACKAGE( Boost 1.40 COMPONENTS system filesystem REQUIRED )
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 
+#Find LLVM
+FIND_PACKAGE(LLVM REQUIRED CONFIG)
+MESSAGE(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+MESSAGE(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+
+INCLUDE_DIRECTORIES(${LLVM_INCLUDE_DIRS})
+ADD_DEFINITIONS(${LLVM_DEFINITIONS})
+
 add_executable(DafCompiler ${MySources} ${MySourcesParsing} ${MySourcesParsingAst})
-
 target_include_directories(DafCompiler PUBLIC "${CMAKE_SOURCE_DIR}/src")
-#target_include_directories(DafCompiler PUBLIC "${CMAKE_SOURCE_DIR}/src/parsing")
 
-TARGET_LINK_LIBRARIES(DafCompiler ${Boost_LIBRARIES} )
+# Find the libraries that correspond to the LLVM components
+# that we wish to use
+LLVM_MAP_COMPONENTS_TO_LIBNAMES(llvm_libs support core irreader)
+TARGET_LINK_LIBRARIES(DafCompiler ${Boost_LIBRARIES} ${llvm_libs})
