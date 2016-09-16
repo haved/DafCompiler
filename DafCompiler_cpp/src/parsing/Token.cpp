@@ -68,9 +68,9 @@ TokenMerge(BITWISE_AND, UNIQUE, UNIQUE_PTR), TokenMerge(BITWISE_AND, SHARED, SHA
 const char* getTokenText(const Token& token) {
     if(token.type < (sizeof(TOKEN_TEXT)/sizeof(*TOKEN_TEXT)))
         return TOKEN_TEXT[token.type];
-    else if(token.type-FIRST_ONE_CHAR_TOKEN < (sizeof(ONE_CHAR_TOKEN_TEXTS)/sizeof(*ONE_CHAR_TOKEN_TEXTS)))
+    else if((unsigned)token.type-FIRST_ONE_CHAR_TOKEN < (sizeof(ONE_CHAR_TOKEN_TEXTS)/sizeof(*ONE_CHAR_TOKEN_TEXTS)))
         return ONE_CHAR_TOKEN_TEXTS[token.type-FIRST_ONE_CHAR_TOKEN];
-    else if(token.type-FIRST_COMPOSITE_TOKEN < (sizeof(COMPOSITE_TOKENS)/sizeof(*COMPOSITE_TOKENS)))
+    else if((unsigned)token.type-FIRST_COMPOSITE_TOKEN < (sizeof(COMPOSITE_TOKENS)/sizeof(*COMPOSITE_TOKENS)))
         return COMPOSITE_TOKENS[token.type-FIRST_COMPOSITE_TOKEN];
 
     else if(token.type == END)
