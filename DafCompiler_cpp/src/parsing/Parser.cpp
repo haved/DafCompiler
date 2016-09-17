@@ -12,8 +12,10 @@ using boost::optional;
 using boost::none;
 
 optional<unique_ptr<Definition>> parseDefDefinition(Lexer& lexer, bool pub) {
+  assert(lexer.expectToken(DEF));
+  if(lexer.expectToken(STATEMENT_END))
+    lexer.advance(); //Eat the ';' as promised
   return none;
-  //lexer.expectToken(STATEMENT_END);
 }
 
 optional<unique_ptr<Definition>> parseDefinition(Lexer& lexer, bool pub) {

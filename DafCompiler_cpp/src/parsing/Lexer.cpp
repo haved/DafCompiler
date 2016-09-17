@@ -1,17 +1,30 @@
 #include "parsing/Lexer.hpp"
 #include "DafLogger.hpp"
 #include <iostream>
+#include "info/Constants.hpp"
+#include "DafLogger.hpp"
+
+#define FIRST_CHAR_COL 0 //The column the first char on a line is
+//TAB_WIDTH is defined in Constants.hpp
 
 Lexer::Lexer(const FileForParsing& file) : fileForParsing(file), currentToken(token1), lookaheadToken(token2) {
-    infile.open(file.inputFile.string()); //For the time being, there is no text processor
-    currentChar = '\n'; //Not too nice, but oh well
-    lookaheadChar = '\n';
-    advanceChar(); //To set look-ahead char
-    advanceChar(); //To set current char
-    line = 1;
-    col = 1;
-    advance(); //To make look-ahead an actual token
-    advance(); //To make current an actual token
+  infile.open(file.inputFile.string()); //For the time being, there is no text processor
+  currentChar = '\n'; //Not too nice, but oh well
+  lookaheadChar = '\n';
+  advanceChar(); //To set look-ahead char
+  advanceChar(); //To set current char
+  line = 1;
+  col = FIRST_CHAR_COL; //First char is col 0
+  advance(); //To make look-ahead an actual token
+  advance(); //To make current an actual token
+}
+
+bool Lexer::expectToken(const TokenType& type) {
+  if(type != currentToken.type) {
+    logDafExpectedToken(getTokenText(type), *this);
+    return false;
+  }
+  return true;
 }
 
 bool isWhitespace(char c) {
@@ -92,9 +105,9 @@ bool Lexer::advance() {
 void Lexer::advanceChar() {
   if(currentChar == '\n') {
     line++;
-    col = 1;
+    col = FIRST_CHAR_COL; //is 0
   } else if(currentChar == '\t')
-    col += 4;
+    col += TAB_SIZE; //Defined in Constants.hpp
   else
     col++;
 
