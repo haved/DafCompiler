@@ -1,4 +1,4 @@
-#include "parsing/ast/TextRange.h"
+#include "parsing/ast/TextRange.hpp"
 
 TextRange::TextRange(int lineStart, int colStart, int lineEnd, int colEnd) :
   m_lineStart(lineStart), m_colStart(colStart), m_lineEnd(lineEnd), m_colEnd(colEnd) {}

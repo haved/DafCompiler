@@ -1,16 +1,16 @@
-#include "parsing/Parser.h"
-#include "parsing/Lexer.h"
-#include "parsing/ArgHandler.h"
-#include "parsing/ast/Definition.h"
-#include "parsing/ast/Expression.h"
+#include "parsing/Parser.hpp"
+#include "parsing/Lexer.hpp"
+#include "parsing/ArgHandler.hpp"
+#include "parsing/ast/Definition.hpp"
+#include "parsing/ast/Expression.hpp"
 #include <iostream>
 
 std::unique_ptr<Definition> parseDefinition(Lexer& lexer, bool pub) {
-
+    return std::unique_ptr<Definition>(nullptr);
 }
 
-std::unique_ptr<Expresion> parseExpression(Lexer& lexer) {
-
+std::unique_ptr<Expression> parseExpression(Lexer& lexer) {
+    return std::unique_ptr<Expression>(nullptr);
 }
 
  std::unique_ptr<ParsedFile> parseFileSyntax(const FileForParsing& ffp, bool fullParse) {

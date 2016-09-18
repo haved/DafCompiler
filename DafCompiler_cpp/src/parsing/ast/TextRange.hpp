@@ -1,3 +1,5 @@
+#pragma once
+
 class TextRange {
  private:
   int m_lineStart;

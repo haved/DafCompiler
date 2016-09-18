@@ -1,8 +1,8 @@
 #pragma once
 
 #include <string>
-#include "parsing/Token.h"
-#include "parsing/ArgHandler.h"
+#include "parsing/Token.hpp"
+#include "parsing/ArgHandler.hpp"
 
 class Lexer {
 private:

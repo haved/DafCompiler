@@ -1,5 +1,5 @@
 #pragma once
-#include "parsing/ArgHandler.h"
+#include "parsing/ArgHandler.hpp"
 #include <memory>
 
 struct ParsedFile {

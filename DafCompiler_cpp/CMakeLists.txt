@@ -7,17 +7,17 @@ if(UNIX)
 endif()
 
 file(GLOB MySources
-	src/*.h
+	src/*.hpp
 	src/*.cpp
 )
 
 file(GLOB MySourcesParsing
-	src/parsing/*.h
+	src/parsing/*.hpp
 	src/parsing/*.cpp
 )
 
 file(GLOB MySourcesParsingAst
-	src/parsing/ast/*.h
+	src/parsing/ast/*.hpp
 	src/parsing/ast/*.cpp
 )
 

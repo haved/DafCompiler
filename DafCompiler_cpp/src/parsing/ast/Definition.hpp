@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
-#include "parsing/ast/Type.h"
-#include "parsing/ast/TextRange.h"
+#include "parsing/ast/Type.hpp"
+#include "parsing/ast/TextRange.hpp"
 
 class Definition {
 protected:

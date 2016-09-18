@@ -1,5 +1,5 @@
-#include "parsing/Lexer.h"
-#include "DafLogger.h"
+#include "parsing/Lexer.hpp"
+#include "DafLogger.hpp"
 #include <iostream>
 
 Lexer::Lexer(const FileForParsing& file) : fileForParsing(file), currentToken(token1), lookaheadToken(token2) {

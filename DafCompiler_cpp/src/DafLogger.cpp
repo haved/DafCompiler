@@ -1,5 +1,5 @@
-#include "DafLogger.h"
-#include "parsing/ArgHandler.h"
+#include "DafLogger.hpp"
+#include "parsing/ArgHandler.hpp"
 #include <cstdlib>
 
 std::string logLevelNames[] = {"fatal_error", "error", "warning", "note", "message"};

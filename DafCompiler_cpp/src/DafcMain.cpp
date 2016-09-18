@@ -1,7 +1,7 @@
 #include <vector>
-#include "DafLogger.h"
-#include "parsing/ArgHandler.h"
-#include "parsing/Parser.h"
+#include "DafLogger.hpp"
+#include "parsing/ArgHandler.hpp"
+#include "parsing/Parser.hpp"
 
 using std::vector;
 

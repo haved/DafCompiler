@@ -1,6 +1,6 @@
 #pragma once
-#include "parsing/ast/Definition.h"
-#include "parsing/ast/Expression.h"
+#include "parsing/ast/Definition.hpp"
+#include "parsing/ast/Expression.hpp"
 #include <memory>
 
 //A statement can be both an expression or a definition, but not all expressions or definitons are statements

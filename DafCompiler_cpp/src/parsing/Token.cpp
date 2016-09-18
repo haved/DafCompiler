@@ -1,4 +1,4 @@
-#include "parsing/Token.h"
+#include "parsing/Token.hpp"
 
 const char* TOKEN_TEXT[] = {
     "pub", "let", "def", "mut", "uncertain", "move",

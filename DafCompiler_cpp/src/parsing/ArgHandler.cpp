@@ -1,5 +1,5 @@
-#include "ArgHandler.h"
-#include "DafLogger.h"
+#include "ArgHandler.hpp"
+#include "DafLogger.hpp"
 
 using std::vector;
 
