@@ -9,7 +9,7 @@ def func:=() { //A normal function
 
 };
 
-def swap:=$(T implements Assignable)(&mut a:T, &mut b:T) { //A function with a template
+def swap:=$(T:Assignable)(&mut a:T, &mut b:T) { //A function with a template
 	let temp:= a;
 	a = b;
 	b = a;
@@ -26,8 +26,6 @@ def swapAndGetTwo:$(def mut MyStruct):mut int=$(def struct:MyStruct):mut int { /
 };
 
 def timesTwo:=$(def a:$T):T a*2; //Of type $(def $T):T //True inline function
-
-def timesTwoQuick:=<def a:int> a*2; //Of type int, but needs to have an integer passed
 
 typedef MyStruct := class {
 	a:int;
