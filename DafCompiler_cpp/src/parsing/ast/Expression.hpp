@@ -9,8 +9,15 @@ class Expression {
  public:
   virtual ~Expression()=0;
   virtual bool isStatement()=0;
+  virtual Type* getType();
+  inline bool isTypeKnown() {
+    return typeKnown;
+  }
+  virtual bool findType();
  protected:
   TextRange range;
+  std::uniqe_ptr<Type> type;
+  bool typeKnown;
 };
 
 enum ConstantType {
