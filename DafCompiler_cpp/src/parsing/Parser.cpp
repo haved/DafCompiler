@@ -13,9 +13,17 @@ using boost::none;
 
 optional<unique_ptr<Definition>> parseDefDefinition(Lexer& lexer, bool pub) {
   return none;
+  //lexer.expectToken(STATEMENT_END);
 }
 
 optional<unique_ptr<Definition>> parseDefinition(Lexer& lexer, bool pub) {
+  TokenType currentToken = lexer.getCurrentToken().type;
+  switch(currentToken) {
+  case DEF:
+      return parseDefDefinition(lexer, pub);
+  default:
+    break;
+  }
   logDafExpectedToken("a definition", lexer);
   return none;
 }
@@ -29,6 +37,18 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer) {
   return none;
 };
 
+void skipPastStatementEndOrToScope(Lexer& lexer) {
+    while(lexer.hasCurrentToken()) {
+        if(lexer.currType() == STATEMENT_END) {
+            lexer.advance();
+            break;
+        }
+        else if(lexer.currType() == SCOPE_START || lexer.currType() == SCOPE_END)
+            break;
+        lexer.advance();
+    }
+}
+
 std::unique_ptr<ParsedFile> parseFileSyntax(const FileForParsing& ffp, bool fullParse) {
   auto file = std::make_unique<ParsedFile>();
   file->fullyParsed = fullParse;
@@ -38,29 +58,13 @@ std::unique_ptr<ParsedFile> parseFileSyntax(const FileForParsing& ffp, bool full
     if(pub)
       lexer.advance(); //We don't care if it ends after this yet
     optional<unique_ptr<Definition>> definition = parseDefinition(lexer, pub);
-    //The semicolon after is skipped, error given if not found, but still returned.
+    //The semicolon after is already skipped, error given if not found, but definition still returned.
     //Means code breaks only happen if a broken definition does not have a semicolon
-    if(!definition) { //Error occurred, but already printed
-      //Skip until past ; or until next { or }
-      while(lexer.hasCurrentToken()) {
-        if(lexer.currType() == STATEMENT_END) {
-          lexer.advance();
-          break;
-        }
-        else if(lexer.currType() == SCOPE_START
-                || lexer.currType() == SCOPE_END)
-          break;
-        lexer.advance();
-      }
-    } else { //A nice definition was returned :)
+    if(definition) //A nice definition was returned :)
       file->definitions.push_back(std::move(*definition));
-    }
+    else //Error occurred, but already printed
+      skipPastStatementEndOrToScope(lexer);
   }
-
-  //Go through file and parse syntax
-  //If !fullParse:
-  //  Skip contents of definitions. Only signature is important.
-  //  I.e. Only parse scope if def x:={};
-  //Return after syntax parsing, to let imports be parsed as well
+  //To let imports be parsed :D
   return file;
 }
