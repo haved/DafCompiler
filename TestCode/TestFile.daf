@@ -1,13 +1,16 @@
+def b:int;
 def a:=b;
+def main:int=20;
+def test2 := main;
 //Testing a comment :)
-a+=f; //Yep
+//Yep
 /* Multi
 line /*stacked*/
 Amazing*/
-let mut b := d;
-def func:=(&mut myObj:MyClass):MyClass {
+//let mut b := d;
+/*def func:=(&mut myObj:MyClass):MyClass {
 	return myObj;
 };
 typedef MyClass := class {
 	pub value:int=20;
-};
+};*/
