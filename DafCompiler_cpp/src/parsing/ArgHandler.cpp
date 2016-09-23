@@ -44,7 +44,7 @@ CommandInput handleArgs(int argc, const char** argv) {
                 logDaf(FATAL_ERROR, "Expected a search directory after '--path'");
             fs::path searchDir(argv[i]);
             if(!fs::is_directory(searchDir)) {
-                logDafC(FATAL_ERROR) << "The search path '" << searchDir << "' doesn't exist" << std::endl;
+                logDaf(FATAL_ERROR) << "The search path '" << searchDir << "' doesn't exist" << std::endl;
                 terminateIfErrors();
             }
             output.searchDirs.push_back(searchDir);
@@ -53,7 +53,7 @@ CommandInput handleArgs(int argc, const char** argv) {
             if(i>=argc)
                 logDaf(FATAL_ERROR, "Expected an output file or directory after '-o'");
             if (output.output.size()!=0)
-                logDafC(WARNING) << "Overriding '" << output.output << "' as output" << std::endl;
+                logDaf(WARNING) << "Overriding '" << output.output << "' as output" << std::endl;
             output.output.assign(argv[i]);
         } else if(strcmp(argv[i], "-r")==0) {
             if(output.recursive)
@@ -162,7 +162,7 @@ void assureInputOutput(vector<FileForParsing>& ffps, vector<fs::path>& searchDir
     for(unsigned int i = 0; i < ffps.size(); i++) {
         if(tryMakeFilePathReal(ffps[i], searchDirs))
             continue;
-        logDafC(ERROR) << "Input file " << ffps[i].inputName << " not in a search path" << std::endl;
+        logDaf(ERROR) << "Input file " << ffps[i].inputName << " not in a search path" << std::endl;
     }
     terminateIfErrors();
     for(unsigned int i = 0; i < ffps.size(); i++) {
@@ -177,7 +177,7 @@ bool removeDuplicates(vector<FileForParsing>& ffps, bool log) {
             if(ffps[i].canonicalInput==ffps[j].canonicalInput) {
                 removed = true;
                 if(log)
-                    logDafC(ERROR) << "File input twice: " << ffps[i].inputFile << std::endl;
+                    logDaf(ERROR) << "File input twice: " << ffps[i].inputFile << std::endl;
                 ffps.erase(ffps.begin()+j);
                 j--;
             }

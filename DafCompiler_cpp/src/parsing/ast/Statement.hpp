@@ -2,6 +2,7 @@
 #include "parsing/ast/Definition.hpp"
 #include "parsing/ast/Expression.hpp"
 #include <memory>
+#include <optional>
 
 //A statement can be both an expression or a definition, but not all expressions or definitons are statements
 class Statement {

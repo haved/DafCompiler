@@ -73,9 +73,9 @@ const char* getTokenText(const Token& token) {
     else if((unsigned)token.type-FIRST_COMPOSITE_TOKEN < (sizeof(COMPOSITE_TOKENS)/sizeof(*COMPOSITE_TOKENS)))
         return COMPOSITE_TOKENS[token.type-FIRST_COMPOSITE_TOKEN];
 
-    else if(token.type == END)
+    else if(token.type == END_TOKEN)
         return "EOF";
-    else if(token.type == ERROR)
+    else if(token.type == ERROR_TOKEN)
         return "Error_token";
     else
         return token.text.c_str();
@@ -135,7 +135,7 @@ bool mergeTokens(Token& first, const Token& second) {
 
 void setProperEOFToken(Token& token, int line, char col) {
     token.text = "";
-    token.type = END;
+    token.type = END_TOKEN;
     token.line = line;
     token.col = col;
     token.endCol = col;

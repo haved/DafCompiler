@@ -63,7 +63,7 @@ bool Lexer::advance() {
                         word.push_back(currentChar);
                     }
                     if(!setTokenFromWord(lookaheadToken, word, line, startCol, col)) {
-                        logDafC(fileForParsing, line, startCol, ERROR) << "Token '" << word << "' not recognized" << std::endl;
+                        logDaf(fileForParsing, line, startCol, ERROR) << "Token '" << word << "' not recognized" << std::endl;
                         continue;
                     }
                     break;
@@ -72,12 +72,12 @@ bool Lexer::advance() {
                     char c = currentChar;
                     advanceChar();
                     if(!setTokenFromSpecialChar(lookaheadToken, c, line, col)) {
-                        logDafC(fileForParsing, line, col, ERROR) << "Special char '" << currentChar << "' not a token" << std::endl;
+                        logDaf(fileForParsing, line, col, ERROR) << "Special char '" << currentChar << "' not a token" << std::endl;
                         continue;
                     }
                     break;
                 } else {
-                    logDafC(fileForParsing, line, col, ERROR) << "Character not legal: " << currentChar << std::endl;
+                    logDaf(fileForParsing, line, col, ERROR) << "Character not legal: " << currentChar << std::endl;
                     advanceChar();
                     continue;
                 }
@@ -86,34 +86,34 @@ bool Lexer::advance() {
         }
     }
     while(mergeTokens(currentToken, lookaheadToken));
-    return currentToken.type != END;
+    return currentToken.type != END_TOKEN;
 }
 
 void Lexer::advanceChar() {
-    if(currentChar == '\n') {
-        line++;
-        col = 1;
-    } else if(currentChar == '\t')
-        col += 4;
-    else
-        col++;
+  if(currentChar == '\n') {
+    line++;
+    col = 1;
+  } else if(currentChar == '\t')
+    col += 4;
+  else
+    col++;
 
-    currentChar = lookaheadChar;
-    if(!infile.get(lookaheadChar))
-        lookaheadChar = EOF;
+  currentChar = lookaheadChar;
+  if(!infile.get(lookaheadChar))
+    lookaheadChar = EOF;
 
-    if(currentChar == '/') {
-        if(lookaheadChar == '/') {
-            while(currentChar != EOF && currentChar != '\n') {
-                advanceChar();
-            }
-            //We stay at the \n or EOF
-        }
-        else if(lookaheadChar == '*') {
-            while(currentChar != '*' || lookaheadChar != '/') {
-                advanceChar();
-                if(currentChar == EOF) {
-                    logDafC(fileForParsing, line, col, ERROR) << "File ended during multi-line comment" << std::endl;
+  if(currentChar == '/') {
+    if(lookaheadChar == '/') {
+      while(currentChar != EOF && currentChar != '\n') {
+        advanceChar();
+      }
+      //We stay at the \n or EOF
+    }
+    else if(lookaheadChar == '*') {
+      while(currentChar != '*' || lookaheadChar != '/') {
+        advanceChar();
+        if(currentChar == EOF) {
+                  logDaf(fileForParsing, line, col, ERROR) << "File ended during multi-line comment" << std::endl;
                     break;
                 }
             }

@@ -21,6 +21,11 @@ file(GLOB MySourcesParsingAst
 	src/parsing/ast/*.cpp
 )
 
+file(GLOB MySourcesInfo
+  src/info/*.hpp
+  src/info/*.cpp
+)
+
 #Find Boost
 FIND_PACKAGE( Boost 1.40 COMPONENTS system filesystem REQUIRED )
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
@@ -33,7 +38,7 @@ MESSAGE(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 INCLUDE_DIRECTORIES(${LLVM_INCLUDE_DIRS})
 ADD_DEFINITIONS(${LLVM_DEFINITIONS})
 
-add_executable(DafCompiler ${MySources} ${MySourcesParsing} ${MySourcesParsingAst})
+add_executable(DafCompiler ${MySources} ${MySourcesParsing} ${MySourcesParsingAst} ${MySourcesInfo})
 target_include_directories(DafCompiler PUBLIC "${CMAKE_SOURCE_DIR}/src")
 
 # Find the libraries that correspond to the LLVM components
