@@ -31,7 +31,7 @@ class ConstantNumberExpression : public Expression {
 public:
   ConstantNumberExpression(daf_int value);
   ConstantNumberExpression(daf_long value);
-  ConstantNumberExpression(def_char value);
+  ConstantNumberExpression(daf_char value);
 private:
   daf_long value;
   ConstantType type;
