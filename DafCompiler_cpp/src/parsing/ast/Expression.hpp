@@ -4,6 +4,9 @@
 #include "info/PrimitiveSizes.hpp"
 #include <string>
 #include <vector>
+#include <memory>
+
+using std::unique_ptr;
 
 class Expression {
  public:
@@ -16,7 +19,7 @@ class Expression {
   virtual bool findType();
  protected:
   TextRange range;
-  std::uniqe_ptr<Type> type;
+  unique_ptr<Type> type;
   bool typeKnown;
 };
 

@@ -1,11 +1,11 @@
 #pragma once
 #include <memory>
-#include <optional>
+#include <boost/optional.hpp>
 #include "parsing/ast/Type.hpp"
 #include "parsing/ast/TextRange.hpp"
 
 using std::unique_ptr;
-using std::optional;
+using boost::optional;
 
 class Definition {
 protected:

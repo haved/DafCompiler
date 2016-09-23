@@ -3,26 +3,27 @@
 #include "parsing/ArgHandler.hpp"
 #include "parsing/ast/Definition.hpp"
 #include "parsing/ast/Expression.hpp"
-#include <optional>
+#include <boost/optional.hpp>
 
 using std::unique_ptr;
-using std::optional;
+using boost::optional;
+using boost::none;
 
 optional<unique_ptr<Definition>> parseDefDefinition(Lexer& lexer, bool pub) {
-  return std::nullopt;
+  return none;
 }
 
 optional<unique_ptr<Definition>> parseDefinition(Lexer& lexer, bool pub) {
-  return std::nullopt;
+  return none;
 }
 
 optional<unique_ptr<Expression>> parseExpression(Lexer& lexer) {
-  return std::make_optinal(std::unique_ptr<Expression>(nullptr));
+  return std::unique_ptr<Expression>(nullptr);
 }
 
 optional<unique_ptr<Statement>> parseStatement(Lexer& lexer) {
   auto statement = std::make_unique<Statement>();
-  return std::nullopt;
+  return none;
 };
 
 std::unique_ptr<ParsedFile> parseFileSyntax(const FileForParsing& ffp, bool fullParse) {
@@ -30,7 +31,7 @@ std::unique_ptr<ParsedFile> parseFileSyntax(const FileForParsing& ffp, bool full
   file->fullyParsed = fullParse;
   Lexer lexer(ffp);
   while(lexer.hasCurrentToken()) {
-    bool pub = lexer.getCurrentToken()==PUB;
+    bool pub = lexer.currType()==PUB;
     if(pub)
       lexer.advance(); //We don't care if it ends after this yet
     optional<unique_ptr<Definition>> definition = parseDefinition(lexer, pub);
@@ -39,12 +40,12 @@ std::unique_ptr<ParsedFile> parseFileSyntax(const FileForParsing& ffp, bool full
     if(!definition) { //Error occured, but already printed
       //Skip until past ; or until next { or }
       while(lexer.hasCurrentToken()) {
-        if(lexer.getCurrentToken() == STATEMENT_END) {
+        if(lexer.currType() == STATEMENT_END) {
           lexer.advance();
           break;
         }
-        else if(lexer.getCurrentToken() == SCOPE_START
-                || lexer.getCurrentToken() == SCOPE_END)
+        else if(lexer.currType() == SCOPE_START
+                || lexer.currType() == SCOPE_END)
           break;
       }
     } else { //A nice definition was returned :)
