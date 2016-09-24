@@ -8,6 +8,7 @@ struct ParsedFile {
 public:
   bool fullyParsed;
   std::vector<std::unique_ptr<Definition>> definitions;
+  ParsedFile() {}
 };
 
 std::unique_ptr<ParsedFile> parseFileSyntax(const FileForParsing& ffp, bool fullParse);

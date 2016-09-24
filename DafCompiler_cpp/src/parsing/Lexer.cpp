@@ -21,7 +21,7 @@ Lexer::Lexer(const FileForParsing& file) : fileForParsing(file), currentToken(to
 
 bool Lexer::expectToken(const TokenType& type) {
   if(type != currentToken.type) {
-    logDafExpectedToken(getTokenText(type), *this);
+    logDafExpectedToken(getTokenTypeText(type), *this);
     return false;
   }
   return true;

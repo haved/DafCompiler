@@ -25,7 +25,7 @@ public:
   inline Token& getLookahead() {return lookaheadToken;}
   inline bool hasCurrentToken() {return currentToken.type != END_TOKEN;}
   inline const FileForParsing& getFile() {return fileForParsing;}
-  bool expectToken(TokenType type);
+  bool expectToken(const TokenType& type);
 };
 
 

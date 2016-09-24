@@ -65,20 +65,28 @@ TokenMerge(BITWISE_AND, MUT, MUT_REF), TokenMerge(BITWISE_AND, MOVE, MOVE_REF),
 TokenMerge(BITWISE_AND, UNIQUE, UNIQUE_PTR), TokenMerge(BITWISE_AND, SHARED, SHARED_PTR)
 };
 
-const char* getTokenText(const Token& token) {
-    if(token.type < (sizeof(TOKEN_TEXT)/sizeof(*TOKEN_TEXT)))
-        return TOKEN_TEXT[token.type];
-    else if((unsigned)token.type-FIRST_ONE_CHAR_TOKEN < (sizeof(ONE_CHAR_TOKEN_TEXTS)/sizeof(*ONE_CHAR_TOKEN_TEXTS)))
-        return ONE_CHAR_TOKEN_TEXTS[token.type-FIRST_ONE_CHAR_TOKEN];
-    else if((unsigned)token.type-FIRST_COMPOSITE_TOKEN < (sizeof(COMPOSITE_TOKENS)/sizeof(*COMPOSITE_TOKENS)))
-        return COMPOSITE_TOKENS[token.type-FIRST_COMPOSITE_TOKEN];
+const char* getTokenTypeText(const TokenType& type) {
+    if(type < (sizeof(TOKEN_TEXT)/sizeof(*TOKEN_TEXT)))
+        return TOKEN_TEXT[type];
+    else if((unsigned)type-FIRST_ONE_CHAR_TOKEN < (sizeof(ONE_CHAR_TOKEN_TEXTS)/sizeof(*ONE_CHAR_TOKEN_TEXTS)))
+        return ONE_CHAR_TOKEN_TEXTS[type-FIRST_ONE_CHAR_TOKEN];
+    else if((unsigned)type-FIRST_COMPOSITE_TOKEN < (sizeof(COMPOSITE_TOKENS)/sizeof(*COMPOSITE_TOKENS)))
+        return COMPOSITE_TOKENS[type-FIRST_COMPOSITE_TOKEN];
 
-    else if(token.type == END_TOKEN)
+    switch(type) {
+    case END_TOKEN:
         return "EOF";
-    else if(token.type == ERROR_TOKEN)
+    case ERROR_TOKEN:
         return "Error_token";
-    else
+    default:
+        return "Text token";
+    }
+}
+
+const char* getTokenText(const Token& token) {
+    if(token.type >= FIRST_TEXT_TOKEN)
         return token.text.c_str();
+    return getTokenTypeText(token.type);
 }
 
 Token::Token() {

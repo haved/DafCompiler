@@ -33,6 +33,8 @@ optional<unique_ptr<Definition>> parseLetDefDefinition(Lexer& lexer, bool pub) {
 
   std::string name = lexer.getCurrentToken().text;
 
+  lexer.advance();
+
   if(lexer.expectToken(STATEMENT_END))
     lexer.advance(); //Eat the ';' as promised
   return none;
@@ -54,9 +56,9 @@ optional<unique_ptr<Definition>> parseDefinition(Lexer& lexer, bool pub) {
 optional<unique_ptr<Expression>> parseExpression(Lexer& lexer) {
   Token& curr = lexer.getCurrentToken();
   switch(curr.type) {
-    
+  default: break;
   }
-  return std::unique_ptr<Expression>(nullptr);
+  return none;
 }
 
 optional<unique_ptr<Statement>> parseStatement(Lexer& lexer) {
@@ -83,15 +85,15 @@ std::unique_ptr<ParsedFile> parseFileSyntax(const FileForParsing& ffp, bool full
   while(lexer.hasCurrentToken()) {
     bool pub = lexer.currType()==PUB;
     if(pub)
-      lexer.advance(); //We don't care if it ends after this yet
+      lexer.advance();
     optional<unique_ptr<Definition>> definition = parseDefinition(lexer, pub);
-    //The semicolon after is already skipped, error given if not found, but definition still returned.
-    //Means code breaks only happen if a broken definition does not have a semicolon
+    //If everything is correct, the semicolon is skipped
+    //If a semicolon was missing, nothing was skipped
+    //If something went wrong and we don't get a definition, skip past next semicolon
     if(definition) //A nice definition was returned :)
       file->definitions.push_back(std::move(*definition));
     else //Error occurred, but already printed
       skipPastStatementEndOrToScope(lexer);
   }
-  //To let imports be parsed :D
   return file;
 }

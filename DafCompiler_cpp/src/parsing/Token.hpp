@@ -52,6 +52,8 @@ struct Token {
     Token();
 };
 
+const char* getTokenTypeText(const TokenType& type);
+
 const char* getTokenText(const Token& token);
 
 bool setTokenFromWord(Token& token, const std::string& word, int line, int startCol, int endCol);

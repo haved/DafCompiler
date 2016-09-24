@@ -9,14 +9,15 @@
 
 using std::unique_ptr;
 using boost::optional;
+using boost::none;
 
 class Expression {
  public:
   virtual ~Expression();
-  virtual bool isStatement()=0;
-  virtual Type* getType();
+  virtual bool isStatement();
+  virtual optional<Type*> getType();
   inline bool isTypeKnown() {
-    return type;
+    return (bool)type;
   }
   virtual bool findType()=0;
  protected:
@@ -30,7 +31,8 @@ private:
   std::string name;
 public:
   VariableExpression(const std::string& name);
-  //override bool isStatement();
+  ~VariableExpression();
+  bool findType();
 };
 
 enum ConstantType {
