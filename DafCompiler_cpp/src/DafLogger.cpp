@@ -52,9 +52,9 @@ std::ostream& logDaf(const std::string& location, int logLevel) {
 void logDafExpectedToken(const std::string& expected, Lexer& lexer) {
   if(lexer.hasCurrentToken()) {
     Token& curr = lexer.getCurrentToken();
-    logDaf(lexer.getFile(), curr.line, curr.col, ERROR) << "Expected " << expected << " before " << getTokenText(curr) << " token." << endl;
+    logDaf(lexer.getFile(), curr.line, curr.col, ERROR) << "Expected " << expected << " before " << getTokenText(curr) << " token" << endl;
   } else
-    logDaf(lexer.getFile(), ERROR) << "Expected " << expected << " before EOF." << endl;
+    logDaf(lexer.getFile(), ERROR) << "Expected " << expected << " before EOF" << endl;
 }
 
 void terminateIfErrors() {

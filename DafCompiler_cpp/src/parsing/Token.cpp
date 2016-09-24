@@ -73,11 +73,19 @@ const char* getTokenTypeText(const TokenType& type) {
     else if((unsigned)type-FIRST_COMPOSITE_TOKEN < (sizeof(COMPOSITE_TOKENS)/sizeof(*COMPOSITE_TOKENS)))
         return COMPOSITE_TOKENS[type-FIRST_COMPOSITE_TOKEN];
 
-    switch(type) {
+    switch(type) { //Might some day make an array for these names as well
     case END_TOKEN:
         return "EOF";
     case ERROR_TOKEN:
         return "Error_token";
+    case IDENTIFIER:
+        return "Identifier";
+    case STRING_LITERAL:
+        return "String literal";
+    case CHAR_LITERAL:
+        return "Char literal";
+    case NUMBER_LITERAL:
+        return "Number literal";
     default:
         return "Text token";
     }

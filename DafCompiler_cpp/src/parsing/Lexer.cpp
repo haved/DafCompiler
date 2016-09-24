@@ -68,14 +68,14 @@ bool Lexer::advance() {
                 if(isStartOfText(currentChar)) {
                     std::string word;
                     word.push_back(currentChar);
-                    int startCol = col;
+                    int startCol = col, startLine = line;
                     while(true) {
                         advanceChar();
                         if(!isPartOfText(currentChar))
                             break;
                         word.push_back(currentChar);
                     }
-                    if(!setTokenFromWord(lookaheadToken, word, line, startCol, col)) {
+                    if(!setTokenFromWord(lookaheadToken, word, startLine, startCol, col)) {
                         logDaf(fileForParsing, line, startCol, ERROR) << "Token '" << word << "' not recognized" << std::endl;
                         continue;
                     }
@@ -83,8 +83,9 @@ bool Lexer::advance() {
                 }
                 else if(isLegalSpecialChar(currentChar)) {
                     char c = currentChar;
+                    int startCol = col, startLine = line;
                     advanceChar();
-                    if(!setTokenFromSpecialChar(lookaheadToken, c, line, col)) {
+                    if(!setTokenFromSpecialChar(lookaheadToken, c, startLine, startCol)) {
                         logDaf(fileForParsing, line, col, ERROR) << "Special char '" << currentChar << "' not a token" << std::endl;
                         continue;
                     }

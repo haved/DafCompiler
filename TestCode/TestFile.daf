@@ -5,6 +5,7 @@ def let mut g;
 def bb:int;
 def cc;
 def let cow;
+def let;
 /*def a:=b;
 def main:int=20;
 def test2 := main;

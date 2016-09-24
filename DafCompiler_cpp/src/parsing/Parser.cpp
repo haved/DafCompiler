@@ -33,6 +33,8 @@ optional<unique_ptr<Definition>> parseLetDefDefinition(Lexer& lexer, bool pub) {
 
   std::string name = lexer.getCurrentToken().text;
 
+
+
   lexer.advance();
 
   if(lexer.expectToken(STATEMENT_END))
