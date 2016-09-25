@@ -172,7 +172,7 @@ bool removeDuplicates(vector<FileForParsing>& ffps, bool log) {
                 removed = true;
                 if(log)
                     logDaf(ERROR) << "File input twice: " << ffps[i].m_inputFile << std::endl;
-                ffps.erase(ffps.begin()+j);
+                ffps.erase(ffps.  begin()+j);
                 j--;
             }
         }

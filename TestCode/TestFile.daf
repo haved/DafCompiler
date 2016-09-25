@@ -1,11 +1,9 @@
-def a;
-def let b;
-def mut c;
-def let mut g;
-def bb:int;
-def cc;
-def let cow;
-def let;
+def a:int=b;
+let g:=a;
+let mut c:=d;
+def mut h:=c;
+def let mut g:myType=myExpr
+def eyo:=c;
 /*def a:=b;
 def main:int=20;
 def test2 := main;

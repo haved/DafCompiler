@@ -28,18 +28,17 @@ void skipPastStatementEndOrToScope(Lexer& lexer) {
 
 std::unique_ptr<ParsedFile> parseFileSyntax(const FileForParsing& ffp, bool fullParse) {
   auto file = std::make_unique<ParsedFile>();
-  file->fullyParsed = fullParse;
+  file->m_fullyParsed = fullParse;
   Lexer lexer(ffp);
   while(lexer.hasCurrentToken()) {
     bool pub = lexer.currType()==PUB;
     if(pub)
       lexer.advance();
     optional<unique_ptr<Definition>> definition = parseDefinition(lexer, pub);
-    //If everything is correct, the semicolon is skipped
-    //If a semicolon was missing, nothing was skipped
+    //If something is returned, we don't care about a semicolon
     //If something went wrong and we don't get a definition, skip past next semicolon
     if(definition) //A nice definition was returned :)
-      file->definitions.push_back(std::move(*definition));
+      file->m_definitions.push_back(std::move(*definition));
     else //Error occurred, but already printed
       skipPastStatementEndOrToScope(lexer);
   }

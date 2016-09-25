@@ -4,7 +4,7 @@
 
 struct ParsedFile {
 public:
-  bool fullyParsed;
-  std::vector<std::unique_ptr<Definition>> definitions;
-  ParsedFile() : fullyParsed(false), definitions() {}
+  bool m_fullyParsed;
+  std::vector<std::unique_ptr<Definition>> m_definitions;
+  ParsedFile();
 };
