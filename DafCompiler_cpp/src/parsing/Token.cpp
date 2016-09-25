@@ -97,12 +97,7 @@ const char* getTokenText(const Token& token) {
     return getTokenTypeText(token.type);
 }
 
-Token::Token() {
-    this->type = PUB;
-    this->line = 0;
-    this->col = 0;
-    this->endCol = 0;
-}
+Token::Token() : type(PUB), text(), line(0), col(0), endCol(0) {}
 
 bool setTokenFromWord(Token& token, const std::string& text, int line, int startCol, int endCol) {
     token.line = line;
