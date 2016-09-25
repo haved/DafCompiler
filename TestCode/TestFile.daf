@@ -4,6 +4,7 @@ let mut c:=d;
 def mut h:=c;
 def let mut g:myType=myExpr
 def eyo:=c;
+def boy:=b;
 /*def a:=b;
 def main:int=20;
 def test2 := main;

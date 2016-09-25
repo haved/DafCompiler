@@ -2,6 +2,7 @@
 #include "parsing/ExpressionParser.hpp"
 #include "parsing/TypeParser.hpp"
 #include "DafLogger.hpp"
+#include <iostream>
 
 using boost::none;
 
@@ -27,6 +28,8 @@ optional<unique_ptr<Definition>> parseLetDefDefinition(Lexer& lexer, bool pub) {
   if(!lexer.expectToken(IDENTIFIER)) {
     return none;
   }
+
+  std::cout << "Definition!" << std::endl;
 
   std::string name = lexer.getCurrentToken().text;
   lexer.advance(); //Eat identifier

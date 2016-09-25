@@ -1,7 +1,7 @@
 #include "parsing/Token.hpp"
 
 const char* TOKEN_TEXT[] = {
-    "pub", "let", "def", "mut", "uncertain", "move",
+    "pub", "let", "def", "typedef", "import", "mut", "uncertain", "move",
 
     "prot", " abstract", " extends", " implements", " interface",
     "constructor", " destructor", " method", " this", " const",
