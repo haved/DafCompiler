@@ -12,14 +12,14 @@ using std::unique_ptr;
 using boost::optional;
 
 struct FileForParsing {
-    fs::path inputName;
-    fs::path inputFile;
-    fs::path canonicalInput;
-    fs::path outputFile;
-    optional<unique_ptr<ParsedFile>> parsedFile;
-    bool outputFileSet;
-    bool recursive;
-    bool fullParse; //If there is to be an output
+    fs::path m_inputName;
+    fs::path m_inputFile;
+    fs::path m_canonicalInput;
+    fs::path m_outputFile;
+    bool m_outputFileSet;
+    bool m_recursive;
+    bool m_fullParse; //If there is to be an output
+    optional<unique_ptr<ParsedFile>> m_parsedFile;
     FileForParsing(const fs::path& inputName, const fs::path& outputFile, bool outputFileSet, bool recursive, bool fullParse);
 };
 

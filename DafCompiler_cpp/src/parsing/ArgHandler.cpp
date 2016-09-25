@@ -8,19 +8,14 @@ struct CommandInput {
     vector<std::string> inputFiles;
     bool recursive=false;
     std::string output;
+    CommandInput() : searchDirs(), inputFiles(), output(){}
 };
 
 //unsigned int FileForParsingNextId = 0;
-FileForParsing::FileForParsing(const fs::path& inputName, const fs::path& outputFile, bool outputFileSet, bool recursive, bool fullParse) {
-    this->inputName = inputName; //Just the name without the search path
-    this->inputFile = fs::path(""); //Eventually holds the path
-    this->canonicalInput = fs::path(""); //Eventually holds canonical input path
-    this->outputFile = outputFile;
-    this->outputFileSet = outputFileSet;
-    this->recursive = recursive;
-    this->fullParse = fullParse;
-    //this->ID = FileForParsingNextId++; //Give a unique ID (overlap not happening anytime soon)
-}
+FileForParsing::FileForParsing(const fs::path& inputName, const fs::path& outputFile, bool outputFileSet, bool recursive, bool fullParse)
+  : m_inputName(inputName), m_inputFile(fs::path("")), m_canonicalInput(fs::path("")),
+    m_outputFile(outputFile), m_outputFileSet(outputFileSet), m_recursive(recursive), m_fullParse(fullParse),
+    m_parsedFile(boost::none) {}
 
 void printHelpPage() {
     std::cout   << "  Help page for dafc:" << std::endl
@@ -106,24 +101,24 @@ bool tryMakeFilePathReal(FileForParsing& ffp, vector<fs::path> searchDirs) {
     const fs::path oExt(".o");
 
     bool done = false;
-    std::string attempt(ffp.inputName.string());
-    bool tryWithDaf = ffp.inputName.extension()!=dafExt;
+    std::string attempt(ffp.m_inputName.string());
+    bool tryWithDaf = ffp.m_inputName.extension()!=dafExt;
     while(!done) {
         for(unsigned int i = 0; i < searchDirs.size(); i++) {
             fs::path fullAttempt = searchDirs[i]/fs::path(attempt);
             if(isInputFile(fullAttempt)) {
-                ffp.inputFile = fullAttempt;
-                if(!ffp.outputFileSet)
-                    ffp.outputFile = ffp.outputFile/attempt;
+                ffp.m_inputFile = fullAttempt;
+                if(!ffp.m_outputFileSet)
+                    ffp.m_outputFile = ffp.m_outputFile/attempt;
                 done = true;
                 break;
             }
             if(tryWithDaf) {
                 fullAttempt = fullAttempt.concat(dafExt.string());
                 if(isInputFile(fullAttempt)) {
-                    ffp.inputFile = fullAttempt;
-                    if(!ffp.outputFileSet)
-                        ffp.outputFile = ffp.outputFile/attempt;
+                    ffp.m_inputFile = fullAttempt;
+                    if(!ffp.m_outputFileSet)
+                        ffp.m_outputFile = ffp.m_outputFile/attempt;
                     done = true;
                     break;
                 }
@@ -143,12 +138,12 @@ bool tryMakeFilePathReal(FileForParsing& ffp, vector<fs::path> searchDirs) {
     }
 
     //Set output file properly
-    if(!ffp.outputFileSet) {
-        ffp.outputFileSet = true;
-        if(ffp.outputFile.extension()==dafExt) {
-            ffp.outputFile.replace_extension(oExt);
+    if(!ffp.m_outputFileSet) {
+        ffp.m_outputFileSet = true;
+        if(ffp.m_outputFile.extension()==dafExt) {
+            ffp.m_outputFile.replace_extension(oExt);
         } else {
-            ffp.outputFile+=oExt;
+            ffp.m_outputFile+=oExt;
         }
     }
     return true;
@@ -161,11 +156,11 @@ void assureInputOutput(vector<FileForParsing>& ffps, vector<fs::path>& searchDir
     for(unsigned int i = 0; i < ffps.size(); i++) {
         if(tryMakeFilePathReal(ffps[i], searchDirs))
             continue;
-        logDaf(ERROR) << "Input file " << ffps[i].inputName << " not in a search path" << std::endl;
+        logDaf(ERROR) << "Input file " << ffps[i].m_inputName << " not in a search path" << std::endl;
     }
     terminateIfErrors();
     for(unsigned int i = 0; i < ffps.size(); i++) {
-        ffps[i].canonicalInput = fs::canonical(ffps[i].inputFile);
+        ffps[i].m_canonicalInput = fs::canonical(ffps[i].m_inputFile);
     }
 }
 
@@ -173,10 +168,10 @@ bool removeDuplicates(vector<FileForParsing>& ffps, bool log) {
     bool removed = false;
     for(unsigned int i = 0; i < ffps.size(); i++) {
         for(unsigned int j = i+1; j < ffps.size(); j++) {
-            if(ffps[i].canonicalInput==ffps[j].canonicalInput) {
+            if(ffps[i].m_canonicalInput==ffps[j].m_canonicalInput) {
                 removed = true;
                 if(log)
-                    logDaf(ERROR) << "File input twice: " << ffps[i].inputFile << std::endl;
+                    logDaf(ERROR) << "File input twice: " << ffps[i].m_inputFile << std::endl;
                 ffps.erase(ffps.begin()+j);
                 j--;
             }

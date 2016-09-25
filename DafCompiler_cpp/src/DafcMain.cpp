@@ -8,17 +8,17 @@ using std::vector;
 void printFilesForParsing(vector<FileForParsing>& ffps) {
     logDaf(NOTE, "Files for parsing:");
     for(unsigned int i = 0; i < ffps.size(); i++) {
-        std::cout << i << ": " << ffps[i].inputName<< ": " << ffps[i].inputFile << " -> " << ffps[i].outputFile << std::endl;
+        std::cout << i << ": " << ffps[i].m_inputName<< ": " << ffps[i].m_inputFile << " -> " << ffps[i].m_outputFile << std::endl;
     }
 }
 
 void doItAll(vector<FileForParsing>& ffps) {
     vector<ParsedFile*> parsedFiles;
     for(unsigned int i = 0; i < ffps.size(); i++) {
-        std::unique_ptr<ParsedFile> parsedFile = parseFileSyntax(ffps[i], ffps[i].fullParse);
+        std::unique_ptr<ParsedFile> parsedFile = parseFileSyntax(ffps[i], ffps[i].m_fullParse);
         parsedFiles.push_back(parsedFile.get());
         //If fullParse, find imports. Add'em if not already added. Have the imports point to the file for parsing
-        ffps[i].parsedFile=std::move(parsedFile);
+        ffps[i].m_parsedFile=std::move(parsedFile);
     }
 }
 

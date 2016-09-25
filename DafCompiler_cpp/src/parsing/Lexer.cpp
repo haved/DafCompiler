@@ -7,10 +7,10 @@
 #define FIRST_CHAR_COL 0 //The column the first char on a line is
 //TAB_WIDTH is defined in Constants.hpp
 
-Lexer::Lexer(const FileForParsing& file) : fileForParsing(file), currentToken(token1), lookaheadToken(token2) {
-  infile.open(file.inputFile.string()); //For the time being, there is no text processor
-  currentChar = '\n'; //Not too nice, but oh well
-  lookaheadChar = '\n';
+Lexer::Lexer(const FileForParsing& file) : fileForParsing(file), infile(),
+  token1(), token2(), currentToken(token1), lookaheadToken(token2),
+  line(0), col(0), currentChar('\n'), lookaheadChar('\n') {
+  infile.open(file.m_inputFile.string()); //For the time being, there is no text processor
   advanceChar(); //To set look-ahead char
   advanceChar(); //To set current char
   line = 1;
