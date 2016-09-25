@@ -29,14 +29,11 @@ optional<unique_ptr<Definition>> parseLetDefDefinition(Lexer& lexer, bool pub) {
     return none;
   }
 
-  std::cout << "Definition!" << std::endl;
-
   std::string name = lexer.getCurrentToken().text;
   lexer.advance(); //Eat identifier
 
   unique_ptr<Type> type;
   unique_ptr<Expression> expression;
-
   if(lexer.currType()==TYPE_SEPARATOR) {
     lexer.advance(); //Eat ':'
     optional<unique_ptr<Type>> type_got = parseType(lexer);
@@ -65,7 +62,6 @@ optional<unique_ptr<Definition>> parseLetDefDefinition(Lexer& lexer, bool pub) {
       return none;
     expression_got->swap(expression);
   }
-
   TextRange range(startLine, startCol,
             lexer.getCurrentToken().line,
             lexer.getCurrentToken().endCol);

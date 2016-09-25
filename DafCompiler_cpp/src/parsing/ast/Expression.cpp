@@ -1,4 +1,5 @@
 #include "parsing/ast/Expression.hpp"
+#include <iostream>
 using boost::none;
 
 Expression::Expression(const TextRange& range) : m_range(range), m_type(none){}
@@ -22,6 +23,6 @@ bool VariableExpression::findType() {
   return false;
 }
 
-VariableExpression::~VariableExpression() {
-  
+void VariableExpression::printSignature() {
+  std::cout << m_name;
 }

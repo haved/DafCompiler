@@ -26,8 +26,10 @@ std::unique_ptr<ParsedFile> parseFileSyntax(const FileForParsing& ffp, bool full
     optional<unique_ptr<Definition>> definition = parseDefinition(lexer, pub);
     //If something is returned, we don't care about a semicolon
     //If something went wrong and we don't get a definition, skip past next semicolon
-    if(definition) //A nice definition was returned :)
+    if(definition) { //A nice definition was returned :)
+      definition.get()->printSignature();
       file->m_definitions.push_back(std::move(*definition));
+    }
     else //Error occurred, but already printed
       skipUntilNewDefinition(lexer);
   }

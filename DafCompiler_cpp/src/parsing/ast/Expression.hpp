@@ -20,6 +20,7 @@ class Expression {
     return (bool)m_type;
   }
   virtual bool findType()=0;
+  virtual void printSignature()=0;
  protected:
   TextRange m_range;
   optional<unique_ptr<Type>> m_type;
@@ -31,8 +32,8 @@ private:
   std::string m_name;
 public:
   VariableExpression(const std::string& name, const TextRange& range);
-  ~VariableExpression();
   bool findType();
+  void printSignature();
 };
 
 enum ConstantType {
