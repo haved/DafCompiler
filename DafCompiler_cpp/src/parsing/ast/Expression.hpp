@@ -9,28 +9,28 @@
 
 using std::unique_ptr;
 using boost::optional;
-using boost::none;
 
 class Expression {
  public:
+  Expression(const TextRange& range);
   virtual ~Expression();
   virtual bool isStatement();
   virtual optional<Type*> getType();
   inline bool isTypeKnown() {
-    return (bool)type;
+    return (bool)m_type;
   }
   virtual bool findType()=0;
  protected:
-  TextRange range;
-  optional<unique_ptr<Type>> type;
+  TextRange m_range;
+  optional<unique_ptr<Type>> m_type;
 };
 
 
 class VariableExpression : public Expression {
 private:
-  std::string name;
+  std::string m_name;
 public:
-  VariableExpression(const std::string& name);
+  VariableExpression(const std::string& name, const TextRange& range);
   ~VariableExpression();
   bool findType();
 };
@@ -45,15 +45,15 @@ public:
   ConstantNumberExpression(daf_long value);
   ConstantNumberExpression(daf_char value);
 private:
-  daf_long value;
-  ConstantType type;
+  daf_long m_value;
+  ConstantType m_type;
 };
 
 class ConstantStringExpression : public Expression {
 public:
   ConstantStringExpression(const std::string& text);
 private:
-  std::string text;
+  std::string m_text;
 };
 
 enum FunctionParameterReferenceType {
@@ -65,9 +65,9 @@ enum FunctionParameterReferenceType {
 
 class FunctionParameter {
 private:
-  FunctionParameterReferenceType ref_type;
-  std::string name;
-  std::unique_ptr<Type> type;
+  FunctionParameterReferenceType m_ref_type;
+  std::string m_name;
+  std::unique_ptr<Type> m_type;
 };
 
 class CompileTimeParameter {
@@ -96,10 +96,10 @@ enum FunctionReturnType {
 //TODO: Merge somewhat with the type definition for functions
 class FunctionExpression : public Expression {
 private:
-  std::vector<CompileTimeParameter> cmp_parameters;
-  std::vector<FunctionParameter> parameters;
-  FunctionInlineType inlineType;
-  FunctionReturnType returnType;
+  std::vector<CompileTimeParameter> m_cmp_parameters;
+  std::vector<FunctionParameter> m_parameters;
+  FunctionInlineType m_inlineType;
+  FunctionReturnType m_returnType;
   //TODO: Insert function body
 public:
   FunctionExpression();

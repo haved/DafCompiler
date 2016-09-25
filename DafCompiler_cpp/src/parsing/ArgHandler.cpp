@@ -19,7 +19,6 @@ FileForParsing::FileForParsing(const fs::path& inputName, const fs::path& output
     this->outputFileSet = outputFileSet;
     this->recursive = recursive;
     this->fullParse = fullParse;
-    this->parsedFile = nullptr; //Oh god no
     //this->ID = FileForParsingNextId++; //Give a unique ID (overlap not happening anytime soon)
 }
 

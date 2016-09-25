@@ -2,5 +2,7 @@
 
 class Type {
 public:
-  virtual ~Type()=0;
+  Type(){}
+  virtual ~Type(){}
+  virtual void printSignature(){}
 };
