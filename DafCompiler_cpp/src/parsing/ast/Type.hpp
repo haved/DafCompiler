@@ -2,5 +2,5 @@
 
 class Type {
 public:
-  virtual ~Type();
+  virtual ~Type()=0;
 };
