@@ -80,10 +80,9 @@ optional<unique_ptr<Statement>> parseForStatement(Lexer& lexer) {
 		return none;
 	lexer.advance(); //Eat 'in'
 
-	std::unique_ptr<Expression> iterator = parseExpression(lexer);
+	unique_ptr<Expression> iterator = parseExpression(lexer);
 	if(!iterator)
 		return none;
-	//TODO:: Remove all the std:: we don't need
 	optional<unique_ptr<Statement>> body = parseStatement(lexer, boost::none);
 	if(!body)
 		return none;
@@ -112,13 +111,13 @@ optional<unique_ptr<Statement>> parseSpecialStatement(Lexer& lexer) {
 //Therefore we must know if we can take an expression out
 //returns: none if an error occured, a null pointer if there was only a semicolon, which it will eat (only one)
 //none will also be returned if the finalOutExpression is set, but then the caller shouldn't care about the return
-optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<std::unique_ptr<Expression>*> finalOutExpression) {
+optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr<Expression>*> finalOutExpression) {
 	if(lexer.currType() == STATEMENT_END) {
 		lexer.advance(); //Eat semicolon
 		return none_stmt();
 	}
   if(canParseDefinition(lexer)) {
-    std::unique_ptr<Definition> def = parseDefinition(lexer, false); //They can't be public in a scope
+    unique_ptr<Definition> def = parseDefinition(lexer, false); //They can't be public in a scope
     //DefinitionParser handles semicolons!
     if(!def)
       return none;
@@ -127,7 +126,7 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<std::uniqu
     return parseSpecialStatement(lexer); //This will (or won't) eat semicolons and everything, and can't return an expression
   }
   else if(canParseExpression(lexer)) {
-    std::unique_ptr<Expression> expr = parseExpression(lexer);
+    unique_ptr<Expression> expr = parseExpression(lexer);
     if(!expr)
       return none;
     if(finalOutExpression && lexer.currType()==SCOPE_END && expr->canHaveType()) {
