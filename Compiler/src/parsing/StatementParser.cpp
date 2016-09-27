@@ -29,6 +29,7 @@ bool isSpecialStatementKeyword(TokenType& type) {
 using boost::none;
 
 optional<unique_ptr<Statement>> parseIfStatement(Lexer& lexer) {
+	//TODO: Store text range for statements, might want take a look at definitions too
   assert(lexer.currType()==IF);
   lexer.advance(); //Eat 'if'
   unique_ptr<Expression> condition = parseExpression(lexer);

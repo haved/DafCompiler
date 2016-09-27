@@ -78,7 +78,7 @@ optional<FunctionParameter> parseFunctionParameter(Lexer& lexer) {
   return FunctionParameter(paramType, std::move(name), std::move(type));
 }
 
-//Either starts at 'inline', or the token after '('
+//Either starts at '(', 'inline', or the token after '('
 unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
   int startLine = lexer.getCurrentToken().line;
   int startCol = lexer.getCurrentToken().col;
@@ -143,6 +143,7 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
   if(!body) //Error recovery should already have been done to pass the body expression
     return none_exp();
 
+	//We are assured that the body isn't null, so the ctor won't complain
   FunctionInlineType inlineType = explicitInline?FUNC_TYPE_INLINE:FUNC_TYPE_NORMAL;
   return unique_ptr<FunctionExpression>(new FunctionExpression(std::move(fps), inlineType, std::move(type), returnType, std::move(body),
                                              TextRange(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol)));

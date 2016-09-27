@@ -75,17 +75,16 @@ void RealConstantExpression::printSignature() {
 FunctionExpression::FunctionExpression(std::vector<FunctionParameter>&& params,
                       FunctionInlineType inlineType, std::shared_ptr<Type>&& returnType, FunctionReturnType returnTypeType, std::unique_ptr<Expression>&& body,
                                        const TextRange& range)
-                          : Expression(range), m_function(std::move(params), inlineType, std::move(returnType), returnTypeType), m_body(std::move(body)) {}
+                          : Expression(range), m_function(std::move(params), inlineType, std::move(returnType), returnTypeType), m_body(std::move(body)) {
+  assert(m_body);
+}
 
 void FunctionExpression::printSignature() {
   m_function.printSignature();
   std::cout << " ";
   if(DafSettings::shouldPrintFullSignature()) {
-    if(m_body)
-      m_body->printSignature();
-    else {
-      std::cout << "====NO_FUNCTION_BODY_ERROR!===="; //TODO: Will this ever happen?
-    }
+    assert(m_body);
+    m_body->printSignature();
   } else {
     std::cout << "{...}";
   }

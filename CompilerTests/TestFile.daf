@@ -23,6 +23,7 @@ def main:=() {
 		else
 			a++;
 		{;
-		a++;;;;a--;;;}
-    //It's hard coded in that a scope needn't have semicolons behind it
+		a++;;;;a--;;;
+		};;
+		//It's hard coded in that a scope needn't have semicolons behind it
 };
