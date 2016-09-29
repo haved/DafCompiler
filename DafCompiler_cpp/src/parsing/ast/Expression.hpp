@@ -5,17 +5,15 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <boost/optional.hpp>
 
-using std::unique_ptr;
-using boost::optional;
+using std::shared_ptr;
 
 class Expression {
  public:
   Expression(const TextRange& range);
   virtual ~Expression();
   virtual bool isStatement();
-  virtual optional<Type*> getType();
+  virtual Type* getType();
   inline bool isTypeKnown() {
     return (bool)m_type;
   }
@@ -23,7 +21,7 @@ class Expression {
   virtual void printSignature()=0;
  protected:
   TextRange m_range;
-  optional<unique_ptr<Type>> m_type;
+  shared_ptr<Type> m_type;
 };
 
 
@@ -68,7 +66,7 @@ class FunctionParameter {
 private:
   FunctionParameterReferenceType m_ref_type;
   std::string m_name;
-  std::unique_ptr<Type> m_type;
+  shared_ptr<Type> m_type;
 };
 
 class CompileTimeParameter {

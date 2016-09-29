@@ -6,9 +6,14 @@
 
 #include "parsing/ErrorRecovery.hpp"
 
-using boost::none;
+inline unique_ptr<Definition> none() {
+  return unique_ptr<Definition>();
+}
 
-optional<unique_ptr<Definition>> parseLetDefDefinition(Lexer& lexer, bool pub) {
+unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
+  //def none:=$(T)unique_ptr<T>()
+  //def noneD:=none!Definition
+  //return noneD;
   int startLine = lexer.getCurrentToken().line;
   int startCol = lexer.getCurrentToken().col;
 
@@ -28,9 +33,8 @@ optional<unique_ptr<Definition>> parseLetDefDefinition(Lexer& lexer, bool pub) {
 
   assert(def||let);
 
-  if(!lexer.expectToken(IDENTIFIER)) {
-    return none;
-  }
+  if(!lexer.expectToken(IDENTIFIER))
+    return none(); //Not as pretty as 'none'
 
   std::string name = lexer.getCurrentToken().text;
   lexer.advance(); //Eat identifier
@@ -39,15 +43,15 @@ optional<unique_ptr<Definition>> parseLetDefDefinition(Lexer& lexer, bool pub) {
   unique_ptr<Expression> expression;
   if(lexer.currType()==TYPE_SEPARATOR) {
     lexer.advance(); //Eat ':'
-    optional<unique_ptr<Type>> type_got = parseType(lexer);
+    unique_ptr<Type> type_got = parseType(lexer);
     if(!type_got)
       skipUntil(lexer, ASSIGN);//Skip until '=' past scopes; means infered type might be wrong, but the program will terminate before that becomes an issue
     else
-      type_got->swap(type);
+      type_got.swap(type);
 
     if(lexer.currType() != STATEMENT_END) { //If we meet a semicolon
       if(!lexer.expectToken(ASSIGN))
-        return none;
+        return none();
       lexer.advance(); //Eat '='
     }
   }
@@ -55,14 +59,14 @@ optional<unique_ptr<Definition>> parseLetDefDefinition(Lexer& lexer, bool pub) {
     lexer.advance(); //Eat ':='
   else {
     logDafExpectedToken(":= or =", lexer);
-    return none;
+    return none();
   }
   //If current is ; we have a type and return that
   //Else we look for an expression
   if(lexer.currType() != STATEMENT_END) {
     optional<unique_ptr<Expression>> expression_got = parseExpression(lexer);
     if(!expression_got)
-      return none;
+      return none();
     expression_got->swap(expression);
   }
   TextRange range(startLine, startCol,
@@ -82,7 +86,7 @@ optional<unique_ptr<Definition>> parseLetDefDefinition(Lexer& lexer, bool pub) {
   return definition;
 }
 
-optional<unique_ptr<Definition>> parseDefinition(Lexer& lexer, bool pub) {
+unique_ptr<Definition> parseDefinition(Lexer& lexer, bool pub) {
   TokenType currentToken = lexer.currType();
   switch(currentToken) {
   case DEF:
@@ -92,5 +96,5 @@ optional<unique_ptr<Definition>> parseDefinition(Lexer& lexer, bool pub) {
     break;
   }
   logDafExpectedToken("a definition", lexer);
-  return none;
+  return none();
 }
