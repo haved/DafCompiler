@@ -64,10 +64,10 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
   //If current is ; we have a type and return that
   //Else we look for an expression
   if(lexer.currType() != STATEMENT_END) {
-    optional<unique_ptr<Expression>> expression_got = parseExpression(lexer);
+    unique_ptr<Expression> expression_got = parseExpression(lexer);
     if(!expression_got)
       return none();
-    expression_got->swap(expression);
+    expression_got.swap(expression);
   }
   TextRange range(startLine, startCol,
             lexer.getCurrentToken().line,

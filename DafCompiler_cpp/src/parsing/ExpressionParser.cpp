@@ -1,8 +1,10 @@
 #include "parsing/ExpressionParser.hpp"
 
-using boost::none;
+inline unique_ptr<Expression> none() {
+  return unique_ptr<Expression>();
+}
 
-optional<unique_ptr<Expression>> parseVariableExpression(Lexer& lexer) {
+unique_ptr<Expression> parseVariableExpression(Lexer& lexer) {
   assert(lexer.currType()==IDENTIFIER);
   Token& token = lexer.getCurrentToken();
   unique_ptr<Expression> out(new VariableExpression(lexer.getCurrentToken().text,
@@ -11,12 +13,12 @@ optional<unique_ptr<Expression>> parseVariableExpression(Lexer& lexer) {
   return out;
 }
 
-optional<unique_ptr<Expression>> parseExpression(Lexer& lexer) {
+unique_ptr<Expression> parseExpression(Lexer& lexer) {
   Token& curr = lexer.getCurrentToken();
   switch(curr.type) {
   case IDENTIFIER:
     return parseVariableExpression(lexer);
   default: break;
   }
-  return none;
+  return none();
 }
