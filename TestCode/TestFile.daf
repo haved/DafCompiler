@@ -6,7 +6,7 @@ def let mut g:myType=myExpr;
 def eyo:=c;
 def boy:=b;
 
-
+def i:5;
 
 
 

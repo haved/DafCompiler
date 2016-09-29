@@ -13,6 +13,10 @@ unique_ptr<Expression> parseVariableExpression(Lexer& lexer) {
   return out;
 }
 
+unique_ptr<Expression> parseNumberExpression(Lexer& lexer) {
+return none();
+}
+
 unique_ptr<Expression> parseExpression(Lexer& lexer) {
   Token& curr = lexer.getCurrentToken();
   switch(curr.type) {
