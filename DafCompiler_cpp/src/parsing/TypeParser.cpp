@@ -1,4 +1,5 @@
 #include "parsing/TypeParser.hpp"
+#include <iostream>
 
 using boost::none;
 

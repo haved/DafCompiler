@@ -4,6 +4,8 @@
 #include "DafLogger.hpp"
 #include <iostream>
 
+#include "parsing/ErrorRecovery.hpp"
+
 using boost::none;
 
 optional<unique_ptr<Definition>> parseLetDefDefinition(Lexer& lexer, bool pub) {
@@ -17,6 +19,7 @@ optional<unique_ptr<Definition>> parseLetDefDefinition(Lexer& lexer, bool pub) {
   bool let = lexer.currType()==LET;
   if(let)
     lexer.advance();
+
   bool mut = lexer.currType()==MUT;
   if(mut) {
     lexer.advance();
@@ -37,10 +40,10 @@ optional<unique_ptr<Definition>> parseLetDefDefinition(Lexer& lexer, bool pub) {
   if(lexer.currType()==TYPE_SEPARATOR) {
     lexer.advance(); //Eat ':'
     optional<unique_ptr<Type>> type_got = parseType(lexer);
-    if(!type)
-      //Instead: Skip until = past scopes
-      return none; //TODO: Better error handeling;
-    type_got->swap(type);
+    if(!type_got)
+      skipUntil(lexer, ASSIGN);//Skip until '=' past scopes; means infered type might be wrong, but the program will terminate before that becomes an issue
+    else
+      type_got->swap(type);
 
     if(lexer.currType() != STATEMENT_END) { //If we meet a semicolon
       if(!lexer.expectToken(ASSIGN))
@@ -66,6 +69,7 @@ optional<unique_ptr<Definition>> parseLetDefDefinition(Lexer& lexer, bool pub) {
             lexer.getCurrentToken().line,
             lexer.getCurrentToken().endCol);
   unique_ptr<Definition> definition;
+
   if(def)
     definition.reset(new Def(pub, mut?DEF_MUT:let?DEF_LET:DEF_NORMAL, name,
                          std::move(type), std::move(expression), range));
