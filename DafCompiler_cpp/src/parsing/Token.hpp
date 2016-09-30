@@ -48,7 +48,8 @@ enum TokenType {
 struct Token {
   TokenType type;
   std::string text;
-  daf_long number;
+  daf_ulong number;
+  bool numberNegative;
   daf_double real_number;
   int line;
   int col;

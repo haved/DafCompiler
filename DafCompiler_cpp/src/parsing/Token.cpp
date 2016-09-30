@@ -21,17 +21,6 @@ const char* TOKEN_TEXT[] = {
   "true", " false", " null"
 };
 
-const char ONE_CHAR_TOKENS[] = {
-  '=', ':', ';',
-  '(', ',', ')',
-  '{', '}', '.',
-  '@', '[', ']',
-
-  '+', '-', '*', '/', '%',
-  '&', '|', '^', '!',
-  '~', '<', '>', '?'
-};
-
 const char* ONE_CHAR_TOKEN_TEXTS[] = {
   "=", ":", ";",
   "(", ",", ")",
@@ -96,7 +85,21 @@ const char* getTokenText(const Token& token) {
   return getTokenTypeText(token.type);
 }
 
-Token::Token() : type(PUB), text(), number(0), real_number(0), line(0), col(0), endCol(0) {}
+Token::Token() : type(PUB), text(), number(0), numberNegative(false), real_number(0), line(0), col(0), endCol(0) {}
+
+void resetTokenSetText(Token& token, const std::string& text) {
+  token.text = text;
+  token.number = 0;
+  token.numberNegative = false;
+  token.real_number = 0;
+}
+
+void resetTokenSpecialValues(Token& token) {
+  token.text = "";
+  token.number = 0;
+  token.numberNegative = false;
+  token.real_number = 0;
+}
 
 bool setTokenFromWord(Token& token, const std::string& text, int line, int startCol, int endCol) {
   token.line = line;
@@ -105,23 +108,21 @@ bool setTokenFromWord(Token& token, const std::string& text, int line, int start
   for(unsigned int tokenType = 0; tokenType < sizeof(TOKEN_TEXT)/sizeof(char*); tokenType++) {
     if(text==TOKEN_TEXT[tokenType]) {
       token.type = static_cast<TokenType>(tokenType);
-      token.text = "";
+      resetTokenSpecialValues(token);
       return true;
     }
   }
 
   token.type = IDENTIFIER;
-  token.text = text;
+  resetTokenSetText(token, text);
   return true;
 }
 
 bool setTokenFromSpecialChar(Token& token, char c, int line, int col) {
-  for(unsigned int i = 0; i < (sizeof(ONE_CHAR_TOKENS)/sizeof(char)); i++) {
-    if(ONE_CHAR_TOKENS[i]==c) {
+  for(unsigned int i = 0; i < (sizeof(ONE_CHAR_TOKEN_TEXTS)/sizeof(char*)); i++) {
+    if(ONE_CHAR_TOKEN_TEXTS[i][0]==c) {
       token.type = static_cast<TokenType>(i+FIRST_ONE_CHAR_TOKEN);
-      token.text = "";
-      token.number = 0;
-      token.real_number = 0;
+      resetTokenSpecialValues(token);
       token.line = line;
       token.col = col;
       token.endCol = col+1;
@@ -146,9 +147,7 @@ bool mergeTokens(Token& first, const Token& second) {
 }
 
 void setProperEOFToken(Token& token, int line, char col) {
-  token.text = "";
-  token.number = 0;
-  token.real_number = 0;
+  resetTokenSpecialValues(token);
   token.type = END_TOKEN;
   token.line = line;
   token.col = col;

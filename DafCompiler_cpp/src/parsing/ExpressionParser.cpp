@@ -1,4 +1,5 @@
 #include "parsing/ExpressionParser.hpp"
+#include "DafLogger.hpp"
 
 inline unique_ptr<Expression> none() {
   return unique_ptr<Expression>();
@@ -24,5 +25,6 @@ unique_ptr<Expression> parseExpression(Lexer& lexer) {
     return parseVariableExpression(lexer);
   default: break;
   }
+  logDafExpectedToken("an expression", lexer);
   return none();
 }

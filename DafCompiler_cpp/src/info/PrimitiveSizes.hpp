@@ -4,6 +4,8 @@
 
 typedef int daf_int;
 typedef long daf_long;
+typedef unsigned int daf_uint;
+typedef unsigned long daf_ulong;
 typedef char daf_char;
 typedef float daf_float;
 typedef double daf_double;

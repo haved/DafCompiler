@@ -6,9 +6,10 @@ def let mut g:myType=myExpr;
 def eyo:=c;
 def boy:=b;
 
-def i:5;
-
-
+def i:=-;
+//def f:=0x346;
+//let myVal:=-0x03;
+//def let mut:=-45689006;
 
 
 /*def a:=b;

@@ -57,7 +57,19 @@ bool isLegalSpecialChar(char c) {
 
 bool Lexer::parseNumberLiteral(bool negative) {
   assert(isDigit(currentChar));
-
+  std::string text;
+  bool hexa = false;
+  if(currentChar=='0'&&lookaheadChar=='x') {
+    hexa = true;
+    advanceChar(); //Eat '0'
+    advanceChar(); //Eat 'x'
+  }
+  while(isDigit(currentChar)) {
+    text.push_back(currentChar);
+    advanceChar();
+  }
+  std::cout << "Got number: " << text << std::endl;
+  lookaheadToken.type = INTEGER_LITERAL;
   return true;
 }
 
