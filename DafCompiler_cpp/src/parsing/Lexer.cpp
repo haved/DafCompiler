@@ -43,12 +43,21 @@ bool isDigit(char c) {
   return c >= '0' && c <= '9';
 }
 
+bool isNegateChar(char c) {
+  return c == '-';
+}
+
 bool isPartOfText(char c) {
   return isStartOfText(c) || isDigit(c);
 }
 
 bool isLegalSpecialChar(char c) {
   return (c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '_') || (c >= '{' && c <= '}');
+}
+
+bool Lexer::parseNumberLiteral(bool negative) {
+  assert(isDigit(currentChar));
+  return true;
 }
 
 bool Lexer::advance() {
@@ -64,22 +73,31 @@ bool Lexer::advance() {
         setProperEOFToken(lookaheadToken, line, col);
         break;
       }
-      else {
-        if(isStartOfText(currentChar)) {
-          std::string word;
+
+      if(isStartOfText(currentChar)) {
+        std::string word;
+        word.push_back(currentChar);
+        int startCol = col, startLine = line;
+        while(true) {
+          advanceChar();
+          if(!isPartOfText(currentChar))
+            break;
           word.push_back(currentChar);
-          int startCol = col, startLine = line;
-          while(true) {
+        }
+        if(!setTokenFromWord(lookaheadToken, word, startLine, startCol, col)) {
+          logDaf(fileForParsing, line, startCol, ERROR) << "Token '" << word << "' not recognized" << std::endl;
+          continue;
+        }
+        break;
+      }
+      else {
+        bool negative = isNegateChar(currentChar) && isDigit(lookaheadChar);
+        if(negative || isDigit(currentChar)) {
+          if(negative)
             advanceChar();
-            if(!isPartOfText(currentChar))
-              break;
-            word.push_back(currentChar);
-          }
-          if(!setTokenFromWord(lookaheadToken, word, startLine, startCol, col)) {
-            logDaf(fileForParsing, line, startCol, ERROR) << "Token '" << word << "' not recognized" << std::endl;
-            continue;
-          }
-          break;
+          if(parseNumberLiteral(negative))
+            break; //If the lookahead token was set (Wanted behaviour)
+          continue; //Otherwise an error was given and we keep looking for tokens
         }
         else if(isLegalSpecialChar(currentChar)) {
           char c = currentChar;
