@@ -53,7 +53,7 @@ const char* COMPOSITE_TOKENS[] = {
 
 const char* TEXT_TOKENS[] = {
   "Identifier", "String literal", "Char literal",
-  "Integer literal", "Long literal", "Float literal", "Double literal", "Hexadecimal integer literal", "Hexadecimal long literal"
+  "Integer literal", "Long literal", "Float literal", "Double literal"
 };
 
 struct TokenMerge {
@@ -96,7 +96,7 @@ const char* getTokenText(const Token& token) {
   return getTokenTypeText(token.type);
 }
 
-Token::Token() : type(PUB), text(), line(0), col(0), endCol(0) {}
+Token::Token() : type(PUB), text(), number(0), real_number(0), line(0), col(0), endCol(0) {}
 
 bool setTokenFromWord(Token& token, const std::string& text, int line, int startCol, int endCol) {
   token.line = line;
@@ -120,6 +120,8 @@ bool setTokenFromSpecialChar(Token& token, char c, int line, int col) {
     if(ONE_CHAR_TOKENS[i]==c) {
       token.type = static_cast<TokenType>(i+FIRST_ONE_CHAR_TOKEN);
       token.text = "";
+      token.number = 0;
+      token.real_number = 0;
       token.line = line;
       token.col = col;
       token.endCol = col+1;
@@ -145,6 +147,8 @@ bool mergeTokens(Token& first, const Token& second) {
 
 void setProperEOFToken(Token& token, int line, char col) {
   token.text = "";
+  token.number = 0;
+  token.real_number = 0;
   token.type = END_TOKEN;
   token.line = line;
   token.col = col;

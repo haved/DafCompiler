@@ -35,7 +35,7 @@ enum TokenType {
 
   EQUALS, PLUS_PLUS, MINUS_MINUS,
 
-  IDENTIFIER=300,STRING_LITERAL,CHAR_LITERAL,INTEGER_LITERAL,LONG_LITERAL,FLOAT_LITERAL,DOUBLE_LITERAL,HEX_INT_LITERAL,HEX_LONG_LITERAL,
+  IDENTIFIER=300,STRING_LITERAL,CHAR_LITERAL,INTEGER_LITERAL,LONG_LITERAL,FLOAT_LITERAL,DOUBLE_LITERAL,
   END_TOKEN=330, ERROR_TOKEN,
 };
 #define FIRST_ONE_CHAR_TOKEN ASSIGN
@@ -43,9 +43,13 @@ enum TokenType {
 #define FIRST_TEXT_TOKEN IDENTIFIER
 #define FIRST_SPECIAL_TOKEN END_TOKEN
 
+#include "info/PrimitiveSizes.hpp"
+
 struct Token {
   TokenType type;
   std::string text;
+  daf_long number;
+  daf_double real_number;
   int line;
   int col;
   int endCol; //The letter after the text is over

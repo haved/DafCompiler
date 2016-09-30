@@ -18,6 +18,9 @@ private:
   char lookaheadChar;
   void advanceChar();
   bool parseNumberLiteral(bool negative);
+  char parseOneChar();
+  bool parseStringLiteral();
+  bool parseCharLiteral();
 public:
   Lexer(const FileForParsing& file);
   bool advance();

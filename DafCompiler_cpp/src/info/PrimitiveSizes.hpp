@@ -5,6 +5,8 @@
 typedef int daf_int;
 typedef long daf_long;
 typedef char daf_char;
+typedef float daf_float;
+typedef double daf_double;
 
 #if CHAR_BIT <= 8
 typedef uint8_t daf_uint8;

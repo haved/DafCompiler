@@ -57,7 +57,41 @@ bool isLegalSpecialChar(char c) {
 
 bool Lexer::parseNumberLiteral(bool negative) {
   assert(isDigit(currentChar));
+
   return true;
+}
+
+char Lexer::parseOneChar() {
+  if(currentChar!='\\') {
+    char out = currentChar;
+    advanceChar();
+    return out;
+  }
+  advanceChar(); //Eat '\'
+  char control = currentChar;
+  int controlLine = line;
+  int controlCol = col;
+  advanceChar(); //Eat control char
+  switch(control) {
+  case '\\': return '\\';
+  case '\'': return '\'';
+  case '"': return '"';
+  case 't': return '\t';
+  case 'n': return '\n';
+  case 'r': return '\r';
+  default: break;
+  };
+
+  logDaf(fileForParsing, controlLine, controlCol, ERROR) << "Expected a special char, not '" << control << "'";
+  return control;
+}
+
+bool Lexer::parseStringLiteral() {
+  return false;
+}
+
+bool Lexer::parseCharLiteral() {
+  return false;
 }
 
 bool Lexer::advance() {
