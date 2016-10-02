@@ -51,7 +51,7 @@ struct Token {
   TokenType type;
   std::string text;
   daf_ulong number;
-  bool numberNegative;
+  bool numberSigned;
   daf_double real_number;
   int line;
   int col;

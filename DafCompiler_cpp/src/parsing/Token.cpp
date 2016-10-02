@@ -85,19 +85,19 @@ const char* getTokenText(const Token& token) {
   return getTokenTypeText(token.type);
 }
 
-Token::Token() : type(PUB), text(), number(0), numberNegative(false), real_number(0), line(0), col(0), endCol(0) {}
+Token::Token() : type(PUB), text(), number(0), numberSigned(false), real_number(0), line(0), col(0), endCol(0) {}
 
 void resetTokenSetText(Token& token, const std::string& text) {
   token.text = text;
   token.number = 0;
-  token.numberNegative = false;
+  token.numberSigned = false;
   token.real_number = 0;
 }
 
 void resetTokenSpecialValues(Token& token) {
   token.text = "";
   token.number = 0;
-  token.numberNegative = false;
+  token.numberSigned = false;
   token.real_number = 0;
 }
 
@@ -136,15 +136,15 @@ void setTokenFromRealNumber(Token& token, daf_double number, bool floater, const
   token.type = floater ? FLOAT_LITERAL : DOUBLE_LITERAL;
   token.real_number = number;
   token.number = 0;
-  token.numberNegative = false;
+  token.numberSigned = false;
   token.text = text;
 }
 
-void setTokenFromInteger(Token& token, daf_ulong number, bool negative, bool longer, const std::string& text) {
+void setTokenFromInteger(Token& token, daf_ulong number, bool isSigned, bool longer, const std::string& text) {
   token.type = longer ? LONG_LITERAL : INTEGER_LITERAL;
   token.real_number = 0.0;
   token.number = number;
-  token.numberNegative = negative;
+  token.numberSigned = isSigned;
   token.text = text;
 }
 
