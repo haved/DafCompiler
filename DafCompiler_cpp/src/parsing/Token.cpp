@@ -80,7 +80,7 @@ const char* getTokenTypeText(const TokenType& type) {
 }
 
 const char* getTokenText(const Token& token) {
-  if(token.type >= FIRST_TEXT_TOKEN && token.type < FIRST_SPECIAL_TOKEN)
+  if(token.type >= FIRST_TEXT_TOKEN && token.type < FIRST_INTEGER_TOKEN)
     return token.text.c_str();
   return getTokenTypeText(token.type);
 }
@@ -130,6 +130,22 @@ bool setTokenFromSpecialChar(Token& token, char c, int line, int col) {
     }
   }
   return false;
+}
+
+void setTokenFromRealNumber(Token& token, daf_double number, bool floater, const std::string& text) {
+  token.type = floater ? FLOAT_LITERAL : DOUBLE_LITERAL;
+  token.real_number = number;
+  token.number = 0;
+  token.numberNegative = false;
+  token.text = text;
+}
+
+void setTokenFromInteger(Token& token, daf_ulong number, bool negative, bool longer, const std::string& text) {
+  token.type = longer ? LONG_LITERAL : INTEGER_LITERAL;
+  token.real_number = 0.0;
+  token.number = number;
+  token.numberNegative = negative;
+  token.text = text;
 }
 
 bool mergeTokens(Token& first, const Token& second) {

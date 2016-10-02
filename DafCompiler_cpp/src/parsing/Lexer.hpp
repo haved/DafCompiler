@@ -17,10 +17,10 @@ private:
   char currentChar;
   char lookaheadChar;
   void advanceChar();
-  bool parseNumberLiteral(bool negative);
+  bool parseNumberLiteral(Token& token, bool negative);
   char parseOneChar();
-  bool parseStringLiteral();
-  bool parseCharLiteral();
+  bool parseStringLiteral(Token& token);
+  bool parseCharLiteral(Token& token);
 public:
   Lexer(const FileForParsing& file);
   bool advance();

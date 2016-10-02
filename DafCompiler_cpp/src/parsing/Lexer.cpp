@@ -1,6 +1,6 @@
 #include "parsing/Lexer.hpp"
 #include "DafLogger.hpp"
-#include <iostream>
+#include <string>
 #include "info/Constants.hpp"
 #include "DafLogger.hpp"
 
@@ -47,6 +47,17 @@ bool isNegateChar(char c) {
   return c == '-';
 }
 
+bool isDecimalPoint(char c) {
+  return c == '.';
+}
+
+char makeUpperHex(char in) {
+  if(in>='a'&&in<='f') {
+    return in+='A'-'a';
+  }
+  return 0;
+}
+
 bool isPartOfText(char c) {
   return isStartOfText(c) || isDigit(c);
 }
@@ -55,21 +66,59 @@ bool isLegalSpecialChar(char c) {
   return (c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '_') || (c >= '{' && c <= '}');
 }
 
-bool Lexer::parseNumberLiteral(bool negative) {
+bool Lexer::parseNumberLiteral(Token& token, bool negative) {
   assert(isDigit(currentChar));
+  std::string fullText;
+  if(negative)
+    fullText.push_back('-');
   std::string text;
   bool hexa = false;
   if(currentChar=='0'&&lookaheadChar=='x') {
     hexa = true;
+    fullText.push_back(currentChar);
+    fullText.push_back(lookaheadChar);
     advanceChar(); //Eat '0'
     advanceChar(); //Eat 'x'
   }
-  while(isDigit(currentChar)) {
-    text.push_back(currentChar);
+  char c;
+  bool real = false;
+  while((hexa&&(c = makeUpperHex(currentChar)))||isDigit(c=currentChar)||(!real && (real=isDecimalPoint(c)))) {
+    text.push_back(c);
+    fullText.push_back(c);
     advanceChar();
   }
-  std::cout << "Got number: " << text << std::endl;
-  lookaheadToken.type = INTEGER_LITERAL;
+  bool floater = false;
+  bool longer = false;
+  if(currentChar == 'f'||currentChar == 'F') {
+    floater = true;
+    fullText.push_back(currentChar);
+    advanceChar();
+  }
+  else if(currentChar == 'l'||currentChar == 'L') {
+    longer = true;
+    fullText.push_back(currentChar);
+    advanceChar();
+  }
+  if(floater && !real) {
+    logDaf(fileForParsing, line, col-1, ERROR) << "A floating point literal must have a decimal point" << std::endl;
+    floater = false; //Mean, I know
+  }
+
+  std::cout << "Number: " << fullText << std::endl;
+
+  if(real) {
+    if(floater)
+      setTokenFromRealNumber(token, std::stof(text), true, fullText);
+    else
+      setTokenFromRealNumber(token, std::stod(text), false, fullText);
+  }
+  else {
+    std::size_t base = hexa ? 16 : 10;
+    if(longer)
+      setTokenFromInteger(token, std::stol(text, &base), negative, true, fullText);
+    else
+      setTokenFromInteger(token, std::stoi(text, &base), negative, false, fullText);
+  }
   return true;
 }
 
@@ -98,11 +147,11 @@ char Lexer::parseOneChar() {
   return control;
 }
 
-bool Lexer::parseStringLiteral() {
+bool Lexer::parseStringLiteral(Token& token) {
   return false;
 }
 
-bool Lexer::parseCharLiteral() {
+bool Lexer::parseCharLiteral(Token& token) {
   return false;
 }
 
@@ -120,7 +169,15 @@ bool Lexer::advance() {
         break;
       }
 
-      if(isStartOfText(currentChar)) {
+      bool negative = isNegateChar(currentChar) && isDigit(lookaheadChar);
+      if(negative || isDigit(currentChar)) {
+        if(negative)
+          advanceChar();
+        if(parseNumberLiteral(lookaheadToken, negative))
+          break; //If the lookahead token was set (Wanted behaviour)
+        continue; //Otherwise an error was given and we keep looking for tokens
+      }
+      else if(isStartOfText(currentChar)) {
         std::string word;
         word.push_back(currentChar);
         int startCol = col, startLine = line;
@@ -136,29 +193,19 @@ bool Lexer::advance() {
         }
         break;
       }
-      else {
-        bool negative = isNegateChar(currentChar) && isDigit(lookaheadChar);
-        if(negative || isDigit(currentChar)) {
-          if(negative)
-            advanceChar();
-          if(parseNumberLiteral(negative))
-            break; //If the lookahead token was set (Wanted behaviour)
-          continue; //Otherwise an error was given and we keep looking for tokens
-        }
-        else if(isLegalSpecialChar(currentChar)) {
-          char c = currentChar;
-          int startCol = col, startLine = line;
-          advanceChar();
-          if(!setTokenFromSpecialChar(lookaheadToken, c, startLine, startCol)) {
-            logDaf(fileForParsing, line, col, ERROR) << "Special char '" << currentChar << "' not a token" << std::endl;
-            continue;
-          }
-          break;
-        } else {
-          logDaf(fileForParsing, line, col, ERROR) << "Character not legal: " << currentChar << std::endl;
-          advanceChar();
+      else if(isLegalSpecialChar(currentChar)) {
+        char c = currentChar;
+        int startCol = col, startLine = line;
+        advanceChar();
+        if(!setTokenFromSpecialChar(lookaheadToken, c, startLine, startCol)) {
+          logDaf(fileForParsing, line, col, ERROR) << "Special char '" << currentChar << "' not a token" << std::endl;
           continue;
         }
+        break;
+      } else {
+        logDaf(fileForParsing, line, col, ERROR) << "Character not legal: " << currentChar << std::endl;
+        advanceChar();
+        continue;
       }
       assert(false); //Make sure we always end properly
     }

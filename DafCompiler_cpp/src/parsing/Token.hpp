@@ -41,6 +41,8 @@ enum TokenType {
 #define FIRST_ONE_CHAR_TOKEN ASSIGN
 #define FIRST_COMPOSITE_TOKEN DECLARE
 #define FIRST_TEXT_TOKEN IDENTIFIER
+#define FIRST_INTEGER_TOKEN INTEGER_LITERAL
+#define FIRST_REAL_TOKEN FLOAT_LITERAL
 #define FIRST_SPECIAL_TOKEN END_TOKEN
 
 #include "info/PrimitiveSizes.hpp"
@@ -64,6 +66,10 @@ const char* getTokenText(const Token& token);
 bool setTokenFromWord(Token& token, const std::string& word, int line, int startCol, int endCol);
 
 bool setTokenFromSpecialChar(Token& token, char c, int line, int col);
+
+void setTokenFromRealNumber(Token& token, daf_double number, bool floater, const std::string& text);
+
+void setTokenFromInteger(Token& token, daf_ulong number, bool negative, bool longer, const std::string& text);
 
 bool mergeTokens(Token& first, const Token& second);
 
