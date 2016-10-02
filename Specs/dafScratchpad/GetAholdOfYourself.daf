@@ -5,7 +5,7 @@ def a : Number = with def_out as i32 -4 as u32 5 else 6;
 
 typedef MoveOrCopy := MoveConstructor | CopyConstructor;
 
-typedef Vec(T/Concrete, allocateFac:float=1.5f) := class with Iterator { //Uppercase This means the current type
+typedef Vec(T/Concrete&MoveOrCopy, allocateFac:float=1.5f) := class with Iterator { //Uppercase This means the current type
 	mut capacity : usize;
 	mut array : []mut T;
 
@@ -87,6 +87,12 @@ typedef Vec(T/Concrete, allocateFac:float=1.5f) := class with Iterator { //Upper
 	def mut size_mut(this:This) := with array as []mut usize array[-1] if capacity > 0 else 0;
 
 	pub def size(this:This) := size_mut;
+
+	pub def let get(this:This, i:index) = {
+		if(i<0|i>=size)
+			panic("Index out of bounds");
+		array[i]
+	};
 }
 
 def main:=() {
