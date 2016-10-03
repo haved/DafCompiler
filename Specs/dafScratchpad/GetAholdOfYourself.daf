@@ -3,8 +3,17 @@ with i16 as Number;
 
 def a : Number = with def_out as i32 -4 as u32 5 else 6;
 
+typedef MoveConstructor := trait {
+    def move : ctor(move other:Impl):Impl //Impl has to be concrete for a ctor
+}
+
+typedef CopyConstructor := trait {
+    def copy : ctor(other:Impl):Impl
+}
+
 typedef MoveOrCopy := MoveConstructor | CopyConstructor;
 
+//Class means it's a concrete type, and it will be the same as if with Iterator was added later
 typedef Vec(T/Concrete&MoveOrCopy, allocateFac:float=1.5f) := class with Iterator { //Uppercase This means the current type
 	mut capacity : usize;
 	mut array : []mut T;
