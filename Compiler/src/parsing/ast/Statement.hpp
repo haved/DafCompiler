@@ -15,52 +15,51 @@ protected:
 	TextRange m_range;
 public:
 	Statement(const TextRange& range);
-  virtual void printSignature()=0;
-  virtual ~Statement();
+	virtual void printSignature()=0;
+	virtual ~Statement();
 	const TextRange& getRange();
 };
 
 class DefinitionStatement : public Statement {
 private:
-  unique_ptr<Definition> m_definition;
+	unique_ptr<Definition> m_definition;
 public:
-  DefinitionStatement(unique_ptr<Definition>&& definition, const TextRange& range);
-  void printSignature();
+	DefinitionStatement(unique_ptr<Definition>&& definition, const TextRange& range);
+	void printSignature();
 };
 
 class ExpressionStatement : public Statement {
 private:
-  unique_ptr<Expression> m_expression;
+	unique_ptr<Expression> m_expression;
 public:
-  ExpressionStatement(unique_ptr<Expression>&& expression, const TextRange& range);
-  void printSignature();
+	ExpressionStatement(unique_ptr<Expression>&& expression, const TextRange& range);
+	void printSignature();
 };
 
 class IfStatement : public Statement {
 private:
-  unique_ptr<Expression> m_condition;
-  unique_ptr<Statement> m_body;
-  unique_ptr<Statement> m_else_body;
+	unique_ptr<Expression> m_condition;
+	unique_ptr<Statement> m_body;
+	unique_ptr<Statement> m_else_body;
 public:
-  IfStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body, unique_ptr<Statement>&& else_body, const TextRange& range);
-  void printSignature();
+	IfStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body, unique_ptr<Statement>&& else_body, const TextRange& range);
+	void printSignature();
 };
 
 class WhileStatement : public Statement {
 private:
-  unique_ptr<Expression> m_condition;
-  unique_ptr<Statement> m_body;
+	unique_ptr<Expression> m_condition;
+	unique_ptr<Statement> m_body;
 public:
-  WhileStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body, const TextRange& range);
-  void printSignature();
+	WhileStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body, const TextRange& range);
+	void printSignature();
 };
 
 class ForStatement : public Statement {
 private:
-	std::string m_variable;
-  unique_ptr<Expression> m_iterator;
+	unique_ptr<Expression> m_iterator;
 	unique_ptr<Statement> m_body;
 public:
-  ForStatement(std::string&& variable, unique_ptr<Expression>&& iterator, unique_ptr<Statement>&& body, const TextRange& range);
-  void printSignature();
+	ForStatement(unique_ptr<Expression>&& iterator, unique_ptr<Statement>&& body, const TextRange& range);
+	void printSignature();
 };

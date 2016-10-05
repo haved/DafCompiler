@@ -17,9 +17,8 @@ def main:=()
     while(a>4)
         a++;
 
-	//TODO
-	for a in 3.6 {
-		sum=sum+i;
+	for 3.6 {
+		sum=sum+it;
 	}
 
 	{a();}

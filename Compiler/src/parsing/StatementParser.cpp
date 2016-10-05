@@ -88,15 +88,6 @@ optional<unique_ptr<Statement>> parseForStatement(Lexer& lexer) {
 	int startCol = lexer.getCurrentToken().col;
 	lexer.advance(); //Eat 'for'
 
-	if(!lexer.expectToken(IDENTIFIER))
-		return none;
-	std::string variable(lexer.getCurrentToken().text);
-	lexer.advance(); //eat identifier
-
-	if(!lexer.expectToken(IN))
-		return none;
-	lexer.advance(); //Eat 'in'
-
 	unique_ptr<Expression> iterator = parseExpression(lexer);
 	if(!iterator)
 		return none;
@@ -108,7 +99,7 @@ optional<unique_ptr<Statement>> parseForStatement(Lexer& lexer) {
 	int endLine, endCol;
 	setEndFromStatement(&endLine, &endCol, *body, lexer);
 
-	return unique_ptr<Statement>(new ForStatement(std::move(variable), std::move(iterator), std::move(*body), TextRange(startLine, startCol, endLine, endCol)));
+	return unique_ptr<Statement>(new ForStatement(std::move(iterator), std::move(*body), TextRange(startLine, startCol, endLine, endCol)));
 }
 
 optional<unique_ptr<Statement>> parseSpecialStatement(Lexer& lexer) {
