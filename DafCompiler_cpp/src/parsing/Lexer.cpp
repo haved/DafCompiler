@@ -64,6 +64,9 @@ bool isLegalSpecialChar(char c) {
 }
 
 bool Lexer::parseNumberLiteral(Token& token) {
+  int startLine = line;
+  int startCol = col;
+
   bool signedNum = false;
   std::string numberText;
   if(isNegateChar(currentChar)) {
@@ -83,32 +86,74 @@ bool Lexer::parseNumberLiteral(Token& token) {
   bool real=false;
   bool e=false;
   bool p=false;
-  int preDigitsLen = numberText.length();
+  unsigned int preDigitsLen = numberText.length();
   while((hexadecimal && isHexaDigit(currentChar)) || isDigit(currentChar) ||
-        (!real&&(real = isDecimalPoint(currentChar))) || (!e&&(e=currentChar=='e')) || (!p&&(p=currentChar=='p'))) { //Nice
+        (!real&&(real = isDecimalPoint(currentChar))) || (!e&&(e=currentChar=='e')) || (hexadecimal&&!p&&(p=currentChar=='p'))) { //Nice
     if(e&&p)
-      break; //Not both
-    else if(e||p)
-      hexadecimal = false; //No more hex parsing
+      break; //Can't have both
+    if(p)
+      hexadecimal = false;
+    // the bool 'e' is only set if hexadecimal is false
+    assert(e!=hexadecimal);
+
     numberText.push_back(currentChar);
     advanceChar();
   }
   real|=e||p;
+
+  if(real && hexadecimal)
+    logDaf(fileForParsing, startLine, startCol, ERROR) << "A hexadecimal floating point literal must have an exponent" << std::endl;
+
+  if(numberText.length()==preDigitsLen)
+    logDaf(fileForParsing, startLine, startCol, ERROR) << "The number literal didn't contain any number" << std::endl;
 
   bool single = false;
   bool longer = false;
   if(currentChar == 'f' || currentChar == 'F') {
     real = true;
     single = true;
+    numberText.push_back('f');
     advanceChar();
   }
   else if(currentChar == 'l' || currentChar == 'L') {
     if(real) {
       logDaf(fileForParsing, line, col, ERROR) << "A floating point number can't be a long literal" << std::endl;
+    } else {
+      longer = true;
+      numberText.push_back('l');
+      advanceChar();
     }
   }
 
-  std::cout << "Found token " << numberText << std::endl;
+  std::cout << "Found number token " << numberText << std::endl;
+
+  if(real) {
+    if(single) {
+      setTokenFromRealNumber(token, std::stof(numberText), true, numberText);
+    } else {
+      setTokenFromRealNumber(token, std::stod(numberText), false, numberText);
+    }
+  } else {
+    std::string integerText(numberText);
+    char* startOfNum = &integerText[0];
+    if(hexadecimal) {
+      startOfNum+=2;
+      if(signedNum)
+        startOfNum[0]='-';
+    }
+    if(longer) {
+      if(signedNum)
+        setTokenFromInteger(token, std::stol(integerText), true, true, numberText);
+      else
+        setTokenFromInteger(token, std::stoul(integerText), false, true, numberText);
+    } else {
+      if(signedNum)
+        setTokenFromInteger(token, std::stoi(integerText), true, false, numberText);
+      else
+        setTokenFromInteger(token, std::stoi(integerText), false, false, numberText);
+    }
+  }
+  return true;
 
   //assert(isDigit(currentChar));
 

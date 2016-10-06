@@ -11,6 +11,9 @@ int main() {
   i=12e4;
   i=0x.2fp0; //It would seem float literals always are converted to int
   i=0.8; //Even this works (rounded down to 0)
+  float f = 0x3.p0;
+  f = 4.3e2;
+  f = 0x4p1;
   cout << i << std::endl;
   cout << "0x4       " << 0x4      << endl
        << "0x4p1f    " << 0x4p1f   << "     (4*2^1)" << endl
