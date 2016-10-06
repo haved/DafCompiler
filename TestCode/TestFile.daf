@@ -10,10 +10,7 @@ def i:=78.f;
 def f:=0x346ab;
 let myVal:=-30.5;
 def let mut val:=-45789045678l; //Same as without def
-
-0x3pdef a:=5;
-
-//def f:=0.4 + 0.4f - .2f * 0. + 0.f - 0x1p3 + 0x;
+let mut 
 
 /*def a:=b;
 def main:int=20;

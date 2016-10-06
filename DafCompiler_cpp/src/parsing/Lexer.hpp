@@ -17,7 +17,7 @@ private:
   char currentChar;
   char lookaheadChar;
   void advanceChar();
-  bool parseNumberLiteral(Token& token, bool negative);
+  bool parseNumberLiteral(Token& token);
   char parseOneChar();
   bool parseStringLiteral(Token& token);
   bool parseCharLiteral(Token& token);

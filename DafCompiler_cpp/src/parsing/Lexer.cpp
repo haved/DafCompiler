@@ -51,11 +51,8 @@ bool isDecimalPoint(char c) {
   return c == '.';
 }
 
-char makeUpperHex(char in) {
-  if(in>='a'&&in<='f') {
-    return in+='A'-'a';
-  }
-  return 0;
+char isHexaDigit(char in) {
+  return isDigit(in) || (in >= 'a' && in <= 'f') || (in >= 'A' && in <= 'F');
 }
 
 bool isPartOfText(char c) {
@@ -66,12 +63,60 @@ bool isLegalSpecialChar(char c) {
   return (c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '_') || (c >= '{' && c <= '}');
 }
 
-bool Lexer::parseNumberLiteral(Token& token, bool negative) {
-  assert(isDigit(currentChar));
-  std::string fullText;
+bool Lexer::parseNumberLiteral(Token& token) {
+  bool signedNum = false;
+  std::string numberText;
+  if(isNegateChar(currentChar)) {
+    signedNum = true;
+    numberText.push_back('-');
+    advanceChar();
+  }
+
+  bool hexadecimal = false;
+  if(currentChar=='0' && lookaheadChar=='x') {
+    hexadecimal = true;
+    numberText.append("0x");
+    advanceChar();
+    advanceChar();
+  }
+
+  bool real=false;
+  bool e=false;
+  bool p=false;
+  int preDigitsLen = numberText.length();
+  while((hexadecimal && isHexaDigit(currentChar)) || isDigit(currentChar) ||
+        (!real&&(real = isDecimalPoint(currentChar))) || (!e&&(e=currentChar=='e')) || (!p&&(p=currentChar=='p'))) { //Nice
+    if(e&&p)
+      break; //Not both
+    else if(e||p)
+      hexadecimal = false; //No more hex parsing
+    numberText.push_back(currentChar);
+    advanceChar();
+  }
+  real|=e||p;
+
+  bool single = false;
+  bool longer = false;
+  if(currentChar == 'f' || currentChar == 'F') {
+    real = true;
+    single = true;
+    advanceChar();
+  }
+  else if(currentChar == 'l' || currentChar == 'L') {
+    if(real) {
+      logDaf(fileForParsing, line, col, ERROR) << "A floating point number can't be a long literal" << std::endl;
+    }
+  }
+
+  std::cout << "Found token " << numberText << std::endl;
+
+  //assert(isDigit(currentChar));
+
+  /*std::string fullText;
   if(negative)
     fullText.push_back('-');
-  std::string text;
+  std::string integerText(fullText);
+
   bool hexa = false;
   if(currentChar=='0'&&lookaheadChar=='x') {
     hexa = true;
@@ -80,13 +125,15 @@ bool Lexer::parseNumberLiteral(Token& token, bool negative) {
     advanceChar(); //Eat '0'
     advanceChar(); //Eat 'x'
   }
-  char c;
   bool real = false;
-  while((hexa&&(c = makeUpperHex(currentChar)))||isDigit(c=currentChar)||(!real && (real=isDecimalPoint(c)))) {
-    text.push_back(c);
+
+  char c;
+  while((hexa&&(c = makeUpperHex(currentChar)))||isDigit(c=currentChar)&!(real = )) {
+    integerText.push_back(c);
     fullText.push_back(c);
     advanceChar();
   }
+
   bool floater = false;
   bool longer = false;
   if(currentChar == 'f'||currentChar == 'F') {
@@ -119,7 +166,7 @@ bool Lexer::parseNumberLiteral(Token& token, bool negative) {
     else
       setTokenFromInteger(token, std::stoi(text, &base), negative, false, fullText);
   }
-  return true;
+  return true;*/
 }
 
 char Lexer::parseOneChar() {
@@ -169,11 +216,8 @@ bool Lexer::advance() {
         break;
       }
 
-      bool negative = isNegateChar(currentChar) && isDigit(lookaheadChar);
-      if(negative || isDigit(currentChar)) {
-        if(negative)
-          advanceChar();
-        if(parseNumberLiteral(lookaheadToken, negative))
+      if(isDigit(currentChar)||(isDigit(lookaheadChar)&&(isDecimalPoint(currentChar)||isNegateChar(currentChar)))) { //Nice
+        if(parseNumberLiteral(lookaheadToken))
           break; //If the lookahead token was set (Wanted behaviour)
         continue; //Otherwise an error was given and we keep looking for tokens
       }

@@ -60,7 +60,7 @@ void skipUntilNewDefinition(Lexer& lexer) {
     advanceLexerSkipScopes(lexer);
   }
   logDaf(lexer.getFile(), ERROR)
-      << "EOF hit when skipping from"
+      << "EOF hit when skipping from "
       << startLine << ":" << startCol
       << " until ';', 'let', 'def', 'typedef' or 'import'" << std::endl;
 }
