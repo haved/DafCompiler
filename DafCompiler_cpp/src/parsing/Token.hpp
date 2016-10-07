@@ -67,9 +67,9 @@ bool setTokenFromWord(Token& token, const std::string& word, int line, int start
 
 bool setTokenFromSpecialChar(Token& token, char c, int line, int col);
 
-void setTokenFromRealNumber(Token& token, daf_double number, bool floater, const std::string& text);
+void setTokenFromRealNumber(Token& token, daf_double number, bool floater, int line, int col, const std::string& text);
 
-void setTokenFromInteger(Token& token, daf_ulong number, bool isSigned, bool longer, const std::string& text);
+void setTokenFromInteger(Token& token, daf_ulong number, bool isSigned, bool longer, int line, int col, const std::string& text);
 
 bool mergeTokens(Token& first, const Token& second);
 

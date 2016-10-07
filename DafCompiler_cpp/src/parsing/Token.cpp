@@ -132,20 +132,26 @@ bool setTokenFromSpecialChar(Token& token, char c, int line, int col) {
   return false;
 }
 
-void setTokenFromRealNumber(Token& token, daf_double number, bool floater, const std::string& text) {
+void setTokenFromRealNumber(Token& token, daf_double number, bool floater, int line, int col, const std::string& text) {
   token.type = floater ? FLOAT_LITERAL : DOUBLE_LITERAL;
   token.real_number = number;
   token.number = 0;
   token.numberSigned = false;
+  token.line = line;
+  token.col = col;
   token.text = text;
+  token.endCol = col+text.length();
 }
 
-void setTokenFromInteger(Token& token, daf_ulong number, bool isSigned, bool longer, const std::string& text) {
+void setTokenFromInteger(Token& token, daf_ulong number, bool isSigned, bool longer, int line, int col, const std::string& text) {
   token.type = longer ? LONG_LITERAL : INTEGER_LITERAL;
   token.real_number = 0.0;
   token.number = number;
   token.numberSigned = isSigned;
+  token.line = line;
+  token.col = col;
   token.text = text;
+  token.endCol = col+text.length();
 }
 
 bool mergeTokens(Token& first, const Token& second) {

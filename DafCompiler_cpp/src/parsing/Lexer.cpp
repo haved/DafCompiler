@@ -94,7 +94,7 @@ bool Lexer::parseNumberLiteral(Token& token) {
     if(p)
       hexadecimal = false;
     // the bool 'e' is only set if hexadecimal is false
-    assert(e!=hexadecimal);
+    assert(!(e&&hexadecimal));
 
     numberText.push_back(currentChar);
     advanceChar();
@@ -125,93 +125,40 @@ bool Lexer::parseNumberLiteral(Token& token) {
     }
   }
 
-  std::cout << "Found number token " << numberText << std::endl;
+  std::cout << "Found number token " << numberText << std::endl << std::flush;
 
-  if(real) {
-    if(single) {
-      setTokenFromRealNumber(token, std::stof(numberText), true, numberText);
+  try {
+    if(real) {
+      if(single) {
+        setTokenFromRealNumber(token, std::stof(numberText), true, startLine, startCol, numberText);
+      } else {
+        setTokenFromRealNumber(token, std::stod(numberText), false, startLine, startCol, numberText);
+      }
     } else {
-      setTokenFromRealNumber(token, std::stod(numberText), false, numberText);
+      std::string integerText(numberText);
+      char* startOfNum = &integerText[0];
+      if(hexadecimal) { //Turn 0x456 to just 456 when starting at startOfNum
+        startOfNum+=2;
+        if(signedNum)
+          startOfNum[0]='-'; //Turn -0x456 to -0-456 and begin
+      }
+      if(longer) {
+        if(signedNum)
+          setTokenFromInteger(token, std::stol(integerText), true, true, startLine, startCol, numberText);
+        else
+          setTokenFromInteger(token, std::stoul(integerText), false, true, startLine, startCol, numberText);
+      } else {
+        if(signedNum)
+          setTokenFromInteger(token, std::stoi(integerText), true, false, startLine, startCol, numberText);
+        else
+          setTokenFromInteger(token, std::stoi(integerText), false, false, startLine, startCol, numberText);
+      }
     }
-  } else {
-    std::string integerText(numberText);
-    char* startOfNum = &integerText[0];
-    if(hexadecimal) {
-      startOfNum+=2;
-      if(signedNum)
-        startOfNum[0]='-';
-    }
-    if(longer) {
-      if(signedNum)
-        setTokenFromInteger(token, std::stol(integerText), true, true, numberText);
-      else
-        setTokenFromInteger(token, std::stoul(integerText), false, true, numberText);
-    } else {
-      if(signedNum)
-        setTokenFromInteger(token, std::stoi(integerText), true, false, numberText);
-      else
-        setTokenFromInteger(token, std::stoi(integerText), false, false, numberText);
-    }
+    return true;
+  } catch(std::out_of_range our) {
+    logDaf(fileForParsing, startLine, startCol, ERROR) << "Number " << numberText << " too big for " << (real?single?"float":"double":longer?"long":"int") << std::endl;
+    return false;
   }
-  return true;
-
-  //assert(isDigit(currentChar));
-
-  /*std::string fullText;
-  if(negative)
-    fullText.push_back('-');
-  std::string integerText(fullText);
-
-  bool hexa = false;
-  if(currentChar=='0'&&lookaheadChar=='x') {
-    hexa = true;
-    fullText.push_back(currentChar);
-    fullText.push_back(lookaheadChar);
-    advanceChar(); //Eat '0'
-    advanceChar(); //Eat 'x'
-  }
-  bool real = false;
-
-  char c;
-  while((hexa&&(c = makeUpperHex(currentChar)))||isDigit(c=currentChar)&!(real = )) {
-    integerText.push_back(c);
-    fullText.push_back(c);
-    advanceChar();
-  }
-
-  bool floater = false;
-  bool longer = false;
-  if(currentChar == 'f'||currentChar == 'F') {
-    floater = true;
-    fullText.push_back(currentChar);
-    advanceChar();
-  }
-  else if(currentChar == 'l'||currentChar == 'L') {
-    longer = true;
-    fullText.push_back(currentChar);
-    advanceChar();
-  }
-  if(floater && !real) {
-    logDaf(fileForParsing, line, col-1, ERROR) << "A floating point literal must have a decimal point" << std::endl;
-    floater = false; //Mean, I know
-  }
-
-  std::cout << "Number: " << fullText << std::endl;
-
-  if(real) {
-    if(floater)
-      setTokenFromRealNumber(token, std::stof(text), true, fullText);
-    else
-      setTokenFromRealNumber(token, std::stod(text), false, fullText);
-  }
-  else {
-    std::size_t base = hexa ? 16 : 10;
-    if(longer)
-      setTokenFromInteger(token, std::stol(text, &base), negative, true, fullText);
-    else
-      setTokenFromInteger(token, std::stoi(text, &base), negative, false, fullText);
-  }
-  return true;*/
 }
 
 char Lexer::parseOneChar() {
