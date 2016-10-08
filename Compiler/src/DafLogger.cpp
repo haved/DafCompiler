@@ -41,7 +41,7 @@ std::ostream& logDaf(const FileForParsing& file, int logLevel) {
 
 std::ostream& logDaf(const FileForParsing& file, int line, int col, int logLevel) {
     logDafUpdateLevel(logLevel);
-    return std::cout << file.m_inputName.string() << ":" << line << ":" << col << ": " << logLevelNames[logLevel] << ": ";
+    return std::cout << file.m_inputName.string() << ": " << line << ":" << col << ": " << logLevelNames[logLevel] << ": ";
 }
 
 std::ostream& logDaf(const std::string& location, int logLevel) {
