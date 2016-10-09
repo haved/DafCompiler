@@ -2,8 +2,8 @@
 #include <iostream>
 
 Statement::Statement(const TextRange& range) : m_range(range) {
-	std::cout << "Statement at: " << range.getLine() << ":" << range.getCol() << "-"
-			  << range.getLastLine() << ":" << range.getEndCol() << std::endl;
+	//	std::cout << "Statement at: " << range.getLine() << ":" << range.getCol() << "-"
+	//		  << range.getLastLine() << ":" << range.getEndCol() << std::endl;
 }
 
 Statement::~Statement() {}
