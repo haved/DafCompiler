@@ -19,7 +19,16 @@ def main:=()
 
 	for 3.6 {
 		sum=sum+it;
+		if it == 2
+		    continue;
+		else if it > 5
+		    break;
+		if sum == 20
+		    break;
+		retry;
 	}
+
+	break; //I don't care where you break at this point
 
 	{a();}
 	return;

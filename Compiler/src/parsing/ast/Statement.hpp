@@ -71,3 +71,17 @@ public:
 	ReturnStatement(unique_ptr<Expression>&& value, const TextRange& range);
 	void printSignature();
 };
+
+enum class LoopStatementType {
+	BREAK,
+	CONTINUE,
+	RETRY //Personal favorite
+};
+
+class LoopStatement : public Statement {
+private:
+    LoopStatementType m_type;
+public:
+	LoopStatement(LoopStatementType type, const TextRange& range);
+	void printSignature();
+};

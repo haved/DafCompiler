@@ -15,6 +15,7 @@ bool isSpecialStatementKeyword(TokenType& type) {
 	case SWITCH:
 	case CONTINUE:
 	case BREAK:
+	case RETRY:
 	case RETURN:
 		return true;
 	default:
@@ -25,11 +26,11 @@ bool isSpecialStatementKeyword(TokenType& type) {
 void setEndFromStatement(int* endLine, int* endCol, const unique_ptr<Statement>& statement, Lexer& lexer) {
 	if(statement) { //An actual statement instance
 		*endLine = statement->getRange().getLastLine();
-		*endCol = statement->getRange().getEndCol();
+		*endCol  = statement->getRange().getEndCol();
 	} else { //We get the last semicolon
 		assert(lexer.getPreviousToken().type == STATEMENT_END);
 		*endLine = lexer.getPreviousToken().line;
-		*endCol = lexer.getPreviousToken().endCol;
+		*endCol  = lexer.getPreviousToken().endCol;
 	}
 }
 
@@ -38,7 +39,7 @@ using boost::none;
 optional<unique_ptr<Statement>> parseIfStatement(Lexer& lexer) {
 	assert(lexer.currType()==IF);
 	int startLine = lexer.getCurrentToken().line;
-	int startCol = lexer.getCurrentToken().col;
+	int startCol  = lexer.getCurrentToken().col;
 	lexer.advance(); //Eat 'if'
 
 	unique_ptr<Expression> condition = parseExpression(lexer);
@@ -68,7 +69,7 @@ optional<unique_ptr<Statement>> parseIfStatement(Lexer& lexer) {
 optional<unique_ptr<Statement>> parseWhileStatement(Lexer& lexer) {
 	assert(lexer.currType()==WHILE);
 	int startLine = lexer.getCurrentToken().line;
-	int startCol = lexer.getCurrentToken().col;
+	int startCol  = lexer.getCurrentToken().col;
 	lexer.advance(); //Eat 'while'
 
 	unique_ptr<Expression> condition = parseExpression(lexer);
@@ -85,7 +86,7 @@ optional<unique_ptr<Statement>> parseWhileStatement(Lexer& lexer) {
 optional<unique_ptr<Statement>> parseForStatement(Lexer& lexer) {
 	assert(lexer.currType()==FOR);
 	int startLine = lexer.getCurrentToken().line;
-	int startCol = lexer.getCurrentToken().col;
+	int startCol  = lexer.getCurrentToken().col;
 	lexer.advance(); //Eat 'for'
 
 	unique_ptr<Expression> iterator = parseExpression(lexer);
@@ -107,9 +108,9 @@ optional<unique_ptr<Statement>> parseForStatement(Lexer& lexer) {
 optional<unique_ptr<Statement>> parseReturnStatement(Lexer& lexer) {
 	assert(lexer.currType()==RETURN);
 	int startLine = lexer.getCurrentToken().line;
-	int startCol = lexer.getCurrentToken().col;
+	int startCol  = lexer.getCurrentToken().col;
 
-	lexer.advance();
+	lexer.advance(); //Eat return
 
 	unique_ptr<Expression> expression;
 	if(lexer.currType() != STATEMENT_END) {
@@ -119,13 +120,29 @@ optional<unique_ptr<Statement>> parseReturnStatement(Lexer& lexer) {
 	}
 
 	if(lexer.expectToken(STATEMENT_END)) {
-		lexer.advance();
+		lexer.advance(); //Eat semicolon
 	}
 
-	TextRange range = TextRange(startLine, startCol, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol);
+	TextRange range(startLine, startCol, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol);
 	return unique_ptr<Statement>(new ReturnStatement(std::move(expression), range));
 }
 
+optional<unique_ptr<Statement>> parseLoopStatement(Lexer& lexer) {
+	LoopStatementType type = LoopStatementType::BREAK;
+	switch(lexer.currType()) {
+	case BREAK: break;
+	case CONTINUE: type = LoopStatementType::CONTINUE; break;
+	case RETRY:    type = LoopStatementType::RETRY   ; break;
+	default: assert(false);
+	}
+	int startLine = lexer.getCurrentToken().line;
+	int startCol  = lexer.getCurrentToken().col;
+	lexer.advance(); //Eat loop word
+	if(lexer.expectToken(STATEMENT_END))
+		lexer.advance(); //Eat semicolon
+    TextRange range(startLine, startCol, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol);
+	return unique_ptr<Statement>(new LoopStatement(type, range));
+}
 
 optional<unique_ptr<Statement>> parseSpecialStatement(Lexer& lexer) {
 	switch(lexer.currType()) {
@@ -137,6 +154,10 @@ optional<unique_ptr<Statement>> parseSpecialStatement(Lexer& lexer) {
 		return parseForStatement(lexer);
 	case RETURN:
 		return parseReturnStatement(lexer);
+	case BREAK:
+	case CONTINUE:
+	case RETRY:
+		return parseLoopStatement(lexer);
 	default:
 		break;
 	}

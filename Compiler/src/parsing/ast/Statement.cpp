@@ -95,3 +95,14 @@ void ReturnStatement::printSignature() {
 	} else
 		std::cout << "return;" << std::endl;
 }
+
+LoopStatement::LoopStatement(LoopStatementType type, const TextRange& range) : Statement(range), m_type(type) {}
+
+void LoopStatement::printSignature() {
+	switch(m_type) {
+	case LoopStatementType::BREAK:    std::cout << "break;"    << std::endl; break;
+	case LoopStatementType::CONTINUE: std::cout << "continue;" << std::endl; break;
+	case LoopStatementType::RETRY:    std::cout << "retry;"    << std::endl; break;
+	default: assert(false);
+	}
+}
