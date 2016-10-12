@@ -45,11 +45,15 @@ public:
   std::string name;
   unique_ptr<Type> type;
   std::vector<CompileTimeParameter> params;
+  DefDeclaration(DefType defType_p, std::string&& name_p, unique_ptr<Type>&& type_p, std::vector<CompileTimeParameter>&& params_p);
 };
 
 class DefCompileTimeParameter {
 private:
+  TextRange m_range;
   DefDeclaration m_declaration;
+public:
+  DefCompileTimeParameter(DefDeclaration&& declaration, TextRange& range);
 };
 
 class TypeCompileTimeParameter {
@@ -59,14 +63,12 @@ private:
 
 class Def : public Definition {
 private:
-  DefType m_defType;
-  std::string m_name;
-  unique_ptr<Type> m_type;
-  std::vector<CompileTimeParameter> m_params;
+  DefDeclaration m_declaration;
   unique_ptr<Expression> m_expression;
 public:
   Def(bool pub, DefType defType, const std::string& name,
       unique_ptr<Type>&& type,
+      std::vector<CompileTimeParameter>&& params,
       unique_ptr<Expression>&& expression,
       const TextRange& range);
   void printSignature();

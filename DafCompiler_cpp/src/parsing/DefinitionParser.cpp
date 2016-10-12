@@ -76,7 +76,7 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
 
   if(def)
     definition.reset(new Def(pub, mut?DEF_MUT:let?DEF_LET:DEF_NORMAL, name,
-                         std::move(type), std::move(expression), range));
+                         std::move(type), std::vector<CompileTimeParameter>(), std::move(expression), range));
   else
     definition.reset(new Let(pub, mut, name,
                          std::move(type), std::move(expression), range));

@@ -12,21 +12,23 @@ inline bool Definition::isPublic() {
   return m_pub;
 }
 
+DefDeclaration::DefDeclaration(DefType defType_p, std::string&& name_p, unique_ptr<Type>&& type_p, std::vector<CompileTimeParameter>&& params_p)
+  : defType(defType_p), name(std::move(name_p)), type(std::move(type_p), params() {}
+
 Def::Def(bool pub, DefType defType, const std::string &name,
          unique_ptr<Type>&& type,
+         std::vector<CompileTimeParameter>&& params,
          unique_ptr<Expression>&& expression,
          const TextRange &range)
-  : Definition(pub, range), m_defType(defType), m_name(name),
-    m_type(std::move(type)), m_expression(std::move(expression)) {
-}
+  : Definition(pub, range), m_declaration(defType, std::move(name),
+      std::move(type), std::move(params)), m_expression(std::move(expression)) {}
 
 Let::Let(bool pub, bool mut, const std::string &name,
          unique_ptr<Type>&& type,
          unique_ptr<Expression>&& expression,
          const TextRange &range)
   : Definition(pub, range), m_mut(mut), m_name(name),
-    m_type(std::move(type)), m_expression(std::move(expression)) {
-}
+    m_type(std::move(type)), m_expression(std::move(expression)) {}
 
 void Def::printSignature() {
   std::cout << "def " << (m_defType==DEF_LET?"let ":"") << (m_defType==DEF_MUT?"mut ":"")
