@@ -87,10 +87,12 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
     parsingCompileTimeArgs = true;
     lexer.advance(); //Eat '$'
   }
-  if(parsingCompileTimeArgs && lexer.expectToken(LEFT_PAREN))
-    lexer.advance(); //Eat '('
-  else
-    return none_exp();
+  if(parsingCompileTimeArgs) {
+    if(lexer.expectToken(LEFT_PAREN))
+      lexer.advance(); //Eat '('
+    else
+      return none_exp();
+  }
 
   //We have now gotten past
   //TODO: If a parameter fails, exit the current parenthesies and keep going
@@ -121,7 +123,7 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
     type = parseType(lexer); //If the type fails, it should have cleaned up after itself, and we don't care
   }
 
-  std::unique_ptr<Expression> body = parseExpression(lexer);
+  std::unique_ptr<Expression> body = parseExpression(lexer); //Prints error message if null
 
   if(!body) //Error recovery should already have been done to pass the body expression
     return none_exp();
