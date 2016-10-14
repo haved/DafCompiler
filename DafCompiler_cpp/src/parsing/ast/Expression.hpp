@@ -14,7 +14,7 @@ class Expression {
   virtual ~Expression();
   virtual bool isStatement();
   virtual const Type& getType();
-  inline bool isTypeKnown() {
+  virtual bool isTypeKnown() {
     return (bool)m_type;
   }
   virtual bool findType()=0;
@@ -70,52 +70,14 @@ private:
   std::string m_text;
 };
 
-//TODO: Move to Function Type
-enum FunctionParameterReferenceType {
-  FUNC_PARAM_BY_VALUE,
-  FUNC_PARAM_BY_REF,
-  FUNC_PARAM_BY_MUT_REF,
-  FUNC_PARAM_BY_MOVE,
-};
-
-class FunctionParameter {
-private:
-  FunctionParameterReferenceType m_ref_type;
-  std::string m_name;
-  shared_ptr<Type> m_type;
-};
-
-class CompileTimeParameter {
-public:
-  virtual ~CompileTimeParameter();
-};
-
-class TypeCompileTimeParameter : public CompileTimeParameter {
-  
-};
-
-class DefCompileTimeParameter : public CompileTimeParameter {
-  
-};
-
-//TODO: Give to FunctionType instead
-enum FunctionInlineType {
-  NORMAL_FUNCTION, INLINE_FUNCTION, TRUE_INLINE_FUNCTION
-};
-
-//TODO: Replace with def definitions own enum
-enum FunctionReturnType {
-  NORMAL_RETURN, LET_RETURN, MUT_RETURN
-};
-
-//TODO: Merge somewhat with the type definition for functions
 class FunctionExpression : public Expression {
 private:
-  std::vector<CompileTimeParameter> m_cmp_parameters;
-  std::vector<FunctionParameter> m_parameters;
-  FunctionInlineType m_inlineType;
-  FunctionReturnType m_returnType;
-  //TODO: Insert function body
+  FunctionType m_function;
+  Expression m_body;
 public:
   FunctionExpression();
+  bool findType() {return false;}
+  bool isTypeKnown() {return true;}
+  Type* getType() {return &m_function;}
+  void printSignature();
 };
