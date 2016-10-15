@@ -1,37 +1,24 @@
-def a:int=b;
-let g:=a;
-let mut c:boolean=d;
-def mut h:=c;
-def let mut g:myType=myExpr;
-def eyo:=c;
-def boy:=b;
+//import daf.iostream as _;
 
-def i:=78.f;
-def f:=0x346ab;
-let myVal:=-30.5;
-def let mut val:=-0xfffffff; //Same as without def
-let mut gg:=1.5e3f;
-let mut df:=0x3.p4f;
+def a:=4;
+let mut b:=0x6.1p0f;
 
-/*def a:=b;
-def main:int=20;
-def test2 := main;
-let one:=3; //Yeah
-let mut eyo:=4;
-def let yetAnother:int=one;
-def mut whyHello:=eyo;
-def let mut there:=whyHello;
-*/
-
-//Testing a comment :)
-//Yep
-/* Multi
-line /*stacked*/
-Amazing*/
-//let mut b := d;
-/*def func:=(&mut myObj:MyClass):MyClass {
-	return myObj;
+def main:=() {
+    let mut a:=4;
+    a=ey(a);
+    boi(boi(boi(a)))
+    printS("A is: ");print!int(a);
 };
-typedef MyClass := class {
-	pub value:int=20;
-};*/
+
+def ey:=inline pure(a:int):int a+4; //Inline if the compiler wants
+
+def boi:=$(def mut a:int):mut int a++; //Super-inline
+
+def arrayTest:=(a:[]mut char) { //[]char is actually a pointer to a [x]char
+    print!int(a.size);
+    let myDynamic:[..]char.allocateWith(10, 0);
+    let otherString:[..]char="This is 10";
+    //Type of "Hi" is []char
+    otherString.append(" but now it's 26");
+    print![]char(&otherString); //Automaticly from &[x|..]char to []char
+};

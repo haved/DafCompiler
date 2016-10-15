@@ -1,5 +1,6 @@
 import DafCompiler as DC;
 import TestLib.build as LibBuild;
+import daf.iostream as out;
 
 pub def build:=(args:[][]char) {
 	LibBuild.build(); //Only if it's changed
@@ -10,6 +11,8 @@ pub def build:=(args:[][]char) {
 	if(DC.changed()) {
 		DC.compile();
 		DC.execute("havard.Main.main()"); //Waits for it to finish
+	} else {
+		out.print("No changes to be compiled");
 	}
 	DC.end();
 	DC.popRootFolder(); //Gives warning if not poped fully at the end.
