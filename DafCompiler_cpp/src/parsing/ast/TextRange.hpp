@@ -1,5 +1,7 @@
 #pragma once
 
+class Token;
+
 class TextRange {
  private:
   int m_lineStart;
@@ -9,6 +11,7 @@ class TextRange {
  public:
   TextRange(int lineStart, int colStart, int lineEnd, int colEnd);
   TextRange(TextRange& start, TextRange& rangeEnd);
+  TextRange(const Token& token);
   TextRange();
   void set(int line, int col, int endLine, int endCol);
 };

@@ -13,7 +13,7 @@ class Expression {
   Expression(const TextRange& range);
   virtual ~Expression();
   virtual bool isStatement();
-  virtual Type* getType();
+  virtual const Type& getType();
   inline bool isTypeKnown() {
     return (bool)m_type;
   }
@@ -34,18 +34,33 @@ public:
   void printSignature();
 };
 
-enum ConstantType {
-  LONG_CONSTANT, INT_CONSTANT, CHAR_CONSTANT
+enum ConstantIntegerType {
+  LONG_CONSTANT, INTEGER_CONSTANT, CHAR_CONSTANT
 };
 
-class ConstantNumberExpression : public Expression {
-public:
-  ConstantNumberExpression(daf_int value);
-  ConstantNumberExpression(daf_long value);
-  ConstantNumberExpression(daf_char value);
+class ConstantIntegerExpression : public Expression {
 private:
-  daf_long m_value;
-  ConstantType m_type;
+  daf_ulong m_value;
+  bool m_signed;
+  ConstantIntegerType m_integer_type;
+public:
+  ConstantIntegerExpression(daf_ulong value, bool isSigned, ConstantIntegerType type, const TextRange& range);
+  bool findType(); //override
+  void printSignature();
+};
+
+enum ConstantRealType {
+  FLOAT_CONSTANT, DOUBLE_CONSTANT
+};
+
+class ConstantRealExpression : public Expression {
+private:
+  daf_double m_value;
+  ConstantRealType m_real_type;
+public:
+  ConstantRealExpression(daf_double value, ConstantRealType type, const TextRange& range);
+  bool findType(); //override
+  void printSignature();
 };
 
 class ConstantStringExpression : public Expression {
@@ -55,6 +70,7 @@ private:
   std::string m_text;
 };
 
+//TODO: Move to Function Type
 enum FunctionParameterReferenceType {
   FUNC_PARAM_BY_VALUE,
   FUNC_PARAM_BY_REF,
