@@ -9,7 +9,7 @@ def boy:=b;
 def i:=78.f;
 def f:=0x346ab;
 let myVal:=-30.5;
-def let mut val:=0xffffffff; //Same as without def
+def let mut val:=-0xfffffff; //Same as without def
 let mut gg:=1.5e3f;
 let mut df:=0x3.p4f;
 

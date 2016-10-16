@@ -31,7 +31,14 @@ bool ConstantIntegerExpression::findType() {
 }
 
 void ConstantIntegerExpression::printSignature() {
-  std::cout << m_value;
+  if(m_signed) {
+    if(m_integer_type==INTEGER_CONSTANT)
+      std::cout << (daf_int)m_value;
+    else if(m_integer_type==LONG_CONSTANT)
+      std::cout << (daf_long)m_value;
+    else
+      std::cout << (daf_char)m_value;
+  }
 }
 
 ConstantRealExpression::ConstantRealExpression(daf_double value, ConstantRealType type, const TextRange& range) : Expression(range), m_value(value), m_real_type(type) {}

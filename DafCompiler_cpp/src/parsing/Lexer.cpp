@@ -125,8 +125,6 @@ bool Lexer::parseNumberLiteral(Token& token) {
     }
   }
 
-  std::cout << "Found number token " << numberText << std::endl << std::flush;
-
   try {
     if(real) {
       if(single) {
@@ -135,23 +133,20 @@ bool Lexer::parseNumberLiteral(Token& token) {
         setTokenFromRealNumber(token, std::stod(numberText), false, startLine, startCol, numberText);
       }
     } else {
-      std::string integerText(numberText);
-      char* startOfNum = &integerText[0];
-      if(hexadecimal) { //Turn 0x456 to just 456 when starting at startOfNum
-        startOfNum+=2;
-        if(signedNum)
-          startOfNum[0]='-'; //Turn -0x456 to -0-456 and begin
-      }
       if(longer) {
         if(signedNum)
-          setTokenFromInteger(token, std::stol(integerText), true, true, startLine, startCol, numberText);
+          setTokenFromInteger(token, std::stol(numberText, nullptr, hexadecimal?16:10), true, true, startLine, startCol, numberText);
         else
-          setTokenFromInteger(token, std::stoul(integerText), false, true, startLine, startCol, numberText);
+          setTokenFromInteger(token, std::stoul(numberText, nullptr, hexadecimal?16:10), false, true, startLine, startCol, numberText);
       } else {
         if(signedNum)
-          setTokenFromInteger(token, std::stoi(integerText), true, false, startLine, startCol, numberText);
-        else
-          setTokenFromInteger(token, std::stoi(integerText), false, false, startLine, startCol, numberText);
+          setTokenFromInteger(token, std::stoi(numberText, nullptr, hexadecimal?16:10), true, false, startLine, startCol, numberText);
+        else {
+          unsigned long result = std::stoul(numberText, nullptr, hexadecimal?16:10);
+          if (result > std::numeric_limits<daf_uint>::max())
+              throw std::out_of_range("stou");
+          setTokenFromInteger(token, result, false, false, startLine, startCol, numberText);
+        }
       }
     }
     return true;
