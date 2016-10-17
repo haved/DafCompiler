@@ -1,4 +1,14 @@
 pub def build:=(&mut compiler:DafCompiler) {
-    compiler.addSourceRecursivly("myFile.daf");
-    compiler.makeExecutable();
-}
+    compiler.include("MyDafLibrary"); //lets the def daf files be loaded
+    compiler.includeFolder("myModule/include"); //Lets def daf files be loaded
+    compiler.addSourceFolder("src/"); //Lets files be loaded from here, and may be added to program
+    compiler.setIncludeOutput("out/include/"); //Have all
+    compiler.compileSourceRecursivly("havard.Main"); //Compiles
+
+    //compiler.run("havard.Main.main()"); //Why not
+
+    compiler.makeExecutable("bin/MyProgram");
+    //compiler.makeStaticLibrary("lib/MyLib.a"); //Compiles but doesn't link
+    compiler.makeSharedLibrary("");
+    
+};
