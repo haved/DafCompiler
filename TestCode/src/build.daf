@@ -1,0 +1,4 @@
+pub def build:=(&mut compiler:DafCompiler) {
+    compiler.addSourceRecursivly("myFile.daf");
+    compiler.makeExecutable();
+}

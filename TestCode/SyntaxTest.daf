@@ -1,4 +1,4 @@
-tydedef TokenType := class {
+typedef TokenType := class {
 	text:&char;
 	special:boolean;
 	make:=constructor(text:&char, special:boolean) {
@@ -11,11 +11,11 @@ tydedef TokenType := class {
 	}
 }
 
-let /*mut*/ TokenTypes:TokenType{3}=TokenType {
-	PUB = TokenType.make("pub", false);
-	BITWISE_AND, ADRESS = nonSpecial("&");
-	EOF = make("EOF", true);
-}
+let /*mut*/ TokenTypes:[3]TokenType=TokenType {
+	PUB = TokenType.make("pub", false),
+	BITWISE_AND, ADRESS = nonSpecial("&"),
+	EOF = make("EOF", true)
+};
 
 //mut means the elements inside are mutable
 //The size is a part of the type
@@ -27,14 +27,13 @@ let mut TokenTypePtrs:=&TokenType[] {
 typedef UniquePtr := class<T> {
 	target:&mut T;
 	
-	access:=@target;
-	access2:=inline <>():T {
+	def access:=@target;
+	def access2:=inline():T {
 		return @target;
 	};
-	access3:=inline ():T @target;
+	def access3:=inline ():T @target;
 }
 
 def main:=(argc:int, argv:char[][]):int {
-	let mut a := timesTwo<34>;
-	
+	let mut a := timesTwo<34>;	
 }
