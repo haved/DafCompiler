@@ -50,3 +50,12 @@ bool ConstantRealExpression::findType() {
 void ConstantRealExpression::printSignature() {
   std::cout << m_value;
 }
+
+FunctionExpression::FunctionExpression(std::vector<CompileTimeFunctionParameter> cpmParams,
+                                       std::vector<FunctionParameter> params,
+                                       FunctionInlineType inlineType,
+                                       std::shared_ptr<Type> returnType,
+                                       FunctionReturnType returnTypeType,
+                                       std::unique_ptr<Expression> body) : m_function(cpmParams, params, inlineType, returnType, returnTypeType), m_body(body) {
+
+}

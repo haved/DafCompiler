@@ -73,11 +73,16 @@ private:
 class FunctionExpression : public Expression {
 private:
   FunctionType m_function;
-  Expression m_body;
+  std::unique_ptr<Expression> m_body;
 public:
-  FunctionExpression();
+  FunctionExpression(std::vector<CompileTimeFunctionParameter> cpmParams,
+                     std::vector<FunctionParameter> params,
+                     FunctionInlineType inlineType,
+                     std::shared_ptr<Type> returnType,
+                     FunctionReturnType returnTypeType,
+                     std::unique_ptr<Expression> body);
   bool findType() {return false;}
   bool isTypeKnown() {return true;}
-  Type* getType() {return &m_function;}
+  Type& getType() {return m_function;}
   void printSignature();
 };

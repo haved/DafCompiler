@@ -22,3 +22,9 @@ def arrayTest:=(a:[]mut char) { //[]char is actually a pointer to a [x]char
     otherString.append(" but now it's 26");
     print![]char(&otherString); //Automaticly from &[x|..]char to []char
 };
+
+def a:=() {
+
+};
+
+def b:=5;

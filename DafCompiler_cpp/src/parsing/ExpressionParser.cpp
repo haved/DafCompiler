@@ -43,11 +43,36 @@ unique_ptr<Expression> parseNumberExpression(Lexer& lexer) {
   return out;
 }
 
-unique_ptr<Expression> parseExpression(Lexer& lexer) {
+unique_ptr<Expression> parseFunctionExpression(Lexer& lexer, unique_ptr<Expression> firstParam) {
+
+}
+
+unique_ptr<Expression> parseParenthesies(Lexer& lexer) {
+  lexer.advance(); //Eat '('
+  TokenType type = lexer.getCurrentToken().type;
+  if(type == MOVE_REF || type == TYPE_SEPARATOR)
+    return parseFunctionExpression(lexer, none_exp());
+
+  unique_ptr<Expression> expr = parseExpression();
+  type = lexer.getCurrentToken().type;
+  if(type == RIGHT_PAREN) {
+    lexer.advance(); //Eat ')'
+    return expr;
+  } else if(type == TYPE_SEPARATOR) {
+    return parseFunctionExpression(lexer, std::move(expr));
+  }
+
+  logDafExpectedToken("')' or ':'", lexer);
+  return none_exp();
+}
+
+unique_ptr<Expression> parsePrimary(Lexer& lexer) {
   Token& curr = lexer.getCurrentToken();
   switch(curr.type) {
   case IDENTIFIER:
     return parseVariableExpression(lexer);
+  case LEFT_PAREN:
+    return parseParenthesies(lexer);
   case CHAR_LITERAL:
   case INTEGER_LITERAL:
   case LONG_LITERAL:
@@ -56,6 +81,10 @@ unique_ptr<Expression> parseExpression(Lexer& lexer) {
     return parseNumberExpression(lexer);
   default: break;
   }
-  logDafExpectedToken("an expression", lexer);
+  logDafExpectedToken("a primary expression", lexer);
   return none_exp();
+}
+
+unique_ptr<Expression> parseExpression(Lexer& lexer) {
+  return parsePrimary(lexer);
 }

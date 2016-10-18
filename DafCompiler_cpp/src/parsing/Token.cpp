@@ -55,8 +55,8 @@ struct TokenMerge {
 TokenMerge TOKEN_MERGES[] = {
   TokenMerge(TYPE_SEPARATOR,ASSIGN,DECLARE), TokenMerge(TYPE_SEPARATOR, TYPE_SEPARATOR, MODULE_ACCESS),
   TokenMerge(LOWER, LOWER, LSL), TokenMerge(GREATER, GREATER, ASR), TokenMerge(ASR, GREATER, LSL),
-  TokenMerge(BITWISE_AND, MUT, MUT_REF), TokenMerge(BITWISE_AND, MOVE, MOVE_REF),
-  TokenMerge(BITWISE_AND, UNIQUE, UNIQUE_PTR), TokenMerge(BITWISE_AND, SHARED, SHARED_PTR)
+  TokenMerge(REF, MUT, MUT_REF), TokenMerge(REF, MOVE, MOVE_REF),
+  TokenMerge(REF, UNIQUE, UNIQUE_PTR), TokenMerge(REF, SHARED, SHARED_PTR)
 };
 
 const char* getTokenTypeText(const TokenType& type) {

@@ -69,6 +69,7 @@ public:
                FunctionInlineType inlineType,
                std::shared_ptr<Type> returnType,
                FunctionReturnType returnTypeType);
+  void printSignature();
 };
 
 
