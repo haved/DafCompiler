@@ -1,0 +1,16 @@
+import DafCompiler as DC;
+import TestLib.build as LibBuild;
+
+pub def build:=(args:[][]char) {
+	LibBuild.build(); //Only if it's changed
+	DC.pushRootFolder(DC.getCurrentFolder()); //Everything will be relative to the folder
+	DC.beginExecutable(DC.getOption("-o","MyExecutable",args));
+	DC.addSourceFolder("src/");
+	DC.addInclude("TestLib/include");
+	if(DC.changed()) {
+		DC.compile();
+		DC.execute("havard.Main.main()"); //Waits for it to finish
+	}
+	DC.end();
+	DC.popRootFolder(); //Gives warning if not poped fully at the end.
+};
