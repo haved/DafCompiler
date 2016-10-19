@@ -29,7 +29,7 @@ const char* ONE_CHAR_TOKEN_TEXTS[] = {
 
   "+", "-", "*", "/", "%",
   "&", "|", "^", "!",
-  "~", "<", ">", "?"
+  "~", "<", ">", "?", "$"
 };
 
 const char* COMPOSITE_TOKENS[] = {

@@ -1,7 +1,10 @@
 #include "parsing/ast/Expression.hpp"
 #include <iostream>
 
-Expression::Expression(const TextRange& range) : m_range(range), m_type(){}
+Expression::Expression(const TextRange& range) : m_range(range), m_type() {}
+Expression::Expression() : m_range(), m_type() {
+  std::cout << "Whyy??" << std::endl;
+}
 
 Expression::~Expression() {}
 
@@ -51,11 +54,12 @@ void ConstantRealExpression::printSignature() {
   std::cout << m_value;
 }
 
-FunctionExpression::FunctionExpression(std::vector<CompileTimeFunctionParameter> cpmParams,
-                                       std::vector<FunctionParameter> params,
-                                       FunctionInlineType inlineType,
-                                       std::shared_ptr<Type> returnType,
-                                       FunctionReturnType returnTypeType,
-                                       std::unique_ptr<Expression> body) : m_function(cpmParams, params, inlineType, returnType, returnTypeType), m_body(body) {
+FunctionExpression::FunctionExpression(std::vector<CompileTimeFunctionParameter>&& cpmParams, std::vector<FunctionParameter>&& params,
+                      FunctionInlineType inlineType, std::shared_ptr<Type>&& returnType, FunctionReturnType returnTypeType, std::unique_ptr<Expression>&& body)
+                          : m_function(std::move(cpmParams), std::move(params), inlineType, std::move(returnType), returnTypeType), m_body(std::move(body)) {
 
+}
+
+void FunctionExpression::printSignature() {
+      std::cout << "Function expression"; //TODO: Make function expression signature
 }

@@ -11,6 +11,7 @@ using std::shared_ptr;
 class Expression {
  public:
   Expression(const TextRange& range);
+  Expression();
   virtual ~Expression();
   virtual bool isStatement();
   virtual const Type& getType();
@@ -75,12 +76,12 @@ private:
   FunctionType m_function;
   std::unique_ptr<Expression> m_body;
 public:
-  FunctionExpression(std::vector<CompileTimeFunctionParameter> cpmParams,
-                     std::vector<FunctionParameter> params,
+  FunctionExpression(std::vector<CompileTimeFunctionParameter>&& cpmParams,
+                     std::vector<FunctionParameter>&& params,
                      FunctionInlineType inlineType,
-                     std::shared_ptr<Type> returnType,
+                     std::shared_ptr<Type>&& returnType,
                      FunctionReturnType returnTypeType,
-                     std::unique_ptr<Expression> body);
+                     std::unique_ptr<Expression>&& body);
   bool findType() {return false;}
   bool isTypeKnown() {return true;}
   Type& getType() {return m_function;}

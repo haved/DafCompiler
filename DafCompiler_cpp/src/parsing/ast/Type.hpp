@@ -64,11 +64,8 @@ private:
   std::shared_ptr<Type> m_returnType;
   FunctionReturnType m_returnTypeType;
 public:
-  FunctionType(std::vector<CompileTimeFunctionParameter> cpmParams,
-               std::vector<FunctionParameter> params,
-               FunctionInlineType inlineType,
-               std::shared_ptr<Type> returnType,
-               FunctionReturnType returnTypeType);
+  FunctionType(std::vector<CompileTimeFunctionParameter>&& cpmParams, std::vector<FunctionParameter>&& params,
+              FunctionInlineType inlineType, std::shared_ptr<Type>&& returnType, FunctionReturnType returnTypeType);
   void printSignature();
 };
 

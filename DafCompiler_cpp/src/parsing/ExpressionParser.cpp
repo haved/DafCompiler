@@ -44,16 +44,31 @@ unique_ptr<Expression> parseNumberExpression(Lexer& lexer) {
 }
 
 unique_ptr<Expression> parseFunctionExpression(Lexer& lexer, unique_ptr<Expression> firstParam) {
+  if(firstParam) {
+    return none_exp();
+  }
 
+  bool parsingCompileTimeArgs = false;
+  if(lexer.getCurrentToken().type == COMPILE_TIME_LIST) {
+    parsingCompileTimeArgs = true;
+    lexer.advance(); //Eat '$'
+  }
+
+  if(!lexer.expectToken(LEFT_PAREN)) {
+    return none_exp();
+  }
+  lexer.advance();
+
+  return none_exp();
 }
 
 unique_ptr<Expression> parseParenthesies(Lexer& lexer) {
   lexer.advance(); //Eat '('
   TokenType type = lexer.getCurrentToken().type;
-  if(type == MOVE_REF || type == TYPE_SEPARATOR)
+  if(type == MOVE_REF || type == TYPE_SEPARATOR || type == RIGHT_PAREN || lexer.getLookahead().type == RIGHT_BRACKET)
     return parseFunctionExpression(lexer, none_exp());
 
-  unique_ptr<Expression> expr = parseExpression();
+  unique_ptr<Expression> expr = parseExpression(lexer);
   type = lexer.getCurrentToken().type;
   if(type == RIGHT_PAREN) {
     lexer.advance(); //Eat ')'
@@ -73,6 +88,8 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
     return parseVariableExpression(lexer);
   case LEFT_PAREN:
     return parseParenthesies(lexer);
+  case COMPILE_TIME_LIST:
+    return parseFunctionExpression(lexer, none_exp());
   case CHAR_LITERAL:
   case INTEGER_LITERAL:
   case LONG_LITERAL:

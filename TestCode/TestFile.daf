@@ -1,16 +1,19 @@
 //import daf.iostream as _;
 
+let x:=2;
 def a:=4;
 let mut b:=0x6.1p0f;
 
-def main:=() {
+def test:=(3);
+
+/*def main:=() {
     let mut a:=4;
     a=ey(a);
     boi(boi(boi(a)))
     printS("A is: ");print!int(a);
-};
+};*/
 
-def ey:=inline pure(a:int):int a+4; //Inline if the compiler wants
+/*def ey:=inline pure(a:int):int a+4; //Inline if the compiler wants
 
 def boi:=$(def mut a:int):mut int a++; //Super-inline
 
@@ -28,3 +31,4 @@ def a:=() {
 };
 
 def b:=5;
+*/
