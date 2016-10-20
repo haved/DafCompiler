@@ -42,6 +42,7 @@ void ConstantIntegerExpression::printSignature() {
     else
       std::cout << (daf_char)m_value;
   }
+  std::cout << m_value;
 }
 
 ConstantRealExpression::ConstantRealExpression(daf_double value, ConstantRealType type, const TextRange& range) : Expression(range), m_value(value), m_real_type(type) {}
@@ -54,7 +55,7 @@ void ConstantRealExpression::printSignature() {
   std::cout << m_value;
 }
 
-FunctionExpression::FunctionExpression(std::vector<CompileTimeFunctionParameter>&& cpmParams, std::vector<FunctionParameter>&& params,
+FunctionExpression::FunctionExpression(std::vector<FunctionParameter>&& cpmParams, std::vector<FunctionParameter>&& params,
                       FunctionInlineType inlineType, std::shared_ptr<Type>&& returnType, FunctionReturnType returnTypeType, std::unique_ptr<Expression>&& body)
                           : m_function(std::move(cpmParams), std::move(params), inlineType, std::move(returnType), returnTypeType), m_body(std::move(body)) {
 

@@ -76,7 +76,7 @@ private:
   FunctionType m_function;
   std::unique_ptr<Expression> m_body;
 public:
-  FunctionExpression(std::vector<CompileTimeFunctionParameter>&& cpmParams,
+  FunctionExpression(std::vector<FunctionParameter>&& cpmParams,
                      std::vector<FunctionParameter>&& params,
                      FunctionInlineType inlineType,
                      std::shared_ptr<Type>&& returnType,

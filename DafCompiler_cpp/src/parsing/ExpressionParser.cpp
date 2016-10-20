@@ -1,4 +1,5 @@
 #include "parsing/ExpressionParser.hpp"
+#include "parsing/TypeParser.hpp"
 #include "DafLogger.hpp"
 
 #include <boost/optional.hpp>
@@ -43,20 +44,61 @@ unique_ptr<Expression> parseNumberExpression(Lexer& lexer) {
   return out;
 }
 
-unique_ptr<Expression> parseFunctionExpression(Lexer& lexer, unique_ptr<Expression> firstParam) {
-  if(firstParam) {
-    return none_exp();
+optional<FunctionParameter> parseCompileTimeFunctionParamer(Lexer& lexer) {
+  return none;
+}
+
+optional<FunctionParameter> parseFunctionParameter(Lexer& lexer) {
+  FunctionParameterType paramType = FUNC_PARAM_BY_VALUE;
+
+  switch(lexer.getCurrentToken().type) {
+  case REF:
+    paramType = FUNC_PARAM_BY_REF; break;
+  case MUT_REF:
+    paramType = FUNC_PARAM_BY_MUT_REF; break;
+  case MOVE_REF:
+    paramType = FUNC_PARAM_BY_MOVE; break;
+  default: break;
   }
 
+  optional<std::string> name;
+  if(lexer.getCurrentToken().type == IDENTIFIER) {
+    name = lexer.getCurrentToken().text;
+    lexer.advance();
+  }
+
+  if(!lexer.expectToken(TYPE_SEPARATOR)) {
+    return none;
+  }
+
+  lexer.advance(); //Eat ':'
+
+  std::unique_ptr<Type> type = parseType(lexer);
+
+  if(!type)
+    return none;
+
+  return FunctionParameter(paramType, std::move(*name), std::move(type));
+}
+
+unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
   bool parsingCompileTimeArgs = false;
   if(lexer.getCurrentToken().type == COMPILE_TIME_LIST) {
     parsingCompileTimeArgs = true;
     lexer.advance(); //Eat '$'
   }
-
-  if(!lexer.expectToken(LEFT_PAREN)) {
+  if(parsingCompileTimeArgs && lexer.expectToken(LEFT_PAREN))
+    lexer.advance(); //Eat '('
+  else
     return none_exp();
+
+  std::vector<FunctionParameter> ctfps();
+  std::vector<FunctionParameter> fps();
+
+  while(true) {
+
   }
+
   lexer.advance();
 
   return none_exp();
@@ -65,16 +107,13 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer, unique_ptr<Expressi
 unique_ptr<Expression> parseParenthesies(Lexer& lexer) {
   lexer.advance(); //Eat '('
   TokenType type = lexer.getCurrentToken().type;
-  if(type == MOVE_REF || type == TYPE_SEPARATOR || type == RIGHT_PAREN || lexer.getLookahead().type == RIGHT_BRACKET)
-    return parseFunctionExpression(lexer, none_exp());
+  if(type == MOVE_REF || type == RIGHT_PAREN || type == TYPE_SEPARATOR || lexer.getLookahead().type == TYPE_SEPARATOR)
+    return parseFunctionExpression(lexer);
 
   unique_ptr<Expression> expr = parseExpression(lexer);
-  type = lexer.getCurrentToken().type;
-  if(type == RIGHT_PAREN) {
+  if(lexer.getCurrentToken().type == RIGHT_PAREN) {
     lexer.advance(); //Eat ')'
     return expr;
-  } else if(type == TYPE_SEPARATOR) {
-    return parseFunctionExpression(lexer, std::move(expr));
   }
 
   logDafExpectedToken("')' or ':'", lexer);
@@ -89,7 +128,7 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
   case LEFT_PAREN:
     return parseParenthesies(lexer);
   case COMPILE_TIME_LIST:
-    return parseFunctionExpression(lexer, none_exp());
+    return parseFunctionExpression(lexer);
   case CHAR_LITERAL:
   case INTEGER_LITERAL:
   case LONG_LITERAL:
@@ -103,5 +142,8 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
 }
 
 unique_ptr<Expression> parseExpression(Lexer& lexer) {
-  return parsePrimary(lexer);
+  unique_ptr<Expression> expr = parsePrimary(lexer);
+  if(!expr) //Go one token ahead in case of errors
+    lexer.advance();
+  return expr;
 }

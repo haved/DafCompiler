@@ -20,32 +20,24 @@ public:
   void printSignature();
 };
 
-enum FunctionParameterReferenceType {
+enum FunctionParameterType {
   FUNC_PARAM_BY_VALUE,
   FUNC_PARAM_BY_REF,
   FUNC_PARAM_BY_MUT_REF,
-  FUNC_PARAM_BY_MOVE
-};
-
-class FunctionParameter {
-private:
-  FunctionParameterReferenceType m_ref_type;
-  std::string m_name;
-  std::shared_ptr<Type> m_type;
-};
-
-enum CompileTimeParameterType {
+  FUNC_PARAM_BY_MOVE,
   COMP_FUNC_PARAM_TYPE,
   COMP_FUNC_PARAM_DEF,
   COMP_FUNC_PARAM_LET,
   COMP_FUNC_PARAM_MUT
 };
 
-class CompileTimeFunctionParameter {
+class FunctionParameter {
 private:
-  CompileTimeParameterType m_compParamType;
+  FunctionParameterType m_ref_type;
   std::string m_name;
   std::shared_ptr<Type> m_type;
+public:
+  FunctionParameter(FunctionParameterType ref_type, std::string&& name, std::shared_ptr<Type>&& type);
 };
 
 enum FunctionInlineType {
@@ -58,13 +50,13 @@ enum FunctionReturnType {
 
 class FunctionType : public Type {
 private:
-  std::vector<CompileTimeFunctionParameter> m_compileParameters;
+  std::vector<FunctionParameter> m_compileParameters;
   std::vector<FunctionParameter> m_parameters;
   FunctionInlineType m_inlineType;
   std::shared_ptr<Type> m_returnType;
   FunctionReturnType m_returnTypeType;
 public:
-  FunctionType(std::vector<CompileTimeFunctionParameter>&& cpmParams, std::vector<FunctionParameter>&& params,
+  FunctionType(std::vector<FunctionParameter>&& cpmParams, std::vector<FunctionParameter>&& params,
               FunctionInlineType inlineType, std::shared_ptr<Type>&& returnType, FunctionReturnType returnTypeType);
   void printSignature();
 };

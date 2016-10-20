@@ -6,6 +6,8 @@ let mut b:=0x6.1p0f;
 
 def test:=(3);
 
+def main:=();
+
 /*def main:=() {
     let mut a:=4;
     a=ey(a);
