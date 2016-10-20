@@ -8,10 +8,10 @@ class Lexer {
 private:
   const FileForParsing& fileForParsing;
   std::ifstream infile;
-  Token token1;
-  Token token2;
+  Token tokens[3];
   Token& currentToken;
   Token& lookaheadToken;
+  Token& superLookahead;
   int line;
   int col;
   char currentChar;
@@ -27,6 +27,7 @@ public:
   inline Token& getCurrentToken() {return currentToken;}
   inline TokenType& currType() {return currentToken.type;};
   inline Token& getLookahead() {return lookaheadToken;}
+  inline Token& getSuperLookahead() {return superLookahead;}
   inline bool hasCurrentToken() {return currentToken.type != END_TOKEN;}
   inline const FileForParsing& getFile() {return fileForParsing;}
   bool expectToken(const TokenType& type);
