@@ -50,6 +50,7 @@ void skipUntil(Lexer& lexer, TokenType type) {
 }
 
 //Skips until a new def/let/typedef or import occurs on the same scope level. Will return if exiting scope
+//Will never skip the start of a definition
 void skipUntilNewDefinition(Lexer& lexer) {
   int startLine = lexer.getCurrentToken().line;
   int startCol = lexer.getCurrentToken().col;
