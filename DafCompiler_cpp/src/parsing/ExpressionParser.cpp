@@ -92,22 +92,48 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
   else
     return none_exp();
 
-  std::vector<FunctionParameter> ctfps();
-  std::vector<FunctionParameter> fps();
+  //We have now gotten past
+  //TODO: If a parameter fails, exit the current parenthesies and keep going
 
-  while(true) {
+  std::vector<FunctionParameter> ctfps;
+  std::vector<FunctionParameter> fps;
 
+  if(parsingCompileTimeArgs) {
+    while(true) {
+      if(lexer.getCurrentToken().type == RIGHT_PAREN)
+        break;
+    }
+    lexer.advance(); //Eat ')'
+    if(lexer.currType()==LEFT_PAREN) //More arguments!
+      lexer.advance(); //Eat '('
   }
 
-  lexer.advance();
+  while(true) {
+    if(lexer.currType()==RIGHT_PAREN)
+      break;
+  }
+  lexer.advance(); //Eat ')'
 
-  return none_exp();
+  std::unique_ptr<Type> type;
+  if(lexer.currType()==TYPE_SEPARATOR) {
+    //TODO: Add let and mut return types
+    lexer.advance(); //Eat ':'
+    type = parseType(lexer); //If the type fails, it should have cleaned up after itself, and we don't care
+  }
+
+  std::unique_ptr<Expression> body = parseExpression(lexer);
+
+  if(!body) //Error recovery should already have been done to pass the body expression
+    return none_exp();
+
+  return std::unique_ptr<FunctionExpression>(new FunctionExpression(std::move(ctfps), std::move(fps), FUNC_TYPE_NORMAL, std::move(type), FUNC_NORMAL_RETURN, std::move(body)));
 }
 
 unique_ptr<Expression> parseParenthesies(Lexer& lexer) {
   lexer.advance(); //Eat '('
   TokenType type = lexer.getCurrentToken().type;
-  if(type == MOVE_REF || type == RIGHT_PAREN || type == TYPE_SEPARATOR || lexer.getLookahead().type == TYPE_SEPARATOR)
+  if(type == MOVE_REF || type == RIGHT_PAREN || type == TYPE_SEPARATOR || lexer.getLookahead().type == TYPE_SEPARATOR
+                      || (lexer.getSuperLookahead().type == TYPE_SEPARATOR && lexer.getLookahead().type != RIGHT_PAREN))
     return parseFunctionExpression(lexer);
 
   unique_ptr<Expression> expr = parseExpression(lexer);

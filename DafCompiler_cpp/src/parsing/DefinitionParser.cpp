@@ -96,5 +96,6 @@ unique_ptr<Definition> parseDefinition(Lexer& lexer, bool pub) {
     break;
   }
   logDafExpectedToken("a definition", lexer);
+  lexer.advance();
   return none();
 }
