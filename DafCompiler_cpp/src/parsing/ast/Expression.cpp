@@ -2,9 +2,6 @@
 #include <iostream>
 
 Expression::Expression(const TextRange& range) : m_range(range), m_type() {}
-Expression::Expression() : m_range(), m_type() {
-  std::cout << "Whyy??" << std::endl;
-}
 
 Expression::~Expression() {}
 
@@ -55,12 +52,15 @@ void ConstantRealExpression::printSignature() {
   std::cout << m_value;
 }
 
+//Maybe add something in daf to make this prettier? I dunno
 FunctionExpression::FunctionExpression(std::vector<FunctionParameter>&& cpmParams, std::vector<FunctionParameter>&& params,
-                      FunctionInlineType inlineType, std::shared_ptr<Type>&& returnType, FunctionReturnType returnTypeType, std::unique_ptr<Expression>&& body)
-                          : m_function(std::move(cpmParams), std::move(params), inlineType, std::move(returnType), returnTypeType), m_body(std::move(body)) {
-
-}
+                      FunctionInlineType inlineType, std::shared_ptr<Type>&& returnType, FunctionReturnType returnTypeType, std::unique_ptr<Expression>&& body,
+                                       const TextRange& range)
+                          : Expression(range), m_function(std::move(cpmParams), std::move(params), inlineType, std::move(returnType), returnTypeType), m_body(std::move(body)) {}
 
 void FunctionExpression::printSignature() {
-      std::cout << "Function expression"; //TODO: Make function expression signature
+  m_function.printSignature();
+  std::cout << " ";
+  if(m_body)
+    m_body->printSignature();
 }

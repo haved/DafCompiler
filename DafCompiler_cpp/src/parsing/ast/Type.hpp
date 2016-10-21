@@ -4,6 +4,9 @@
 #include <memory>
 #include <vector>
 
+#include <boost/optional.hpp>
+using boost::optional;
+
 class Type {
 public:
   virtual ~Type();
@@ -34,10 +37,12 @@ enum FunctionParameterType {
 class FunctionParameter {
 private:
   FunctionParameterType m_ref_type;
-  std::string m_name;
+  optional<std::string> m_name;
   std::shared_ptr<Type> m_type;
 public:
-  FunctionParameter(FunctionParameterType ref_type, std::string&& name, std::shared_ptr<Type>&& type);
+  FunctionParameter(FunctionParameterType ref_type, optional<std::string>&& name, std::shared_ptr<Type>&& type);
+  FunctionParameter(FunctionParameterType&& other);
+  void printSignature();
 };
 
 enum FunctionInlineType {

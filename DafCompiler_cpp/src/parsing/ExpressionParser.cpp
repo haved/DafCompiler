@@ -2,6 +2,8 @@
 #include "parsing/TypeParser.hpp"
 #include "DafLogger.hpp"
 
+#include "parsing/ErrorRecovery.hpp"
+
 #include <boost/optional.hpp>
 
 using boost::optional;
@@ -61,6 +63,9 @@ optional<FunctionParameter> parseFunctionParameter(Lexer& lexer) {
   default: break;
   }
 
+  if(paramType!=FUNC_PARAM_BY_VALUE)
+    lexer.advance(); //Eat '&move', '&mut' or '&'
+
   optional<std::string> name;
   if(lexer.getCurrentToken().type == IDENTIFIER) {
     name = lexer.getCurrentToken().text;
@@ -78,10 +83,13 @@ optional<FunctionParameter> parseFunctionParameter(Lexer& lexer) {
   if(!type)
     return none;
 
-  return FunctionParameter(paramType, std::move(*name), std::move(type));
+  return FunctionParameter(paramType, std::move(name), std::move(type));
 }
 
 unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
+  int startLine = lexer.getCurrentToken().line;
+  int startCol = lexer.getCurrentToken().col;
+
   bool parsingCompileTimeArgs = false;
   if(lexer.getCurrentToken().type == COMPILE_TIME_LIST) {
     parsingCompileTimeArgs = true;
@@ -110,10 +118,21 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
       lexer.advance(); //Eat '('
   }
 
+  //Parse normal parameters
   while(true) {
     if(lexer.currType()==RIGHT_PAREN)
       break;
+    if(!lexer.hasCurrentToken())
+      return none_exp();
+    optional<FunctionParameter> parameter = parseFunctionParameter(lexer);
+    if(!parameter) {
+      skipUntil(lexer, RIGHT_PAREN); //Go past all the parameters
+      break;
+    }
+    fps.push_back(std::move(*parameter));
   }
+  if(lexer.currType()!=RIGHT_PAREN) //We really done goofed
+    return none_exp();
   lexer.advance(); //Eat ')'
 
   std::unique_ptr<Type> type;
@@ -128,13 +147,14 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
   if(!body) //Error recovery should already have been done to pass the body expression
     return none_exp();
 
-  return std::unique_ptr<FunctionExpression>(new FunctionExpression(std::move(ctfps), std::move(fps), FUNC_TYPE_NORMAL, std::move(type), FUNC_NORMAL_RETURN, std::move(body)));
+  return std::unique_ptr<FunctionExpression>(new FunctionExpression(std::move(ctfps), std::move(fps), FUNC_TYPE_NORMAL, std::move(type), FUNC_NORMAL_RETURN, std::move(body),
+                                             TextRange(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol)));
 }
 
 unique_ptr<Expression> parseParenthesies(Lexer& lexer) {
   lexer.advance(); //Eat '('
   TokenType type = lexer.getCurrentToken().type;
-  if(type == MOVE_REF || type == RIGHT_PAREN || type == TYPE_SEPARATOR || lexer.getLookahead().type == TYPE_SEPARATOR
+  if(type == RIGHT_PAREN || type == TYPE_SEPARATOR || lexer.getLookahead().type == TYPE_SEPARATOR
                       || (lexer.getSuperLookahead().type == TYPE_SEPARATOR && lexer.getLookahead().type != RIGHT_PAREN))
     return parseFunctionExpression(lexer);
 
@@ -172,6 +192,6 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
 unique_ptr<Expression> parseExpression(Lexer& lexer) {
   unique_ptr<Expression> expr = parsePrimary(lexer);
   if(!expr) //Go one token ahead in case of errors
-    lexer.advance();
+    lexer.advance(); //TODO: Better error handeling
   return expr;
 }
