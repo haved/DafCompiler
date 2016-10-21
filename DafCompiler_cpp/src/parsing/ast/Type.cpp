@@ -50,23 +50,31 @@ FunctionType::FunctionType(std::vector<FunctionParameter>&& cpmParams, std::vect
             : m_compileParameters(cpmParams), m_parameters(params), m_inlineType(inlineType), m_returnType(returnType), m_returnTypeType(returnTypeType) {}
 
 void FunctionType::printSignature() {
-  //TODO: print potential inline type
+  if(m_inlineType == FUNC_TYPE_INLINE)
+    std::cout << "inline ";
   std::cout << "$(";
   for(unsigned int i = 0; i < m_compileParameters.size(); i++) {
     if(i!=0)
       std::cout << ", ";
     m_compileParameters[i].printSignature();
   }
-  std::cout << ")(";
-  for(unsigned int i = 0; i < m_parameters.size(); i++) {
-    if(i!=0)
-      std::cout << ", ";
-    m_parameters[i].printSignature();
-  }
   std::cout << ")";
+
+  if(m_inlineType != FUNC_TYPE_TRUE_INLINE) {
+    std::cout << "(";
+    for(unsigned int i = 0; i < m_parameters.size(); i++) {
+      if(i!=0)
+        std::cout << ", ";
+      m_parameters[i].printSignature();
+    }
+    std::cout << ")";
+  }
   if(m_returnType) {
     std::cout << ":";
-    //TODO: Print let or mut return values
+    if(m_returnTypeType == FUNC_LET_RETURN)
+      std::cout << "let ";
+    else if(m_returnTypeType == FUNC_MUT_RETURN)
+      std::cout << "mut ";
     m_returnType->printSignature();
   }
 }

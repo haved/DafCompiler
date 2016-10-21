@@ -86,59 +86,81 @@ optional<FunctionParameter> parseFunctionParameter(Lexer& lexer) {
   return FunctionParameter(paramType, std::move(name), std::move(type));
 }
 
+//Either starts at 'inline', '$' or the token after '('
 unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
   int startLine = lexer.getCurrentToken().line;
   int startCol = lexer.getCurrentToken().col;
 
-  bool parsingCompileTimeArgs = false;
-  if(lexer.getCurrentToken().type == COMPILE_TIME_LIST) {
-    parsingCompileTimeArgs = true;
-    lexer.advance(); //Eat '$'
-  }
+  bool explicitInline = lexer.currType() == INLINE;
+  if(explicitInline)
+    lexer.advance(); //Eat 'inline'
+
+  bool parsingCompileTimeArgs = lexer.currType() == COMPILE_TIME_LIST;
   if(parsingCompileTimeArgs) {
+    lexer.advance(); //Eat '$'
     if(lexer.expectToken(LEFT_PAREN))
       lexer.advance(); //Eat '('
     else
       return none_exp();
   }
+  else
+    if(lexer.currType()==LEFT_PAREN) //Should never happen
+      lexer.advance(); //But incase we want to start parsing at "(i:int):int 2" thats fine
 
-  //We have now gotten past
-  //TODO: If a parameter fails, exit the current parenthesies and keep going
+  //We have now gotten past '$(', or '(' in the case of a normal function
 
   std::vector<FunctionParameter> ctfps;
   std::vector<FunctionParameter> fps;
 
+  bool parseNoramlParams = true;
   if(parsingCompileTimeArgs) {
     while(true) {
       if(lexer.getCurrentToken().type == RIGHT_PAREN)
         break;
     }
     lexer.advance(); //Eat ')'
-    if(lexer.currType()==LEFT_PAREN) //More arguments!
+    if(lexer.currType()==LEFT_PAREN) //More (normal) arguments!
       lexer.advance(); //Eat '('
+    else
+      parseNoramlParams = false;
   }
 
-  //Parse normal parameters
-  while(true) {
-    if(lexer.currType()==RIGHT_PAREN)
-      break;
-    if(!lexer.hasCurrentToken())
-      return none_exp();
-    optional<FunctionParameter> parameter = parseFunctionParameter(lexer);
-    if(!parameter) {
-      skipUntil(lexer, RIGHT_PAREN); //Go past all the parameters
-      break;
+  if(parseNoramlParams) {
+    while(lexer.currType()!=RIGHT_PAREN) {
+      if(!lexer.hasCurrentToken())
+        return none_exp();
+      optional<FunctionParameter> parameter = parseFunctionParameter(lexer);
+      if(!parameter) {
+        skipUntil(lexer, RIGHT_PAREN); //Go past all the parameters
+        break;
+      }
+      fps.push_back(std::move(*parameter));
+      if(lexer.currType()!=RIGHT_PAREN) {
+        if(lexer.expectToken(COMMA))
+          lexer.advance(); //Eat ','
+        else {
+          skipUntil(lexer, RIGHT_PAREN);
+          break;
+        }
+      }
     }
-    fps.push_back(std::move(*parameter));
+    if(lexer.currType()!=RIGHT_PAREN) //We really don' goofed
+      return none_exp();
+    lexer.advance(); //Eat ')'
   }
-  if(lexer.currType()!=RIGHT_PAREN) //We really done goofed
-    return none_exp();
-  lexer.advance(); //Eat ')'
 
   std::unique_ptr<Type> type;
+  FunctionReturnType returnType = FUNC_NORMAL_RETURN;
   if(lexer.currType()==TYPE_SEPARATOR) {
-    //TODO: Add let and mut return types
     lexer.advance(); //Eat ':'
+    if(lexer.currType() == LET) {
+      lexer.advance(); //Eat 'let'
+      returnType = FUNC_LET_RETURN;
+    }
+    if(lexer.currType() == MUT) {
+      lexer.advance(); //Eat 'mut'
+      returnType = FUNC_MUT_RETURN;
+    }
     type = parseType(lexer); //If the type fails, it should have cleaned up after itself, and we don't care
   }
 
@@ -147,7 +169,8 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
   if(!body) //Error recovery should already have been done to pass the body expression
     return none_exp();
 
-  return std::unique_ptr<FunctionExpression>(new FunctionExpression(std::move(ctfps), std::move(fps), FUNC_TYPE_NORMAL, std::move(type), FUNC_NORMAL_RETURN, std::move(body),
+  FunctionInlineType inlineType = explicitInline?FUNC_TYPE_INLINE:parseNoramlParams?FUNC_TYPE_NORMAL:FUNC_TYPE_TRUE_INLINE;
+  return std::unique_ptr<FunctionExpression>(new FunctionExpression(std::move(ctfps), std::move(fps), inlineType, std::move(type), returnType, std::move(body),
                                              TextRange(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol)));
 }
 
@@ -177,6 +200,8 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
     return parseParenthesies(lexer);
   case COMPILE_TIME_LIST:
     return parseFunctionExpression(lexer);
+  case INLINE:
+    return parseFunctionExpression(lexer);
   case CHAR_LITERAL:
   case INTEGER_LITERAL:
   case LONG_LITERAL:
@@ -191,7 +216,5 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
 
 unique_ptr<Expression> parseExpression(Lexer& lexer) {
   unique_ptr<Expression> expr = parsePrimary(lexer);
-  if(!expr) //Go one token ahead in case of errors
-    lexer.advance(); //TODO: Better error handeling
   return expr;
 }

@@ -9,6 +9,7 @@ bool isEndOfScope(TokenType type) {
 //Advances one token ahead, but will eat scopes at a time
 void advanceLexerSkipScopes(Lexer& lexer) {
   TokenType type = lexer.currType();
+  lexer.advance(); //Skip past scope end, or just go one ahead
   switch(type) {
   case SCOPE_START:
     skipUntil(lexer, SCOPE_END);
@@ -22,7 +23,6 @@ void advanceLexerSkipScopes(Lexer& lexer) {
   default:
     break;
   }
-  lexer.advance(); //Skip past scope end, or just go one ahead
 }
 
 //Skips until the wanted token is the current token, or until the current token is the end of a scope, to allow outside functions to know about the scope end
