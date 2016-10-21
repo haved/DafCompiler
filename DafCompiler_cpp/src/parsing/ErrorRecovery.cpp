@@ -9,6 +9,7 @@ bool isEndOfScope(TokenType type) {
 //Advances one token ahead, but will eat scopes at a time
 void advanceLexerSkipScopes(Lexer& lexer) {
   TokenType type = lexer.currType();
+  std::cout << getTokenTypeText(type);
   lexer.advance(); //Skip past scope end, or just go one ahead
   switch(type) {
   case SCOPE_START:
@@ -21,8 +22,9 @@ void advanceLexerSkipScopes(Lexer& lexer) {
     skipUntil(lexer, RIGHT_BRACKET);
     break;
   default:
-    break;
+    return;
   }
+  lexer.advance(); //Jump over the entire scope
 }
 
 //Skips until the wanted token is the current token, or until the current token is the end of a scope, to allow outside functions to know about the scope end

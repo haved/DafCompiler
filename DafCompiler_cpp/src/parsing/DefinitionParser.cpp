@@ -34,7 +34,7 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
   assert(def||let);
 
   if(!lexer.expectToken(IDENTIFIER))
-    return none(); //Not as pretty as 'none'
+    return none();
 
   std::string name = lexer.getCurrentToken().text;
   lexer.advance(); //Eat identifier
@@ -88,15 +88,19 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
 
 unique_ptr<Definition> parseDefinition(Lexer& lexer, bool pub) {
   TokenType currentToken = lexer.currType();
+  unique_ptr<Definition> out;
   switch(currentToken) {
   case DEF:
   case LET:
-    return parseLetDefDefinition(lexer, pub);
+    out = parseLetDefDefinition(lexer, pub);
+    break;
   default:
+    logDafExpectedToken("a definition", lexer);
     break;
   }
-  logDafExpectedToken("a definition", lexer);
-  lexer.advance();
-  skipUntilNewDefinition(lexer);
-  return none();
+  if(!out) {
+    //lexer.advance(); //Apparantly we need this to avoid infinite loops
+    skipUntilNewDefinition(lexer);
+  }
+  return out;
 }
