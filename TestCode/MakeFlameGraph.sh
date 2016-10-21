@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-echo "/proc/sys/kernel/perf_event_paranoid is:"
+echo "/proc/sys/kernel/perf_event_paranoid should be 0, is:"
 cat /proc/sys/kernel/perf_event_paranoid
 #-a ommited here:
 perf record -F 997 -g -- ~/Development/daf/DafCompiler/DafCompiler_cpp/build/Debug/DafCompiler TestFile.daf
