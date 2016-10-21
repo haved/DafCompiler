@@ -52,14 +52,16 @@ FunctionType::FunctionType(std::vector<FunctionParameter>&& cpmParams, std::vect
 void FunctionType::printSignature() {
   //TODO: print potential inline type
   std::cout << "$(";
-  for(auto it = m_compileParameters.begin(); it != m_compileParameters.end(); it++) {
-    it->printSignature();
-    std::cout << ", ";
+  for(unsigned int i = 0; i < m_compileParameters.size(); i++) {
+    if(i!=0)
+      std::cout << ", ";
+    m_compileParameters[i].printSignature();
   }
   std::cout << ")(";
-  for(auto it = m_parameters.begin(); it != m_parameters.end(); it++) {
-    it->printSignature();
-    std::cout << ", ";
+  for(unsigned int i = 0; i < m_parameters.size(); i++) {
+    if(i!=0)
+      std::cout << ", ";
+    m_parameters[i].printSignature();
   }
   std::cout << ")";
   if(m_returnType) {
