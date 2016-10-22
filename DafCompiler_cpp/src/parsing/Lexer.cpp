@@ -8,8 +8,7 @@
 //TAB_WIDTH is defined in Constants.hpp
 
 Lexer::Lexer(const FileForParsing& file) : fileForParsing(file), infile(),
-  tokens(), currentToken(tokens[0]), lookaheadToken(tokens[1]), superLookahead(tokens[2]),
-  line(0), col(0), currentChar('\n'), lookaheadChar('\n') {
+  tokens(), currentToken(0), line(0), col(0), currentChar('\n'), lookaheadChar('\n') {
   infile.open(file.m_inputFile.string()); //For the time being, there is no text processor
   advanceChar(); //To set look-ahead char
   advanceChar(); //To set current char
@@ -21,7 +20,7 @@ Lexer::Lexer(const FileForParsing& file) : fileForParsing(file), infile(),
 }
 
 bool Lexer::expectToken(const TokenType& type) {
-  if(type != currentToken.type) {
+  if(type != currType()) {
     logDafExpectedToken(getTokenTypeText(type), *this);
     return false;
   }
@@ -194,9 +193,9 @@ bool Lexer::advance() {
   //   a, b, c
   //V Turns into V
   //   b, c, a
-  std::swap(currentToken, lookaheadToken);
-  std::swap(superLookahead, lookaheadToken);
-  //Now set the super-look-ahead token
+  currentToken+=1;
+  currentToken%=TOKEN_COUNT_AMOUNT; //3 one would think
+  //Now set the last token
   do {
     while(true) {
       if(isWhitespace(currentChar)) {
@@ -204,12 +203,12 @@ bool Lexer::advance() {
         continue;
       }
       else if(isEOF(currentChar)) {
-        setProperEOFToken(superLookahead, line, col);
+        setProperEOFToken(getLastToken(), line, col);
         break;
       }
 
       if(isDigit(currentChar)||(isDigit(lookaheadChar)&&(isDecimalPoint(currentChar)||isNegateChar(currentChar)))) { //Nice
-        if(parseNumberLiteral(superLookahead))
+        if(parseNumberLiteral(getLastToken()))
           break; //If the lookahead token was set (Wanted behaviour)
         continue; //Otherwise an error was given and we keep looking for tokens
       }
@@ -223,7 +222,7 @@ bool Lexer::advance() {
             break;
           word.push_back(currentChar);
         }
-        if(!setTokenFromWord(superLookahead, word, startLine, startCol, col)) {
+        if(!setTokenFromWord(getLastToken(), word, startLine, startCol, col)) {
           logDaf(fileForParsing, line, startCol, ERROR) << "Token '" << word << "' not recognized" << std::endl;
           continue;
         }
@@ -233,7 +232,7 @@ bool Lexer::advance() {
         char c = currentChar;
         int startCol = col, startLine = line;
         advanceChar();
-        if(!setTokenFromSpecialChar(superLookahead, c, startLine, startCol)) {
+        if(!setTokenFromSpecialChar(getLastToken(), c, startLine, startCol)) {
           logDaf(fileForParsing, line, col, ERROR) << "Special char '" << currentChar << "' not a token" << std::endl;
           continue;
         }
@@ -246,8 +245,8 @@ bool Lexer::advance() {
       assert(false); //Make sure we always end properly
     }
   }
-  while(mergeTokens(lookaheadToken, superLookahead));
-  return currentToken.type != END_TOKEN;
+  while(mergeTokens(getSecondToLastToken(), getLastToken()));
+  return hasCurrentToken();
 }
 
 void Lexer::advanceChar() {
