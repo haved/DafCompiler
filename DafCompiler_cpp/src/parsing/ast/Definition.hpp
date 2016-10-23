@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <vector>
 #include <boost/optional.hpp>
 #include "parsing/ast/Type.hpp"
 #include "parsing/ast/Expression.hpp"
@@ -26,12 +27,17 @@ enum DefType {
   DEF_MUT
 };
 
+class CompileTimeParameter {
+
+};
+
 class Def : public Definition {
 private:
   DefType m_defType;
   std::string m_name;
   unique_ptr<Type> m_type;
   unique_ptr<Expression> m_expression;
+  std::vector<CompileTime>
 public:
   Def(bool pub, DefType defType, const std::string& name,
       unique_ptr<Type>&& type,
