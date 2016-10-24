@@ -27,8 +27,34 @@ enum DefType {
   DEF_MUT
 };
 
-class CompileTimeParameter {
+class DefCompileTimeParameter;
+class TypeCompileTimeParameter;
 
+class CompileTimeParameter {
+private:
+  std::unique_ptr<DefCompileTimeParameter> m_def;
+  std::unique_ptr<TypeCompileTimeParameter> m_type;
+public:
+  CompileTimeParameter(std::unique_ptr<DefCompileTimeParameter>&& def);
+  CompileTimeParameter(std::unique_ptr<TypeCompileTimeParameter>&& def);
+};
+
+class DefDeclaration {
+public:
+  DefType defType;
+  std::string name;
+  unique_ptr<Type> type;
+  std::vector<CompileTimeParameter> params;
+};
+
+class DefCompileTimeParameter {
+private:
+  DefDeclaration m_declaration;
+};
+
+class TypeCompileTimeParameter {
+private:
+  std::string m_name;
 };
 
 class Def : public Definition {
@@ -36,8 +62,8 @@ private:
   DefType m_defType;
   std::string m_name;
   unique_ptr<Type> m_type;
+  std::vector<CompileTimeParameter> m_params;
   unique_ptr<Expression> m_expression;
-  std::vector<CompileTime>
 public:
   Def(bool pub, DefType defType, const std::string& name,
       unique_ptr<Type>&& type,
