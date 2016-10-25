@@ -12,18 +12,20 @@ inline bool Definition::isPublic() {
   return m_pub;
 }
 
-DefDeclaration::DefDeclaration(DefType defType_p, std::string&& name_p, unique_ptr<Type>&& type_p, std::vector<CompileTimeParameter>&& params_p)
-  : defType(defType_p), name(std::move(name_p)), type(std::move(type_p), params() {}
+DefDeclaration::DefDeclaration(DefType defType_p, const std::string& name_p, unique_ptr<Type>&& type_p, std::vector<CompileTimeParameter>&& params_p)
+  : defType(defType_p), name(name_p), type(std::move(type_p)), params(params_p) {
 
-Def::Def(bool pub, DefType defType, const std::string &name,
+}
+
+Def::Def(bool pub, DefType defType, const std::string& name,
          unique_ptr<Type>&& type,
          std::vector<CompileTimeParameter>&& params,
          unique_ptr<Expression>&& expression,
          const TextRange &range)
-  : Definition(pub, range), m_declaration(defType, std::move(name),
+  : Definition(pub, range), m_declaration(defType, name,
       std::move(type), std::move(params)), m_expression(std::move(expression)) {}
 
-Let::Let(bool pub, bool mut, const std::string &name,
+Let::Let(bool pub, bool mut, const std::string& name,
          unique_ptr<Type>&& type,
          unique_ptr<Expression>&& expression,
          const TextRange &range)
@@ -31,12 +33,12 @@ Let::Let(bool pub, bool mut, const std::string &name,
     m_type(std::move(type)), m_expression(std::move(expression)) {}
 
 void Def::printSignature() {
-  std::cout << "def " << (m_defType==DEF_LET?"let ":"") << (m_defType==DEF_MUT?"mut ":"")
-            << m_name;
-  if(m_type || m_expression)
+  std::cout << "def " << (m_declaration.defType==DEF_LET?"let ":"") << (m_declaration.defType==DEF_MUT?"mut ":"")
+            << m_declaration.name;
+  if(m_declaration.type || m_expression)
     std::cout << " :";
-  if(m_type)
-    m_type->printSignature();
+  if(m_declaration.type)
+    m_declaration.type->printSignature();
   if(m_expression) {
     std::cout << "= ";
     m_expression->printSignature();

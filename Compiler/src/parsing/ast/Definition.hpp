@@ -45,7 +45,7 @@ public:
   std::string name;
   unique_ptr<Type> type;
   std::vector<CompileTimeParameter> params;
-  DefDeclaration(DefType defType_p, std::string&& name_p, unique_ptr<Type>&& type_p, std::vector<CompileTimeParameter>&& params_p);
+  DefDeclaration(DefType defType_p, const std::string& name_p, unique_ptr<Type>&& type_p, std::vector<CompileTimeParameter>&& params_p);
 };
 
 class DefCompileTimeParameter {
