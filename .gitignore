@@ -4,12 +4,8 @@
 /**/.settings*.swp
 .metadata/
 .recommenders/
-/**/bin/
 /**/.settings/
 /**/*~
 /**/#*#
 /**/.#*
 /**/.vscode
-/**/a.out
-/**/perf.data
-/**/perf.data.old

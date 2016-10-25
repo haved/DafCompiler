@@ -15,8 +15,8 @@ protected:
   Definition(bool pub, const TextRange& range);
 public:
   virtual ~Definition();
-  inline void setRange(int line, int col, int endLine, int endCol);
-  inline bool isPublic();
+  //inline void setRange(int line, int col, int endLine, int endCol);
+  inline bool isPublic() {return m_pub;}
   virtual void printSignature()=0;
   virtual bool isStatement()=0;
 };
@@ -32,11 +32,14 @@ class TypeCompileTimeParameter;
 
 class CompileTimeParameter {
 private:
-  std::unique_ptr<DefCompileTimeParameter> m_def;
-  std::unique_ptr<TypeCompileTimeParameter> m_type;
+  DefCompileTimeParameter* m_def;
+  TypeCompileTimeParameter* m_type;
 public:
   CompileTimeParameter(std::unique_ptr<DefCompileTimeParameter>&& def);
-  CompileTimeParameter(std::unique_ptr<TypeCompileTimeParameter>&& def);
+  CompileTimeParameter(std::unique_ptr<TypeCompileTimeParameter>&& type);
+  CompileTimeParameter(const CompileTimeParameter& other);
+  CompileTimeParameter& operator =(const CompileTimeParameter& other);
+  ~CompileTimeParameter();
 };
 
 class DefDeclaration {
@@ -45,11 +48,15 @@ public:
   std::string name;
   unique_ptr<Type> type;
   std::vector<CompileTimeParameter> params;
+  DefDeclaration(DefType defType_p, const std::string& name_p, unique_ptr<Type>&& type_p, std::vector<CompileTimeParameter>&& params_p);
 };
 
 class DefCompileTimeParameter {
 private:
+  TextRange m_range;
   DefDeclaration m_declaration;
+public:
+  DefCompileTimeParameter(DefDeclaration&& declaration, TextRange& range);
 };
 
 class TypeCompileTimeParameter {
@@ -59,14 +66,12 @@ private:
 
 class Def : public Definition {
 private:
-  DefType m_defType;
-  std::string m_name;
-  unique_ptr<Type> m_type;
-  std::vector<CompileTimeParameter> m_params;
+  DefDeclaration m_declaration;
   unique_ptr<Expression> m_expression;
 public:
   Def(bool pub, DefType defType, const std::string& name,
       unique_ptr<Type>&& type,
+      std::vector<CompileTimeParameter>&& params,
       unique_ptr<Expression>&& expression,
       const TextRange& range);
   void printSignature();
