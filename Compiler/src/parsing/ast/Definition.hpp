@@ -15,8 +15,8 @@ protected:
   Definition(bool pub, const TextRange& range);
 public:
   virtual ~Definition();
-  inline void setRange(int line, int col, int endLine, int endCol);
-  inline bool isPublic();
+  //inline void setRange(int line, int col, int endLine, int endCol);
+  inline bool isPublic() {return m_pub;}
   virtual void printSignature()=0;
   virtual bool isStatement()=0;
 };
@@ -32,11 +32,14 @@ class TypeCompileTimeParameter;
 
 class CompileTimeParameter {
 private:
-  std::unique_ptr<DefCompileTimeParameter> m_def;
-  std::unique_ptr<TypeCompileTimeParameter> m_type;
+  DefCompileTimeParameter* m_def;
+  TypeCompileTimeParameter* m_type;
 public:
   CompileTimeParameter(std::unique_ptr<DefCompileTimeParameter>&& def);
-  CompileTimeParameter(std::unique_ptr<TypeCompileTimeParameter>&& def);
+  CompileTimeParameter(std::unique_ptr<TypeCompileTimeParameter>&& type);
+  CompileTimeParameter(const CompileTimeParameter& other);
+  CompileTimeParameter& operator =(const CompileTimeParameter& other);
+  ~CompileTimeParameter();
 };
 
 class DefDeclaration {

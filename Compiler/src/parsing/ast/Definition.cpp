@@ -4,16 +4,34 @@
 Definition::Definition(bool pub, const TextRange &range) : m_pub(pub), m_range(range) {}
 Definition::~Definition() {}
 
+/*
 inline void Definition::setRange(int line, int col, int endLine, int endCol) {
   m_range.set(line, col, endLine, endCol);
+}*/
+
+CompileTimeParameter::CompileTimeParameter(std::unique_ptr<DefCompileTimeParameter> &&def)
+  : m_def(def.release()), m_type(nullptr) {}
+
+CompileTimeParameter::CompileTimeParameter(std::unique_ptr<TypeCompileTimeParameter> &&type)
+  : m_def(nullptr), m_type(type.release()) {}
+
+CompileTimeParameter::CompileTimeParameter(const CompileTimeParameter& other)
+  : m_def(nullptr), m_type(nullptr) {
+  assert(false);
 }
 
-inline bool Definition::isPublic() {
-  return m_pub;
+CompileTimeParameter& CompileTimeParameter::operator =(const CompileTimeParameter& other) {
+  assert(false);
+  return *this;
+}
+
+CompileTimeParameter::~CompileTimeParameter() {
+  delete m_def;
+  delete m_type;
 }
 
 DefDeclaration::DefDeclaration(DefType defType_p, const std::string& name_p, unique_ptr<Type>&& type_p, std::vector<CompileTimeParameter>&& params_p)
-  : defType(defType_p), name(name_p), type(std::move(type_p)), params(params_p) {
+  : defType(defType_p), name(name_p), type(std::move(type_p)), params(std::move(params_p)) {
 
 }
 
