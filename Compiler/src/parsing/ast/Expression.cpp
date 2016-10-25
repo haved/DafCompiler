@@ -53,14 +53,16 @@ void ConstantRealExpression::printSignature() {
 }
 
 //Maybe add something in daf to make this prettier? I dunno
-FunctionExpression::FunctionExpression(std::vector<FunctionParameter>&& cpmParams, std::vector<FunctionParameter>&& params,
+FunctionExpression::FunctionExpression(std::vector<FunctionParameter>&& params,
                       FunctionInlineType inlineType, std::shared_ptr<Type>&& returnType, FunctionReturnType returnTypeType, std::unique_ptr<Expression>&& body,
                                        const TextRange& range)
-                          : Expression(range), m_function(std::move(cpmParams), std::move(params), inlineType, std::move(returnType), returnTypeType), m_body(std::move(body)) {}
+                          : Expression(range), m_function(std::move(params), inlineType, std::move(returnType), returnTypeType), m_body(std::move(body)) {}
 
 void FunctionExpression::printSignature() {
   m_function.printSignature();
   std::cout << " ";
   if(m_body)
     m_body->printSignature();
+  else
+    std::cout << ";";
 }

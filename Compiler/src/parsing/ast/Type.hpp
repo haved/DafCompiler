@@ -46,7 +46,7 @@ public:
 };
 
 enum FunctionInlineType {
-  FUNC_TYPE_NORMAL, FUNC_TYPE_INLINE, FUNC_TYPE_TRUE_INLINE
+  FUNC_TYPE_NORMAL, FUNC_TYPE_INLINE
 };
 
 enum FunctionReturnType {
@@ -55,13 +55,12 @@ enum FunctionReturnType {
 
 class FunctionType : public Type {
 private:
-  std::vector<FunctionParameter> m_compileParameters;
   std::vector<FunctionParameter> m_parameters;
   FunctionInlineType m_inlineType;
   std::shared_ptr<Type> m_returnType;
   FunctionReturnType m_returnTypeType;
 public:
-  FunctionType(std::vector<FunctionParameter>&& cpmParams, std::vector<FunctionParameter>&& params,
+  FunctionType(std::vector<FunctionParameter>&& params,
               FunctionInlineType inlineType, std::shared_ptr<Type>&& returnType, FunctionReturnType returnTypeType);
   void printSignature();
 };

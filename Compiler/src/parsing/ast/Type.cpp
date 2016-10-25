@@ -45,30 +45,22 @@ void FunctionParameter::printSignature() {
   m_type->printSignature();
 }
 
-FunctionType::FunctionType(std::vector<FunctionParameter>&& cpmParams, std::vector<FunctionParameter>&& params,
+FunctionType::FunctionType(std::vector<FunctionParameter>&& params,
       FunctionInlineType inlineType, std::shared_ptr<Type>&& returnType, FunctionReturnType returnTypeType)
-            : m_compileParameters(cpmParams), m_parameters(params), m_inlineType(inlineType), m_returnType(returnType), m_returnTypeType(returnTypeType) {}
+            : m_parameters(params), m_inlineType(inlineType), m_returnType(returnType), m_returnTypeType(returnTypeType) {}
 
 void FunctionType::printSignature() {
   if(m_inlineType == FUNC_TYPE_INLINE)
     std::cout << "inline ";
-  std::cout << "$(";
-  for(unsigned int i = 0; i < m_compileParameters.size(); i++) {
+
+  std::cout << "(";
+  for(unsigned int i = 0; i < m_parameters.size(); i++) {
     if(i!=0)
       std::cout << ", ";
-    m_compileParameters[i].printSignature();
+    m_parameters[i].printSignature();
   }
   std::cout << ")";
 
-  if(m_inlineType != FUNC_TYPE_TRUE_INLINE) {
-    std::cout << "(";
-    for(unsigned int i = 0; i < m_parameters.size(); i++) {
-      if(i!=0)
-        std::cout << ", ";
-      m_parameters[i].printSignature();
-    }
-    std::cout << ")";
-  }
   if(m_returnType) {
     std::cout << ":";
     if(m_returnTypeType == FUNC_LET_RETURN)

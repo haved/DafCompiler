@@ -47,7 +47,7 @@ void skipUntil(Lexer& lexer, TokenType type) {
   logDaf(lexer.getFile(), ERROR)
       << "EOF hit when skipping from "
       << startLine << ":" << startCol
-      << " until" << getTokenTypeText(type) << std::endl;
+      << " until " << getTokenTypeText(type) << std::endl;
 }
 
 //Skips until a new def/let/typedef or import occurs on the same scope level. Will return if exiting scope

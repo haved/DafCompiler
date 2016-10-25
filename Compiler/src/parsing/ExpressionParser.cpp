@@ -67,9 +67,9 @@ optional<FunctionParameter> parseFunctionParameter(Lexer& lexer) {
     lexer.advance(); //Eat '&move', '&mut' or '&'
 
   optional<std::string> name;
-  if(lexer.getCurrentToken().type == IDENTIFIER) {
+  if(lexer.currType() == IDENTIFIER) {
     name = lexer.getCurrentToken().text;
-    lexer.advance();
+    lexer.advance(); //Eat 'identifier'
   }
 
   if(!lexer.expectToken(TYPE_SEPARATOR)) {
@@ -91,59 +91,41 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
   int startLine = lexer.getCurrentToken().line;
   int startCol = lexer.getCurrentToken().col;
 
+  bool startsWithLeftParen = lexer.currType() == LEFT_PAREN;
   bool explicitInline = lexer.currType() == INLINE;
-  if(explicitInline)
+  if(explicitInline) {
     lexer.advance(); //Eat 'inline'
-
-  bool parsingCompileTimeArgs = lexer.currType() == COMPILE_TIME_LIST;
-  if(parsingCompileTimeArgs) {
-    lexer.advance(); //Eat '$'
-    if(lexer.expectToken(LEFT_PAREN))
-      lexer.advance(); //Eat '('
-    else
+    if(!lexer.expectToken(LEFT_PAREN))
       return none_exp();
   }
-  else
-    if(lexer.currType()==LEFT_PAREN) //Should never happen
-      lexer.advance(); //But incase we want to start parsing at "(i:int):int 2" thats fine
 
-  //We have now gotten past '$(', or '(' in the case of a normal function
+  if(!startsWithLeftParen && lexer.currType()==LEFT_PAREN)
+      lexer.advance();
 
-  std::vector<FunctionParameter> ctfps;
+  //We have now gotten past '('
+
   std::vector<FunctionParameter> fps;
 
-  bool parseNoramlParams = true;
-  if(parsingCompileTimeArgs) {
-    while(true) {
-      if(lexer.getCurrentToken().type == RIGHT_PAREN)
-        break;
+  while(lexer.currType()!=RIGHT_PAREN) {
+    if(!lexer.hasCurrentToken()) {
+      lexer.expectToken(RIGHT_PAREN);
+      return none_exp();
     }
-    lexer.advance(); //Eat ')'
-    if(lexer.currType()==LEFT_PAREN) //More (normal) arguments!
-      lexer.advance(); //Eat '('
-    else
-      parseNoramlParams = false;
-  }
+    optional<FunctionParameter> parameter = parseFunctionParameter(lexer);
+    if(!parameter) {
+      skipUntil(lexer, RIGHT_PAREN); //Go past all the parameters
+      break;
+    }
+    fps.push_back(std::move(*parameter));
+    if(lexer.currType()!=RIGHT_PAREN) {
+      if(lexer.expectToken(COMMA))
+        lexer.advance(); //Eat ','
+      else {
+        skipUntil(lexer, RIGHT_PAREN);
+        break;
+      }
+    }
 
-  if(parseNoramlParams) {
-    while(lexer.currType()!=RIGHT_PAREN) {
-      if(!lexer.hasCurrentToken())
-        return none_exp();
-      optional<FunctionParameter> parameter = parseFunctionParameter(lexer);
-      if(!parameter) {
-        skipUntil(lexer, RIGHT_PAREN); //Go past all the parameters
-        break;
-      }
-      fps.push_back(std::move(*parameter));
-      if(lexer.currType()!=RIGHT_PAREN) {
-        if(lexer.expectToken(COMMA))
-          lexer.advance(); //Eat ','
-        else {
-          skipUntil(lexer, RIGHT_PAREN);
-          break;
-        }
-      }
-    }
     if(lexer.currType()!=RIGHT_PAREN) //We really don' goofed
       return none_exp();
     lexer.advance(); //Eat ')'
@@ -169,8 +151,8 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
   if(!body) //Error recovery should already have been done to pass the body expression
     return none_exp();
 
-  FunctionInlineType inlineType = explicitInline?FUNC_TYPE_INLINE:parseNoramlParams?FUNC_TYPE_NORMAL:FUNC_TYPE_TRUE_INLINE;
-  return std::unique_ptr<FunctionExpression>(new FunctionExpression(std::move(ctfps), std::move(fps), inlineType, std::move(type), returnType, std::move(body),
+  FunctionInlineType inlineType = explicitInline?FUNC_TYPE_INLINE:FUNC_TYPE_NORMAL;
+  return std::unique_ptr<FunctionExpression>(new FunctionExpression(std::move(fps), inlineType, std::move(type), returnType, std::move(body),
                                              TextRange(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol)));
 }
 
@@ -216,5 +198,5 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
 
 unique_ptr<Expression> parseExpression(Lexer& lexer) {
   unique_ptr<Expression> expr = parsePrimary(lexer);
-  return expr;
+  return expr; //We don't do anything in case of a none_expression
 }
