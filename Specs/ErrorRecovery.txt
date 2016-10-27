@@ -1,6 +1,6 @@
 Itn this document, a scope is the set of tokens between either '(' and ')', '{' and '}' or '[' and ']'
 Skipping over scopes means you, upon advancing past '(', end up on the token after ')'
 When anything fails during syntax parsing, it it your job to print the error
-When a definition fails, it will skip (over scopes) until the next 'def', 'let', 'typedef' or 'import' / after the next semicolon
-When a definition fails, it will escape the scopes it's in, but not advance other than that
+When a definition fails, it will just return. After top-level definitions, the parser will skip until the next 'def', 'let', 'typedef' or 'import' / after the next semicolon
+When an expression fails, it will escape the scopes it's in, but not advance other than that
 When a type fails, it should 'clean up after itself', often meaning exiting function type definitions

@@ -86,22 +86,21 @@ optional<FunctionParameter> parseFunctionParameter(Lexer& lexer) {
   return FunctionParameter(paramType, std::move(name), std::move(type));
 }
 
-//Either starts at 'inline', '$' or the token after '('
+//Either starts at 'inline', or the token after '('
 unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
   int startLine = lexer.getCurrentToken().line;
   int startCol = lexer.getCurrentToken().col;
 
   bool startsWithLeftParen = lexer.currType() == LEFT_PAREN;
   bool explicitInline = lexer.currType() == INLINE;
-  if(explicitInline) {
+  if(startsWithLeftParen)
+    lexer.advance(); //Eat '('
+  else if(explicitInline) {
     lexer.advance(); //Eat 'inline'
     if(!lexer.expectToken(LEFT_PAREN))
       return none_exp();
+    lexer.advance(); //Eat '('
   }
-
-  if(!startsWithLeftParen && lexer.currType()==LEFT_PAREN)
-      lexer.advance();
-
   //We have now gotten past '('
 
   std::vector<FunctionParameter> fps;
@@ -180,8 +179,6 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
     return parseVariableExpression(lexer);
   case LEFT_PAREN:
     return parseParenthesies(lexer);
-  case COMPILE_TIME_LIST:
-    return parseFunctionExpression(lexer);
   case INLINE:
     return parseFunctionExpression(lexer);
   case CHAR_LITERAL:

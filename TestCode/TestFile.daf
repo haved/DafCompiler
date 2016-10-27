@@ -8,4 +8,5 @@ def test:=(3);
 
 def main:=inline (&hi:boi):mut int 4;
 def bro:=3;
-def ey:=def(&move hi:int)6;
+//def ey:=def(&move hi:int)6;
+

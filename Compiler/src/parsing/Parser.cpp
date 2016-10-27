@@ -11,6 +11,7 @@ unique_ptr<Statement> parseStatement(Lexer& lexer) {
   return unique_ptr<Statement>();
 };
 
+//TODO: Remove the ideo of a 'full parse'
 std::unique_ptr<ParsedFile> parseFileSyntax(const FileForParsing& ffp, bool fullParse) {
   auto file = std::make_unique<ParsedFile>();
   file->m_fullyParsed = fullParse;

@@ -98,9 +98,5 @@ unique_ptr<Definition> parseDefinition(Lexer& lexer, bool pub) {
     logDafExpectedToken("a definition", lexer);
     break;
   }
-  if(!out) {
-    //lexer.advance(); //Apparantly we need this to avoid infinite loops
-    skipUntilNewDefinition(lexer);
-  }
   return out;
 }
