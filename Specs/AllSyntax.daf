@@ -92,6 +92,17 @@ def main:=() {
         world.advance();
     }
     printCompileTime!("All entities about to die :(");
+
+    let mut a:int=4;
+    def mut b:=a;
+
+    if(b++<a) {
+       print("It works!");
+    }
+    orif(b==a) { //Yes, in one word :)
+       print("Even more works!");
+    }
+    //else is not possible here.
 }
 
 def printRunTimeParam:=(&a:[]char)println(a);
