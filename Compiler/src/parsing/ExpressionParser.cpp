@@ -113,6 +113,8 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
     optional<FunctionParameter> parameter = parseFunctionParameter(lexer);
     if(!parameter) {
       skipUntil(lexer, RIGHT_PAREN); //Go past all the parameters
+      if(!lexer.hasCurrentToken()) //If we've skipped to the end of the file
+        return none_exp();
       break;
     }
     fps.push_back(std::move(*parameter));
@@ -124,11 +126,10 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
         break;
       }
     }
-
-    if(lexer.currType()!=RIGHT_PAREN) //We really don' goofed
-      return none_exp();
-    lexer.advance(); //Eat ')'
   }
+  if(lexer.currType()!=RIGHT_PAREN) //We really don' goofed
+    return none_exp();
+  lexer.advance(); //Eat ')'
 
   std::unique_ptr<Type> type;
   FunctionReturnType returnType = FUNC_NORMAL_RETURN;

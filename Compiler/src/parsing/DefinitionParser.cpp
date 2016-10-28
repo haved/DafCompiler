@@ -11,9 +11,6 @@ inline unique_ptr<Definition> none() {
 }
 
 unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
-  //def none:=$(T)unique_ptr<T>()
-  //def noneD:=none!Definition
-  //return noneD;
   int startLine = lexer.getCurrentToken().line;
   int startCol = lexer.getCurrentToken().col;
 
@@ -31,7 +28,7 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
     let = true; //let may be ommited when mutable, but it's still an lvalue
   }
 
-  assert(def||let);
+  assert(def||let); //This means we can start allowing for 'mut i:=0' by simply calling parseLetDef upon 'mut', but then we should then also add it to ErrorRecovery
 
   if(!lexer.expectToken(IDENTIFIER))
     return none();
@@ -41,6 +38,7 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
 
   unique_ptr<Type> type;
   unique_ptr<Expression> expression;
+  bool shallParseExpression = true;
   if(lexer.currType()==TYPE_SEPARATOR) {
     lexer.advance(); //Eat ':'
     unique_ptr<Type> type_got = parseType(lexer);
@@ -49,7 +47,8 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
     else
       type_got.swap(type);
 
-    if(lexer.currType() != STATEMENT_END) { //If we meet a semicolon
+    shallParseExpression = lexer.currType() == STATEMENT_END;
+    if(shallParseExpression) { //If we don't have a semicolon
       if(!lexer.expectToken(ASSIGN))
         return none();
       lexer.advance(); //Eat '='
@@ -63,10 +62,10 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
   }
   //If current is ; we have a type and return that
   //Else we look for an expression
-  if(lexer.currType() != STATEMENT_END) {
+  if(shallParseExpression) {
     unique_ptr<Expression> expression_got = parseExpression(lexer);
     if(!expression_got)
-      return none();
+      return none(); //We don't care for cleanup, because we skip until the next def
     expression_got.swap(expression);
   }
   TextRange range(startLine, startCol,

@@ -27,7 +27,7 @@ std::unique_ptr<ParsedFile> parseFileSyntax(const FileForParsing& ffp, bool full
       definition->printSignature();
       file->m_definitions.push_back(std::move(definition));
     }
-    else //Error occurred, but already printed
+    else if(lexer.hasCurrentToken()) //Error occurred, but already printed
       skipUntilNewDefinition(lexer);
   }
   return file;
