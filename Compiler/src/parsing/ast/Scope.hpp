@@ -5,6 +5,7 @@
 class Scope : public Expression {
 private:
 public:
+  Scope(const TextRange& range);
   void printSignature();
   bool isStatement();
 };
