@@ -1,5 +1,7 @@
 #include "parsing/ast/Statement.hpp"
 
+#include <iostream>
+
 Statement::Statement(std::unique_ptr<Definition>&& definition)
   : definition_ptr(std::move(definition)), expression_ptr() {
   assert(definition_ptr && definition_ptr->isStatement());
@@ -26,4 +28,13 @@ Definition* Statement::getDefinition() {
 Expression* Statement::getExpression() {
   assert(isExpression());
   return expression_ptr.get();
+}
+
+void Statement::printSignature() {
+  if(definition_ptr)
+    definition_ptr->printSignature();
+  else {
+    expression_ptr->printSignature();
+    std::cout << ";" << std::endl; //Expressions are not used to this, you know
+  }
 }

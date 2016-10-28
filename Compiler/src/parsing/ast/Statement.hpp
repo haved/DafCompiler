@@ -15,6 +15,7 @@ class Statement {
   bool isDefinition();
   Definition* getDefinition();
   Expression* getExpression();
+  void printSignature();
  protected:
   unique_ptr<Definition> definition_ptr;
   unique_ptr<Expression> expression_ptr;

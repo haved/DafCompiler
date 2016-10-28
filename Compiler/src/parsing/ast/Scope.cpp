@@ -10,7 +10,11 @@ bool Scope::isStatement() {
 
 void Scope::printSignature() {
   //TODO: Obviously
-  std::cout << "{\n}";
+  std::cout << "{" << std::endl;
+  for(auto statement = m_statements.begin(); statement!=m_statements.end(); statement++) {
+    statement->printSignature();
+  }
+  std::cout << "}";
 }
 
 bool Scope::findType() {
