@@ -38,7 +38,7 @@ void skipUntil(Lexer& lexer, TokenType type) {
         logDaf(lexer.getFile(),
                lexer.getCurrentToken().line, lexer.getCurrentToken().col, ERROR)
             << "Expected " << getTokenTypeText(type) << " before "
-            << getTokenTypeText(lexer.currType()) << std::endl;
+            << getTokenTypeText(lexer.currType()) << ". Ended the wrong region" << std::endl;
       } else
         return; //We don't exit scopes
     }
