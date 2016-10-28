@@ -3,22 +3,22 @@
 const char* TOKEN_TEXT[] = {
   "pub", "let", "def", "typedef", "import", "mut", "uncertain", "move",
 
-  "prot", " abstract", " extends", " implements", " interface",
-  "constructor", " destructor", " method", " this", " const",
-  "inline", " virtual", " override",
+  "prot", "abstract", "extends", "implements", "interface",
+  "constructor", "destructor", "method", "this", "const",
+  "inline", "virtual", "override",
 
-  "if", " else", " elselse", " for", " while", " do",
-  "continue", " break", " retry", " return",
+  "if", "else", "elselse", "for", "while", "do",
+  "continue", "break", "retry", "return",
 
-  "char", " short", " ushort", " int", " uint", " long", " ulong",
-  "int8", " uint8", " int16", " uint16", " int32", " uint32",
-  "int64", " uint64", " usize", " boolean", " float", " double",
+  "char",
+  "int8", "uint8", "int16", "uint16", "int32", "uint32",
+  "int64", "uint64", "usize", "boolean", "float", "double",
 
-  "shared", " unique", " new", " delete", " dumb",
+  "shared", "unique", "new", "delete", "dumb",
 
-  "size_of", " type_of", " length_of",
+  "size_of", "type_of",
 
-  "true", " false", " null"
+  "true", "false", "null"
 };
 
 const char* ONE_CHAR_TOKEN_TEXTS[] = {
