@@ -8,4 +8,4 @@
 using boost::optional;
 using boost::none;
 
-optional<Statement> parseStatement(Lexer& lexer);
+optional<Statement> parseStatement(Lexer& lexer, bool* outIfOutExpression);

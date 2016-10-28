@@ -2,6 +2,7 @@
 #include "parsing/TypeParser.hpp"
 #include "DafLogger.hpp"
 
+#include "parsing/ast/Scope.hpp"
 #include "parsing/StatementParser.hpp"
 
 #include "parsing/ErrorRecovery.hpp"
@@ -176,9 +177,41 @@ unique_ptr<Expression> parseParenthesies(Lexer& lexer) {
 }
 
 unique_ptr<Expression> parseScope(Lexer& lexer) {
-  skipUntil(lexer, SCOPE_END);
-  lexer.advance(); //Eat scope end
-  return none_exp();
+  assert(lexer.currType()==SCOPE_START);
+
+  int startLine = lexer.getCurrentToken().line;
+  int startCol = lexer.getCurrentToken().col;
+
+  lexer.advance(); //Eat '{'
+
+  //TODO: Make output expressions work even if they are not real statements
+  std::vector<Statement> statements;
+  //Make this an uinque_ptr to an expression instead :)
+  bool isOutExpression;
+  while(lexer.currType()!=SCOPE_END) {
+    if(lexer.currType()==END_TOKEN) {
+      lexer.expectToken(STATEMENT_END);
+      isOutExpression = false;
+      break;
+    }
+    if(lexer.currType()==STATEMENT_END) {
+      lexer.advance();
+      continue;
+    }
+    optional<Statement> statement = parseStatement(lexer, &isOutExpression);
+    if(!statement) {
+      //skipUntilNextStatement(lexer); //Won't skip }
+      if(lexer.currType()==END_TOKEN)
+        break; //To avoid multiple "EOF reached" errors
+    }
+    else
+      statements.push_back(std::move(*statement));
+  }
+  lexer.advance(); //Eat '}'
+
+  TextRange range(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol);
+
+  return std::unique_ptr<Scope>(new Scope(range, std::move(statements))); //TODO: Send the output expression as well, if it's there
 }
 
 unique_ptr<Expression> parsePrimary(Lexer& lexer) {
@@ -206,7 +239,8 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
 
 bool canParseExpression(Lexer& lexer) {
   TokenType curr = lexer.currType();
-  return curr==IDENTIFIER||curr==LEFT_PAREN||curr==INLINE||curr==CHAR_LITERAL||curr==INTEGER_LITERAL||curr==LONG_LITERAL||curr==FLOAT_LITERAL||curr==DOUBLE_LITERAL; //So far the only tokens
+  return curr==IDENTIFIER||curr==LEFT_PAREN||curr==INLINE||curr==SCOPE_START
+      ||curr==CHAR_LITERAL||curr==INTEGER_LITERAL||curr==LONG_LITERAL||curr==FLOAT_LITERAL||curr==DOUBLE_LITERAL;
 }
 
 unique_ptr<Expression> parseExpression(Lexer& lexer) {

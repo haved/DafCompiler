@@ -5,7 +5,8 @@
 #include "parsing/DefinitionParser.hpp"
 #include "DafLogger.hpp"
 
-optional<Statement> parseStatement(Lexer& lexer) {
+optional<Statement> parseStatement(Lexer& lexer, bool *outIfOutExpression) {
+  *outIfOutExpression = false; //Feel i'm supposed to set this
   if(canParseDefinition(lexer)) {
     std::unique_ptr<Definition> def = parseDefinition(lexer, false); //They can't be public in a scope
     if(!def)
@@ -16,6 +17,12 @@ optional<Statement> parseStatement(Lexer& lexer) {
     std::unique_ptr<Expression> expr = parseExpression(lexer);
     if(!expr)
       return none;
+    if(lexer.currType()==STATEMENT_END)
+      lexer.advance(); //Eat ';'
+    else if(lexer.currType()==SCOPE_END)
+      *outIfOutExpression = true;
+    else
+      lexer.expectToken(STATEMENT_END);
     return Statement(std::move(expr));
   }
 

@@ -9,7 +9,8 @@ bool Scope::isStatement() {
 }
 
 void Scope::printSignature() {
-  std::cout << "{\n}" << std::endl;
+  //TODO: Obviously
+  std::cout << "{\n}";
 }
 
 bool Scope::findType() {
