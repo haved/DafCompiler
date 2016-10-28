@@ -1,10 +1,17 @@
 #include "parsing/ast/Scope.hpp"
+#include <iostream>
 
-Scope::Scope(const TextRange& range) : Expression(range) {}
+Scope::Scope(const TextRange& range, std::vector<Statement>&& statements)
+  : Expression(range), m_statements(std::move(statements)) {}
 
-void Scope::printSignature() {
-
-}
 bool Scope::isStatement() {
   return true;
+}
+
+void Scope::printSignature() {
+  std::cout << "{\n}" << std::endl;
+}
+
+bool Scope::findType() {
+  return false;
 }

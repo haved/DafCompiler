@@ -17,6 +17,7 @@ class Expression {
   virtual bool isTypeKnown() {
     return (bool)m_type;
   }
+  //returns true if it has a type after the call
   virtual bool findType()=0;
   virtual void printSignature()=0;
  protected:
