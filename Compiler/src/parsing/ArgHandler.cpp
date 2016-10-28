@@ -12,10 +12,9 @@ struct CommandInput {
 };
 
 //unsigned int FileForParsingNextId = 0;
-FileForParsing::FileForParsing(const fs::path& inputName, const fs::path& outputFile, bool outputFileSet, bool recursive, bool fullParse)
+FileForParsing::FileForParsing(const fs::path& inputName, const fs::path& outputFile, bool outputFileSet)
   : m_inputName(inputName), m_inputFile(fs::path("")), m_canonicalInput(fs::path("")),
-    m_outputFile(outputFile), m_outputFileSet(outputFileSet), m_recursive(recursive), m_fullParse(fullParse),
-    m_parsedFile(boost::none) {}
+    m_outputFile(outputFile), m_outputFileSet(outputFileSet), m_parsedFile() {}
 
 void printHelpPage() {
     std::cout   << "  Help page for dafc:" << std::endl
@@ -87,7 +86,7 @@ vector<FileForParsing> handleCommandInput(CommandInput& input) {
     fs::path oExtension("o");
     for(unsigned int i = 0; i < input.inputFiles.size(); i++) {
         fs::path inputFile(input.inputFiles[i]);
-        ffps.push_back(FileForParsing(inputFile, fs::path(input.output), !outputDir, input.recursive, true));
+        ffps.push_back(FileForParsing(inputFile, fs::path(input.output), !outputDir));
     }
     return ffps;
 }

@@ -6,7 +6,8 @@ let mut b:=0x6.1p0f;
 
 def test:=(3);
 
-def main:=inline (&hi:boi):mut int 4;
+def main:=inline (&hi:int):mut int 4;
+def my:=(&mut bruh:char) eyo;
 def bro:=3;
 //def ey:=def(&move hi:int)6;
 

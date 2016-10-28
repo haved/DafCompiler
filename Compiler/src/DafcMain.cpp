@@ -13,11 +13,10 @@ void printFilesForParsing(vector<FileForParsing>& ffps) {
 }
 
 void doItAll(vector<FileForParsing>& ffps) {
-    vector<ParsedFile*> parsedFiles;
+    vector<ParsedFile*> parsedFiles; //Just pointers to all the parsed files. Maybe unneccicary, because every file will have a m_parsedFile
     for(unsigned int i = 0; i < ffps.size(); i++) {
-        std::unique_ptr<ParsedFile> parsedFile = parseFileSyntax(ffps[i], ffps[i].m_fullParse);
-        parsedFiles.push_back(parsedFile.get());
-        //If fullParse, find imports. Add'em if not already added. Have the imports point to the file for parsing
+        std::unique_ptr<ParsedFile> parsedFile = parseFileSyntax(ffps[i]);
+        parsedFiles.push_back(parsedFile.get()); //Changing the owner doesn't change the pointer
         ffps[i].m_parsedFile=std::move(parsedFile);
     }
 }
