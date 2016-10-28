@@ -1,5 +1,6 @@
 #include "parsing/Token.hpp"
 
+//Huge performance boost potential
 const char* TOKEN_TEXT[] = {
   "pub", "let", "def", "typedef", "import", "mut", "uncertain", "move",
 

@@ -1,4 +1,5 @@
 //import daf.iostream as _;
+//pub import other.file as OF; //If a file imports this file, you use thisFile.OF.field;
 
 let x:=2;
 def a:=4;
@@ -6,8 +7,10 @@ let mut b:=0x6.1p0f;
 
 def test:=(3);
 
+//int is not a define type. You'll have to define it yourself
+
 def main:=inline (&hi:int):mut int 4;
-def my:=(&mut bruh:char) eyo;
+def my:=(&mut bruh:int) eyo;
 def bro:=3;
 //def ey:=def(&move hi:int)6;
 
