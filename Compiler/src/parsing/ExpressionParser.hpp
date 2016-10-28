@@ -5,6 +5,7 @@
 
 using std::unique_ptr;
 
-unique_ptr<Expression> parsePrimary(Lexer& lexer);
+//unique_ptr<Expression> parsePrimary(Lexer& lexer);
 
+bool canParseExpression(Lexer& lexer);
 unique_ptr<Expression> parseExpression(Lexer& lexer);

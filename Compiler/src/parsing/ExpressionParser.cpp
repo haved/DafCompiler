@@ -2,6 +2,8 @@
 #include "parsing/TypeParser.hpp"
 #include "DafLogger.hpp"
 
+#include "parsing/StatementParser.hpp"
+
 #include "parsing/ErrorRecovery.hpp"
 
 #include <boost/optional.hpp>
@@ -173,6 +175,12 @@ unique_ptr<Expression> parseParenthesies(Lexer& lexer) {
   return none_exp();
 }
 
+unique_ptr<Expression> parseScope(Lexer& lexer) {
+  skipUntil(lexer, SCOPE_END);
+  lexer.advance(); //Eat scope end
+  return none_exp();
+}
+
 unique_ptr<Expression> parsePrimary(Lexer& lexer) {
   Token& curr = lexer.getCurrentToken();
   switch(curr.type) {
@@ -182,6 +190,8 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
     return parseParenthesies(lexer);
   case INLINE:
     return parseFunctionExpression(lexer);
+  case SCOPE_START:
+    return parseScope(lexer);
   case CHAR_LITERAL:
   case INTEGER_LITERAL:
   case LONG_LITERAL:
@@ -192,6 +202,11 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
   }
   logDafExpectedToken("a primary expression", lexer);
   return none_exp();
+}
+
+bool canParseExpression(Lexer& lexer) {
+  TokenType curr = lexer.currType();
+  return curr==IDENTIFIER||curr==LEFT_PAREN||curr==INLINE||curr==CHAR_LITERAL||curr==INTEGER_LITERAL||curr==LONG_LITERAL||curr==FLOAT_LITERAL||curr==DOUBLE_LITERAL; //So far the only tokens
 }
 
 unique_ptr<Expression> parseExpression(Lexer& lexer) {

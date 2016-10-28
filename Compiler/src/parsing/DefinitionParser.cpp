@@ -85,6 +85,11 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
   return definition;
 }
 
+bool canParseDefinition(Lexer& lexer) {
+  TokenType curr = lexer.currType();
+  return curr==DEF||curr==LET; //So far the only tokens
+}
+
 unique_ptr<Definition> parseDefinition(Lexer& lexer, bool pub) {
   TokenType currentToken = lexer.currType();
   unique_ptr<Definition> out;

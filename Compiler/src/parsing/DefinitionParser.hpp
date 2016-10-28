@@ -5,5 +5,7 @@
 
 using std::unique_ptr;
 
-unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub);
+bool canParseDefinition(Lexer& lexer);
 unique_ptr<Definition> parseDefinition(Lexer& lexer, bool pub);
+
+//unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub);
