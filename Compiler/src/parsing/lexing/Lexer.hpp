@@ -1,8 +1,8 @@
 #pragma once
 
 #include <string>
-#include "parsing/Token.hpp"
-#include "parsing/ArgHandler.hpp"
+#include "parsing/lexing/Token.hpp"
+#include "parsing/lexing/ArgHandler.hpp"
 
 #define TOKEN_COUNT_AMOUNT 3
 

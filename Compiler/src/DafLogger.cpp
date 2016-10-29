@@ -1,6 +1,6 @@
 #include "DafLogger.hpp"
-#include "parsing/ArgHandler.hpp"
-#include "parsing/Lexer.hpp"
+#include "parsing/lexing/ArgHandler.hpp"
+#include "parsing/lexing/Lexer.hpp"
 #include <cstdlib>
 
 std::string logLevelNames[] = {"fatal_error", "error", "warning", "note", "message"};

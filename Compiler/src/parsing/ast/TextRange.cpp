@@ -1,5 +1,5 @@
 #include "parsing/ast/TextRange.hpp"
-#include "parsing/Token.hpp"
+#include "parsing/lexing/Token.hpp"
 
 TextRange::TextRange(int lineStart, int colStart, int lineEnd, int colEnd) :
   m_lineStart(lineStart), m_colStart(colStart), m_lineEnd(lineEnd), m_colEnd(colEnd) {}

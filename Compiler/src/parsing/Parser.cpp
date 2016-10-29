@@ -1,6 +1,6 @@
 #include "parsing/Parser.hpp"
-#include "parsing/Lexer.hpp"
-#include "parsing/ArgHandler.hpp"
+#include "parsing/lexing/Lexer.hpp"
+#include "parsing/lexing/ArgHandler.hpp"
 #include "parsing/DefinitionParser.hpp"
 #include "parsing/ExpressionParser.hpp"
 #include "DafLogger.hpp"

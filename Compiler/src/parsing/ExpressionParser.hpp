@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include "parsing/ast/Expression.hpp"
-#include "parsing/Lexer.hpp"
+#include "parsing/lexing/Lexer.hpp"
 
 using std::unique_ptr;
 

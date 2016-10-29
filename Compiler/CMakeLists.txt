@@ -16,6 +16,11 @@ file(GLOB MySourcesParsing
 	src/parsing/*.cpp
 )
 
+file(GLOB MySourcesParsingLexing
+	src/parsing/lexing/*.hpp
+	src/parsing/lexing/*.cpp
+)
+
 file(GLOB MySourcesParsingAst
 	src/parsing/ast/*.hpp
 	src/parsing/ast/*.cpp
@@ -38,7 +43,7 @@ MESSAGE(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 INCLUDE_DIRECTORIES(${LLVM_INCLUDE_DIRS})
 ADD_DEFINITIONS(${LLVM_DEFINITIONS})
 
-add_executable(DafCompiler ${MySources} ${MySourcesParsing} ${MySourcesParsingAst} ${MySourcesInfo})
+add_executable(DafCompiler ${MySources} ${MySourcesParsing} ${MySourcesParsingLexing} ${MySourcesParsingAst} ${MySourcesInfo})
 target_include_directories(DafCompiler PUBLIC "${CMAKE_SOURCE_DIR}/src")
 
 # Find the libraries that correspond to the LLVM components

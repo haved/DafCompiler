@@ -1,6 +1,6 @@
 #include <vector>
 #include "DafLogger.hpp"
-#include "parsing/ArgHandler.hpp"
+#include "parsing/lexing/ArgHandler.hpp"
 #include "parsing/Parser.hpp"
 
 using std::vector;

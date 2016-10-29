@@ -2,7 +2,7 @@
 
 #include "parsing/ast/Statement.hpp"
 #include "parsing/ast/Expression.hpp"
-#include "parsing/Lexer.hpp"
+#include "parsing/lexing/Lexer.hpp"
 
 #include <memory>
 #include <boost/optional.hpp>

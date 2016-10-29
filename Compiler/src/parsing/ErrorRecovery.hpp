@@ -1,5 +1,5 @@
 #pragma once
-#include "parsing/Lexer.hpp"
+#include "parsing/lexing/Lexer.hpp"
 
 //Tokens that are dangerous to skip, unless by
 bool isEndOfScope(TokenType type);

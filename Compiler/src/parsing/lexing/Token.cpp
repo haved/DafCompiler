@@ -1,4 +1,4 @@
-#include "parsing/Token.hpp"
+#include "parsing/lexing/Token.hpp"
 
 //Huge performance boost potential
 const char* TOKEN_TEXT[] = {
