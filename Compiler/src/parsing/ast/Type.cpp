@@ -3,6 +3,18 @@
 
 Type::~Type() {}
 
+std::shared_ptr<Type> global_void_ptr;
+
+std::shared_ptr<Type>& getVoidTypeInstance() {
+  if(!global_void_ptr)
+    global_void_ptr.reset(new VoidType());
+  return global_void_ptr;
+}
+
+void VoidType::printSignature() {
+  std::cout << "void";
+}
+
 TypedefType::TypedefType(const std::string& name) : m_name(name) {}
 
 TypedefType::~TypedefType() {}
@@ -13,15 +25,6 @@ void TypedefType::printSignature() {
 
 FunctionParameter::FunctionParameter(FunctionParameterType ref_type, optional<std::string>&& name, std::shared_ptr<Type>&& type)
       : m_ref_type(ref_type), m_name(name), m_type(type) {}
-
-//Have daf implicitly declare moves like this if you want it to?
-//Also have daf implicitly declare constructors where parameters are named the same as the fields?
-//Can't wait to grep for lines: '^//.* daf .*$'
-/*FunctionParameter::FunctionParameter(FunctionParameter&& other) {
-  m_ref_type = other.m_ref_type;
-  m_name = std:move(other.m_name);
-  m_type = std::move(other.m_type);
-}*/
 
 void FunctionParameter::printSignature() {
   switch(m_ref_type) {

@@ -14,15 +14,12 @@ class Expression {
   virtual ~Expression();
   virtual bool isStatement();
   virtual const Type& getType();
-  virtual bool isTypeKnown() {
-    return (bool)m_type;
-  }
+  virtual bool isTypeKnown();
   //returns true if it has a type after the call
-  virtual bool findType()=0;
-  virtual void printSignature()=0;
+  virtual bool findType() = 0;
+  virtual void printSignature() = 0;
  protected:
   TextRange m_range;
-  shared_ptr<Type> m_type;
 };
 
 

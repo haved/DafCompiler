@@ -1,7 +1,7 @@
 #include "parsing/ast/Expression.hpp"
 #include <iostream>
 
-Expression::Expression(const TextRange& range) : m_range(range), m_type() {}
+Expression::Expression(const TextRange& range) : m_range(range) {}
 
 Expression::~Expression() {}
 
@@ -10,7 +10,11 @@ bool Expression::isStatement() {
 }
 
 const Type& Expression::getType() {
-  return *m_type;
+  return *((Type*)nullptr); //Yeah
+}
+
+bool Expression::isTypeKnown() {
+  return false;
 }
 
 VariableExpression::VariableExpression(const std::string& name, const TextRange& range) : Expression(range), m_name(name) {}
