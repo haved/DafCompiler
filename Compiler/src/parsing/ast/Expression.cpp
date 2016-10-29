@@ -9,12 +9,14 @@ bool Expression::isStatement() {
   return false;
 }
 
-const Type& Expression::getType() {
-  return *((Type*)nullptr); //Yeah
+bool Expression::isTypeKnown() {
+  assert(false);
+  return false;
 }
 
-bool Expression::isTypeKnown() {
-  return false;
+const Type& Expression::getType() {
+  assert(false);
+  return *getVoidTypeInstance().get();
 }
 
 VariableExpression::VariableExpression(const std::string& name, const TextRange& range) : Expression(range), m_name(name) {}
