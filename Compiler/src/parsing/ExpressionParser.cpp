@@ -187,18 +187,17 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
   //TODO: Make output expressions work even if they are not real statements
   std::vector<Statement> statements;
   //Make this an uinque_ptr to an expression instead :)
-  bool isOutExpression;
+  unique_ptr<Expression> finalOutExpression;
   while(lexer.currType()!=SCOPE_END) {
     if(lexer.currType()==END_TOKEN) {
       lexer.expectToken(STATEMENT_END);
-      isOutExpression = false;
       break;
     }
     if(lexer.currType()==STATEMENT_END) {
       lexer.advance();
       continue;
     }
-    optional<Statement> statement = parseStatement(lexer, &isOutExpression);
+    optional<Statement> statement = parseStatement(lexer, &finalOutExpression);
     if(!statement) {
       //skipUntilNextStatement(lexer); //Won't skip }
       if(lexer.currType()==END_TOKEN)
@@ -211,7 +210,7 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
 
   TextRange range(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol);
 
-  return std::unique_ptr<Scope>(new Scope(range, std::move(statements))); //TODO: Send the output expression as well, if it's there
+  return std::unique_ptr<Scope>(new Scope(range, std::move(statements), std::move(finalOutExpression))); //TODO: Send the output expression as well, if it's there
 }
 
 unique_ptr<Expression> parsePrimary(Lexer& lexer) {
