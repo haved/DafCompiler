@@ -16,7 +16,7 @@ bool Expression::isTypeKnown() {
 
 const Type& Expression::getType() {
   assert(false);
-  return *getVoidTypeInstance().get();
+  return getVoidTypeInstance();
 }
 
 VariableExpression::VariableExpression(const std::string& name, const TextRange& range) : Expression(range), m_name(name) {}

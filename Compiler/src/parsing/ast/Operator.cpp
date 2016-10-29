@@ -1,0 +1,25 @@
+#include "parsing/ast/Operator.hpp"
+
+int INFIX_OP_PRECEDENCE[] = {
+  100,
+  90, 90, 90,
+  80, 80,
+  70, 70,
+  60, 60, 60, 60,
+  50, 50,
+  40, 40,
+  30, 30,
+  20
+};
+
+TokenType INFIX_OP_TOKENS[] = {
+  CLASS_ACCESS,
+  MULT, DIVIDE, MODULO,
+  PLUS, MINUS,
+  LSL, ASR,
+  GREATER, GREATER_OR_EQUAL, LOWER, LOWER_OR_EQUAL,
+  EQUALS, NOT_EQUALS,
+  REF, BITWISE_OR,
+  LOGICAL_AND, LOGICAL_OR,
+  ASSIGN
+};

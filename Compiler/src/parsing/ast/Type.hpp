@@ -18,7 +18,7 @@ public:
   void printSignature();
 };
 
-std::shared_ptr<Type>& getVoidTypeInstance();
+const Type& getVoidTypeInstance();
 
 //A type being defined by a typedef
 class TypedefType : public Type {

@@ -3,12 +3,10 @@
 
 Type::~Type() {}
 
-std::shared_ptr<Type> global_void_ptr;
+VoidType voidType;
 
-std::shared_ptr<Type>& getVoidTypeInstance() {
-  if(!global_void_ptr)
-    global_void_ptr.reset(new VoidType());
-  return global_void_ptr;
+const Type& getVoidTypeInstance() {
+  return voidType;
 }
 
 void VoidType::printSignature() {

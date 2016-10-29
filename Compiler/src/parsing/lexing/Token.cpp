@@ -36,9 +36,9 @@ const char* ONE_CHAR_TOKEN_TEXTS[] = {
 const char* COMPOSITE_TOKENS[] = {
   ":=", "::",
   "<<", ">>", ">>>", "&&", "||",
-  "&mut", "&move", "&unique", "&shared",
+  "==", "!=", ">=", "<=", "++", "--",
 
-  "==", "++", "--"
+  "&mut", "&move", "&unique", "&shared"
 };
 
 const char* TEXT_TOKENS[] = {
@@ -56,6 +56,11 @@ struct TokenMerge {
 TokenMerge TOKEN_MERGES[] = {
   TokenMerge(TYPE_SEPARATOR,ASSIGN,DECLARE), TokenMerge(TYPE_SEPARATOR, TYPE_SEPARATOR, MODULE_ACCESS),
   TokenMerge(LOWER, LOWER, LSL), TokenMerge(GREATER, GREATER, ASR), TokenMerge(ASR, GREATER, LSL),
+  TokenMerge(REF, REF, LOGICAL_AND), TokenMerge(BITWISE_OR, BITWISE_OR, LOGICAL_OR),
+  TokenMerge(ASSIGN, ASSIGN, EQUALS), TokenMerge(NOT, ASSIGN, NOT_EQUALS),
+  TokenMerge(GREATER, ASSIGN, GREATER_OR_EQUAL), TokenMerge(LOWER, ASSIGN, LOWER_OR_EQUAL),
+  TokenMerge(PLUS, PLUS, PLUS_PLUS), TokenMerge(MINUS, MINUS, MINUS_MINUS),
+
   TokenMerge(REF, MUT, MUT_REF), TokenMerge(REF, MOVE, MOVE_REF),
   TokenMerge(REF, UNIQUE, UNIQUE_PTR), TokenMerge(REF, SHARED, SHARED_PTR)
 };
