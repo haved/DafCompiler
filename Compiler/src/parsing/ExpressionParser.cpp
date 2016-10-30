@@ -2,6 +2,7 @@
 #include "parsing/TypeParser.hpp"
 #include "DafLogger.hpp"
 
+#include "parsing/ast/Operator.hpp"
 #include "parsing/ast/Scope.hpp"
 #include "parsing/StatementParser.hpp"
 
@@ -236,6 +237,28 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
   return none_exp();
 }
 
+unique_ptr<Expression> parseSide(Lexer& lexer, int minimumPrecedence) {
+  unique_ptr<Expression> side;
+/*optional<const PrefixOperator&> prefixOp = parsePrefixOperator(lexer);
+  if(prefixOp)
+    side.reset(mergePrefixOpWithExpression(prefixOp, parseSide(lexer, prefixOp->precedence+1);
+  else*/
+  side = parsePrimary(lexer);
+  while(true) {
+    /*optional<const InfixOperator&> postfixOp;
+    while(postfixOp=parseInfixOperator(lexer)) {
+      if(postfixOp->precedence<minimumPrecedence)
+        return side;
+      else
+        side = mergeExpressionWithPostfixOp(std::move(side), postfixOp);
+    }*/
+    optional<const InfixOperator&> infixOp = parseInfixOperator(lexer);
+    if(!infixOp || infixOp->precedence<minimumPrecedence)
+      return side;
+    side = mergeExpressionsWithOp(std::move(side), *infixOp, parseSide(lexer, infixOp->precedence));
+  }
+}
+
 bool canParseExpression(Lexer& lexer) {
   TokenType curr = lexer.currType();
   return curr==IDENTIFIER||curr==LEFT_PAREN||curr==INLINE||curr==SCOPE_START
@@ -243,6 +266,6 @@ bool canParseExpression(Lexer& lexer) {
 }
 
 unique_ptr<Expression> parseExpression(Lexer& lexer) {
-  unique_ptr<Expression> expr = parsePrimary(lexer);
+  unique_ptr<Expression> expr = parseSide(lexer, 0); //The min precedence is 0
   return expr; //We don't do anything in case of a none_expression
 }

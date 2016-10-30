@@ -2,11 +2,13 @@
 #include "parsing/ast/TextRange.hpp"
 #include "parsing/ast/Type.hpp"
 #include "info/PrimitiveSizes.hpp"
+#include "parsing/ast/Operator.hpp"
 #include <string>
 #include <vector>
 #include <memory>
 
 using std::shared_ptr;
+using std::unique_ptr;
 
 class Expression {
  public:
@@ -84,3 +86,20 @@ public:
   Type& getType() {return m_function;}
   void printSignature();
 };
+
+class InfixOperatorExpression : public Expression {
+private:
+  unique_ptr<Expression> LHS;
+  unique_ptr<Expression> RHS;
+  const InfixOperator& op;
+public:
+  InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, const InfixOperator& op,
+                          std::unique_ptr<Expression>&& RHS);
+  bool findType() {return false;}
+  void printSignature();
+};
+
+unique_ptr<Expression> mergeExpressionsWithOp(
+      unique_ptr<Expression>&& LHS, const InfixOperator& infixOp,
+      unique_ptr<Expression>&& RHS);
+

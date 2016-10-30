@@ -72,3 +72,23 @@ void FunctionExpression::printSignature() {
   else
     std::cout << ";";
 }
+
+InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, const InfixOperator& op,
+                                                 std::unique_ptr<Expression>&& RHS)
+  : LHS(std::move(LHS)), op(op), RHS(std::move(RHS)) {}
+
+void InfixOperatorExpression::printSignature() {
+  LHS->printSignature();
+  std::cout << " ";
+  std::cout << getTokenTypeText(op.tokenType);
+  std::cout << " ";
+  RHS->printSignature();
+}
+
+unique_ptr<Expression> mergeExpressionsWithOp(
+      unique_ptr<Expression>&& LHS, const InfixOperator& infixOp,
+      unique_ptr<Expression>&& RHS) {
+  if(!LHS || !RHS)
+    return unique_ptr<Expression>();
+  return unique_ptr<Expression>(new InfixOperatorExpression(std::move(LHS), infixOp, std::move(RHS)));
+}

@@ -1,6 +1,13 @@
 #pragma once
 #include "parsing/lexing/Token.hpp"
+#include "parsing/lexing/Lexer.hpp"
 
+#include <boost/optional.hpp>
+#include <memory>
+
+using std::unique_ptr;
+
+//TODO: Is this even needed?
 enum INFIX_OPERATORS {
   INFIX_CLASS_ACCESS,
   INFIX_MULT, INFIX_DIV, INFIX_MODULO,
@@ -13,3 +20,11 @@ enum INFIX_OPERATORS {
   INFIX_ASSIGN,
   //Insert +=, '=, *=, /=, %=, <<=, >>=, >>>=
 };
+
+struct InfixOperator {
+  const TokenType tokenType;
+  const int precedence;
+  InfixOperator(TokenType tokenType, int precedence);
+};
+
+boost::optional<const InfixOperator&> parseInfixOperator(Lexer& lexer);

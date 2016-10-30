@@ -26,7 +26,7 @@ public:
   bool advance();
   inline Token& getFutureToken(int rel) {return tokens[(currentToken+TOKEN_COUNT_AMOUNT+rel)%TOKEN_COUNT_AMOUNT];}
   inline Token& getCurrentToken() {return getFutureToken(0);}
-  inline TokenType& currType() {return getCurrentToken().type;};
+  inline TokenType& currType() {return getCurrentToken().type;}
   inline Token& getLookahead() {return getFutureToken(1);}
   inline Token& getSuperLookahead() {return getFutureToken(2);}
   inline Token& getSecondToLastToken() {return getFutureToken(-2);}
