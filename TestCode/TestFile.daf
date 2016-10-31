@@ -16,7 +16,7 @@ def func:=() {
     let mut a:=5;
     def b:=5;
     def mut h:=a;
-    i
+    i+2;
 };
 //def ey:=def(&move hi:int)6;
 

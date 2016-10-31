@@ -34,7 +34,7 @@ CommandInput handleArgs(int argc, const char** argv) {
         if(strcmp(argv[i], "--path")==0) {
             i++;
             if(i>=argc)
-                logDaf(FATAL_ERROR, "Expected a search directory after '--path'");
+                logDaf(FATAL_ERROR) << "Expected a search directory after '--path'";
             fs::path searchDir(argv[i]);
             if(!fs::is_directory(searchDir)) {
                 logDaf(FATAL_ERROR) << "The search path '" << searchDir << "' doesn't exist" << std::endl;
@@ -44,13 +44,13 @@ CommandInput handleArgs(int argc, const char** argv) {
         } else if(strcmp(argv[i], "-o")==0) {
             i++;
             if(i>=argc)
-                logDaf(FATAL_ERROR, "Expected an output file or directory after '-o'");
+                logDaf(FATAL_ERROR) << "Expected an output file or directory after '-o'";
             if (output.output.size()!=0)
                 logDaf(WARNING) << "Overriding '" << output.output << "' as output" << std::endl;
             output.output.assign(argv[i]);
         } else if(strcmp(argv[i], "-r")==0) {
             if(output.recursive)
-                logDaf(WARNING, "Duplicate option '-r'");
+                logDaf(WARNING) << "Duplicate option '-r'";
             output.recursive = true;
         } else if(strcmp(argv[i], "--help")==0) {
             printHelpPage();
@@ -78,10 +78,10 @@ bool isOutputDir(std::string& output) {
 
 vector<FileForParsing> handleCommandInput(CommandInput& input) {
     if(input.inputFiles.size() == 0)
-        logDaf(FATAL_ERROR, "No input files");
+        logDaf(FATAL_ERROR) << "No input files";
     bool outputDir = isOutputDir(input.output);
     if(!outputDir && (input.recursive || input.inputFiles.size() > 1))
-        logDaf(FATAL_ERROR, "With multiple input files, the output must be a directory");
+        logDaf(FATAL_ERROR) << "With multiple input files, the output must be a directory";
     vector<FileForParsing> ffps;
     fs::path oExtension("o");
     for(unsigned int i = 0; i < input.inputFiles.size(); i++) {

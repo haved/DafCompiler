@@ -13,5 +13,8 @@ class TextRange {
   TextRange(const TextRange& start, const TextRange& rangeEnd);
   TextRange(const Token& token);
   TextRange();
-  void set(int line, int col, int endLine, int endCol);
+  inline int getLine() const {return m_lineStart;}
+  inline int getCol() const {return m_colStart;}
+  inline int getLastLine() const {return m_lineEnd;}
+  inline int getEndCol() const {return m_colEnd;}
 };

@@ -1,6 +1,7 @@
 #include "DafLogger.hpp"
 #include "parsing/lexing/ArgHandler.hpp"
 #include "parsing/lexing/Lexer.hpp"
+#include "parsing/ast/TextRange.hpp"
 #include <cstdlib>
 
 std::string logLevelNames[] = {"fatal_error", "error", "warning", "note", "message"};
@@ -10,6 +11,8 @@ std::string logLevelNames[] = {"fatal_error", "error", "warning", "note", "messa
 #define FATAL_OCCURED 2
 int errorsOccured = NO_ERROR;
 
+const char* DEFAULT_LOCATION = "dafc";
+
 using std::cout;
 using std::endl;
 
@@ -18,16 +21,6 @@ void logDafUpdateLevel(int logLevel) {
     errorsOccured = ERROR_OCCURED;
   else if(logLevel == FATAL_ERROR)
     errorsOccured = FATAL_OCCURED;
-}
-
-void logDaf(int logLevel, const std::string& text) {
-    logDaf(DEFAULT_LOCATION, logLevel, text);
-}
-
-void logDaf(const std::string& location, int logLevel, const std::string& text) {
-  logDafUpdateLevel(logLevel);
-  logDaf(location, logLevel) << text << endl;
-  terminateIfErrors();
 }
 
 std::ostream& logDaf(int logLevel) {
@@ -42,6 +35,11 @@ std::ostream& logDaf(const FileForParsing& file, int logLevel) {
 std::ostream& logDaf(const FileForParsing& file, int line, int col, int logLevel) {
     logDafUpdateLevel(logLevel);
     return std::cout << file.m_inputName.string() << ": " << line << ":" << col << ": " << logLevelNames[logLevel] << ": ";
+}
+
+std::ostream& logDaf(const FileForParsing &file, const TextRange& range, int logLevel) {
+  logDafUpdateLevel(logLevel);
+  return std::cout << file.m_inputName.string() << ": " << range.getLine() << ":" << range.getCol() << "-" << range.getLastLine() << ":" << range.getEndCol() << ": " << logLevelNames[logLevel] << ": ";
 }
 
 std::ostream& logDaf(const std::string& location, int logLevel) {
@@ -61,6 +59,6 @@ void terminateIfErrors() {
     if(errorsOccured == NO_ERROR)
         return;
     if(errorsOccured == ERROR)
-        logDaf(ERROR, "Terminating due to previous errors");
+        logDaf(ERROR) << "Terminating due to previous errors";
     std::exit(-1);
 }
