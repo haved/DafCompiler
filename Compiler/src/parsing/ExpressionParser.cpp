@@ -50,10 +50,6 @@ unique_ptr<Expression> parseNumberExpression(Lexer& lexer) {
   return out;
 }
 
-optional<FunctionParameter> parseCompileTimeFunctionParamer(Lexer& lexer) {
-  return none;
-}
-
 optional<FunctionParameter> parseFunctionParameter(Lexer& lexer) {
   FunctionParameterType paramType = FUNC_PARAM_BY_VALUE;
 
@@ -235,6 +231,12 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
   }
   logDafExpectedToken("a primary expression", lexer);
   return none_exp();
+}
+
+unique_ptr<Expression> mergeExpressionsWithOp(unique_ptr<Expression>&& LHS, const InfixOperator& infixOp, unique_ptr<Expression>&& RHS) {
+  if(!LHS || !RHS)
+    return unique_ptr<Expression>();
+  return unique_ptr<Expression>(new InfixOperatorExpression(std::move(LHS), infixOp, std::move(RHS)));
 }
 
 unique_ptr<Expression> parseSide(Lexer& lexer, int minimumPrecedence) {
