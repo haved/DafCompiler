@@ -100,7 +100,3 @@ public:
   void printSignature();
 };
 
-unique_ptr<Expression> mergeExpressionsWithOp(
-      unique_ptr<Expression>&& LHS, const InfixOperator& infixOp,
-      unique_ptr<Expression>&& RHS);
-
