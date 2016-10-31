@@ -1,4 +1,5 @@
 #include "parsing/ast/Operator.hpp"
+#include "parsing/lexing/Lexer.hpp"
 
 InfixOperator::InfixOperator(TokenType tokenType, int precedence) :
   tokenType(tokenType), precedence(precedence) {}

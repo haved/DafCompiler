@@ -19,6 +19,10 @@ const Type& Expression::getType() {
   return getVoidTypeInstance();
 }
 
+const TextRange& Expression::getRange() {
+  return m_range;
+}
+
 VariableExpression::VariableExpression(const std::string& name, const TextRange& range) : Expression(range), m_name(name) {}
 
 bool VariableExpression::findType() {
@@ -75,7 +79,7 @@ void FunctionExpression::printSignature() {
 
 InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, const InfixOperator& op,
                                                  std::unique_ptr<Expression>&& RHS)
-  : LHS(std::move(LHS)), op(op), RHS(std::move(RHS)) {}
+  : Expression(TextRange(LHS->getRange(), RHS->getRange())), LHS(std::move(LHS)), op(op), RHS(std::move(RHS)) {}
 
 void InfixOperatorExpression::printSignature() {
   LHS->printSignature();

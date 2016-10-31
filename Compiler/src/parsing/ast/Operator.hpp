@@ -1,6 +1,5 @@
 #pragma once
 #include "parsing/lexing/Token.hpp"
-#include "parsing/lexing/Lexer.hpp"
 
 #include <boost/optional.hpp>
 #include <memory>
@@ -26,5 +25,7 @@ struct InfixOperator {
   const int precedence;
   InfixOperator(TokenType tokenType, int precedence);
 };
+
+class Lexer;
 
 boost::optional<const InfixOperator&> parseInfixOperator(Lexer& lexer);

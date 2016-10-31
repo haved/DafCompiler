@@ -20,6 +20,7 @@ class Expression {
   //returns true if it has a type after the call
   virtual bool findType() = 0;
   virtual void printSignature() = 0;
+  const TextRange& getRange();
  protected:
   TextRange m_range;
 };
@@ -90,8 +91,8 @@ public:
 class InfixOperatorExpression : public Expression {
 private:
   unique_ptr<Expression> LHS;
-  unique_ptr<Expression> RHS;
   const InfixOperator& op;
+  unique_ptr<Expression> RHS;
 public:
   InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, const InfixOperator& op,
                           std::unique_ptr<Expression>&& RHS);
