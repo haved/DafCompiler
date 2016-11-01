@@ -7,7 +7,7 @@
 using std::unique_ptr;
 
 //TODO: Is this even needed?
-enum INFIX_OPERATORS {
+/*enum INFIX_OPERATORS {
   INFIX_CLASS_ACCESS,
   INFIX_MULT, INFIX_DIV, INFIX_MODULO,
   INFIX_PLUS, INFIX_MINUS,
@@ -18,7 +18,7 @@ enum INFIX_OPERATORS {
   INFIX_LOG_AND, INFIX_LOG_OR,
   INFIX_ASSIGN,
   //Insert +=, '=, *=, /=, %=, <<=, >>=, >>>=
-};
+};*/
 
 struct InfixOperator {
   const TokenType tokenType;
@@ -26,6 +26,22 @@ struct InfixOperator {
   InfixOperator(TokenType tokenType, int precedence);
 };
 
+struct PrefixOperator {
+  const TokenType tokenType;
+  const int precedence;
+  PrefixOperator(TokenType tokenType, int precedence);
+};
+
+struct PostfixOperator {
+  const TokenType tokenType;
+  const int precedence;
+  PostfixOperator(TokenType tokenType, int precedence);
+};
+
 class Lexer;
 
 boost::optional<const InfixOperator&> parseInfixOperator(Lexer& lexer);
+
+boost::optional<const PrefixOperator&> parsePrefixOperator(Lexer& lexer);
+
+boost::optional<const PostfixOperator&> parsePostfixOperator(Lexer& lexer);
