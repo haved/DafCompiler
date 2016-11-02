@@ -1,21 +1,21 @@
 #+TITLE: Compiler development TO DO
 
-* TO DO: Parsing
-** TO DO: Definitions
+* TODO: Parsing
+** TODO: Definitions
 *** Let
 *** Def
 *** Typedef
-*** TO DO: Namedef
-*** TO DO: With
-*** TO DO: Linkfile
-** TO DO: Statements:
+*** TODO: Namedef
+*** TODO: With
+*** TODO: Linkfile
+** TODO: Statements:
 *** If
 *** For
 *** While
 *** Return
-*** TO DO: Break
-*** TO DO: Retry
-*** TO DO: Continue
+*** TODO: Break
+*** TODO: Retry
+*** TODO: Continue
 *** Definitions
 *** Expressions
 **** Scopes
@@ -29,30 +29,31 @@
 **** Function calls
 **** Array access
 *** Scopes
-** TO DO: Special types
-*** TO DO: Class and trait definitions
-*** TO DO: Merged types
-* TO DO: Reference resolving
-** TO DO: Avoid recursion
-* TO DO: Type inference
-** TO DO: Type checks for operators
-** TO DO: Type checks for calls
-** TO DO: Using proper type in overloading
-* TO DO: Method checks
-** TO DO: Using proper values
-*** TO DO: Mutability checks
-** TO DO: Proper return values?
-** TO DO: Uncertainty
-* TO DO: Code gen
+** TODO: Special types
+*** TODO: Class and trait definitions
+*** TODO: Merged types
+* TODO: Reference resolving
+** TODO: Avoid recursion
+* TODO: Type inference
+** TODO: Type checks for operators
+** TODO: Type checks for calls
+** TODO: Using proper type in overloading
+* TODO: Method checks
+** TODO: Using proper values
+*** TODO: Mutability checks
+** TODO: Proper return values?
+** TODO: Uncertainty
+* TODO: Code gen
 
 * More general stuff:
-** Add /isize/
+** Add /isize/ type
 ** Error recovery in statements, where only some statements require semicolons
 I'd rather not have multiple errors in the console for one misplaced word, but it's low priority
-As far as I can remember the error recovery for statements is simply a TO DO
+As far as I can remember the error recovery for statements is simply a TODO
 ** Find out why the expression parser loop forever when a strange token is found
-*** It probably lacks error recovery, maybe even with a TO DO
+*** It probably lacks error recovery, maybe even with a TODO
 ** Indent stuff to one tab instead of two spaces
 ** Handle TODO in all files
 ** Use more enum classes and keep global scope nice
+*** Done for PostfixOp
 ** Update tokes (remove dumb, make uncrt, ctor, dtor etc.)
