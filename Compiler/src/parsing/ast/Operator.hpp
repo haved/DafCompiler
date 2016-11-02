@@ -18,31 +18,31 @@ using std::unique_ptr;
   INFIX_LOG_AND, INFIX_LOG_OR,
   INFIX_ASSIGN,
   //Insert +=, '=, *=, /=, %=, <<=, >>=, >>>=
-};*/
+  };*/
 
 //IMPORTANT: Must be aligned with POSTFIX_OPERATOR_INSTANCES
 enum class PostfixOp {
-  INCREMENT=0, DECREMEMT, FUNCTION_CALL, ARRAY_ACCESS
+	INCREMENT=0, DECREMEMT, FUNCTION_CALL, ARRAY_ACCESS
 };
 
 struct InfixOperator {
-  const TokenType tokenType;
-  const int precedence;
-  const bool statement;
-  InfixOperator(TokenType tokenType, int precedence, bool statement=false);
+	const TokenType tokenType;
+	const int precedence;
+	const bool statement;
+	InfixOperator(TokenType tokenType, int precedence, bool statement=false);
 };
 
 struct PrefixOperator {
-  const TokenType tokenType;
-  const int precedence;
-  const bool statement;
-  PrefixOperator(TokenType tokenType, int precedence, bool statement=false);
+	const TokenType tokenType;
+	const int precedence;
+	const bool statement;
+	PrefixOperator(TokenType tokenType, int precedence, bool statement=false);
 };
 
 struct PostfixOperator {
-  const TokenType tokenType;
-  const int precedence;
-  PostfixOperator(TokenType tokenType, int precedence);
+	const TokenType tokenType;
+	const int precedence;
+	PostfixOperator(TokenType tokenType, int precedence);
 };
 
 class Lexer;
