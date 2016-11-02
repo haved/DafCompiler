@@ -23,6 +23,10 @@ bool isSpecialStatementKeyword(TokenType& type) {
 	}
 }
 
+unique_ptr<Statement> none_stmt() {
+	return unique_ptr<Statement>();
+}
+
 void setEndFromStatement(int* endLine, int* endCol, const unique_ptr<Statement>& statement, Lexer& lexer) {
 	if(statement) { //An actual statement instance
 		*endLine = statement->getRange().getLastLine();
@@ -36,7 +40,7 @@ void setEndFromStatement(int* endLine, int* endCol, const unique_ptr<Statement>&
 
 using boost::none;
 
-optional<unique_ptr<Statement>> parseIfStatement(Lexer& lexer) {
+unique_ptr<Statement> parseIfStatement(Lexer& lexer) {
 	assert(lexer.currType()==IF);
 	int startLine = lexer.getCurrentToken().line;
 	int startCol  = lexer.getCurrentToken().col;
@@ -44,11 +48,11 @@ optional<unique_ptr<Statement>> parseIfStatement(Lexer& lexer) {
 
 	unique_ptr<Expression> condition = parseExpression(lexer);
 	if(!condition)
-		return none;
+		return none_stmt();
 
 	optional<unique_ptr<Statement>> statement = parseStatement(lexer, boost::none);
 	if(!statement) //A semicolon will be a null pointer. A none is not a statement
-		return none;
+		return none_stmt();
 
 	bool elseFound = lexer.currType() == ELSE;
 	unique_ptr<Statement> else_body;
@@ -56,7 +60,7 @@ optional<unique_ptr<Statement>> parseIfStatement(Lexer& lexer) {
 		lexer.advance(); //Eat 'else'
 		optional<unique_ptr<Statement>> else_stmt = parseStatement(lexer, none);
 		if(!else_stmt)
-			return none;
+			return none_stmt();
 		else_body.reset(else_stmt->release());
 	}
 
@@ -66,7 +70,7 @@ optional<unique_ptr<Statement>> parseIfStatement(Lexer& lexer) {
 	return unique_ptr<Statement>(new IfStatement(std::move(condition), std::move(*statement), std::move(else_body), TextRange(startLine, startCol, endLine, endCol)));
 }
 
-optional<unique_ptr<Statement>> parseWhileStatement(Lexer& lexer) {
+unique_ptr<Statement> parseWhileStatement(Lexer& lexer) {
 	assert(lexer.currType()==WHILE);
 	int startLine = lexer.getCurrentToken().line;
 	int startCol  = lexer.getCurrentToken().col;
@@ -75,7 +79,7 @@ optional<unique_ptr<Statement>> parseWhileStatement(Lexer& lexer) {
 	unique_ptr<Expression> condition = parseExpression(lexer);
 	optional<unique_ptr<Statement>> statement = parseStatement(lexer, boost::none);
 	if(!statement)
-		return none;
+		return none_stmt();
 
 	int endLine, endCol;
 	setEndFromStatement(&endLine, &endCol, *statement, lexer);
@@ -83,7 +87,7 @@ optional<unique_ptr<Statement>> parseWhileStatement(Lexer& lexer) {
 	return unique_ptr<Statement>(new WhileStatement(std::move(condition), std::move(*statement), TextRange(startLine, startCol, endLine, endCol)));
 }
 
-optional<unique_ptr<Statement>> parseForStatement(Lexer& lexer) {
+unique_ptr<Statement> parseForStatement(Lexer& lexer) {
 	assert(lexer.currType()==FOR);
 	int startLine = lexer.getCurrentToken().line;
 	int startCol  = lexer.getCurrentToken().col;
@@ -91,11 +95,11 @@ optional<unique_ptr<Statement>> parseForStatement(Lexer& lexer) {
 
 	unique_ptr<Expression> iterator = parseExpression(lexer);
 	if(!iterator)
-		return none;
+		return none_stmt();
 
 	optional<unique_ptr<Statement>> body = parseStatement(lexer, boost::none);
 	if(!body)
-		return none;
+		return none_stmt();
 
 	int endLine, endCol;
 	setEndFromStatement(&endLine, &endCol, *body, lexer);
@@ -103,9 +107,7 @@ optional<unique_ptr<Statement>> parseForStatement(Lexer& lexer) {
 	return unique_ptr<Statement>(new ForStatement(std::move(iterator), std::move(*body), TextRange(startLine, startCol, endLine, endCol)));
 }
 
-//TODO: These either return none or a value, why not null or a value?
-
-optional<unique_ptr<Statement>> parseReturnStatement(Lexer& lexer) {
+unique_ptr<Statement> parseReturnStatement(Lexer& lexer) {
 	assert(lexer.currType()==RETURN);
 	int startLine = lexer.getCurrentToken().line;
 	int startCol  = lexer.getCurrentToken().col;
@@ -116,7 +118,7 @@ optional<unique_ptr<Statement>> parseReturnStatement(Lexer& lexer) {
 	if(lexer.currType() != STATEMENT_END) {
 		expression = parseExpression(lexer);
 		if(!expression)
-			return none; //We don't eat any semicolons or do any error recovery here
+			return none_stmt(); //We don't eat any semicolons or do any error recovery here
 	}
 
 	if(lexer.expectToken(STATEMENT_END)) {
@@ -127,7 +129,7 @@ optional<unique_ptr<Statement>> parseReturnStatement(Lexer& lexer) {
 	return unique_ptr<Statement>(new ReturnStatement(std::move(expression), range));
 }
 
-optional<unique_ptr<Statement>> parseLoopStatement(Lexer& lexer) {
+unique_ptr<Statement> parseLoopStatement(Lexer& lexer) {
 	LoopStatementType type = LoopStatementType::BREAK;
 	switch(lexer.currType()) {
 	case BREAK: break;
@@ -144,7 +146,7 @@ optional<unique_ptr<Statement>> parseLoopStatement(Lexer& lexer) {
 	return unique_ptr<Statement>(new LoopStatement(type, range));
 }
 
-optional<unique_ptr<Statement>> parseSpecialStatement(Lexer& lexer) {
+unique_ptr<Statement> parseSpecialStatement(Lexer& lexer) {
 	switch(lexer.currType()) {
 	case IF:
 		return parseIfStatement(lexer);
@@ -162,7 +164,7 @@ optional<unique_ptr<Statement>> parseSpecialStatement(Lexer& lexer) {
 		break;
 	}
 	assert(false);
-	return none;
+	return none_stmt();
 }
 
 //A statement occurs either in a scope, or inside another statement such as 'if', 'while', etc.
@@ -175,7 +177,7 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr
 
 	if(lexer.currType() == STATEMENT_END) {
 		lexer.advance(); //Eat semicolon
-		return unique_ptr<Statement>(); //Not a none, but a null
+		return none_stmt(); //Not a none, but a null
 	}
 
 	if(canParseDefinition(lexer)) { //def, let, mut, typedef, namedef
@@ -189,7 +191,12 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr
 
 
 	if(isSpecialStatementKeyword(lexer.currType())) {
-		return parseSpecialStatement(lexer); //This will (or won't) eat semicolons and everything
+		unique_ptr<Statement> statement = parseSpecialStatement(lexer); //This will eat semicolons if that's the behavior of the statement
+		//null means error, which we'll have to translate to none, as our null means a semicolon
+		if(statement)
+			return std::move(statement);
+		else
+			return none;
 	}
 
 
