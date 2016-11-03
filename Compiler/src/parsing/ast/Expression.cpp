@@ -83,8 +83,14 @@ InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& L
 
 void InfixOperatorExpression::printSignature() {
   LHS->printSignature();
-  std::cout << " ";
+  std::cout << " " << getTokenTypeText(op.tokenType) << " ";
+  RHS->printSignature();
+}
+
+PrefixOperatorExpression::PrefixOperatorExpression(const PrefixOperator& op, int opLine, int opCol, std::unique_ptr<Expression>&& RHS)
+  : Expression(TextRange(opLine, opCol, RHS->getRange())), op(op), RHS(std::move(RHS)) {}
+
+void PrefixOperatorExpression::printSignature() {
   std::cout << getTokenTypeText(op.tokenType);
-  std::cout << " ";
   RHS->printSignature();
 }

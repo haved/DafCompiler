@@ -25,7 +25,9 @@ optional<Statement> parseStatement(Lexer& lexer, std::unique_ptr<Expression>* fi
     else
       lexer.expectToken(STATEMENT_END);
     if(!expr->isStatement()) {
-      logDaf(lexer.getFile(), expr->getRange(), ERROR) << "Exprected a statement, not just an expression" << std::endl;
+      logDaf(lexer.getFile(), expr->getRange(), ERROR) << "Exprected a statement, not just an expression: ";
+      expr->printSignature();
+      std::cout << std::endl;
       return none;
     }
     return Statement(std::move(expr));

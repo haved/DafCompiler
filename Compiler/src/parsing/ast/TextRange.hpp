@@ -11,6 +11,7 @@ class TextRange {
  public:
   TextRange(int lineStart, int colStart, int lineEnd, int colEnd);
   TextRange(const TextRange& start, const TextRange& rangeEnd);
+  TextRange(int lineStart, int colStart, const TextRange& rangeEnd);
   TextRange(const Token& token);
   TextRange();
   inline int getLine() const {return m_lineStart;}

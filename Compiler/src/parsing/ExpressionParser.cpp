@@ -181,9 +181,7 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
 
   lexer.advance(); //Eat '{'
 
-  //TODO: Make output expressions work even if they are not real statements
   std::vector<Statement> statements;
-  //Make this an uinque_ptr to an expression instead :)
   unique_ptr<Expression> finalOutExpression;
   while(lexer.currType()!=SCOPE_END) {
     if(lexer.currType()==END_TOKEN) {
@@ -196,6 +194,7 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
     }
     optional<Statement> statement = parseStatement(lexer, &finalOutExpression);
     if(!statement) {
+      //TODO:
       //skipUntilNextStatement(lexer); //Won't skip }
       if(lexer.currType()==END_TOKEN)
         break; //To avoid multiple "EOF reached" errors
@@ -239,13 +238,24 @@ unique_ptr<Expression> mergeExpressionsWithOp(unique_ptr<Expression>&& LHS, cons
   return unique_ptr<Expression>(new InfixOperatorExpression(std::move(LHS), infixOp, std::move(RHS)));
 }
 
+unique_ptr<Expression> mergeOpWithExpression(const PrefixOperator& prefixOp, int opLine, int opCol, unique_ptr<Expression>&& RHS) {
+  if(!RHS)
+    return unique_ptr<Expression>();
+  return unique_ptr<Expression>(new PrefixOperatorExpression(prefixOp, opLine, opCol, std::move(RHS)));
+}
+
 unique_ptr<Expression> parseSide(Lexer& lexer, int minimumPrecedence) {
   unique_ptr<Expression> side;
-/*optional<const PrefixOperator&> prefixOp = parsePrefixOperator(lexer);
-  if(prefixOp)
-    side.reset(mergePrefixOpWithExpression(prefixOp, parseSide(lexer, prefixOp->precedence+1);
-  else*/
-  side = parsePrimary(lexer);
+  //TODO: Implement a getPreviousToken() in the lexer. Use it here
+  optional<const PrefixOperator&> prefixOp = parsePrefixOperator(lexer);
+  if(prefixOp) {
+    int startLine = lexer.getCurrentToken().line;
+    int startCol = lexer.getCurrentToken().col;
+    lexer.advance(); //Eat prefix operator
+    side = mergeOpWithExpression(*prefixOp, startLine, startCol, parseSide(lexer, prefixOp->precedence+1));
+  }
+  else
+    side = parsePrimary(lexer);
   while(true) {
     /*optional<const InfixOperator&> postfixOp;
     while(postfixOp=parseInfixOperator(lexer)) {
@@ -257,15 +267,19 @@ unique_ptr<Expression> parseSide(Lexer& lexer, int minimumPrecedence) {
     optional<const InfixOperator&> infixOp = parseInfixOperator(lexer);
     if(!infixOp || infixOp->precedence<minimumPrecedence)
       return side;
+    lexer.advance(); //Eat the infix operator
     side = mergeExpressionsWithOp(std::move(side), *infixOp, parseSide(lexer, infixOp->precedence));
   }
 }
 
 bool canParseExpression(Lexer& lexer) {
-  TokenType curr = lexer.currType();
+  //TODO: Find out if there is even a point to knowing when an expression may start
+  //Checking for every prefix-operator token is hopefully not necessary
+  return true;
+  /*TokenType curr = lexer.currType();
   return curr==IDENTIFIER||curr==LEFT_PAREN||curr==INLINE||curr==SCOPE_START
       ||curr==CHAR_LITERAL||curr==INTEGER_LITERAL||curr==LONG_LITERAL||curr==FLOAT_LITERAL||curr==DOUBLE_LITERAL;
-}
+*/}
 
 unique_ptr<Expression> parseExpression(Lexer& lexer) {
   unique_ptr<Expression> expr = parseSide(lexer, 0); //The min precedence is 0

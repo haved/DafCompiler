@@ -100,3 +100,12 @@ public:
   void printSignature();
 };
 
+class PrefixOperatorExpression : public Expression {
+private:
+  const PrefixOperator& op;
+  unique_ptr<Expression> RHS;
+public:
+  PrefixOperatorExpression(const PrefixOperator& op, int opLine, int opCol, std::unique_ptr<Expression>&& RHS);
+  bool findType() {return false;}
+  void printSignature();
+};

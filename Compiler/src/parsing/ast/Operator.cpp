@@ -20,7 +20,7 @@ InfixOperator INFIX_OPERATOR_INSTANCES[] = {
   InfixOperator(EQUALS, 50), InfixOperator(NOT_EQUALS, 50),
   InfixOperator(REF, 40), InfixOperator(BITWISE_OR, 40),
   InfixOperator(LOGICAL_AND, 30), InfixOperator(LOGICAL_OR, 30),
-  InfixOperator(ASSIGN, 20)
+  InfixOperator(ASSIGN, 20) //Means 4+a=5 is borked, like in C++
 };
 
 PrefixOperator PREFIX_OPERATOR_INSTANCES[] = {
@@ -43,8 +43,30 @@ boost::optional<const InfixOperator&> parseInfixOperator(Lexer& lexer) {
   TokenType curr = lexer.currType();
   for(unsigned int i = 0; i < sizeof(INFIX_OPERATOR_INSTANCES)/sizeof(*INFIX_OPERATOR_INSTANCES); i++) {
     if(curr == INFIX_OPERATOR_INSTANCES[i].tokenType) {
-      lexer.advance(); //Eat operator
+      //lexer.advance(); DONT Eat operator
       return INFIX_OPERATOR_INSTANCES[i];
+    }
+  }
+  return boost::none;
+}
+
+boost::optional<const PrefixOperator&> parsePrefixOperator(Lexer& lexer) {
+  TokenType curr = lexer.currType();
+  for(unsigned int i = 0; i < sizeof(PREFIX_OPERATOR_INSTANCES)/sizeof(*PREFIX_OPERATOR_INSTANCES); i++) {
+    if(curr == PREFIX_OPERATOR_INSTANCES[i].tokenType) {
+      //lexer.advance(); DONT Eat operator
+      return PREFIX_OPERATOR_INSTANCES[i];
+    }
+  }
+  return boost::none;
+}
+
+boost::optional<const PostfixOperator&> parsePostfixOperator(Lexer& lexer) {
+  TokenType curr = lexer.currType();
+  for(unsigned int i = 0; i < sizeof(POSTFIX_OPERATOR_INSTANCES)/sizeof(*POSTFIX_OPERATOR_INSTANCES); i++) {
+    if(curr == POSTFIX_OPERATOR_INSTANCES[i].tokenType) {
+      //lexer.advance(); DONT Eat operator
+      return POSTFIX_OPERATOR_INSTANCES[i];
     }
   }
   return boost::none;

@@ -12,11 +12,35 @@ def test:=(3);
 def main:=inline (&hi:int):mut int 4;
 def my:=(&mut bruh:int) eyo;
 def bro:=3;
-def func:=() {
+def func:=():int {
     let mut a:=5;
     def b:=5;
     def mut h:=a;
     i+2;
+    b=&a;
+    ++b;
+    g=& &mut eyo;
+
+    let mut a:=5;
+    def let mut b := a;
+    ++b;
+    4+7*6+-a%g.h=4
 };
 //def ey:=def(&move hi:int)6;
+/*
+def getName:=(&a:Person) a.getName();
 
+import DafCompiler as DC;
+
+def build:=() {
+    DC.beginExecutable("MyOutput");
+    DC.addIncludeDir("src/");
+    DC.addIncludeDir("libs/MyLib/include");
+    DC.addLinkLibrary("libs/MyLib/lib/mylib.a"); //Would normaly be included by the header, but oh well
+    DC.addSourceRecursivly("me.Main"); //Stays inside the included directory
+    if(DC.foundChanges("MyOutput.lock")) {
+      DC.compile();
+      DC.saveExecutable();
+    }
+    DC.end();
+}*/
