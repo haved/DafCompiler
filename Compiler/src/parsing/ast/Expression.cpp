@@ -74,7 +74,7 @@ void FunctionExpression::printSignature() {
   if(m_body)
     m_body->printSignature();
   else
-    std::cout << ";";
+    std::cout << "====NO_FUNCTION_BODY_ERROR!===="; //TODO: Will this ever happen?
 }
 
 InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, const InfixOperator& op,
@@ -82,9 +82,11 @@ InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& L
   : Expression(TextRange(LHS->getRange(), RHS->getRange())), LHS(std::move(LHS)), op(op), RHS(std::move(RHS)) {}
 
 void InfixOperatorExpression::printSignature() {
+  std::cout << " ";
   LHS->printSignature();
-  std::cout << " " << getTokenTypeText(op.tokenType) << " ";
+  std::cout << getTokenTypeText(op.tokenType);
   RHS->printSignature();
+  std::cout << " ";
 }
 
 PrefixOperatorExpression::PrefixOperatorExpression(const PrefixOperator& op, int opLine, int opCol, std::unique_ptr<Expression>&& RHS)
