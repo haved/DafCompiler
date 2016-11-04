@@ -1,5 +1,5 @@
 ## The Daf Compiler
-Daf is a staticly typed multi-paradigm programming language designed to make software writing easier. Without header files, and lots of oppertunities for kool meta-programming.
+Daf is a staticly typed multi-paradigm programming language designed to make software writing easier. Without header files, and lots of opportunities for kool meta-programming.
 
 #### Repository structure
  - Compiler: The C++ project for the compiler, using LLVM and cmake
