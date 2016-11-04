@@ -12,8 +12,8 @@ class TextRange {
   TextRange(int lineStart, int colStart, int lineEnd, int colEnd);
   TextRange(const TextRange& start, const TextRange& rangeEnd);
   TextRange(int lineStart, int colStart, const TextRange& rangeEnd);
+  TextRange(const TextRange& rangeStart, int lineEnd, int colEnd);
   TextRange(const Token& token);
-  TextRange();
   inline int getLine() const {return m_lineStart;}
   inline int getCol() const {return m_colStart;}
   inline int getLastLine() const {return m_lineEnd;}

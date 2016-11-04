@@ -100,8 +100,8 @@ void PrefixOperatorExpression::printSignature() {
     std::cout << "NULL_EXPR";
 }
 
-PostfixCrementExpression::PostfixCrementExpression(std::unique_ptr<Expression>&& LHS, bool decrement, int opLine, int opCol)
-  : Expression(TextRange()), decrement(decrement), LHS(std::move(LHS)) {}
+PostfixCrementExpression::PostfixCrementExpression(std::unique_ptr<Expression>&& LHS, bool decrement, int opLine, int opEndCol)
+  : Expression(TextRange(LHS->getRange(), opLine, opEndCol)), decrement(decrement), LHS(std::move(LHS)) {}
 
 void PostfixCrementExpression::printSignature() {
   if(LHS)

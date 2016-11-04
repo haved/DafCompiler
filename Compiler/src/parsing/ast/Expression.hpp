@@ -88,6 +88,7 @@ public:
   void printSignature();
 };
 
+//TODO: Use m_ prefix for private fields
 class InfixOperatorExpression : public Expression {
 private:
   unique_ptr<Expression> LHS;
@@ -100,6 +101,7 @@ public:
   void printSignature();
 };
 
+//TODO: Use m_ prefix for private fields
 class PrefixOperatorExpression : public Expression {
 private:
   const PrefixOperator& op;
@@ -110,12 +112,13 @@ public:
   void printSignature();
 };
 
+//TODO: Use m_ prefix for private fields here too
 class PostfixCrementExpression : public Expression {
 private:
   bool decrement;
   unique_ptr<Expression> LHS;
 public:
-  PostfixCrementExpression(std::unique_ptr<Expression>&& LHS, bool decrement, int opLine, int opCol);
+  PostfixCrementExpression(std::unique_ptr<Expression>&& LHS, bool decrement, int opLine, int opEndCol);
   bool findType() {return false;}
   void printSignature();
 };
