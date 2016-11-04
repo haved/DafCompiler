@@ -1,4 +1,5 @@
 #include "parsing/ast/Expression.hpp"
+#include "info/DafSettings.hpp"
 #include <iostream>
 
 Expression::Expression(const TextRange& range) : m_range(range) {}
@@ -71,10 +72,15 @@ FunctionExpression::FunctionExpression(std::vector<FunctionParameter>&& params,
 void FunctionExpression::printSignature() {
   m_function.printSignature();
   std::cout << " ";
-  if(m_body)
-    m_body->printSignature();
-  else
-    std::cout << "====NO_FUNCTION_BODY_ERROR!===="; //TODO: Will this ever happen?
+  if(DafSettings::shouldPrintFullSignature()) {
+    if(m_body)
+      m_body->printSignature();
+    else {
+      std::cout << "====NO_FUNCTION_BODY_ERROR!===="; //TODO: Will this ever happen?
+    }
+  } else {
+    std::cout << "{...}";
+  }
 }
 
 InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, const InfixOperator& op,
@@ -96,10 +102,8 @@ PrefixOperatorExpression::PrefixOperatorExpression(const PrefixOperator& op, int
 
 void PrefixOperatorExpression::printSignature() {
   std::cout << getTokenTypeText(op.tokenType);
-  if(RHS)
-    RHS->printSignature();
-  else
-    std::cout << "NULL_EXPR";
+  assert(RHS);
+  RHS->printSignature();
 }
 
 PostfixCrementExpression::PostfixCrementExpression(std::unique_ptr<Expression>&& LHS, bool decrement, int opLine, int opEndCol)
@@ -108,10 +112,8 @@ PostfixCrementExpression::PostfixCrementExpression(std::unique_ptr<Expression>&&
 }
 
 void PostfixCrementExpression::printSignature() {
-  if(LHS)
-    LHS->printSignature();
-  else
-    std::cout << "NULL_EXPR";
+  assert(LHS);
+  LHS->printSignature();
   std::cout << (decrement ? "--" : "++");
 }
 
@@ -121,6 +123,7 @@ FunctionCallExpression::FunctionCallExpression(unique_ptr<Expression>&& function
 }
 
 void FunctionCallExpression::printSignature() {
+  assert(m_function);
   m_function->printSignature();
   std::cout << "(";
   for(auto param = m_params.begin(); param != m_params.end(); ++param) {
