@@ -1,2 +1,0 @@
-import "<cstdio>";
-def print:=printf; //Alias
