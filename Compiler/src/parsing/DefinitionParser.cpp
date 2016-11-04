@@ -47,7 +47,7 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
     else
       type_got.swap(type);
 
-    shallParseExpression = lexer.currType() == STATEMENT_END;
+    shallParseExpression = lexer.currType() != STATEMENT_END;
     if(shallParseExpression) { //If we don't have a semicolon
       if(!lexer.expectToken(ASSIGN))
         return none();
@@ -57,7 +57,7 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
   else if(lexer.currType()==DECLARE)
     lexer.advance(); //Eat ':='
   else {
-    logDafExpectedToken(":= or =", lexer);
+    lexer.expectToken(DECLARE);
     return none();
   }
   //If current is ; we have a type and return that

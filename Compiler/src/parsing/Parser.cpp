@@ -7,7 +7,7 @@
 #include "parsing/ErrorRecovery.hpp"
 
 std::unique_ptr<ParsedFile> parseFileSyntax(const FileForParsing& ffp) {
-  auto file = std::make_unique<ParsedFile>();
+  auto file = std::unique_ptr<ParsedFile>(new ParsedFile());
   Lexer lexer(ffp);
   while(lexer.hasCurrentToken()) {
     if(lexer.currType()==STATEMENT_END) {
@@ -25,5 +25,6 @@ std::unique_ptr<ParsedFile> parseFileSyntax(const FileForParsing& ffp) {
     else if(lexer.hasCurrentToken()) //Error occurred, but already printed
       skipUntilNewDefinition(lexer);
   }
+  terminateIfErrors();
   return file;
 }

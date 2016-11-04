@@ -59,6 +59,6 @@ void terminateIfErrors() {
     if(errorsOccured == NO_ERROR)
         return;
     if(errorsOccured == ERROR)
-        logDaf(ERROR) << "Terminating due to previous errors";
-    std::exit(-1);
+        logDaf(ERROR) << "Terminating due to previous errors" << std::endl;
+    std::exit(1);
 }

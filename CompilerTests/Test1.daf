@@ -1,0 +1,11 @@
+def a:=5;
+let mut b:int=a+5;
+def main:=(i:int, b:MyClass):int {
+	let mut b:=5;
+	def let mut b_ref := b;
+	b_ref++;
+	b_ref=b*2-g; //Does not work with b*2-6!
+	timesTwo(b_ref)
+};
+
+def timesTwo:=(fac:int):int {fac*2};
