@@ -49,8 +49,8 @@ void ConstantIntegerExpression::printSignature() {
       std::cout << (daf_long)m_value;
     else
       std::cout << (daf_char)m_value;
-  }
-  std::cout << m_value;
+  } else
+    std::cout << m_value;
 }
 
 ConstantRealExpression::ConstantRealExpression(daf_double value, ConstantRealType type, const TextRange& range) : Expression(range), m_value(value), m_real_type(type) {}

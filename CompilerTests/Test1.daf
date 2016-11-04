@@ -4,7 +4,8 @@ def main:=(i:int, b:MyClass):int {
 	let mut b:=5;
 	def let mut b_ref := b;
 	b_ref++;
-	b_ref=b*2-g; //Does not work with b*2-6!
+  b=-25;
+	b_ref=b*2-b; //Does not work with b*2-6!
 	timesTwo(b_ref)
 };
 
