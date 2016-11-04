@@ -71,3 +71,7 @@ boost::optional<const PostfixOperator&> parsePostfixOperator(Lexer& lexer) {
   }
   return boost::none;
 }
+
+bool isPostfixOpEqual(const PostfixOperator& op, PostfixOps::POSTFIX_OPERATORS op_enum) {
+  return &POSTFIX_OPERATOR_INSTANCES[op_enum] == &op;
+}

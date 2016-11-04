@@ -94,5 +94,19 @@ PrefixOperatorExpression::PrefixOperatorExpression(const PrefixOperator& op, int
 
 void PrefixOperatorExpression::printSignature() {
   std::cout << getTokenTypeText(op.tokenType);
-  RHS->printSignature();
+  if(RHS)
+    RHS->printSignature();
+  else
+    std::cout << "NULL_EXPR";
+}
+
+PostfixCrementExpression::PostfixCrementExpression(std::unique_ptr<Expression>&& LHS, bool decrement, int opLine, int opCol)
+  : Expression(TextRange()), decrement(decrement), LHS(std::move(LHS)) {}
+
+void PostfixCrementExpression::printSignature() {
+  if(LHS)
+    LHS->printSignature();
+  else
+    std::cout << "NULL_EXPR";
+  std::cout << (decrement ? "--" : "++");
 }

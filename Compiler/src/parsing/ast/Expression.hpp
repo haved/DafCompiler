@@ -109,3 +109,13 @@ public:
   bool findType() {return false;}
   void printSignature();
 };
+
+class PostfixCrementExpression : public Expression {
+private:
+  bool decrement;
+  unique_ptr<Expression> LHS;
+public:
+  PostfixCrementExpression(std::unique_ptr<Expression>&& LHS, bool decrement, int opLine, int opCol);
+  bool findType() {return false;}
+  void printSignature();
+};

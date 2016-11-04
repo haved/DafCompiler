@@ -244,6 +244,18 @@ unique_ptr<Expression> mergeOpWithExpression(const PrefixOperator& prefixOp, int
   return unique_ptr<Expression>(new PrefixOperatorExpression(prefixOp, opLine, opCol, std::move(RHS)));
 }
 
+unique_ptr<Expression> mergeExpressionWithOp(Lexer& lexer, unique_ptr<Expression>&& LHS, const PostfixOperator& postfixOp) {
+  bool decr=false;
+  if(isPostfixOpEqual(postfixOp,PostfixOps::INCREMENT) || (decr=isPostfixOpEqual(postfixOp,PostfixOps::DECREMEMT))) {
+    //TODO: Use lexer.getPreviousToken or something like that
+    int line = lexer.getCurrentToken().line;
+    int endCol = lexer.getCurrentToken().endCol;
+    lexer.advance(); //Eat '++' or '--'
+    return unique_ptr<Expression>(new PostfixCrementExpression(std::move(LHS), decr, line, endCol));
+  }
+  assert(false); //Didn't know what to do with postfix expression
+}
+
 unique_ptr<Expression> parseSide(Lexer& lexer, int minimumPrecedence) {
   unique_ptr<Expression> side;
   //TODO: Implement a getPreviousToken() in the lexer. Use it here
@@ -257,13 +269,13 @@ unique_ptr<Expression> parseSide(Lexer& lexer, int minimumPrecedence) {
   else
     side = parsePrimary(lexer);
   while(true) {
-    /*optional<const InfixOperator&> postfixOp;
-    while(postfixOp=parseInfixOperator(lexer)) {
+    optional<const PostfixOperator&> postfixOp;
+    while(postfixOp=parsePostfixOperator(lexer)) {
       if(postfixOp->precedence<minimumPrecedence)
         return side;
       else
-        side = mergeExpressionWithPostfixOp(std::move(side), postfixOp);
-    }*/
+        side = mergeExpressionWithOp(lexer, std::move(side), *postfixOp);
+    }
     optional<const InfixOperator&> infixOp = parseInfixOperator(lexer);
     if(!infixOp || infixOp->precedence<minimumPrecedence)
       return side;
