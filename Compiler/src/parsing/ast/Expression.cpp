@@ -90,7 +90,9 @@ void InfixOperatorExpression::printSignature() {
 }
 
 PrefixOperatorExpression::PrefixOperatorExpression(const PrefixOperator& op, int opLine, int opCol, std::unique_ptr<Expression>&& RHS)
-  : Expression(TextRange(opLine, opCol, RHS->getRange())), op(op), RHS(std::move(RHS)) {}
+  : Expression(TextRange(opLine, opCol, RHS->getRange())), op(op), RHS(std::move(RHS)) {
+  assert(this->RHS); //Can't prefix none
+}
 
 void PrefixOperatorExpression::printSignature() {
   std::cout << getTokenTypeText(op.tokenType);
@@ -101,7 +103,9 @@ void PrefixOperatorExpression::printSignature() {
 }
 
 PostfixCrementExpression::PostfixCrementExpression(std::unique_ptr<Expression>&& LHS, bool decrement, int opLine, int opEndCol)
-  : Expression(TextRange(LHS->getRange(), opLine, opEndCol)), decrement(decrement), LHS(std::move(LHS)) {}
+  : Expression(TextRange(LHS->getRange(), opLine, opEndCol)), decrement(decrement), LHS(std::move(LHS)) {
+  assert(this->LHS); //Can't crement none
+}
 
 void PostfixCrementExpression::printSignature() {
   if(LHS)
@@ -112,8 +116,15 @@ void PostfixCrementExpression::printSignature() {
 }
 
 FunctionCallExpression::FunctionCallExpression(unique_ptr<Expression>&& function, std::vector<unique_ptr<Expression>>&& parameters, int lastLine, int lastCol)
-  : Expression(TextRange(function->getRange(), lastLine, lastCol)), m_function(std::move(function)), m_params(std::move(parameters)) {}
+  : Expression(TextRange(function->getRange(), lastLine, lastCol)), m_function(std::move(function)), m_params(std::move(parameters)) {
+  assert(m_function); //You can't call none
+}
 
 void FunctionCallExpression::printSignature() {
-  std::cout << "Functioncall";
+  m_function->printSignature();
+  std::cout << "(";
+  for(auto param = m_params.begin(); param != m_params.end(); ++param) {
+    (*param)->printSignature();
+  }
+  std::cout << ")";
 }

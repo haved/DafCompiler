@@ -234,13 +234,13 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
 
 unique_ptr<Expression> mergeExpressionsWithOp(unique_ptr<Expression>&& LHS, const InfixOperator& infixOp, unique_ptr<Expression>&& RHS) {
   if(!LHS || !RHS)
-    return unique_ptr<Expression>();
+    return none_exp();
   return unique_ptr<Expression>(new InfixOperatorExpression(std::move(LHS), infixOp, std::move(RHS)));
 }
 
 unique_ptr<Expression> mergeOpWithExpression(const PrefixOperator& prefixOp, int opLine, int opCol, unique_ptr<Expression>&& RHS) {
   if(!RHS)
-    return unique_ptr<Expression>();
+    return none_exp();
   return unique_ptr<Expression>(new PrefixOperatorExpression(prefixOp, opLine, opCol, std::move(RHS)));
 }
 
@@ -277,6 +277,8 @@ unique_ptr<Expression> parseFunctionCallExpression(Lexer& lexer, unique_ptr<Expr
   int lastLine = lexer.getCurrentToken().line;
   int lastCol = lexer.getCurrentToken().endCol;
   lexer.advance(); //Eat ')'
+  if(!function)
+     return none_exp(); //return none, but eat the entire operator
   return unique_ptr<Expression>(new FunctionCallExpression(std::move(function), std::move(parameters), lastLine, lastCol));
 }
 
@@ -287,6 +289,8 @@ unique_ptr<Expression> mergeExpressionWithOp(Lexer& lexer, unique_ptr<Expression
     int line = lexer.getCurrentToken().line;
     int endCol = lexer.getCurrentToken().endCol;
     lexer.advance(); //Eat '++' or '--'
+    if(!LHS)
+      return none_exp(); //Can't merge a none expression with an operator, but must still eat the op
     return unique_ptr<Expression>(new PostfixCrementExpression(std::move(LHS), decr, line, endCol));
   }
   else if(isPostfixOpEqual(postfixOp,PostfixOps::FUNCTION_CALL)) {
