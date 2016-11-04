@@ -1,11 +1,11 @@
 #include "parsing/ast/Operator.hpp"
 #include "parsing/lexing/Lexer.hpp"
 
-InfixOperator::InfixOperator(TokenType tokenType, int precedence) :
-  tokenType(tokenType), precedence(precedence) {}
+InfixOperator::InfixOperator(TokenType tokenType, int precedence, bool statement) :
+  tokenType(tokenType), precedence(precedence), statement(statement) {}
 
-PrefixOperator::PrefixOperator(TokenType tokenType, int precedence) :
-  tokenType(tokenType), precedence(precedence) {}
+PrefixOperator::PrefixOperator(TokenType tokenType, int precedence, bool statement) :
+  tokenType(tokenType), precedence(precedence), statement(statement) {}
 
 PostfixOperator::PostfixOperator(TokenType tokenType, int precedence) :
   tokenType(tokenType), precedence(precedence) {}
@@ -20,7 +20,7 @@ InfixOperator INFIX_OPERATOR_INSTANCES[] = {
   InfixOperator(EQUALS, 50), InfixOperator(NOT_EQUALS, 50),
   InfixOperator(REF, 40), InfixOperator(BITWISE_OR, 40),
   InfixOperator(LOGICAL_AND, 30), InfixOperator(LOGICAL_OR, 30),
-  InfixOperator(ASSIGN, 20) //Means 4+a=5 is borked, like in C++
+  InfixOperator(ASSIGN, 20, true) //Means 4+a=5 is borked, like in C++
 };
 
 PrefixOperator PREFIX_OPERATOR_INSTANCES[] = {
@@ -29,7 +29,7 @@ PrefixOperator PREFIX_OPERATOR_INSTANCES[] = {
   PrefixOperator(REF, 100), PrefixOperator(MUT_REF, 100),
   PrefixOperator(SHARED_PTR, 100), PrefixOperator(UNIQUE_PTR, 100),
   PrefixOperator(DEREFERENCE, 100), PrefixOperator(NOT, 100),
-  PrefixOperator(PLUS_PLUS, 100), PrefixOperator(MINUS_MINUS, 100),
+  PrefixOperator(PLUS_PLUS, 100, true), PrefixOperator(MINUS_MINUS, 100, true),
   PrefixOperator(SIZE_OF, 100)
 };
 

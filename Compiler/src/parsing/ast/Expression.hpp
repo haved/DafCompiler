@@ -98,6 +98,7 @@ public:
   InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, const InfixOperator& op,
                           std::unique_ptr<Expression>&& RHS);
   bool findType() {return false;}
+  bool isStatement() {return op.statement;}
   void printSignature();
 };
 
@@ -109,6 +110,7 @@ private:
 public:
   PrefixOperatorExpression(const PrefixOperator& op, int opLine, int opCol, std::unique_ptr<Expression>&& RHS);
   bool findType() {return false;}
+  bool isStatement() {return op.statement;}
   void printSignature();
 };
 
@@ -120,6 +122,7 @@ private:
 public:
   PostfixCrementExpression(std::unique_ptr<Expression>&& LHS, bool decrement, int opLine, int opEndCol);
   bool findType() {return false;}
+  bool isStatement() {return true;}
   void printSignature();
 };
 
@@ -130,5 +133,6 @@ private:
 public:
   FunctionCallExpression(unique_ptr<Expression>&& function, std::vector<unique_ptr<Expression>>&& parameters, int lastLine, int lastCol);
   bool findType() {return false;}
+  bool isStatement() {return true;}
   void printSignature();
 };

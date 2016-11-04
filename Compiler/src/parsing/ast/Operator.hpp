@@ -30,13 +30,15 @@ enum POSTFIX_OPERATORS {
 struct InfixOperator {
   const TokenType tokenType;
   const int precedence;
-  InfixOperator(TokenType tokenType, int precedence);
+  const bool statement;
+  InfixOperator(TokenType tokenType, int precedence, bool statement=false);
 };
 
 struct PrefixOperator {
   const TokenType tokenType;
   const int precedence;
-  PrefixOperator(TokenType tokenType, int precedence);
+  const bool statement;
+  PrefixOperator(TokenType tokenType, int precedence, bool statement=false);
 };
 
 struct PostfixOperator {
