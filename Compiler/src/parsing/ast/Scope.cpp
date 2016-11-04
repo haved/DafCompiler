@@ -9,9 +9,8 @@ bool Scope::isStatement() {
 }
 
 void Scope::printSignature() {
-  //TODO: Obviously
   std::cout << "{" << std::endl;
-  for(auto statement = m_statements.begin(); statement!=m_statements.end(); statement++) {
+  for(auto statement = m_statements.begin(); statement!=m_statements.end(); ++statement) {
     statement->printSignature();
   }
   if(m_outExpression) {

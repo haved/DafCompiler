@@ -110,3 +110,10 @@ void PostfixCrementExpression::printSignature() {
     std::cout << "NULL_EXPR";
   std::cout << (decrement ? "--" : "++");
 }
+
+FunctionCallExpression::FunctionCallExpression(unique_ptr<Expression>&& function, std::vector<unique_ptr<Expression>>&& parameters, int lastLine, int lastCol)
+  : Expression(TextRange(function->getRange(), lastLine, lastCol)), m_function(std::move(function)), m_params(std::move(parameters)) {}
+
+void FunctionCallExpression::printSignature() {
+  std::cout << "Functioncall";
+}

@@ -244,6 +244,42 @@ unique_ptr<Expression> mergeOpWithExpression(const PrefixOperator& prefixOp, int
   return unique_ptr<Expression>(new PrefixOperatorExpression(prefixOp, opLine, opCol, std::move(RHS)));
 }
 
+unique_ptr<Expression> parseFunctionCallExpression(Lexer& lexer, unique_ptr<Expression>&& function) {
+  assert(lexer.currType()==LEFT_PAREN); //At the start of the function call.
+  lexer.advance(); //Eat '('
+  vector<unique_ptr<Expression>> parameters;
+  if(lexer.currType()!=RIGHT_PAREN) {
+    while(true) {
+      unique_ptr<Expression> param = parseExpression(lexer);
+      if(!param) {
+        skipUntil(lexer, RIGHT_PAREN);
+        break;
+      }
+      parameters.push_back(std::move(param));
+      if(lexer.currType()==COMMA)
+        lexer.advance(); //Eat ','
+      else if(lexer.currType()==RIGHT_PAREN)
+        break;
+      else {
+        logDafExpectedToken("',' or ')'", lexer);
+        skipUntil(lexer, RIGHT_PAREN);
+        break;
+      }
+      if(!lexer.hasCurrentToken()) {
+        logDaf(lexer.getFile(), lexer.getCurrentToken().line, lexer.getCurrentToken().col, ERROR)
+            << "Hit EOF while in function call parameter list. Started at " << function->getRange().getLastLine()
+            << function->getRange().getEndCol() << std::endl;
+        break;
+      }
+    }
+  }
+  //TODO: Use lexer.getPreviousToken()
+  int lastLine = lexer.getCurrentToken().line;
+  int lastCol = lexer.getCurrentToken().endCol;
+  lexer.advance(); //Eat ')'
+  return unique_ptr<Expression>(new FunctionCallExpression(std::move(function), std::move(parameters), lastLine, lastCol));
+}
+
 unique_ptr<Expression> mergeExpressionWithOp(Lexer& lexer, unique_ptr<Expression>&& LHS, const PostfixOperator& postfixOp) {
   bool decr=false;
   if(isPostfixOpEqual(postfixOp,PostfixOps::INCREMENT) || (decr=isPostfixOpEqual(postfixOp,PostfixOps::DECREMEMT))) {
@@ -252,6 +288,9 @@ unique_ptr<Expression> mergeExpressionWithOp(Lexer& lexer, unique_ptr<Expression
     int endCol = lexer.getCurrentToken().endCol;
     lexer.advance(); //Eat '++' or '--'
     return unique_ptr<Expression>(new PostfixCrementExpression(std::move(LHS), decr, line, endCol));
+  }
+  else if(isPostfixOpEqual(postfixOp,PostfixOps::FUNCTION_CALL)) {
+    return parseFunctionCallExpression(lexer, std::move(LHS));
   }
   assert(false); //Didn't know what to do with postfix expression
 }

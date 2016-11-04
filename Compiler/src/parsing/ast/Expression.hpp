@@ -122,3 +122,13 @@ public:
   bool findType() {return false;}
   void printSignature();
 };
+
+class FunctionCallExpression : public Expression {
+private:
+  unique_ptr<Expression> m_function;
+  std::vector<unique_ptr<Expression>> m_params;
+public:
+  FunctionCallExpression(unique_ptr<Expression>&& function, std::vector<unique_ptr<Expression>>&& parameters, int lastLine, int lastCol);
+  bool findType() {return false;}
+  void printSignature();
+};

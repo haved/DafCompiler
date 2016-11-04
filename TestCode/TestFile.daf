@@ -27,6 +27,7 @@ def func:=():int {
     4+7*6+-a%g.h=4;
     a++
     b++
+    hello(23);
 };
 //def ey:=def(&move hi:int)6;
 /*
