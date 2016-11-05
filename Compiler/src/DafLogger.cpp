@@ -24,7 +24,7 @@ void logDafUpdateLevel(int logLevel) {
 }
 
 std::ostream& logDaf(int logLevel) {
-    return logDaf(DEFAULT_LOCATION, logLevel);
+  return logDaf(DEFAULT_LOCATION, logLevel);
 }
 
 std::ostream& logDaf(const FileForParsing& file, int logLevel) {
@@ -43,8 +43,8 @@ std::ostream& logDaf(const FileForParsing &file, const TextRange& range, int log
 }
 
 std::ostream& logDaf(const std::string& location, int logLevel) {
-    logDafUpdateLevel(logLevel);
-    return std::cout << location << ": " << logLevelNames[logLevel] << ": ";
+  logDafUpdateLevel(logLevel);
+  return std::cout << location << ": " << logLevelNames[logLevel] << ": ";
 }
 
 void logDafExpectedToken(const std::string& expected, Lexer& lexer) {
@@ -56,9 +56,9 @@ void logDafExpectedToken(const std::string& expected, Lexer& lexer) {
 }
 
 void terminateIfErrors() {
-    if(errorsOccured == NO_ERROR)
-        return;
-    if(errorsOccured == ERROR)
-        logDaf(ERROR) << "Terminating due to previous errors" << std::endl;
-    std::exit(1);
+  if(errorsOccured == NO_ERROR)
+    return;
+  if(errorsOccured == ERROR)
+    logDaf(ERROR) << "Terminating due to previous errors" << std::endl;
+  std::exit(1);
 }

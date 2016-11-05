@@ -1,0 +1,14 @@
+//comments are a thing
+
+let mut a:int=5;
+pub def mut b:=a;
+def let mut func:myType;
+
+def main:=(a:int, b:long, c:ANY_IDENTIFIER):int {
+    let a:=5;
+    a=a+5*a&2+&mut a; //Well shit. must change how - works
+    call(23, & &a);
+    /*():int()+()()+(a:int)(23/*, a*/+45+& & &a)-{a}*/
+};
+
+def anotherFunc:=(a:int):int a*2;

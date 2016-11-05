@@ -1,5 +1,6 @@
 def a:=5;
 let mut b:int=a+5;
+let a:int=4;
 def main:=(i:int, b:MyClass):int {
 	let mut b:=5;
 	def let mut b_ref := b;
