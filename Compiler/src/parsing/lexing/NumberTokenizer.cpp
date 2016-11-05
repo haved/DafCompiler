@@ -49,17 +49,9 @@ int Lexer::parseBase(string& text) {
 
 void printNoDigitsError(int base, bool real, const FileForParsing& file, int line, int col) {
   logDaf(file, line, col, ERROR) << "empty number literal: '"
-       <<
-          (base == 16 ?
-              "0x."
-            :
-              base == 2 ?
-                "0b"
-              :
-                "")
-      <<
-         (real? "." : "")
-      << "'" << std::endl;
+       <<(base == 16 ? "0x."
+            : base == 2 ? "0b" :"")
+      << (real? "." : "") << "'" << std::endl;
 }
 
 void Lexer::eatMainDigits(string& text, int base, bool* real) {
@@ -88,7 +80,7 @@ void Lexer::eatMainDigits(string& text, int base, bool* real) {
     }
   }
 
-  if(!atLeastOneDigit) {
+  if(!atLeastOneDigit) { //We need at least one digit, or we'll add 0 to the end and  give an error
     printNoDigitsError(base, *real, getFile(), line, col);
     text.push_back('0');
   }
