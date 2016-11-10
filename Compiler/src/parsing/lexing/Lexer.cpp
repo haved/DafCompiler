@@ -67,6 +67,29 @@ bool Lexer::parseNumberLiteral(Token& token) {
   int startLine = line;
   int startCol = col;
 
+  assert(isDigit(currentChar));
+
+  int base = 10;
+
+  if(currentChar=='0') {
+    if(currentChar=='x') {
+      advanceChar();
+      advanceChar();
+      base = 16;
+    }
+    else if(currentChar=='b') {
+      advanceChar();
+      advanceChar();
+      base = 2;
+    }
+  }
+}
+
+/*
+bool Lexer::parseNumberLiteral(Token& token) {
+  int startLine = line;
+  int startCol = col;
+
   bool signedNum = false;
   std::string numberText;
   if(isNegateChar(currentChar)) {
@@ -179,7 +202,7 @@ char Lexer::parseOneChar() {
 
   logDaf(fileForParsing, controlLine, controlCol, ERROR) << "Expected a special char, not '" << control << "'";
   return control;
-}
+}*/
 
 bool Lexer::parseStringLiteral(Token& token) {
   return false;
