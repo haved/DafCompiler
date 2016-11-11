@@ -13,6 +13,8 @@ as of RULES_SET
 3. All commited code changes must be compilable, and run all its tests without errors
 as of TEST\_SCRIPT\_ADDED
 1. CompilerTests and its future sub-folders are for testing
+3. You have got RunTests.py MakeCallgraph.py and CompileToTest.py
 2. No test script functionality is removed
 3. All tests must pass in a commit, including memory tests
 4. .daf and .daf.test are tests
+
