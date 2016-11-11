@@ -35,34 +35,15 @@ public:
   void printSignature();
 };
 
-enum ConstantIntegerType {
-  LONG_CONSTANT, INTEGER_CONSTANT, CHAR_CONSTANT
-};
+namespace NumberLiteralConstants {
+  enum ConstantRealType {
+    F32, F64
+  };
 
-class ConstantIntegerExpression : public Expression {
-private:
-  daf_ulong m_value;
-  bool m_signed;
-  ConstantIntegerType m_integer_type;
-public:
-  ConstantIntegerExpression(daf_ulong value, bool isSigned, ConstantIntegerType type, const TextRange& range);
-  bool findType(); //override
-  void printSignature();
-};
-
-enum ConstantRealType {
-  FLOAT_CONSTANT, DOUBLE_CONSTANT
-};
-
-class ConstantRealExpression : public Expression {
-private:
-  daf_double m_value;
-  ConstantRealType m_real_type;
-public:
-  ConstantRealExpression(daf_double value, ConstantRealType type, const TextRange& range);
-  bool findType(); //override
-  void printSignature();
-};
+  enum ConstantIntegerType {
+    U8, I8, U16, I16, U32, I32, U64, I64
+  };
+}
 
 class ConstantStringExpression : public Expression {
 public:
