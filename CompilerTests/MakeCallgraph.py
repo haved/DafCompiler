@@ -1,11 +1,13 @@
 #!/usr/bin/python
 
 from subprocess import run, TimeoutExpired
-from os.path import isfile
+from os.path import isfile, isdir
 
 from sys import argv
 
-defaultArgs = ["../Compiler/build/Debug/DafCompiler", "TestFile.daf"]
+binary = "TestBuild/DafCompiler" if isdir("TestBuild/") else "../Compiler/build/Debug/DafCompiler"
+
+defaultArgs = [binary, "TestFile.daf"]
 timeout = 2
 tmpFile = "callgrind.out.tmp"
 

@@ -1,8 +1,8 @@
 //import daf.iostream as _;
 //pub import other.file as OF; //If a file imports this file, you use thisFile.OF.field;
 
-let x:=2;
-def a:=4;
+let x:=a;
+def a:=b;
 let mut b:=0x6.1p0f;
 
 def test:=(3);

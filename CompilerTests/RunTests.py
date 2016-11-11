@@ -1,14 +1,14 @@
 #!/usr/bin/python
 
 from os import listdir
-from os.path import isfile
+from os.path import isfile, isdir
 from sys import argv, stdout, stderr
 
 from subprocess import Popen, run, TimeoutExpired, PIPE
 
 from re import compile
 
-binary = "../Compiler/build/Debug/DafCompiler"
+binary = "TestBuild/DafCompiler" if isdir("TestBuild/") else "../Compiler/build/Debug/DafCompiler"
 filterText =  ".*"
 allowOtherThanDaf = False
 memcheck = False

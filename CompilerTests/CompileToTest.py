@@ -7,8 +7,8 @@ from sys import argv
 from os.path import isdir
 from os import makedirs, chdir
 
-buildDir = "../Compiler/build/Testing"
-cmakeRelative = "../.."
+buildDir = "TestBuild"
+cmakeRelative = "../../Compiler/"
 
 if len(argv) > 1:
     if len(argv) < 3:
