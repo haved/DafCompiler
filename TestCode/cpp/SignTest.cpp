@@ -26,5 +26,9 @@ int main() {
             << "-0x80000000 " << -0x80000000 << std::endl
             << "0x8000000 == -0x80000000: " << (0x80000000 == -0x80000000) << std::endl
             << "0x7fffffff " << 0x7fffffff << std::endl
-            << "(u32)(-1) " << ((unsigned int)-1) << std::endl; 
+            << "(u32)(-1) " << ((unsigned int)-1) << std::endl
+            << "0x80000000 " << 0x80000000 << std::endl
+            << "-0x80000000 "<< -0x80000000 << std::endl
+            << "(i32) -0x80000000 " << (int)(-0x80000000) << std::endl;
+
 }

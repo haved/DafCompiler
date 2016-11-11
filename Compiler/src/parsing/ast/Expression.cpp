@@ -34,33 +34,18 @@ void VariableExpression::printSignature() {
   std::cout << m_name;
 }
 
-ConstantIntegerExpression::ConstantIntegerExpression(daf_ulong value, bool isSigned, ConstantIntegerType type, const TextRange& range)
-                  : Expression(range), m_value(value), m_signed(isSigned), m_integer_type(type) {}
+IntegerConstantExpression::IntegerConstantExpression(daf_largest_uint integer, NumberLiteralConstants::ConstantIntegerType integerType, TextRange &range)
+  : Expression(range), m_integer(integer), m_integerType(integerType) {}
 
-bool ConstantIntegerExpression::findType() {
-  return false;
+void IntegerConstantExpression::printSignature() {
+  std::cout << m_integer;
 }
 
-void ConstantIntegerExpression::printSignature() {
-  if(m_signed) {
-    if(m_integer_type==INTEGER_CONSTANT)
-      std::cout << (daf_int)m_value;
-    else if(m_integer_type==LONG_CONSTANT)
-      std::cout << (daf_long)m_value;
-    else
-      std::cout << (daf_char)m_value;
-  } else
-    std::cout << m_value;
-}
+RealConstantExpression::RealConstantExpression(daf_largest_float real, NumberLiteralConstants::ConstantRealType realType, TextRange &range)
+  : Expression(range), m_real(real), m_realType(realType) {}
 
-ConstantRealExpression::ConstantRealExpression(daf_double value, ConstantRealType type, const TextRange& range) : Expression(range), m_value(value), m_real_type(type) {}
-
-bool ConstantRealExpression::findType() {
-  return false;
-}
-
-void ConstantRealExpression::printSignature() {
-  std::cout << m_value;
+void RealConstantExpression::printSignature() {
+  std::cout << m_real;
 }
 
 //Maybe add something in daf to make this prettier? I dunno

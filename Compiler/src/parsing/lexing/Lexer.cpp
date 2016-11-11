@@ -9,8 +9,8 @@
 
 Lexer::Lexer(const FileForParsing& file) : fileForParsing(file), infile(),
   tokens(), currentToken(0), line(0), col(0), currentChar('\n'), lookaheadChar('\n') {
-  infile.open(file.m_inputFile.string()); //For the time being, there is no text processor
-  advanceChar(); //To set look-ahead char
+  infile.open(file.m_inputFile.string()); //For the time being, there is no text processing
+  advanceChar(); //To(setq sublimity-attractive-centering-width 110) set look-ahead char
   advanceChar(); //To set current char
   line = 1;
   col = FIRST_CHAR_COL; //First char is col 0
@@ -63,120 +63,126 @@ bool isLegalSpecialChar(char c) {
   return (c >= '!' && c <= '/') || (c >= ':' && c <= '@') || (c >= '[' && c <= '_') || (c >= '{' && c <= '}');
 }
 
-bool Lexer::parseNumberLiteral(Token& token) {
-  int startLine = line;
-  int startCol = col;
-
-  assert(isDigit(currentChar));
-
-  int base = 10;
-
-  if(currentChar=='0') {
-    if(currentChar=='x') {
-      advanceChar();
-      advanceChar();
-      base = 16;
-    }
-    else if(currentChar=='b') {
-      advanceChar();
-      advanceChar();
-      base = 2;
-    }
-  }
+//TODO: Micro optimization ? :)
+int getCharDigitValue(char c) {
+  if(c>='0' && c<='9')
+    return c-'0';
+  else if(c>='a' && c<='f')
+    return c-'a'+10; //a is 10+0, f is 10+5
+  else if(c>='A' && c<='F')
+    return c-'A'+10;
+  return -1;
 }
 
-/*
 bool Lexer::parseNumberLiteral(Token& token) {
   int startLine = line;
   int startCol = col;
 
-  bool signedNum = false;
-  std::string numberText;
-  if(isNegateChar(currentChar)) {
-    signedNum = true;
-    numberText.push_back('-');
-    advanceChar();
+  assert(isDigit(currentChar)||isDecimalPoint(currentChar));
+
+  std::string text;
+
+  int base = 10;
+  if(currentChar=='0') {
+    if(currentChar=='x' || currentChar=='b') {
+      text.push_back(currentChar);
+      text.push_back(lookaheadChar);
+      advanceChar();
+      advanceChar();
+      base = currentChar=='x'?16:2;
+    }
   }
 
-  bool hexadecimal = false;
-  if(currentChar=='0' && lookaheadChar=='x') {
-    hexadecimal = true;
-    numberText.append("0x");
-    advanceChar();
-    advanceChar();
-  }
-
-  bool real=false;
-  bool e=false;
-  bool p=false;
-  unsigned int preDigitsLen = numberText.length();
-  while((hexadecimal && isHexaDigit(currentChar)) || isDigit(currentChar) ||
-        (!real&&(real = isDecimalPoint(currentChar))) || (!e&&(e=currentChar=='e')) || (hexadecimal&&!p&&(p=currentChar=='p'))) { //Nice
-    if(e&&p)
-      break; //Can't have both
-    if(p)
-      hexadecimal = false;
-    // the bool 'e' is only set if hexadecimal is false
-    assert(!(e&&hexadecimal));
-
-    numberText.push_back(currentChar);
-    advanceChar();
-  }
-  real|=e||p;
-
-  if(real && hexadecimal)
-    logDaf(fileForParsing, startLine, startCol, ERROR) << "A hexadecimal floating point literal must have an exponent" << std::endl;
-
-  if(numberText.length()==preDigitsLen)
-    logDaf(fileForParsing, startLine, startCol, ERROR) << "The number literal didn't contain any number" << std::endl;
-
-  bool single = false;
-  bool longer = false;
-  if(currentChar == 'f' || currentChar == 'F') {
-    real = true;
-    single = true;
-    numberText.push_back('f');
-    advanceChar();
-  }
-  else if(currentChar == 'l' || currentChar == 'L') {
-    if(real) {
-      logDaf(fileForParsing, line, col, ERROR) << "A floating point number can't be a long literal" << std::endl;
+  bool realNumber = false;
+  while(true) {
+    int charVal = getCharDigitValue(currentChar);
+    if(charVal >= 0 && charVal < base) {
+      text.push_back(currentChar);
+      advanceChar();
     } else {
-      longer = true;
-      numberText.push_back('l');
+      if(!realNumber && isDecimalPoint(currentChar))
+        realNumber = true;
+      else
+        break;
+
+      text.push_back(currentChar);
       advanceChar();
     }
   }
 
-  try {
-    if(real) {
-      if(single) {
-        setTokenFromRealNumber(token, std::stof(numberText), true, startLine, startCol, numberText);
-      } else {
-        setTokenFromRealNumber(token, std::stod(numberText), false, startLine, startCol, numberText);
-      }
-    } else {
-      if(longer) {
-        if(signedNum)
-          setTokenFromInteger(token, std::stol(numberText, nullptr, hexadecimal?16:10), true, true, startLine, startCol, numberText);
-        else
-          setTokenFromInteger(token, std::stoul(numberText, nullptr, hexadecimal?16:10), false, true, startLine, startCol, numberText);
-      } else {
-        if(signedNum)
-          setTokenFromInteger(token, std::stoi(numberText, nullptr, hexadecimal?16:10), true, false, startLine, startCol, numberText);
-        else {
-          unsigned long result = std::stoul(numberText, nullptr, hexadecimal?16:10);
-          if (result > std::numeric_limits<daf_uint>::max())
-              throw std::out_of_range("stou");
-          setTokenFromInteger(token, result, false, false, startLine, startCol, numberText);
-        }
-      }
+  if(realNumber) {
+    if((base == 10 && currentChar == 'e') || (base == 16 && currentChar == 'p')) {
+      do { //Ey, using do while :)
+        text.push_back(currentChar);
+        advanceChar();
+      } while(isDigit(currentChar) || (base==16&&isHexaDigit(currentChar)));
     }
-    return true;
-  } catch(std::out_of_range our) {
-    logDaf(fileForParsing, startLine, startCol, ERROR) << "Number " << numberText << " too big for " << (real?single?"float":"double":longer?"long":"int") << std::endl;
-    return false;
   }
+
+  char type='\0';
+  int size = 32;
+  if(realNumber ? currentChar == 'f' : currentChar == 'i' || currentChar == 'u') {
+    type = currentChar;
+    advanceChar(); //Eat 'type'
+
+    char next = '\0';
+    switch(currentChar) {
+    case '8':
+      size = 8;
+      break;
+    case '1':
+      next='6';
+      size = 16;
+      break;
+    case '3':
+      next = '2';
+      size=32;
+      break;
+    case '6':
+      next='4';
+      size=64;
+      break;
+    default:
+      next = '?';
+      break;
+    }
+    advanceChar();
+    if(next=='?') {
+      auto &out = logDaf(getFile(), line, col, ERROR) << "When specifying " << (type=='f'?"real":type=='i'?"signed integer":"unsigned integer") << " literal type, use ";
+      if (type != 'f')
+        out << type << "8, " << type << "16, ";
+      out << type << "32, or " << type << "64" << std::endl;
+      type = '\0';
+      //Size is 32 and type is back to '\0'
+    }
+    else if(next != '\0');
+    else if(currentChar != next) {
+      logDaf(getFile(), line, col, ERROR) << "Expected '" << next << "' before '" << currentChar << "' when parsing number literal type \"" << type << size << std::endl;
+    } else {
+      advanceChar(); //Eat second digit in type size;
+    }
+  }
+
+  if(realNumber && type != '\0' && type != 'f') {
+    logDaf(getFile(), line, col, ERROR) << "A floating point number can't be marked with '" << type << size << '\'' << std::endl;
+    type = 'f';
+    if(size != 32 && size != 64)
+      size = 32;
+  }
+  else if(type == 'f' && size != 32 && size != 64) {
+    logDaf(getFile(), line, col, ERROR) << "A floating point number can only be of sizes f32 and f64" << std::endl;
+    size = 32;
+  }
+
+  if(realNumber) {
+    std::cout << "Real number '" << text << "' of type " << type << size << std::endl;
+    //TODO: Make the text include the type, or at least set endCol correctly
+    setTokenFromRealNumber(token, size == 32 ? NumberLiteralConstants::F32 : NumberLiteralConstants::F64, 0.0, startLine, startCol, text);
+  } else {
+    std::cout << "Integer '" << text << "' of type " << type << size << std::endl;
+    setTokenFromInteger(token, NumberLiteralConstants::I32, 0, startLine, startCol, text);
+  }
+  return true;
 }
 
 char Lexer::parseOneChar() {
@@ -202,7 +208,7 @@ char Lexer::parseOneChar() {
 
   logDaf(fileForParsing, controlLine, controlCol, ERROR) << "Expected a special char, not '" << control << "'";
   return control;
-}*/
+}
 
 bool Lexer::parseStringLiteral(Token& token) {
   return false;
@@ -230,7 +236,7 @@ bool Lexer::advance() {
         break;
       }
 
-      if(isDigit(currentChar)||(isDigit(lookaheadChar)&&(isDecimalPoint(currentChar)||isNegateChar(currentChar)))) { //Nice
+      if(  isDigit(currentChar)||(isDigit(lookaheadChar)&&isDecimalPoint(currentChar))  ) { //Nice
         if(parseNumberLiteral(getLastToken()))
           break; //If the lookahead token was set (Wanted behaviour)
         continue; //Otherwise an error was given and we keep looking for tokens

@@ -35,15 +35,25 @@ public:
   void printSignature();
 };
 
-namespace NumberLiteralConstants {
-  enum ConstantRealType {
-    F32, F64
-  };
+class IntegerConstantExpression: public Expression {
+private:
+  daf_largest_uint m_integer;
+  NumberLiteralConstants::ConstantIntegerType m_integerType;
+public:
+  IntegerConstantExpression(daf_largest_uint integer, NumberLiteralConstants::ConstantIntegerType integerType, TextRange& range);
+  void printSignature();
+  bool findType() {return false;}
+};
 
-  enum ConstantIntegerType {
-    U8, I8, U16, I16, U32, I32, U64, I64
-  };
-}
+class RealConstantExpression : public Expression {
+private:
+  daf_largest_float m_real;
+  NumberLiteralConstants::ConstantRealType m_realType;
+public:
+  RealConstantExpression(daf_largest_float real, NumberLiteralConstants::ConstantRealType realType, TextRange& range);
+  void printSignature();
+  bool findType() {return false;}
+};
 
 class ConstantStringExpression : public Expression {
 public:

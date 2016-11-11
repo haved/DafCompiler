@@ -1,6 +1,6 @@
 #include "parsing/lexing/Token.hpp"
 
-//Huge performance boost potential
+//TODO: Huge performance boost potential
 const char* TOKEN_TEXT[] = {
   "pub", "let", "def", "typedef", "import", "mut", "uncertain", "move",
 
@@ -86,25 +86,21 @@ const char* getTokenTypeText(const TokenType& type) {
 }
 
 const char* getTokenText(const Token& token) {
-  if(token.type >= FIRST_TEXT_TOKEN && token.type < FIRST_INTEGER_TOKEN)
+  if(token.type >= FIRST_TEXT_TOKEN && token.type <= LAST_TEXT_TOKEN)
     return token.text.c_str();
   return getTokenTypeText(token.type);
 }
 
-Token::Token() : type(PUB), text(), number(0), numberSigned(false), real_number(0), line(0), col(0), endCol(0) {}
+Token::Token() : type(PUB), text(), integerType(NumberLiteralConstants::I32), integer(0), realType(NumberLiteralConstants::F32), real(0.0), line(0), col(0), endCol(0) {}
 
 void resetTokenSetText(Token& token, const std::string& text) {
   token.text = text;
-  token.number = 0;
-  token.numberSigned = false;
-  token.real_number = 0;
+  token.real = 0.0;
+  token.integer = 0;
 }
 
 void resetTokenSpecialValues(Token& token) {
-  token.text = "";
-  token.number = 0;
-  token.numberSigned = false;
-  token.real_number = 0;
+  resetTokenSetText(token, "");
 }
 
 bool setTokenFromWord(Token& token, const std::string& text, int line, int startCol, int endCol) {
@@ -138,22 +134,23 @@ bool setTokenFromSpecialChar(Token& token, char c, int line, int col) {
   return false;
 }
 
-void setTokenFromRealNumber(Token& token, daf_double number, bool floater, int line, int col, const std::string& text) {
-  token.type = floater ? FLOAT_LITERAL : DOUBLE_LITERAL;
-  token.real_number = number;
-  token.number = 0;
-  token.numberSigned = false;
+void setTokenFromRealNumber(Token& token, NumberLiteralConstants::ConstantRealType realType, daf_largest_float real, int line, int col, const std::string& text) {
+  token.type = REAL_LITERAL;
+  token.real = real;
+  token.realType = realType;
+  token.integer = 0;
   token.line = line;
   token.col = col;
   token.text = text;
   token.endCol = col+text.length();
 }
 
-void setTokenFromInteger(Token& token, daf_ulong number, bool isSigned, bool longer, int line, int col, const std::string& text) {
-  token.type = longer ? LONG_LITERAL : INTEGER_LITERAL;
-  token.real_number = 0.0;
-  token.number = number;
-  token.numberSigned = isSigned;
+void setTokenFromInteger(Token& token, NumberLiteralConstants::ConstantIntegerType intType, daf_largest_uint integer, int line, int col, const std::string& text) {
+  token.type = INTEGER_LITERAL;
+  //We don't reset the RealType to anything
+  token.integer = integer;
+  token.integerType = intType;
+  token.real = 0.0;
   token.line = line;
   token.col = col;
   token.text = text;

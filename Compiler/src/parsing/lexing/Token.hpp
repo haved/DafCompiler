@@ -35,15 +35,14 @@ enum TokenType {
 
   MUT_REF, MOVE_REF, UNIQUE_PTR, SHARED_PTR,
 
-  IDENTIFIER=300,STRING_LITERAL,CHAR_LITERAL,INTEGER_LITERAL,LONG_LITERAL,FLOAT_LITERAL,DOUBLE_LITERAL,
+  IDENTIFIER=300,STRING_LITERAL,INTEGER_LITERAL,REAL_LITERAL,
   END_TOKEN=330, ERROR_TOKEN,
 };
 
 #define FIRST_ONE_CHAR_TOKEN ASSIGN
 #define FIRST_COMPOSITE_TOKEN DECLARE
 #define FIRST_TEXT_TOKEN IDENTIFIER
-#define FIRST_INTEGER_TOKEN INTEGER_LITERAL
-#define FIRST_REAL_TOKEN FLOAT_LITERAL
+#define LAST_TEXT_TOKEN REAL_LITERAL
 #define FIRST_SPECIAL_TOKEN END_TOKEN
 
 #include "info/PrimitiveSizes.hpp"
@@ -51,9 +50,11 @@ enum TokenType {
 struct Token {
   TokenType type;
   std::string text;
-  daf_ulong number;
-  bool numberSigned;
-  daf_double real_number;
+  //Really wished I had an 'either' type. Can't wait for daf :)
+  NumberLiteralConstants::ConstantIntegerType integerType;
+  daf_largest_uint integer;
+  NumberLiteralConstants::ConstantRealType realType;
+  daf_largest_float real;
   int line;
   int col;
   int endCol; //The letter after the text is over
@@ -68,9 +69,9 @@ bool setTokenFromWord(Token& token, const std::string& word, int line, int start
 
 bool setTokenFromSpecialChar(Token& token, char c, int line, int col);
 
-void setTokenFromRealNumber(Token& token, daf_double number, bool floater, int line, int col, const std::string& text);
+void setTokenFromRealNumber(Token& token, NumberLiteralConstants::ConstantRealType realType, daf_largest_float real, int line, int col, const std::string& text);
 
-void setTokenFromInteger(Token& token, daf_ulong number, bool isSigned, bool longer, int line, int col, const std::string& text);
+void setTokenFromInteger(Token& token, NumberLiteralConstants::ConstantIntegerType intType, daf_largest_uint integer, int line, int col, const std::string& text);
 
 bool mergeTokens(Token& first, const Token& second);
 

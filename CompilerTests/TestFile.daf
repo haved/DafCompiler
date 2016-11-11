@@ -1,15 +1,15 @@
 //import daf.iostream as _;
 //pub import other.file as OF; //If a file imports this file, you use thisFile.OF.field;
-
+/*
 let x:=a;
 def a:=b;
-let mut b:=0x6.1p0f;
-
-def test:=(3);
+let mut b:=g;
+*/
+def test:=(4+5)*2;
 
 //int is not a define type. You'll have to define it yourself
 
-def main:=inline (&hi:int):mut int 4;
+/*def main:=inline (&hi:int):mut int 4;
 def my:=(&mut bruh:int) eyo;
 def bro:=3;
 def func:=():int {
@@ -24,11 +24,10 @@ def func:=():int {
     let mut a:=5-3;
     def let mut b := a;
     ++b;
-    4+7*6+-a%g.h=4;
     a++;
     b++;
     hello(23);
-};
+};*/
 //def ey:=def(&move hi:int)6;
 /*
 def getName:=(&a:Person) a.getName();

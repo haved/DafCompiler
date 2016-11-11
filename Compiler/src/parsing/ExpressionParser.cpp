@@ -26,8 +26,20 @@ unique_ptr<Expression> parseVariableExpression(Lexer& lexer) {
   return out;
 }
 
-unique_ptr<Expression> parseNumberExpression(Lexer& lexer) {
-  return none_exp();
+unique_ptr<Expression> parseIntegerExpression(Lexer& lexer) {
+  Token& token = lexer.getCurrentToken();
+  TextRange range(token);
+  unique_ptr<Expression> out(new IntegerConstantExpression(token.integer, token.integerType, range));
+  lexer.advance();
+  return out;
+}
+
+unique_ptr<Expression> parseRealNumberExpression(Lexer& lexer) {
+  Token& token = lexer.getCurrentToken();
+  TextRange range(token);
+  unique_ptr<Expression> out(new RealConstantExpression(token.real, token.realType, range));
+  lexer.advance();
+  return out;
 }
 
 optional<FunctionParameter> parseFunctionParameter(Lexer& lexer) {
@@ -144,13 +156,14 @@ unique_ptr<Expression> parseParenthesies(Lexer& lexer) {
     return parseFunctionExpression(lexer);
 
   unique_ptr<Expression> expr = parseExpression(lexer);
-  if(lexer.getCurrentToken().type == RIGHT_PAREN) {
+  if(!expr || !lexer.expectToken(RIGHT_PAREN)) {
+    skipUntil(lexer, RIGHT_PAREN);
     lexer.advance(); //Eat ')'
-    return expr;
+    return none_exp();
   }
 
-  logDafExpectedToken("')' or ':'", lexer);
-  return none_exp();
+  lexer.advance(); //Eat ')'
+  return expr;
 }
 
 unique_ptr<Expression> parseScope(Lexer& lexer) {
@@ -200,12 +213,10 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
     return parseFunctionExpression(lexer);
   case SCOPE_START:
     return parseScope(lexer);
-  case CHAR_LITERAL:
   case INTEGER_LITERAL:
-  case LONG_LITERAL:
-  case FLOAT_LITERAL:
-  case DOUBLE_LITERAL:
-    return parseNumberExpression(lexer);
+    return parseIntegerExpression(lexer);
+  case REAL_LITERAL:
+    return parseRealNumberExpression(lexer);
   default: break;
   }
   logDafExpectedToken("a primary expression", lexer);
