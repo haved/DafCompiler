@@ -7,11 +7,11 @@ Before this point, source folders are renamed, and unbuildable commits are pushe
 At the time of RULES\_SET, all memory tests are showing no problems.
 
 ####Rules:
-as of RULES_SET
+as of RULES\_SET
 1. The name of a source directory can't change
 2. The name of a build directory may change
 3. All commited code changes must be compilable, and run all its tests without errors
-as of TEST\_SCRIPT\_ADDED
+as of TEST\_SCRIPTS\_ADDED\_1
 1. CompilerTests and its future sub-folders are for testing
 3. You have got RunTests.py MakeCallgraph.py and CompileToTest.py
 2. No test script functionality is removed
