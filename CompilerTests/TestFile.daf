@@ -5,7 +5,17 @@ let x:=a;
 def a:=b;
 let mut b:=g;
 */
-def test:=(4.1+5.2)*0x2.2p3;
+def test:=(4.1+5.2)*2.4e2f32;
+
+def main:=() {
+let mut a:=456;
+a = 4.3 + 4. + .5;
+a = 234u8 + 67i8 - 4u16 + 789i16 - 5u32 * 778i32 / 65u64 % 4u64;
+a = 4e6 + 3e7u32 + 2e8i64;
+a = 0x4 - 0b100101 + 0x5e3u16 - 0x23fAbCi64;
+a = 0x3.4p2 - 0x7.34p0f64 + 0x5.p2f32;
+a = 0.4f32 - 0.8f64;
+};
 
 //int is not a define type. You'll have to define it yourself
 
