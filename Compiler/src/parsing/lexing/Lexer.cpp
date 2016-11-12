@@ -43,10 +43,6 @@ bool isDigit(char c) {
   return c >= '0' && c <= '9';
 }
 
-bool isNegateChar(char c) {
-  return c == '-';
-}
-
 bool isDecimalPoint(char c) {
   return c == '.';
 }
@@ -84,12 +80,12 @@ bool Lexer::parseNumberLiteral(Token& token) {
 
   int base = 10;
   if(currentChar=='0') {
+    text.push_back(currentChar);
+    advanceChar();
     if(currentChar=='x' || currentChar=='b') {
       text.push_back(currentChar);
-      text.push_back(lookaheadChar);
-      advanceChar();
-      advanceChar();
       base = currentChar=='x'?16:2;
+      advanceChar(); //Eat 'x' or 'b'
     }
   }
 
@@ -163,7 +159,9 @@ bool Lexer::parseNumberLiteral(Token& token) {
     }
   }
 
-  if(realNumber && type != '\0' && type != 'f') {
+  if(realNumber && type == '\0')
+    type = 'f';
+  if(realNumber && type != 'f') {
     logDaf(getFile(), line, col, ERROR) << "A floating point number can't be marked with '" << type << size << '\'' << std::endl;
     type = 'f';
     if(size != 32 && size != 64)
@@ -175,9 +173,14 @@ bool Lexer::parseNumberLiteral(Token& token) {
   }
 
   if(realNumber) {
-    std::cout << "Real number '" << text << "' of type " << type << size << std::endl;
+    assert(type=='f');
+    daf_largest_float f;
+    if(size==32)
+      f = std::stof(text);
+    else
+      f = std::stod(text);
     //TODO: Make the text include the type, or at least set endCol correctly
-    setTokenFromRealNumber(token, size == 32 ? NumberLiteralConstants::F32 : NumberLiteralConstants::F64, 0.0, startLine, startCol, text);
+    setTokenFromRealNumber(token, size == 32 ? NumberLiteralConstants::F32 : NumberLiteralConstants::F64, f, startLine, startCol, text);
   } else {
     std::cout << "Integer '" << text << "' of type " << type << size << std::endl;
     setTokenFromInteger(token, NumberLiteralConstants::I32, 0, startLine, startCol, text);
