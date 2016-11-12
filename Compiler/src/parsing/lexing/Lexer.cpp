@@ -106,27 +106,31 @@ bool Lexer::parseNumberLiteral(Token& token) {
     }
   }
 
+  bool brokenExpo = false;
   bool p;
   while((p = (currentChar == 'p'))) { //We go until we don't have a 'p'
     if(!realNumber)
       logDaf(getFile(), line, col, ERROR) << "'p' indicating power of two after an integer" << std::endl;
-    if(base == 10)
+    else if(base == 10)
       logDaf(getFile(), line, col, ERROR) << "'p' indicating power of two after base 10 real" << std::endl;
     else
       break; //...or we find out we are allowed to have a 'p'
     advanceChar();
+    brokenExpo = true; //We had to skip the p, but the numbers following should be skipped
   }
 
   bool eB_N10 = currentChar == 'e' && base != 10; //If we have an 'e' but are not allowed
   while(eB_N10) {
     logDaf(getFile(), line, col, ERROR) << "'e' following non base 10 " << (realNumber?"real":"integer") << std::endl;
     advanceChar();
+    brokenExpo = true; //What comes after e should also be skipped
     eB_N10 = currentChar == 'e'; //We already know the base is not 10
   }
 
-  if(currentChar == 'e' || p) { //We are allowed to push them if they are current
+  if(currentChar == 'e' || p || brokenExpo) { //We are allowed to push them if they are current
     do { //Ey, using do while :)
-      text.push_back(currentChar);
+      if(!brokenExpo)
+        text.push_back(currentChar);
       advanceChar(); //Eat [ep0-9]
     } while(isDigit(currentChar));
   }
@@ -134,7 +138,7 @@ bool Lexer::parseNumberLiteral(Token& token) {
   char type='\0';
   int size = 32;
   if(realNumber ? currentChar == 'i' || currentChar == 'u' : currentChar == 'f') {
-    logDaf(getFile(), startLine, startCol, ERROR) << "Mismatch between " << (realNumber ? "real number" : "integer") << " and type " << currentChar << std::endl;
+    logDaf(getFile(), startLine, startCol, ERROR) << "Mismatch between " << (realNumber ? "real number" : "integer") << " and type '" << currentChar << '\'' << std::endl;
     advanceChar(); //Eat botched type on the end
     if(currentChar == '1' || currentChar == '3' || currentChar == '6') {
       advanceChar(); //Eat [136]
@@ -186,7 +190,7 @@ bool Lexer::parseNumberLiteral(Token& token) {
     else
       advanceChar(); //Eat second part of type size
 
-    { //Eat any digits or  left
+    { //Eat any digits or [epuif] left
       bool printed = false;
       std::ostream* out;
       while(isHexaDigit(currentChar) || currentChar == 'u' || currentChar == 'i' || currentChar == 'p') {
