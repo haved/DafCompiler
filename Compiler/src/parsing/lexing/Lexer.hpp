@@ -6,6 +6,8 @@
 
 #define TOKEN_COUNT_AMOUNT 3
 
+using std::string;
+
 class Lexer {
 private:
   const FileForParsing& fileForParsing;
@@ -17,10 +19,14 @@ private:
   char currentChar;
   char lookaheadChar;
   void advanceChar();
-  bool parseNumberLiteral(Token& token);
   char parseOneChar();
   bool parseStringLiteral(Token& token);
   bool parseCharLiteral(Token& token);
+
+  int parseBase(string& text);
+  void eatMainDigits(string& text, int base, bool* real);
+  void checkForExponent(string& text, int base, bool real);
+  bool parseNumberLiteral(Token& token);
 public:
   Lexer(const FileForParsing& file);
   bool advance();

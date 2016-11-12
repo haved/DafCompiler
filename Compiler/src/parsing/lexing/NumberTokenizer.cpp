@@ -20,6 +20,8 @@ bool isPartOfNumber(char c) {
 }
 using namespace _numberTokenizer;
 
+//using std::string;
+
 //TODO: Micro optimization ? :)
 int getCharDigitValue(char c) {
   if(c>='0' && c<='9')
@@ -31,14 +33,7 @@ int getCharDigitValue(char c) {
   return -1;
 }
 
-bool Lexer::parseNumberLiteral(Token& token) {
-  int startLine = line;
-  int startCol = col;
-
-  assert(isDigit(currentChar)||isDecimalPoint(currentChar));
-
-  std::string text;
-
+int Lexer::parseBase(string& text) {
   int base = 10;
   if(currentChar=='0') {
     text.push_back(currentChar);
@@ -49,16 +44,42 @@ bool Lexer::parseNumberLiteral(Token& token) {
       advanceChar(); //Eat 'x' or 'b'
     }
   }
+  return base;
+}
 
-  bool realNumber = false;
+void printNoDigitsError(int base, bool real, const FileForParsing& file, int line, int col) {
+  logDaf(file, line, col, ERROR) << "empty number literal: '"
+       <<
+          (base == 16 ?
+              "0x."
+            :
+              base == 2 ?
+                "0b"
+              :
+                "")
+      <<
+         (real? "." : "")
+      << "'" << std::endl;
+}
+
+void Lexer::eatMainDigits(string& text, int base, bool* real) {
+  *real = false;
+  bool atLeastOneDigit = false;
   while(true) {
     int charVal = getCharDigitValue(currentChar);
     if(charVal >= 0 && charVal < base) {
+      atLeastOneDigit = true;
       text.push_back(currentChar);
       advanceChar();
     } else {
-      if(!realNumber && isDecimalPoint(currentChar))
-        realNumber = true;
+      if(!*real && isDecimalPoint(currentChar)) { //If it hasn't already got a decimal point
+        if(base==2) { //A base 2 literal can't have a decimal point
+          logDaf(getFile(), line, col, ERROR) << "decimal point can't be in base two number literal";
+          advanceChar(); //Eat '.'
+          continue;
+        }
+        *real = true;
+      }
       else
         break;
 
@@ -67,34 +88,73 @@ bool Lexer::parseNumberLiteral(Token& token) {
     }
   }
 
-  bool brokenExpo = false;
-  bool p;
-  while((p = (currentChar == 'p'))) { //We go until we don't have a 'p'
-    if(!realNumber)
-      logDaf(getFile(), line, col, ERROR) << "'p' indicating power of two after an integer" << std::endl;
-    else if(base == 10)
-      logDaf(getFile(), line, col, ERROR) << "'p' indicating power of two after base 10 real" << std::endl;
-    else
-      break; //...or we find out we are allowed to have a 'p'
-    advanceChar();
-    brokenExpo = true; //We had to skip the p, but the numbers following should be skipped
+  if(!atLeastOneDigit) {
+    printNoDigitsError(base, *real, getFile(), line, col);
+    text.push_back('0');
   }
+}
 
-  bool eB_N10 = currentChar == 'e' && base != 10; //If we have an 'e' but are not allowed
-  while(eB_N10) {
-    logDaf(getFile(), line, col, ERROR) << "'e' following non base 10 " << (realNumber?"real":"integer") << std::endl;
-    advanceChar();
-    brokenExpo = true; //What comes after e should also be skipped
-    eB_N10 = currentChar == 'e'; //We already know the base is not 10
+/* Errors if:
+ * p or e isn't followed by [0-9]+
+ * p is used something else than a hexadecimal floating point
+ * e is used for a base 2 number (not decimal or hexadecimal)
+ * Hexadecimal floating point doesn't have 'p'
+ * assert E is not used for a hex number (can't happen)
+*/
+void Lexer::checkForExponent(string& text, int base, bool real) {
+  bool hexaFloat = base==16&&real;
+  bool hasExpo = true;
+  bool ignoreExpo = false;
+  if(currentChar=='p') {
+    if(!hexaFloat) {
+      logDaf(getFile(), line, col, ERROR) << "use of 'p' exponent reserved for hexadeciaml floats" << std::endl;
+      ignoreExpo = true;
+    } else
+      text.push_back('p');
+    advanceChar(); //Eat 'p'
   }
+  else if(currentChar=='e') {
+    assert(base!=16);
+    if(base!=10) {
+      logDaf(getFile(), line, col, ERROR) << "use of 'e' exponent is reserved for decimal integers and floats" << std::endl;
+      ignoreExpo = true;
+    } else
+      text.push_back('e');
+    advanceChar(); //Eat 'e'
+  } else if(hexaFloat) { //We have a hexaFloat, but no exponent
+    logDaf(getFile(), line, col, ERROR) << "hexadecimal floating constants require an exponent (p[0-9]+)" << std::endl;
+    hasExpo = false;
+  } else
+    hasExpo = false;
 
-  if(currentChar == 'e' || p || brokenExpo) { //We are allowed to push them if they are current
-    do { //Ey, using do while :)
-      if(!brokenExpo)
+  if(hasExpo) {
+    bool expoCharFound = false;
+    while(isDigit(currentChar)) {
+      expoCharFound = true;
+      if(!ignoreExpo)
         text.push_back(currentChar);
-      advanceChar(); //Eat [ep0-9]
-    } while(isDigit(currentChar));
+      advanceChar();
+    }
+
+    if(!expoCharFound) {
+      logDaf(getFile(), line, col, ERROR) << "Expected an exponent after 'e' or 'p' in number literal" << std::endl;
+      text.push_back('0'); //Multiply by 1, just to have an exponent
+    }
   }
+}
+
+bool Lexer::parseNumberLiteral(Token& token) {
+  int startLine = line;
+  int startCol = col;
+  assert(isDigit(currentChar)||isDecimalPoint(currentChar));
+
+  std::string text;
+  int base = parseBase(text); //Eats '0x' or '0b' and sets the base to either 2, 10 or 16
+  bool realNumber; //daf: &uncertain would be fun
+  eatMainDigits(text, base, &realNumber); //Eats digits reserved for base. Errors on decimal point if base == 2, or if no digits
+  //Should check if '0x.' has happened
+  assert(!realNumber||base!=2); //Can't have a base 2 float
+  checkForExponent(text, base, realNumber); //Eats p[0-9]+ or e[0-9]+. Lots of errors possible
 
   char type='\0';
   int size = 32;
