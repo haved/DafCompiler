@@ -13,10 +13,12 @@ A literal can take on the following forms:
 * binary: 0b101011
 * digits with decimal point 3.5 (f32)
 * digits with order of magnitue 3e4 (i32)
-* digits with point and order of magnitude 2.5e3 = 2.5*10^3 = 250 (f32)
-* hexadecimals with point and power of two: 0x2.5p4 = 0x25/16*2^4 = 37=0x25 (f32)
-* Maybe have: hexadecimal without decimal point but with exponent (i32) 
+* digits with point and order of magnitude 2.5e3 = 2.5\*10^3 = 250 (f32)
+* hexadecimals with point and power of two: 0x2.5p4 = 0x25/16\*2^4 = 37=0x25 (f32)
+* Maybe have: hexadecimal without decimal point but with exponent 0x4p2 (i32)
+ * An actual idea, works as long as the exponent is positive
 * Maybe also let exponents be negative (f32)
+* Don't add i32 that are floats with exponents making them integers. 3.4e2 is unnecessary for 34e1
 
 As written in the list, the type infered when none is written, is i32 for numbers less than 0x8000000, and
 u32 for numbers larger than 0x80000000. This very number is equal to 0 minus itself, meaning you need to
