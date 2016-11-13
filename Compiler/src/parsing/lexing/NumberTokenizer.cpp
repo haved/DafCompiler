@@ -33,6 +33,8 @@ int getCharDigitValue(char c) {
   return -1;
 }
 
+//Eats 0x or 0b and sets the base to 16 or 2 respectively. Default 10
+//TODO: Add support for uppercase X and B
 int Lexer::parseBase(string& text) {
   int base = 10;
   if(currentChar=='0') {
@@ -47,6 +49,7 @@ int Lexer::parseBase(string& text) {
   return base;
 }
 
+//If no digits were passed, different literals give different errors
 void printNoDigitsError(int base, bool real, const FileForParsing& file, int line, int col) {
   logDaf(file, line, col, ERROR) << "empty number literal: '"
        <<(base == 16 ? "0x."
@@ -54,6 +57,8 @@ void printNoDigitsError(int base, bool real, const FileForParsing& file, int lin
       << (real? "." : "") << "'" << std::endl;
 }
 
+//Pushes to text the digits that fit into the literal, as well as one potential decimal point if base != 2
+//Errors if decimal in base two, or no digits passed
 void Lexer::eatMainDigits(string& text, int base, bool* real) {
   *real = false;
   bool atLeastOneDigit = false;
@@ -86,7 +91,11 @@ void Lexer::eatMainDigits(string& text, int base, bool* real) {
   }
 }
 
-/* Errors if:
+/*Pushes a potential exponent to text, or errors if illegal.
+ * Legal: 2e3(i32); 2.4e3(f32); 0x4.3p2(f32);
+ * Sould be legal: 0x4p2(i32); 20e-1(f32); 0x.2p-1(f32);
+ * Illegal: 0x4.3; 2p3; 2.4e2.3; 0x3.p 3e; 0b1e1; 0b1p1;
+ * Errors if:
  * p or e isn't followed by [0-9]+
  * p is used something else than a hexadecimal floating point
  * e is used for a base 2 number (not decimal or hexadecimal)
@@ -135,6 +144,58 @@ void Lexer::checkForExponent(string& text, int base, bool real) {
   }
 }
 
+//Checks for 'i', 'u' or 'f' and the number following. Errors if the pair isn't on the list of types [([iuf][(32)(64)])([iu][(8)(16)])]
+//Default type size is 32, default type is inferred later
+#define DEFAULT_NUMBER_SIZE
+void Lexer::parseNumberLiteralType(string& text, char* type, int* typeSize, bool real) {
+  *type = '\0';
+  *typeSize = 32; //Default type size
+  if(currentChar != 'i' && currentChar != 'u' && currentChar != 'f')
+    return;
+
+  *type = currentChar;
+  advanceChar(); //Eat 'i', 'u' or 'f'
+
+  int tmpSize = 0;
+  int sizeDigits = 0;
+
+#define IGNORE_REST_OF_DIGITS -1
+  while(isDigit(currentChar)) {
+    if(sizeDigits == IGNORE_REST_OF_DIGITS);
+    else if(sizeDigits < 4) { //If we just added a fourth digit
+      tmpSize*=10;
+      tmpSize+=currentChar-'0';
+      sizeDigits++;
+    }
+    else {
+      logDaf(getFile(), line, col, ERROR) << "too many digits in type size specified: " << text << *type << tmpSize;
+      tmpSize = 32;
+      sizeDigits = IGNORE_REST_OF_DIGITS;
+    }
+    advanceChar();
+  }
+
+  bool wordOrDouble = tmpSize == 32 || tmpSize == 64;
+  bool halfOrByte = tmpSize == 16 || tmpSize == 8;
+  if(!wordOrDouble && !halfOrByte) { //Unknown size
+    logDaf(getFile(), line, col, ERROR) << "unknown literal size: '" << sizeDigits << "'";
+    tmpSize = 32; //Default
+    wordOrDouble = true; //It's 32
+  }
+  if((!real&&*type=='\0') || *type == 'i' || *type == 'u') {
+    //We know the type we've got is fine
+  }
+  else if((real&&*type=='\0') || *type=='f') {
+    if(!wordOrDouble) {
+      logDaf(getFile(), line, col, ERROR) << "floating point literals may only be 32 or 64 bits in size";
+      tmpSize = 32;
+    }
+  }
+
+  *typeSize = tmpSize;
+  //*type = *type;
+}
+
 bool Lexer::parseNumberLiteral(Token& token) {
   int startLine = line;
   int startCol = col;
@@ -147,62 +208,11 @@ bool Lexer::parseNumberLiteral(Token& token) {
   //Should check if '0x.' has happened
   assert(!realNumber||base!=2); //Can't have a base 2 float
   checkForExponent(text, base, realNumber); //Eats p[0-9]+ or e[0-9]+. Lots of errors possible
+  char type;
+  int typeSize;
+  parseNumberLiteralType(text, &type, &typeSize, realNumber); //Errors if type doesn't fit or is borked
 
-  char type='\0';
-  int size = 32;
-  if(realNumber ? currentChar == 'i' || currentChar == 'u' : currentChar == 'f') {
-    logDaf(getFile(), startLine, startCol, ERROR) << "Mismatch between " << (realNumber ? "real number" : "integer") << " and type '" << currentChar << '\'' << std::endl;
-    advanceChar(); //Eat botched type on the end
-    if(currentChar == '1' || currentChar == '3' || currentChar == '6') {
-      advanceChar(); //Eat [136]
-      advanceChar(); //Eat [624], or anything else, really
-    }
-    if(currentChar == '8')
-      advanceChar(); //Eat '8'
-  }
-  else if(currentChar == 'f' || currentChar == 'i' || currentChar == 'u') {
-    type = currentChar;
-    advanceChar(); //Eat 'type'
-
-    char next = '\0';
-    switch(currentChar) {
-    case '8':
-      size = 8;
-      break;
-    case '1':
-      next='6';
-      size = 16;
-      break;
-    case '3':
-      next = '2';
-      size=32;
-      break;
-    case '6':
-      next='4';
-      size=64;
-      break;
-    default:
-      next = '?';
-      break;
-    }
-    advanceChar(); //Eat first part of type size
-    if(next=='?') {
-      auto &out = logDaf(getFile(), line, col, ERROR) << "When specifying " << (type=='f'?"real":type=='i'?"signed integer":"unsigned integer") << " literal type, use ";
-      if (type != 'f')
-        out << type << "8, " << type << "16, ";
-      out << type << "32, or " << type << "64" << std::endl;
-      type = '\0';
-      //Size is default and type is back to '\0'
-    }
-    else if(next == '\0') {}
-    else if(currentChar != next) {
-      logDaf(getFile(), line, col, ERROR) << "Expected '" << next << "' before '" << currentChar << "' when parsing number literal type '" << type << size << "'" << std::endl;
-      if(isDigit(currentChar))
-        advanceChar();
-    }
-    else
-      advanceChar(); //Eat second part of type size
-
+  int size = typeSize;
     { //Eat any digits or [epuif] left
       bool printed = false;
       std::ostream* out;
@@ -217,7 +227,6 @@ bool Lexer::parseNumberLiteral(Token& token) {
       if(printed)
          *out << std::endl;
     }
-  }
 
   if(realNumber && type == '\0') //Give floats without type the float type
     type = 'f';
