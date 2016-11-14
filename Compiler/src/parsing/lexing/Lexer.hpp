@@ -27,6 +27,7 @@ private:
   void eatMainDigits(string& text, int base, bool* real);
   void checkForExponent(string& text, int base, bool real);
   void parseNumberLiteralType(string& text, char* type, int* typeSize, bool real);
+  void eatRemainingNumberChars();
   bool parseNumberLiteral(Token& token);
 public:
   Lexer(const FileForParsing& file);

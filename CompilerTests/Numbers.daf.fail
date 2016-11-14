@@ -1,22 +1,17 @@
-def anotherFunc:=(a:int):int a*2;
-
-def test:=(4.1+5.2)*2.4e2f32;
-
 def main2:=() {
 let mut a:=4.3u;
 a = 4.i;
-a = 789f32;
+a = 789f32; //works :(
 a = 4ef;
-a = 3e7f64;
+a = 3e7f64; //works :(
 a = 2p8i64;
 a = 0x1p2;
 a = 0x5e3p2f32;
 a = 4e2p2;
 a = 0x6.2;
-a = 6f32;
+a = 6f32; //works :(
 a = 6.f16;
 a = 0b1.10p2f64;
 a = 3.5e5u16;
+a = 3.4e3f32e2;
 };
-
-let this_file_should_fail:=10;

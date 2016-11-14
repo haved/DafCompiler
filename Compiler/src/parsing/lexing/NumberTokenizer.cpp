@@ -71,7 +71,7 @@ void Lexer::eatMainDigits(string& text, int base, bool* real) {
     } else {
       if(!*real && isDecimalPoint(currentChar)) { //If it hasn't already got a decimal point
         if(base==2) { //A base 2 literal can't have a decimal point
-          logDaf(getFile(), line, col, ERROR) << "decimal point can't be in base two number literal";
+          logDaf(getFile(), line, col, ERROR) << "decimal point can't be in base two number literal" << std::endl;
           advanceChar(); //Eat '.'
           continue;
         }
@@ -168,17 +168,22 @@ void Lexer::parseNumberLiteralType(string& text, char* type, int* typeSize, bool
       sizeDigits++;
     }
     else {
-      logDaf(getFile(), line, col, ERROR) << "too many digits in type size specified: " << text << *type << tmpSize;
+      logDaf(getFile(), line, col, ERROR) << "too many digits in type size specified: " << text << *type << tmpSize << std::endl;
       tmpSize = 32;
       sizeDigits = IGNORE_REST_OF_DIGITS;
     }
     advanceChar();
   }
 
+  if(sizeDigits == 0) { //No digits were specified, so we
+    logDaf(getFile(), line, col, WARNING) << "no literal size specified after '" << text << *type << "', using 32" << std::endl;
+    tmpSize = 32;
+  }
+
   bool wordOrDouble = tmpSize == 32 || tmpSize == 64;
   bool halfOrByte = tmpSize == 16 || tmpSize == 8;
   if(!wordOrDouble && !halfOrByte) { //Unknown size
-    logDaf(getFile(), line, col, ERROR) << "unknown literal size: '" << sizeDigits << "'";
+    logDaf(getFile(), line, col, ERROR) << "unknown literal size: '" << sizeDigits << "'" << std::endl;
     tmpSize = 32; //Default
     wordOrDouble = true; //It's 32
   }
@@ -187,13 +192,29 @@ void Lexer::parseNumberLiteralType(string& text, char* type, int* typeSize, bool
   }
   else if((real&&*type=='\0') || *type=='f') {
     if(!wordOrDouble) {
-      logDaf(getFile(), line, col, ERROR) << "floating point literals may only be 32 or 64 bits in size";
+      logDaf(getFile(), line, col, ERROR) << "floating point literals may only be 32 or 64 bits in size" << std::endl;
       tmpSize = 32;
     }
   }
 
+  //How I wish,   how I wish it were daf...
   *typeSize = tmpSize;
   //*type = *type;
+}
+
+void Lexer::eatRemainingNumberChars() {
+  bool printed = false;
+  std::ostream* out;
+  while(isPartOfNumber(currentChar)) {
+    if(!printed) {
+      out = &(logDaf(getFile(), line, col, ERROR) << "Too many symbols following number literal: ");
+      printed = true;
+    }
+    *out << currentChar;
+    advanceChar(); //Eat the rest of digits in type size;
+  }
+  if(printed)
+     *out << std::endl;
 }
 
 bool Lexer::parseNumberLiteral(Token& token) {
@@ -211,23 +232,9 @@ bool Lexer::parseNumberLiteral(Token& token) {
   char type;
   int typeSize;
   parseNumberLiteralType(text, &type, &typeSize, realNumber); //Errors if type doesn't fit or is borked
+  eatRemainingNumberChars();
 
   int size = typeSize;
-    { //Eat any digits or [epuif] left
-      bool printed = false;
-      std::ostream* out;
-      while(isHexaDigit(currentChar) || currentChar == 'u' || currentChar == 'i' || currentChar == 'p') {
-        if(!printed) {
-          out = &(logDaf(getFile(), line, col, ERROR) << "Too many symbols following number literal: ");
-          printed = true;
-        }
-        *out << currentChar;
-        advanceChar(); //Eat the rest of digits in type size;
-      }
-      if(printed)
-         *out << std::endl;
-    }
-
   if(realNumber && type == '\0') //Give floats without type the float type
     type = 'f';
   if(realNumber && type != 'f') { //If a real number has something else, it's bad
@@ -235,10 +242,6 @@ bool Lexer::parseNumberLiteral(Token& token) {
     type = 'f';
     if(size != 32 && size != 64)
       size = 32;
-  }
-  else if(type == 'f' && size != 32 && size != 64) { //A float thats something else than 32 or 64 bits is bad
-    logDaf(getFile(), line, col, ERROR) << "A floating point number can only be of sizes f32 and f64" << std::endl;
-    size = 32;
   }
 
   if(realNumber) {
