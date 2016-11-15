@@ -7,7 +7,7 @@
 
 using boost::optional;
 
-NamespaceStack::NamespaceStack() : m_namespaces(), m_unresolvedDots() {}
+NamespaceStack::NamespaceStack() : m_namespaces() {}
 
 void NamespaceStack::push(Namespace* name_space) {
 	assert(name_space);

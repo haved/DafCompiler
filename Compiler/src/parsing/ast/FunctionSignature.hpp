@@ -85,6 +85,7 @@ public:
 	FunctionType(const FunctionType& other) = delete;
 	FunctionType& operator=(const FunctionType& other) = delete;
 	virtual void printSignature() override; //With list
+	virtual ConcreteTypeKind getConcreteTypeKind() override { return ConcreteTypeKind::FUNCTION; }
 	void printSignatureMaybeList(); //Only list if parameters
 	ConcreteType* getConcreteType() override;
 

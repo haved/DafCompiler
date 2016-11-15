@@ -8,4 +8,4 @@
 
 PrimitiveType* getBinaryOpResultType(ConcreteType* LHS, InfixOperator op, ConcreteType* RHS, const TextRange& range);
 
-EvaluatedExpression codegenBinaryOperator(CodegenLLVM& codegen, EvaluatedExpression& LHS, InfixOperator op, EvaluatedExpression& RHS, PrimitiveType* target, const TextRange& range);
+EvaluatedExpression codegenBinaryOperator(CodegenLLVM& codegen, EvaluatedExpression& LHS, InfixOperator op, EvaluatedExpression& RHS, ExprTypeInfo* target, const TextRange& range);

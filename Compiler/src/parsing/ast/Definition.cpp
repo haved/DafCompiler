@@ -8,12 +8,12 @@
 Definition::Definition(bool pub, const TextRange &range) : m_pub(pub), m_range(range) {}
 Definition::~Definition() {}
 
-Def::Def(bool pub, ReturnKind defType, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_returnKind(defType), m_name(std::move(name)), m_givenType(std::move(givenType)), m_expression(std::move(expression)) {
+Def::Def(bool pub, ReturnKind defType, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_returnKind(defType), m_name(std::move(name)), m_givenType(std::move(givenType)), m_expression(std::move(expression)), m_typeInfo() {
 	assert( !(defType == ReturnKind::NO_RETURN && m_givenType)  );
 	assert(m_expression); //We assert a body
 }
 
-Let::Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_givenType(std::move(givenType)), m_expression(std::move(expression)) {
+Let::Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_givenType(std::move(givenType)), m_expression(std::move(expression)), m_type() {
 	assert(m_expression || m_givenType);
 }
 

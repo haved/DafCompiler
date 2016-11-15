@@ -109,7 +109,8 @@ public:
 	IntegerConstantExpression(const IntegerConstantExpression& other) = delete;
 	~IntegerConstantExpression() = default;
 	IntegerConstantExpression& operator =(const IntegerConstantExpression& other) = delete;
-	void printSignature() override;
+	virtual void printSignature() override;
+	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::INT_LITERAL; }
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 
@@ -125,7 +126,8 @@ public:
 	RealConstantExpression(const RealConstantExpression& other) = delete;
 	~RealConstantExpression() = default;
 	RealConstantExpression& operator =(const RealConstantExpression& other) = delete;
-	void printSignature() override;
+	virtual void printSignature() override;
+	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::REAL_LITERAL; }
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 
@@ -152,6 +154,7 @@ public:
 	InfixOperatorExpression& operator=(const InfixOperatorExpression& other) = delete;
 	virtual bool isStatement() override {return getInfixOp(m_op).statement;}
 	virtual void printSignature() override;
+	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::INFIX_OP; }
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
@@ -190,8 +193,9 @@ private:
 	unique_ptr<Expression> m_RHS;
 public:
 	PrefixOperatorExpression(const PrefixOperator& op, int opLine, int opCol, std::unique_ptr<Expression>&& RHS);
-	bool isStatement() override {return m_op.statement;}
-	void printSignature() override;
+	virtual bool isStatement() override {return m_op.statement;}
+	virtual void printSignature() override;
+	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::PREFIX_OP; }
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
@@ -205,8 +209,9 @@ private:
 	unique_ptr<Expression> m_LHS;
 public:
 	PostfixCrementExpression(std::unique_ptr<Expression>&& LHS, bool decrement, int opLine, int opEndCol);
-	bool isStatement() override {return true;}
-	void printSignature() override;
+	virtual bool isStatement() override {return true;}
+	virtual void printSignature() override;
+	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::POSTFIX_CREMENT; }
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
@@ -235,8 +240,9 @@ public:
 	FunctionCallExpression(const FunctionCallExpression& other) = delete;
 	~FunctionCallExpression() = default;
 	FunctionCallExpression& operator =(const FunctionCallExpression& other) = delete;
-	bool isStatement() override {return true;}
-	void printSignature() override;
+	virtual bool isStatement() override {return true;}
+	virtual void printSignature() override;
+	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::FUNCTION_CALL; }
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
@@ -250,8 +256,9 @@ private:
 	unique_ptr<Expression> m_index;
 public:
 	ArrayAccessExpression(unique_ptr<Expression>&& array, unique_ptr<Expression>&& index, int lastLine, int lastCol);
-	bool isStatement() override {return false;}
-	void printSignature() override;
+	virtual bool isStatement() override {return false;}
+	virtual void printSignature() override;
+	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::ARRAY_ACCESS; }
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;

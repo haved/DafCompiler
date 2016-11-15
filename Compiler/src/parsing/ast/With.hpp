@@ -19,6 +19,8 @@ public:
 	bool isExpressionAsType();
 	inline bool isTypeAsType() {return !isExpressionAsType();}
 	void printSignature();
+
+	ConcretableState makeConcrete(Concretable* dep, NamespaceStack ns_stack, DependencyMap& depMap);
 };
 
 class WithDefinition : public Definition {
@@ -43,8 +45,9 @@ class WithExpression : public Expression {
 	unique_ptr<Expression> m_else_body;
 public:
 	WithExpression(With_As_Construct&& withConstruct, int startLine, int startCol, unique_ptr<Expression>&& expression, unique_ptr<Expression>&& m_else_body);
-	void printSignature() override;
-	inline bool isStatement() override { return m_expression->isStatement(); }
+	virtual void printSignature() override;
+	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::SCOPE; }
+	virtual inline bool isStatement() override { return m_expression->isStatement() && (!m_else_body || m_else_body->isStatement()); }
 	virtual bool evaluatesToValue() const override { return m_expression->evaluatesToValue(); }
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;

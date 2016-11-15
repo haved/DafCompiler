@@ -44,17 +44,21 @@ PrimitiveType* getBinaryOpResultType(ConcreteType* LHS, InfixOperator op, Concre
 	return winner;
 }
 
-EvaluatedExpression codegenBinaryOperator(CodegenLLVM& codegen, EvaluatedExpression& LHS, InfixOperator op, EvaluatedExpression& RHS, PrimitiveType* target, const TextRange& range) {
-	assert(LHS && RHS && target && LHS.type->getConcreteTypeKind() == ConcreteTypeKind::PRIMITIVE && RHS.type->getConcreteTypeKind() == ConcreteTypeKind::PRIMITIVE);
+EvaluatedExpression codegenBinaryOperator(CodegenLLVM& codegen, EvaluatedExpression& LHS, InfixOperator op, EvaluatedExpression& RHS, ExprTypeInfo* target, const TextRange& range) {
+	assert(LHS && RHS && target &&
+		   LHS.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::PRIMITIVE &&
+		   RHS.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::PRIMITIVE
+		   &&    target->type->getConcreteTypeKind() == ConcreteTypeKind::PRIMITIVE);
 
-	PrimitiveType* LHS_prim = static_cast<PrimitiveType*>(LHS.type);
-	PrimitiveType* RHS_prim = static_cast<PrimitiveType*>(RHS.type);
+	PrimitiveType* LHS_prim = static_cast<PrimitiveType*>(LHS.typeInfo->type);
+	PrimitiveType* RHS_prim = static_cast<PrimitiveType*>(RHS.typeInfo->type);
+	PrimitiveType* target_prim = static_cast<PrimitiveType*>(target->type);
 
-	EvaluatedExpression LHS_expr = castPrimitiveToPrimitive(LHS, LHS_prim, target);
-	EvaluatedExpression RHS_expr = castPrimitiveToPrimitive(RHS, RHS_prim, target);
+	EvaluatedExpression LHS_expr = castPrimitiveToPrimitive(LHS, LHS_prim, target_prim);
+	EvaluatedExpression RHS_expr = castPrimitiveToPrimitive(RHS, RHS_prim, target_prim);
 
-	bool floating = target->isFloatingPoint();
-	bool isSigned = target->isSigned();
+	bool floating = target_prim->isFloatingPoint();
+	bool isSigned = target_prim->isSigned();
 
 	switch(op) {
 	case InfixOperator::PLUS:

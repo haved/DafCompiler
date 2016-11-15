@@ -183,7 +183,7 @@ unique_ptr<Expression> parseFunctionBody(Lexer& lexer, FunctionType& type) {
 	if(!body)
 		return body; //none expression
 
-	if(type.getReturnKind() == ReturnKind::NO_RETURN) {
+	if(type.getGivenReturnKind() == ReturnKind::NO_RETURN) {
 		if(body->evaluatesToValue())
 			logDaf(body->getRange(), WARNING) << "function body return value ignored" << std::endl;
 	}

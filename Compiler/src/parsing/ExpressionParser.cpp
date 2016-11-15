@@ -132,7 +132,8 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
 unique_ptr<Expression> mergeExpressionsWithOp(unique_ptr<Expression>&& LHS, InfixOperator infixOp, unique_ptr<Expression>&& RHS) {
 	if(!LHS || !RHS)
 		return none_exp();
-
+	//TODO: Re-add dot op
+	/*
 	if(infixOp == InfixOperator::CLASS_ACCESS) {
 		if(RHS->getExpressionKind() != ExpressionKind::VARIABLE) {
 			logDaf(RHS->getRange(), ERROR) << "expected an identifier to the right of '.'" << std::endl;
@@ -148,8 +149,9 @@ unique_ptr<Expression> mergeExpressionsWithOp(unique_ptr<Expression>&& LHS, Infi
 		}
 		return std::make_unique<DotOperatorExpression>(std::move(LHS), std::move(identifier), range);
 	}
+	*/
 
-	return unique_ptr<Expression>(new InfixOperatorExpression(std::move(LHS), infixOp, std::move(RHS))); //TODO: Remove all 'new'
+	return std::make_unique<InfixOperatorExpression>(std::move(LHS), infixOp, std::move(RHS));
 }
 
 unique_ptr<Expression> mergeOpWithExpression(const PrefixOperator& prefixOp, int opLine, int opCol, unique_ptr<Expression>&& RHS) {

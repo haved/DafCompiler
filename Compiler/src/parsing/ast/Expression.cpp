@@ -174,7 +174,7 @@ EvaluatedExpression InfixOperatorExpression::codegenExpression(CodegenLLVM& code
 	std::cout << "Outputting binary op with LHS dump: " << std::endl;
 	LHS_expr.value->dump();
 
-	return codegenBinaryOperator(codegen, LHS_expr, m_op, RHS_expr, m_result_type, getRange());
+	return codegenBinaryOperator(codegen, LHS_expr, m_op, RHS_expr, &m_typeInfo, getRange());
 }
 /*
 DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range) : Expression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_LHS_dot(nullptr), m_LHS_target(nullptr), m_target(), m_done(false) {
