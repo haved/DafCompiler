@@ -134,18 +134,18 @@ bool setTokenFromSpecialChar(Token& token, char c, int line, int col) {
   return false;
 }
 
-void setTokenFromRealNumber(Token& token, NumberLiteralConstants::ConstantRealType realType, daf_largest_float real, int line, int col, const std::string& text) {
+void setTokenFromRealNumber(Token& token, NumberLiteralConstants::ConstantRealType realType, daf_largest_float real, int line, int col, int endCol, const std::string& text) {
   token.type = REAL_LITERAL;
   token.real = real;
   token.realType = realType;
   token.integer = 0;
   token.line = line;
   token.col = col;
+  token.endCol = endCol;
   token.text = text;
-  token.endCol = col+text.length();
 }
 
-void setTokenFromInteger(Token& token, NumberLiteralConstants::ConstantIntegerType intType, daf_largest_uint integer, int line, int col, const std::string& text) {
+void setTokenFromInteger(Token& token, NumberLiteralConstants::ConstantIntegerType intType, daf_largest_uint integer, int line, int col, int endCol, const std::string& text) {
   token.type = INTEGER_LITERAL;
   //We don't reset the RealType to anything
   token.integer = integer;
@@ -153,8 +153,8 @@ void setTokenFromInteger(Token& token, NumberLiteralConstants::ConstantIntegerTy
   token.real = 0.0;
   token.line = line;
   token.col = col;
+  token.endCol = endCol;
   token.text = text;
-  token.endCol = col+text.length();
 }
 
 bool mergeTokens(Token& first, const Token& second) {

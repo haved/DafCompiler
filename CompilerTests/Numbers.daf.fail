@@ -1,5 +1,17 @@
+/*
+*Combinations:
+* 0x, 0b and no prefix
+* writing binary, hexadeciaml and decimal
+* having a decimal point, not having it
+* e or p or nothing
+* [0-9], [0-f], nothing
+* 'f', 'i', 'u', nothing
+* 4, 8, 16, 32, 64, nothing
+*/
+
 def main2:=() {
-let mut a:=4.3u;
+let mut a:=4.3u; //u must be followed by a size, and u for a real is borked
+let a:int;
 a = 4.i;
 a = 789f32; //works :(
 a = 4ef;
@@ -14,4 +26,9 @@ a = 6.f16;
 a = 0b1.10p2f64;
 a = 3.5e5u16;
 a = 3.4e3f32e2;
+a = 3.4e2i32;
 };
+
+def main:=(): int {
+
+}

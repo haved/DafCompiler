@@ -10,10 +10,10 @@
 Lexer::Lexer(const FileForParsing& file) : fileForParsing(file), infile(),
   tokens(), currentToken(0), line(0), col(0), currentChar('\n'), lookaheadChar('\n') {
   infile.open(file.m_inputFile.string()); //For the time being, there is no text processing
-  advanceChar(); //To(setq sublimity-attractive-centering-width 110) set look-ahead char
+  line = 1; //Says where the current char is
+  col = FIRST_CHAR_COL-2; //First char is col 0
+  advanceChar(); //To set look-ahead char
   advanceChar(); //To set current char
-  line = 1;
-  col = FIRST_CHAR_COL; //First char is col 0
   advance(); //To make super-look-ahead an actual token
   advance(); //To make look-ahead an actual token
   advance(); //To make current an actual token
@@ -171,7 +171,7 @@ void Lexer::advanceChar() {
       while(currentChar != '*' || lookaheadChar != '/') {
         advanceChar();
         if(currentChar == EOF) {
-          logDaf(fileForParsing, line, col, ERROR) << "File ended during multi-line comment" << std::endl;
+          logDaf(fileForParsing, line, col, WARNING) << "File ended during multi-line comment" << std::endl;
           break;
         }
       }

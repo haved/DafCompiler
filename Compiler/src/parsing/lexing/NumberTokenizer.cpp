@@ -145,11 +145,12 @@ void Lexer::checkForExponent(string& text, int base, bool real) {
 }
 
 //Checks for 'i', 'u' or 'f' and the number following. Errors if the pair isn't on the list of types [([iuf][(32)(64)])([iu][(8)(16)])]
+//Also errors if
 //Default type size is 32, default type is inferred later
 #define DEFAULT_NUMBER_SIZE
-void Lexer::parseNumberLiteralType(string& text, char* type, int* typeSize, bool real) {
+void Lexer::parseNumberLiteralType(string& text, char* type, int* typeSize) {
   *type = '\0';
-  *typeSize = 32; //Default type size
+  *typeSize = 0; //Default type size
   if(currentChar != 'i' && currentChar != 'u' && currentChar != 'f')
     return;
 
@@ -187,10 +188,9 @@ void Lexer::parseNumberLiteralType(string& text, char* type, int* typeSize, bool
     tmpSize = 32; //Default
     wordOrDouble = true; //It's 32
   }
-  if((!real&&*type=='\0') || *type == 'i' || *type == 'u') {
-    //We know the type we've got is fine
-  }
-  else if((real&&*type=='\0') || *type=='f') {
+
+  //Check to make floats must be 32 or 64 bits
+  if(*type=='f') {
     if(!wordOrDouble) {
       logDaf(getFile(), line, col, ERROR) << "floating point literals may only be 32 or 64 bits in size, not " << tmpSize << std::endl;
       tmpSize = 32;
@@ -231,17 +231,27 @@ bool Lexer::parseNumberLiteral(Token& token) {
   checkForExponent(text, base, realNumber); //Eats p[0-9]+ or e[0-9]+. Lots of errors possible
   char type;
   int typeSize;
-  parseNumberLiteralType(text, &type, &typeSize, realNumber); //Errors if type doesn't fit or is borked
+  parseNumberLiteralType(text, &type, &typeSize); //Errors if type is borked
   eatRemainingNumberChars();
 
-  /* Now we need to infer type if it's not specified, and even then make sure the type sent is good.
-   * We can already infer that a real number without type is an f32
-   * We can do some other tests:
-   *  A real can't be marked by anything else than 'f' or 0
-   *  A float mark can only be used on a real
-   *  We have already errored if an integer type is used on a real
-   */
+  if(realNumber) { //No type supplied to a float, it's a float
+    if(type=='\0') {
+      type = 'f'; //Infer float32, as if it were explicilty written, should not be a problem later
+      typeSize = 32;
+    }
+    if(type != 'f') { //If a real number isn't of type f at this point
+      logDaf(getFile(), startLine, startCol, ERROR) << "floating point constants can't have another type than float" << std::endl;
+    }
+  } else if(type == 'f') { //'fXX' used on something not real
+    logDaf(getFile(), startLine, startCol, ERROR) << "only real numbers can have the type float" << std::endl;
+    type = '\0';  //Go back to inferring integer types later
+    typeSize = 0;
+  }
 
+  //problem, typeSize is 32 by default. assert that if type isnt 0, typeSize can't be either, or find out why 32 is set
+  assert((type=='\0')==(typeSize==0)); //Either both are 0, or neither
+
+  /*
   int size = typeSize;
   if(realNumber && type == '\0') //Give floats without type the float type
     type = 'f';
@@ -264,6 +274,8 @@ bool Lexer::parseNumberLiteral(Token& token) {
   } else {
     std::cout << "Integer '" << text << "' of type " << type << size << std::endl;
     setTokenFromInteger(token, NumberLiteralConstants::I32, 0, startLine, startCol, text);
-  }
+  }*/
+
+  setTokenFromInteger(token, NumberLiteralConstants::I32, 0, startLine, startCol, col, text);
   return true;
 }

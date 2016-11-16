@@ -69,9 +69,9 @@ bool setTokenFromWord(Token& token, const std::string& word, int line, int start
 
 bool setTokenFromSpecialChar(Token& token, char c, int line, int col);
 
-void setTokenFromRealNumber(Token& token, NumberLiteralConstants::ConstantRealType realType, daf_largest_float real, int line, int col, const std::string& text);
+void setTokenFromRealNumber(Token& token, NumberLiteralConstants::ConstantRealType realType, daf_largest_float real, int line, int col, int endCol, const std::string& text);
 
-void setTokenFromInteger(Token& token, NumberLiteralConstants::ConstantIntegerType intType, daf_largest_uint integer, int line, int col, const std::string& text);
+void setTokenFromInteger(Token& token, NumberLiteralConstants::ConstantIntegerType intType, daf_largest_uint integer, int line, int col, int endCol, const std::string& text);
 
 bool mergeTokens(Token& first, const Token& second);
 
