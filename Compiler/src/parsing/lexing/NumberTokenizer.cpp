@@ -249,36 +249,20 @@ bool Lexer::parseNumberLiteral(Token& token) {
   int typeSize;
   parseNumberLiteralType(text, &type, &typeSize); //Errors if type is borked
   eatRemainingNumberChars();
-  inferAndCheckFloatType(&type, &typeSize, realNumber, startLine, startCol); //After this a real must be float and vice versa.
+  inferAndCheckFloatType(&type, &typeSize, realNumber, startLine, startCol); //After this a real must be float and vice versa. This is where f32 is default size
 
-  assert((type=='\0')==(typeSize==0)); //Either both are 0, or neither
-
-
-  /*
-  int size = typeSize;
-  if(realNumber && type == '\0') //Give floats without type the float type
-    type = 'f';
-  if(realNumber && type != 'f') { //If a real number has something else, it's bad
-    logDaf(getFile(), line, col, ERROR) << "A floating point number can't be marked with '" << type << size << '\'' << std::endl;
-    type = 'f';
-    if(size != 32 && size != 64)
-      size = 32;
-  }
+  assert((type=='\0')==(typeSize==0) && (realNumber==(type=='f'))); //Either both are 0, or neither AND a real is a float
 
   if(realNumber) {
-    assert(type=='f');
+    assert(typeSize==32 || typeSize==64);
     daf_largest_float f;
-    if(size==32)
-      f = std::stof(text);
+    if(typeSize == 32)
+      f = std::stof(text); //Text does not include 'f32', but may include '0x', 'e3', 'p2', etc.
     else
       f = std::stod(text);
-    //TODO: Make the text include the type, or at least set endCol correctly
-    setTokenFromRealNumber(token, size == 32 ? NumberLiteralConstants::F32 : NumberLiteralConstants::F64, f, startLine, startCol, text);
+    setTokenFromRealNumber(token, typeSize == 32 ? NumberLiteralConstants::F32 : NumberLiteralConstants::F64, f, startLine, startCol, col, text);
   } else {
-    std::cout << "Integer '" << text << "' of type " << type << size << std::endl;
-    setTokenFromInteger(token, NumberLiteralConstants::I32, 0, startLine, startCol, text);
-  }*/
-
-  setTokenFromInteger(token, NumberLiteralConstants::I32, 0, startLine, startCol, col, text);
+    setTokenFromInteger(token, NumberLiteralConstants::I32, 0, startLine, startCol, col, text);
+  }
   return true;
 }

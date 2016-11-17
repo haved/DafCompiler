@@ -13,20 +13,21 @@ let a:=4u;
 def main2:=() {
 let mut a:=4.3u; //u must be followed by a size, and u for a real is borked
 a = 4.i;
-a = 789f32; //works :(
+a = 789f32;
 a = 4ef;
-a = 3e7f64; //works :(
+a = 3e7f64;
 a = 2p8i64;
 a = 0x1p2;
 a = 0x5e3p2f32;
 a = 4e2p2;
 a = 0x6.2;
-a = 6f32; //works :(
+a = 6f32;
 a = 6.f16;
 a = 0b1.10p2f64;
 a = 3.5e5u16;
 a = 3.4e3f32e2;
 a = 3.4e2i32;
+a = 0x100000000;
 };
 
 def main:=(): int {
