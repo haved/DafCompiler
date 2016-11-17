@@ -28,6 +28,7 @@ private:
   void checkForExponent(string& text, int base, bool real);
   void parseNumberLiteralType(string& text, char* type, int* typeSize);
   void eatRemainingNumberChars();
+  void inferAndCheckFloatType(char* type, int* typeSize, bool realNumber, int line, int col);
   bool parseNumberLiteral(Token& token);
 public:
   Lexer(const FileForParsing& file);

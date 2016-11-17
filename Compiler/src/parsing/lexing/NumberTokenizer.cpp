@@ -217,6 +217,22 @@ void Lexer::eatRemainingNumberChars() {
      *out << std::endl;
 }
 
+void Lexer::inferAndCheckFloatType(char* type, int* typeSize, bool realNumber, int line, int col) {
+  if(realNumber) { //No type supplied to a float, it's a float
+    if(*type=='\0') {
+      *type = 'f'; //Infer float32, as if it were explicilty written, should not be a problem later
+      *typeSize = 32;
+    }
+    if(*type != 'f') { //If a real number isn't of type f at this point
+      logDaf(getFile(), line, col, ERROR) << "floating point constants can't have another type ("<<*type<<") than float (f)" << std::endl;
+    }
+  } else if(*type == 'f') { //'fXX' used on something not real
+    logDaf(getFile(), line, col, ERROR) << "only real numbers can have the type float" << std::endl;
+    *type = '\0';  //Go back to inferring integer types later
+    *typeSize = 0;
+  }
+}
+
 bool Lexer::parseNumberLiteral(Token& token) {
   int startLine = line;
   int startCol = col;
@@ -233,23 +249,10 @@ bool Lexer::parseNumberLiteral(Token& token) {
   int typeSize;
   parseNumberLiteralType(text, &type, &typeSize); //Errors if type is borked
   eatRemainingNumberChars();
+  inferAndCheckFloatType(&type, &typeSize, realNumber, startLine, startCol); //After this a real must be float and vice versa.
 
-  if(realNumber) { //No type supplied to a float, it's a float
-    if(type=='\0') {
-      type = 'f'; //Infer float32, as if it were explicilty written, should not be a problem later
-      typeSize = 32;
-    }
-    if(type != 'f') { //If a real number isn't of type f at this point
-      logDaf(getFile(), startLine, startCol, ERROR) << "floating point constants can't have another type than float" << std::endl;
-    }
-  } else if(type == 'f') { //'fXX' used on something not real
-    logDaf(getFile(), startLine, startCol, ERROR) << "only real numbers can have the type float" << std::endl;
-    type = '\0';  //Go back to inferring integer types later
-    typeSize = 0;
-  }
-
-  //problem, typeSize is 32 by default. assert that if type isnt 0, typeSize can't be either, or find out why 32 is set
   assert((type=='\0')==(typeSize==0)); //Either both are 0, or neither
+
 
   /*
   int size = typeSize;
