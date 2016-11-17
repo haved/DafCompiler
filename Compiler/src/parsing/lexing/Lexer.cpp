@@ -8,7 +8,7 @@
 //TAB_WIDTH is defined in Constants.hpp
 
 Lexer::Lexer(const FileForParsing& file) : fileForParsing(file), infile(),
-  tokens(), currentToken(0), line(0), col(0), currentChar('\n'), lookaheadChar('\n') {
+  tokens(), currentToken(0), line(0), col(0), currentChar(' '), lookaheadChar(' ') {
   infile.open(file.m_inputFile.string()); //For the time being, there is no text processing
   line = 1; //Says where the current char is
   col = FIRST_CHAR_COL-2; //First char is col 0
