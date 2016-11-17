@@ -64,11 +64,15 @@ void Lexer::eatMainDigits(string& text, int base, bool* real) {
   bool atLeastOneDigit = false;
   while(true) {
     int charVal = getCharDigitValue(currentChar);
-    if(charVal >= 0 && charVal < base) {
+    if(currentChar=='_') {
+      advanceChar();
+    }
+    else if(charVal >= 0 && charVal < base) {
       atLeastOneDigit = true;
       text.push_back(currentChar);
       advanceChar();
-    } else {
+    }
+    else {
       if(!*real && isDecimalPoint(currentChar)) { //If it hasn't already got a decimal point
         if(base==2) { //A base 2 literal can't have a decimal point
           logDaf(getFile(), line, col, ERROR) << "decimal point can't be in base two number literal" << std::endl;
