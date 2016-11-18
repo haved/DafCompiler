@@ -11,6 +11,7 @@ let a:=4u;
 */
 
 def main2:=() {
+//Type and writing errors
 let mut a:=4.3u; //u must be followed by a size, and u for a real is borked
 a = 4.i;
 a = 789f32;
@@ -27,9 +28,13 @@ a = 0b1.10p2f64;
 a = 3.5e5u16;
 a = 3.4e3f32e2;
 a = 3.4e2i32;
-a = 0x100000000;
+
+
+//Related to stuff being too big
+a = 0x1_0000_0000;
+a = 0x100u8;
+a = 0b1111_1111_1i8;
+a = 256e0i8;
+a = 256u8;
+a = 3e2;
 };
-
-def main:=(): int {
-
-}

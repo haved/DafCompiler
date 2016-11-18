@@ -229,6 +229,8 @@ void Lexer::inferAndCheckFloatType(char* type, int* typeSize, bool realNumber, i
     }
     if(*type != 'f') { //If a real number isn't of type f at this point
       logDaf(getFile(), line, col, ERROR) << "floating point constants can't have another type ("<<*type<<") than float (f)" << std::endl;
+      *type = 'f';
+      *typeSize = 32;
     }
   } else if(*type == 'f') { //'fXX' used on something not real
     logDaf(getFile(), line, col, ERROR) << "only real numbers can have the type float" << std::endl;
@@ -246,9 +248,13 @@ void parseIntegerToToken(Token& token, int base, std::string& text, char type, i
   //One more than the max value of the signed type (a.k.a lowest number)
   //Over two refers to it being one too high for an unsigned integer, then divided by two
   daf_largest_uint tooHighOverTwo = (typeSize==8?(1l<<7):(typeSize==16?(1l<<15):(typeSize==32?(1l<<31):(1l<<63))));
-  float tooHighOverBase = tooHighOverTwo;
-  if(base==10)
+  daf_largest_uint tooHighOverBase = tooHighOverTwo;
+  int tooHighOverBaseRest = 0;
+  if(base==10) {
     tooHighOverBase /= 5; //We have already divided by 2, so 5 more to ten
+    tooHighOverBaseRest = tooHighOverTwo % 5 * 2; //256->25_+6 etc.
+    assert(tooHighOverBaseRest == 6); //Seemingly every 2^(2^n) where n is above 1 ends with 6 in decimal!!
+  }
   else if(base==16)
     tooHighOverBase = tooHighOverTwo>>3; // >> 3 means divided by 8, 8*2=16
 
@@ -277,8 +283,10 @@ void parseIntegerToToken(Token& token, int base, std::string& text, char type, i
         for(int i = 1; i < expo; i++) {
           expoFactor*=base; //10
         }
-        //Say tooHighOverBase is (256/10=)25.6, so if expoFactor is 10: 2.56, times base: 25.6, our integer with 'e1' must be less than 25.6 to fit 8 bits
-        if(integer >= tooHighOverBase/expoFactor*base) {
+        //Say tooHighOverBase is (256/10=)25, so if expoFactor is 10: 2.5, times base: 25, our integer with 'e1' must be less than 25 to fit 8 bits
+        //However 250 is legal, so check to see if 25 and 25 are equal, and we have a rest thats not 0 (6 from 256 for instance)
+        if(integer > tooHighOverBase/expoFactor*base || (integer==(unsigned int)(tooHighOverBase/expoFactor*base) && tooHighOverBaseRest == 0)) {
+          std::cout << "integer: " << integer << " tOb/expoFac*base" << (unsigned int)(tooHighOverBase/expoFactor*base) << " tooHighOverBaseRest: " << tooHighOverBaseRest << std::endl;
           logDaf(file, line, col, ERROR) << "number literal '" << text << "''s exponent too large to fit " << typeSize << " bits" << std::endl;
         }
         else
@@ -288,7 +296,9 @@ void parseIntegerToToken(Token& token, int base, std::string& text, char type, i
     else {
       int val = getCharDigitValue(c);
       assert(val >= 0 && val < 16);
-      if(integer+((float)val/base) >= tooHighOverBase) { //We can't multiply this by the base without flowing over. Abort!
+      //129 >= 128, meaning if we multiply by base (2), we go to or over 256, being outside of our range
+      //25 >= 25, meaning if we multiply by base (10), we get 250, not enough for overflow, so we also check if value is more than or equal 'rest (6)'
+      if(integer > tooHighOverBase || (integer == tooHighOverBase && val >= tooHighOverBaseRest)) { //We can't multiply this by the base without flowing over. Abort!
         logDaf(file, line, col, ERROR) << "number literal '" << text << "' to large to fit " << typeSize << " bits" << std::endl;
         break;
       }
