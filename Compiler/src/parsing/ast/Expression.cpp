@@ -38,7 +38,27 @@ IntegerConstantExpression::IntegerConstantExpression(daf_largest_uint integer, N
   : Expression(range), m_integer(integer), m_integerType(integerType) {}
 
 void IntegerConstantExpression::printSignature() {
-  std::cout << m_integer;
+  using namespace NumberLiteralConstants;
+  switch(m_integerType) {
+  case U8:
+  case U16:
+  case U32:
+  case U64:
+    std::cout << m_integer;
+    break;
+  case I8:
+    std::cout << +(int8_t)m_integer;
+    break;
+  case I16:
+    std::cout << +(int16_t)m_integer;
+    break;
+  case I32:
+    std::cout << +(int32_t)m_integer;
+    break;
+  case I64:
+    std::cout << (int64_t)m_integer;
+    break;
+  }
 }
 
 RealConstantExpression::RealConstantExpression(daf_largest_float real, NumberLiteralConstants::ConstantRealType realType, TextRange &range)

@@ -237,6 +237,82 @@ void Lexer::inferAndCheckFloatType(char* type, int* typeSize, bool realNumber, i
   }
 }
 
+void parseIntegerToToken(Token& token, int base, std::string& text, char type, int typeSize, const FileForParsing& file, int line, int col, int endCol) {
+  if(typeSize == 0)
+    typeSize = 32; //Default integer size is 32
+  assert(base == 10 || base == 2 || base == 16);
+  assert(typeSize == 8 || typeSize == 16 || typeSize == 32 || typeSize == 64);
+
+  //One more than the max value of the signed type (a.k.a lowest number)
+  //Over two refers to it being one too high for an unsigned integer, then divided by two
+  daf_largest_uint tooHighOverTwo = (typeSize==8?(1l<<7):(typeSize==16?(1l<<15):(typeSize==32?(1l<<31):(1l<<63))));
+  float tooHighOverBase = tooHighOverTwo;
+  if(base==10)
+    tooHighOverBase /= 5; //We have already divided by 2, so 5 more to ten
+  else if(base==16)
+    tooHighOverBase = tooHighOverTwo>>3; // >> 3 means divided by 8, 8*2=16
+
+  unsigned int textIndex = base==10?0:2; //Skip '0x or 0b'
+
+  daf_largest_uint integer=0;
+  while(textIndex < text.size()) {
+    char c = text[textIndex];
+    assert(c != 'p'); //p can't happen to integers thus far.
+    if(base != 16 && c == 'e') {
+      assert(base==10);
+      assert(textIndex<text.size()); //We know there is more after 'e'
+
+      textIndex++;
+      int expo = 0;
+      do {
+        int digit = getCharDigitValue(text[textIndex]);
+        assert(digit >= 0 && digit < 10);
+        expo *=10; //The exponent is always base 10
+        expo += digit;
+        textIndex++;
+      }
+      while(textIndex < text.size());
+      if(expo != 0) {
+        float expoFactor = base; //10
+        for(int i = 1; i < expo; i++) {
+          expoFactor*=base; //10
+        }
+        //Say tooHighOverBase is (256/10=)25.6, so if expoFactor is 10: 2.56, times base: 25.6, our integer with 'e1' must be less than 25.6 to fit 8 bits
+        if(integer >= tooHighOverBase/expoFactor*base) {
+          logDaf(file, line, col, ERROR) << "number literal '" << text << "''s exponent too large to fit " << typeSize << " bits" << std::endl;
+        }
+        else
+          integer *= expoFactor;
+      }
+    }
+    else {
+      int val = getCharDigitValue(c);
+      assert(val >= 0 && val < 16);
+      if(integer+((float)val/base) >= tooHighOverBase) { //We can't multiply this by the base without flowing over. Abort!
+        logDaf(file, line, col, ERROR) << "number literal '" << text << "' to large to fit " << typeSize << " bits" << std::endl;
+        break;
+      }
+      integer *= base;
+      integer += val;
+      textIndex++;
+    }
+  }
+
+  if(type == '\0') { //we decide sign!
+    if(integer < tooHighOverTwo) //tooHighOverTwo is one more than the maximum signed integer (0b1000_0000 = 128 for u8 and = -128 for i8)
+      type = 'i';
+    else if(integer == tooHighOverTwo) { //We're talking either the lowest signed int, or just too high, so we need a type specified
+      logDaf(file, line, col, WARNING) << "can't infer sign of integer just above the " << typeSize << " bit signed range" << std::endl;
+      type = 'u';
+    }
+    else //To large to be represented as a signed integer
+      type = 'u';
+  }
+  assert(type == 'u' || type == 'i');
+  using namespace NumberLiteralConstants;
+  setTokenFromInteger(token, type=='u'? (typeSize==8?U8:typeSize==16?U16:typeSize==32?U32:U64) : (typeSize==8?I8:typeSize==16?I16:typeSize==32?I32:I64), integer, line, col, endCol, text);
+}
+
 bool Lexer::parseNumberLiteral(Token& token) {
   int startLine = line;
   int startCol = col;
@@ -256,8 +332,7 @@ bool Lexer::parseNumberLiteral(Token& token) {
   inferAndCheckFloatType(&type, &typeSize, realNumber, startLine, startCol); //After this a real must be float and vice versa. This is where f32 is default size
 
   assert((type=='\0')==(typeSize==0) && (realNumber==(type=='f'))); //Either both are 0, or neither AND a real is a float
-
-  if(realNumber) {
+  if(realNumber) { //means type is 'f'
     assert(typeSize==32 || typeSize==64);
     daf_largest_float f;
     if(typeSize == 32)
@@ -266,7 +341,7 @@ bool Lexer::parseNumberLiteral(Token& token) {
       f = std::stod(text);
     setTokenFromRealNumber(token, typeSize == 32 ? NumberLiteralConstants::F32 : NumberLiteralConstants::F64, f, startLine, startCol, col, text);
   } else {
-    setTokenFromInteger(token, NumberLiteralConstants::I32, 0, startLine, startCol, col, text);
+    parseIntegerToToken(token, base, text, type, typeSize, getFile(), startLine, startCol, col);
   }
   return true;
 }

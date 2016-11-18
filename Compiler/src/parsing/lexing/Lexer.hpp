@@ -23,6 +23,7 @@ private:
   bool parseStringLiteral(Token& token);
   bool parseCharLiteral(Token& token);
 
+  //All related to number constant parsing. A bit ugly, yeah
   int parseBase(string& text);
   void eatMainDigits(string& text, int base, bool* real);
   void checkForExponent(string& text, int base, bool real);
