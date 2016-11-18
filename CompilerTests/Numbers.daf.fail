@@ -29,7 +29,6 @@ a = 3.5e5u16;
 a = 3.4e3f32e2;
 a = 3.4e2i32;
 
-
 //Related to stuff being too big
 a = 0x1_0000_0000;
 a = 0x100u8;
