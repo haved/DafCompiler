@@ -8,6 +8,19 @@ bool Scope::isStatement() {
   return true;
 }
 
+bool Scope::ignoreFollowingSemicolon() {
+  return true;
+}
+
+bool Scope::findType() {
+  assert(false);
+  return false;
+}
+
+bool Scope::canHaveType() {
+  return (bool)m_outExpression;
+}
+
 void Scope::printSignature() {
   std::cout << "{" << std::endl;
   for(auto statement = m_statements.begin(); statement!=m_statements.end(); ++statement) {
@@ -18,8 +31,4 @@ void Scope::printSignature() {
     std::cout << std::endl;
   }
   std::cout << "}";
-}
-
-bool Scope::findType() {
-  return false;
 }

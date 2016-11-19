@@ -10,6 +10,8 @@ private:
 public:
   Scope(const TextRange& range, std::vector<Statement>&& statements, std::unique_ptr<Expression> finalOutExpression);
   bool isStatement(); //true
+  bool ignoreFollowingSemicolon(); //true
   void printSignature();
+  bool canHaveType(); //if outExpression
   bool findType();
 };

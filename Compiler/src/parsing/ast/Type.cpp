@@ -3,16 +3,6 @@
 
 Type::~Type() {}
 
-VoidType voidType;
-
-const Type& getVoidTypeInstance() {
-  return voidType;
-}
-
-void VoidType::printSignature() {
-  std::cout << "void";
-}
-
 TypedefType::TypedefType(const std::string& name) : m_name(name) {}
 
 TypedefType::~TypedefType() {}

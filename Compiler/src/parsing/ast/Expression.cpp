@@ -6,18 +6,21 @@ Expression::Expression(const TextRange& range) : m_range(range) {}
 
 Expression::~Expression() {}
 
-bool Expression::isStatement() {
-  return false;
-}
+bool Expression::isStatement() { return false; }
+bool Expression::ignoreFollowingSemicolon() { return false; }
 
 bool Expression::isTypeKnown() {
   assert(false);
   return false;
 }
 
+bool Expression::canHaveType() {
+  return true;
+}
+
 const Type& Expression::getType() {
   assert(false);
-  return getVoidTypeInstance();
+  return *((Type*)nullptr);
 }
 
 const TextRange& Expression::getRange() {

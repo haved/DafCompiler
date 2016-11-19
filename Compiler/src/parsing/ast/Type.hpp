@@ -13,13 +13,6 @@ public:
   virtual void printSignature()=0;
 };
 
-class VoidType : public Type {
-public:
-  void printSignature();
-};
-
-const Type& getVoidTypeInstance();
-
 //A type being defined by a typedef
 class TypedefType : public Type {
 private:
