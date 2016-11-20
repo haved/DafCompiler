@@ -8,7 +8,7 @@ const char* TOKEN_TEXT[] = {
   "constructor", "destructor", "method", "this", "const",
   "inline", "virtual", "override",
 
-  "if", "else", "elselse", "for", "while", "do",
+  "if", "else", "elselse", "for", "while", "do", "switch", "case",
   "continue", "break", "retry", "return",
 
   "char",

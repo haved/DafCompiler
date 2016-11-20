@@ -5,10 +5,10 @@
 
 class Scope : public Expression {
 private:
-  std::vector<Statement> m_statements;
+  std::vector<std::unique_ptr<Statement>> m_statements;
   std::unique_ptr<Expression> m_outExpression;
 public:
-  Scope(const TextRange& range, std::vector<Statement>&& statements, std::unique_ptr<Expression> finalOutExpression);
+  Scope(const TextRange& range, std::vector<std::unique_ptr<Statement>>&& statements, std::unique_ptr<Expression> finalOutExpression);
   bool isStatement(); //true
   bool ignoreFollowingSemicolon(); //true
   void printSignature();

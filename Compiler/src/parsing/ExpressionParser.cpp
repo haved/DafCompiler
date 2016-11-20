@@ -174,18 +174,15 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
 
   lexer.advance(); //Eat '{'
 
-  std::vector<Statement> statements;
+  std::vector<unique_ptr<Statement>> statements;
   unique_ptr<Expression> finalOutExpression;
   while(lexer.currType()!=SCOPE_END) {
     if(lexer.currType()==END_TOKEN) {
-      lexer.expectToken(STATEMENT_END);
+      lexer.expectToken(SCOPE_END);
       break;
     }
-    if(lexer.currType()==STATEMENT_END) {
-      lexer.advance();
-      continue;
-    }
-    optional<Statement> statement = parseStatement(lexer, &finalOutExpression);
+    //The statemnt parser handles extra starting semi-colons
+    unique_ptr<Statement> statement = parseStatement(lexer, &finalOutExpression); //Exits any scopes it starts
     if(!statement) {
       //TODO:
       //skipUntilNextStatement(lexer); //Won't skip }
@@ -193,13 +190,15 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
         break; //To avoid multiple "EOF reached" errors
     }
     else
-      statements.push_back(std::move(*statement));
+      statements.push_back(std::move(statement));
+    while(lexer.currType()==STATEMENT_END)
+      lexer.advance(); //We eat extra trailing semicolons
   }
   lexer.advance(); //Eat '}'
 
   TextRange range(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol);
 
-  return std::unique_ptr<Scope>(new Scope(range, std::move(statements), std::move(finalOutExpression))); //TODO: Send the output expression as well, if it's there
+  return std::unique_ptr<Scope>(new Scope(range, std::move(statements), std::move(finalOutExpression)));
 }
 
 unique_ptr<Expression> parsePrimary(Lexer& lexer) {
