@@ -28,4 +28,13 @@ public:
   void printSignature();
 };
 
+class IfStatement : public Statement {
+private:
+  unique_ptr<Expression> m_condition;
+  unique_ptr<Statement> m_body;
+  unique_ptr<Statement> m_else_body;
+public:
+  IfStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body, unique_ptr<Statement>&& else_body);
+  void printSignature();
+};
 

@@ -25,8 +25,25 @@ bool isSpecialStatementKeyword(TokenType& type) {
   }
 }
 
+unique_ptr<Statement> parseIfStatement(Lexer& lexer) {
+  assert(lexer.currType()==IF);
+  lexer.advance(); //Eat 'if'
+  unique_ptr<Expression> condition = parseExpression(lexer);
+  unique_ptr<Statement> statement = parseStatement(lexer, boost::none);
+  unique_ptr<Statement> else_body;
+  if(lexer.currType()==ELSE) {
+    lexer.advance(); //Eat 'else'
+    else_body.reset(parseStatement(lexer, boost::none).release());
+  }
+  if(!condition)
+    return none_stmt();
+  return unique_ptr<Statement>(new IfStatement(std::move(condition), std::move(statement), std::move(else_body)));
+}
+
 unique_ptr<Statement> parseSpecialStatement(Lexer& lexer) {
   switch(lexer.currType()) {
+  case IF:
+    return parseIfStatement(lexer);
   default:
     break;
   }
