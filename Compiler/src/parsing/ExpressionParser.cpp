@@ -173,6 +173,8 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
   int startCol = lexer.getCurrentToken().col;
 
   lexer.advance(); //Eat '{'
+  while(lexer.currType()==STATEMENT_END)
+    lexer.advance(); //Eat potential starting semicolons (why they would exist, no one knows)
 
   std::vector<unique_ptr<Statement>> statements;
   unique_ptr<Expression> finalOutExpression;

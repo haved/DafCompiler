@@ -10,71 +10,9 @@ def func:={
 a}
 };
 
-/*def func:=(a:int):int {
-    if a<2
-       return a
-    func(a-1)+func(a-2)
-};
-
-def func:=() {
-  let a:=0;
-  if a<1 a++
-  while a<1;
-  do
-    a++;
-  while a<10;
-  if(a) {
-    
-  }
-  return a;
-
-  
-};*/
-
-/*
-The way we do this:
-When we're parsing statements, look for:
- * definitions that happen to be statements
- * expressions
-   * if there's a scope end after it, return the expression as output
-   * else expect a semicolon. Eat it if it's there. If the expression says inferring semicolons is ok, we do so.
-   * if it's not a statement, give error and
-
-Expression primaries can be the following:
- * variables/aliases
- * string literals
- * number literals
- * function bodies
- * expression in parentheses
- * scope
-new: (are all statements with type void)
- * if
- * for
- * while
- * switch
- //Up until here, the statements don't need to be followed by semicolon unless they wanted
- * do
- * return
- * continue
- * break
-*/
-
-/*
 def main:=() {
-    let mut a:=5;
-    if (a<6) {
-       a=6;
-    }//; Not eaten
-    def abs<def a:int>=if a>0 a else -a;
-    //Meaning, when an if is followed by an expression with non-void type, the if needs an else, also followed by an expression, and the if will evaluate to what they evaluated to.
-    def cap<def a:$T, def min:T, def max:T>:=
-    if a>=min
-       if a<=max
-          a
-       else
-          max
-    else
-        min;
-}
-
-*/
+  ;;why_hello=there;;;;
+  {}{}{};{
+    How_are_we
+  };;;;
+};

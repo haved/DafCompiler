@@ -25,38 +25,44 @@ bool isSpecialStatementKeyword(TokenType& type) {
   }
 }
 
-//A statement only occurs inside a scope, hence we know that a scope end following an expression should be resturned as a finalOutExpression
-//A scope in itself is an expression, only having a type if it has a final out expression (that can have a type)
-//Expressions inside the scope that are not output, must end in semicolons and be statements
-unique_ptr<Statement> parseStatement(Lexer& lexer, std::unique_ptr<Expression>* finalOutExpression) {
-  while(lexer.currType()==STATEMENT_END)
-    lexer.advance(); //Eat extra semicolons
+unique_ptr<Statement> parseSpecialStatement(Lexer& lexer) {
+  switch(lexer.currType()) {
+  default:
+    break;
+  }
+  logDafExpectedToken("a statement", lexer);
+  return none_stmt();
+}
+
+//A statement occures either in a scope, or inside another statement such as 'if', 'while', etc.
+//If an expression with a type occurs in a scope, without a trailing semicolon, the scope will evaluate to that expression
+//This however, may not happen if we are parsing the body og another statement, say 'if' or 'for'.
+//Therefore we must know if we can take an expression out
+unique_ptr<Statement> parseStatement(Lexer& lexer, optional<std::unique_ptr<Expression>*> finalOutExpression) {
+  assert(lexer.currType() != STATEMENT_END);
   if(canParseDefinition(lexer)) {
     std::unique_ptr<Definition> def = parseDefinition(lexer, false); //They can't be public in a scope
     if(!def)
       return none_stmt();
     return unique_ptr<Statement>(new DefinitionStatement(std::move(def)));
   } else if(isSpecialStatementKeyword(lexer.currType())) {
-
+    return parseSpecialStatement(lexer); //This will eat semicolons and everything, and can't return an expression
   }
   else if(canParseExpression(lexer)) {
     std::unique_ptr<Expression> expr = parseExpression(lexer);
     if(!expr)
       return none_stmt();
-    bool canHaveType = expr->canHaveType(); //We can only use it as a final-out-expression if it has a type, otherwise it sould be a statement
-    //This is becuase {{a=5;}} and {{a=5}} behave differently. In the first case, you have got a statement in a scope that's the only statement in the outer scope
-    //In the second case, the lack of semi-colon means we've got a scope with an output expression, meaning it can have a type, meaning we use it as our finalOut in the second scope as well
-    if(lexer.currType()==SCOPE_END && canHaveType) {
-      finalOutExpression->swap(expr);
+    if(finalOutExpression && lexer.currType()==SCOPE_END && expr->canHaveType()) {
+      (*finalOutExpression)->swap(expr);
       return none_stmt();
     }
     else if(expr->ignoreFollowingSemicolon()) {
       //Welp. Don't mind me, I'm just ignoring things :)
     }
-    else if(lexer.expectToken(STATEMENT_END)) {
+    else if(lexer.expectToken(STATEMENT_END)) { //If we find a semicolon, eat it. Otherwise give error and move on
       lexer.advance();
     }
-    //Only if we didn't return the finalOutExpression
+    //If we couldn't return the expression as a final output of a scope, AND it its't a statement, we have a problem
     if(!expr->isStatement()) {
       logDaf(lexer.getFile(), expr->getRange(), ERROR) << "Exprected a statement, not just an expression: ";
       expr->printSignature();
