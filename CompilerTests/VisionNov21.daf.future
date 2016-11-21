@@ -1,0 +1,45 @@
+namedef IO = import<daf.io>; //Fun stuff
+
+//TODO: Think about static and dynamic linking
+pub linkLibrary "-lSDL2"
+pub linkLibrary "../lib/myLib.a"
+
+namedef MyModule = {
+namedef Second = {
+def boi:=():[]char "Hello, there, boi";
+};
+def noe:=():int 5;
+};
+
+namedef _=MyModule; //Means we don't need a prefix
+
+typedef Queue<T> = class {
+
+};
+
+namedef util<T> = {
+typdef Queue = ::Queue<T>; //How does one access the parent namespace? ::, ofc, with :: :: being the parents parent
+};
+
+namedef intUtil=util<int>;
+
+def main:=() {
+    IO.print(MyModule.Second.boi());
+    IO.printInt(noe());
+    assert(noe == MyModule.noe);
+    let muQueue:intUnit.Queue();
+}
+
+typedef Entity := abstract virtual class {
+pub def _:=virtual destrcutor() {};
+pub def update:virtual (); //abstract and virtual
+};
+
+typedef Killable := trait {
+pub def die:(); //compile time trait
+};
+
+typedef Player := class extends Entity with Killable {
+pub def _:=virtual destructor() {}; //Should perhaps be added automaticly
+pub def die:virtual (); //Implement the trait even though virtual wasn't specified in it
+}
