@@ -1,45 +1,59 @@
-namedef IO = import<daf.io>; //Fun stuff
-
-//TODO: Think about static and dynamic linking
-pub linkLibrary "-lSDL2"
-pub linkLibrary "../lib/myLib.a"
+namedef IO = import<daf.iostream>;
 
 namedef MyModule = {
-namedef Second = {
-def boi:=():[]char "Hello, there, boi";
+        def moduleName:="MyModule"; //Type [9]char
+        typedef named:=trait {
+                name:String;
+                def _:=constructor(&name:String) {
+                    this.name(name); //Up until this point, name is uncertain, and can't be used
+                };
+                pub def printName:=(&this) {
+                    ::IO.print(name);
+                };
+                prot def kill:(&mut this);
+                prot def killAndSayName:=(&mut this) {
+                    printName();
+                    kill();
+                };
+                prot virt feed:(&mut this);
+                prot virt feedAndSayName:=(&mut this) {
+                     printName();
+                     feed();
+                };
+        };
+//namedef thisModule = ::MyModule; //pointless
 };
-def noe:=():int 5;
+namedef _ = MyModule;
+
+typedef Person:=class with named {
+        yearsLeft : int;
+        def _:=constructor(&name:String, yearsLeft:int) {
+            super[0](name);
+            this.yearsLeft = yearsLeft;
+        };
+        def kill:=(&mut this) {
+            print("..is now dead");
+        };
+        def feed:=(&mut this) {
+            yearsLeft++;
+            print("..is now fed");
+        };
+        def liveAYear:=(&mut this) {
+            yearsLeft--;
+            if(yearsLeft<0)
+              killAndSayName();
+        };
 };
 
-namedef _=MyModule; //Means we don't need a prefix
-
-typedef Queue<T> = class {
-
-};
-
-namedef util<T> = {
-typdef Queue = ::Queue<T>; //How does one access the parent namespace? ::, ofc, with :: :: being the parents parent
-};
-
-namedef intUtil=util<int>;
+def feedNamed(&mut n:named) {
+    named.feedAndSayName(); //It is virtual
+}
 
 def main:=() {
-    IO.print(MyModule.Second.boi());
-    IO.printInt(noe());
-    assert(noe == MyModule.noe);
-    let muQueue:intUnit.Queue();
-}
-
-typedef Entity := abstract virtual class {
-pub def _:=virtual destrcutor() {};
-pub def update:virtual (); //abstract and virtual
+    let me:Person("haved", 20);
+    me.feed();
+    me.liveAYear();
+    feedNamed(&mut me); we dont cast explicitly, even though the feedNamed may not be deleted. Use owner<T> to keep yourself in check
 };
 
-typedef Killable := trait {
-pub def die:(); //compile time trait
-};
-
-typedef Player := class extends Entity with Killable {
-pub def _:=virtual destructor() {}; //Should perhaps be added automaticly
-pub def die:virtual (); //Implement the trait even though virtual wasn't specified in it
-}
+//def a:=() if a > 3 a++; //Not legal for the time being, as statements must be in scopes!
