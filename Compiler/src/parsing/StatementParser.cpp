@@ -40,14 +40,24 @@ unique_ptr<Statement> parseIfStatement(Lexer& lexer) {
   return unique_ptr<Statement>(new IfStatement(std::move(condition), std::move(statement), std::move(else_body)));
 }
 
+unique_ptr<Statement> parseWhileStatement(Lexer& lexer) {
+  assert(lexer.currType()==WHILE);
+  lexer.advance(); //Eat 'while'
+  unique_ptr<Expression> condition = parseExpression(lexer);
+  unique_ptr<Statement> statement = parseStatement(lexer, boost::none);
+  return unique_ptr<Statement>(new WhileStatement(std::move(condition), std::move(statement)));
+}
+
 unique_ptr<Statement> parseSpecialStatement(Lexer& lexer) {
   switch(lexer.currType()) {
   case IF:
     return parseIfStatement(lexer);
+  case WHILE:
+    return parseWhileStatement(lexer);
   default:
     break;
   }
-  logDafExpectedToken("a statement", lexer);
+  assert(false);
   return none_stmt();
 }
 
@@ -59,6 +69,7 @@ unique_ptr<Statement> parseStatement(Lexer& lexer, optional<std::unique_ptr<Expr
   assert(lexer.currType() != STATEMENT_END);
   if(canParseDefinition(lexer)) {
     std::unique_ptr<Definition> def = parseDefinition(lexer, false); //They can't be public in a scope
+    //DefinitionParser handles semicolons!
     if(!def)
       return none_stmt();
     return unique_ptr<Statement>(new DefinitionStatement(std::move(def)));

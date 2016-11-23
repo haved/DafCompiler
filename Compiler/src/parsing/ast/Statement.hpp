@@ -38,3 +38,11 @@ public:
   void printSignature();
 };
 
+class WhileStatement : public Statement {
+private:
+  unique_ptr<Expression> m_condition;
+  unique_ptr<Statement> m_body;
+public:
+  WhileStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body);
+  void printSignature();
+};

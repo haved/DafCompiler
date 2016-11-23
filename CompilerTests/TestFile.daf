@@ -1,5 +1,12 @@
 def main:=() {
     mut a := 5;
     a = a + 30;
-    
+    if a != 35
+       assert(0e3i32);
+    else if a < 35
+        assert(0x1);
+    while a > 3 {
+          a--;
+    }
+    //It's hard coded in that a scope needn't have semicolons behind it
 };

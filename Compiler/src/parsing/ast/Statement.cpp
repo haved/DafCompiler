@@ -32,6 +32,7 @@ IfStatement::IfStatement(unique_ptr<Expression>&& condition, unique_ptr<Statemen
 void IfStatement::printSignature() {
   std::cout << "if ";
   m_condition->printSignature();
+  std::cout << " ";
   if(m_body) {
     m_body->printSignature();
   } else {
@@ -41,5 +42,21 @@ void IfStatement::printSignature() {
   if(m_else_body) {
     std::cout << "else ";
     m_else_body->printSignature();
+  }
+}
+
+WhileStatement::WhileStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body)
+  : m_condition(std::move(condition)), m_body(std::move(body)) {
+  assert(m_condition);
+}
+
+void WhileStatement::printSignature() {
+  std::cout << "while ";
+  m_condition->printSignature();
+  std::cout << " ";
+  if(m_body) {
+    m_body->printSignature();
+  } else {
+    std::cout << ";" << std::endl;
   }
 }

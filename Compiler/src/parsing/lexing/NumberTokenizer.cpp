@@ -38,10 +38,10 @@ int getCharDigitValue(char c) {
 int Lexer::parseBase(string& text) {
   int base = 10;
   if(currentChar=='0') {
-    text.push_back(currentChar);
-    advanceChar();
-    if(currentChar=='x' || currentChar=='b') {
-      text.push_back(currentChar);
+    if(lookaheadChar=='x' || lookaheadChar=='b') {
+      text.push_back(currentChar); // '0'
+      advanceChar(); //Eat '0'
+      text.push_back(currentChar); // 'x' or 'b'
       base = currentChar=='x'?16:2;
       advanceChar(); //Eat 'x' or 'b'
     }

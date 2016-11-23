@@ -289,6 +289,7 @@ unique_ptr<Expression> mergeExpressionWithOp(Lexer& lexer, unique_ptr<Expression
     return parseFunctionCallExpression(lexer, std::move(LHS));
   }
   assert(false); //Didn't know what to do with postfix expression
+  return none_exp();
 }
 
 unique_ptr<Expression> parseSide(Lexer& lexer, int minimumPrecedence) {

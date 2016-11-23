@@ -1,2 +1,2 @@
-callgrind.out.tmp
+callgrind.out.*
 TestBuild/
