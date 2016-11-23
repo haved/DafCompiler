@@ -1,39 +1,5 @@
 def main:=() {
-  ;;why_hello=there;;;;
-  {}{}{};{
-    How_are_we
-  };;;;
-};
-
-def main2:=() {
-let mut a:=5;
-    {
-      a=4;
-    }
-};
-
-def func:={
-{let a:=5;
-a}
-};
-
-def test:=() {
-    let mut a := 5;
-    if a < 6 {
-       a++;
-    }
-    else
-      a--;
-
-    if(a>2) {
-            a--
-    };;;;
-
-    if (a==6)
-       a++;
-
-    if(a!=4)
-       a=a-4;
-    else
-      a++;
+    mut a := 5;
+    a = a + 30;
+    
 };

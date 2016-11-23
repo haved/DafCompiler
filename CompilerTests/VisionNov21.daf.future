@@ -10,8 +10,8 @@ namedef MyModule = {
                 pub def printName:=(&this) {
                     ::IO.print(name);
                 };
-                prot def kill:(&mut this);
-                prot def killAndSayName:=(&mut this) {
+                prot def kill:(&mut this); //Requires subclasses to implements functions taking pointers to themselves
+                prot def killAndSayName:=(&mut this) { //Takes a pointer to named
                     printName();
                     kill();
                 };
@@ -38,7 +38,7 @@ typedef Person:=class with named {
             yearsLeft++;
             print("..is now fed");
         };
-        def liveAYear:=(&mut this) {
+        def liveAYear:=(&mut this) { //Takes a &Person as this
             yearsLeft--;
             if(yearsLeft<0)
               killAndSayName();

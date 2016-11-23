@@ -33,7 +33,7 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
   if(!lexer.expectToken(IDENTIFIER))
     return none();
 
-  std::string name = lexer.getCurrentToken().text;
+  std::string name(lexer.getCurrentToken().text);
   lexer.advance(); //Eat identifier
 
   unique_ptr<Type> type;
@@ -87,7 +87,7 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
 
 bool canParseDefinition(Lexer& lexer) {
   TokenType curr = lexer.currType();
-  return curr==DEF||curr==LET; //So far the only tokens
+  return curr==DEF||curr==LET||curr==MUT; //So far the only tokens
 }
 
 unique_ptr<Definition> parseDefinition(Lexer& lexer, bool pub) {
@@ -96,6 +96,7 @@ unique_ptr<Definition> parseDefinition(Lexer& lexer, bool pub) {
   switch(currentToken) {
   case DEF:
   case LET:
+  case MUT:
     out = parseLetDefDefinition(lexer, pub);
     break;
   default:
