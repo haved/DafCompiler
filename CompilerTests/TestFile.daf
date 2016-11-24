@@ -8,5 +8,6 @@ def main:=() {
     while a > 3 {
           a--;
     }
+    while (a) a();
     //It's hard coded in that a scope needn't have semicolons behind it
 };

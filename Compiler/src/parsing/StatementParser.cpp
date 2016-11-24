@@ -48,6 +48,15 @@ unique_ptr<Statement> parseWhileStatement(Lexer& lexer) {
   return unique_ptr<Statement>(new WhileStatement(std::move(condition), std::move(statement)));
 }
 
+unique_ptr<Statement> parseForStatement(Lexer& lexer) {
+  assert(lexer.currType()==FOR);
+  lexer.advance(); //Eat 'for'
+  if(!lexer.expectToken(LEFT_PAREN))
+    return none_stmt();
+  lexer.advance(); //Eat  '('
+  return none_stmt();
+}
+
 unique_ptr<Statement> parseSpecialStatement(Lexer& lexer) {
   switch(lexer.currType()) {
   case IF:

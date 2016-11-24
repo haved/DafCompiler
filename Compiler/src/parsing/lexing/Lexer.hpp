@@ -45,5 +45,3 @@ public:
   inline const FileForParsing& getFile() {return fileForParsing;}
   bool expectToken(const TokenType& type);
 };
-
-

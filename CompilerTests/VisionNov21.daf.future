@@ -10,7 +10,7 @@ namedef MyModule = {
                 pub def printName:=(&this) {
                     ::IO.print(name);
                 };
-                prot def kill:(&mut this); //Requires subclasses to implements functions taking pointers to themselves
+                prot def kill:(&mut this); //Requires subclasses to implements functions taking pointers to named                
                 prot def killAndSayName:=(&mut this) { //Takes a pointer to named
                     printName();
                     kill();
@@ -53,7 +53,7 @@ def main:=() {
     let me:Person("haved", 20);
     me.feed();
     me.liveAYear();
-    feedNamed(&mut me); we dont cast explicitly, even though the feedNamed may not be deleted. Use owner<T> to keep yourself in check
-};
+    feedNamed(&mut me); we dont cast explicitly, even though the feedNamed may not be deleted. Use owner<T> to keep yourself 
+}
 
 //def a:=() if a > 3 a++; //Not legal for the time being, as statements must be in scopes!
