@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 
+//Scope is not in Expression.hpp because it must include Statement, which in turn includes Expression.hpp
 class Scope : public Expression {
 private:
   std::vector<std::unique_ptr<Statement>> m_statements;

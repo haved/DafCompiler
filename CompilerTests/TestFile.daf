@@ -1,3 +1,5 @@
+// -*- compile-command: "./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
+
 def main:=() {
     mut a := 5;
     a = a + 30;

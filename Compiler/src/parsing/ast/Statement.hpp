@@ -2,7 +2,10 @@
 #include "parsing/ast/Definition.hpp"
 #include "parsing/ast/Expression.hpp"
 #include <memory>
+#include <string>
+#include <boost/optional.hpp>
 
+using boost::optional;
 using std::unique_ptr;
 
 //A statement can be both an expression or a definition, but not all expressions or definitons are statements
@@ -45,4 +48,17 @@ private:
 public:
   WhileStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body);
   void printSignature();
+};
+
+struct ForStatementInit {
+  std::string varName;
+  bool definition;
+  unique_ptr<Expression> value;
+};
+
+class ForStatement : public Statement {
+private:
+  optional<ForStatementInit> m_init;
+  unique_ptr<Expression> m_condition;
+  unique_ptr<Expression> m_change;
 };
