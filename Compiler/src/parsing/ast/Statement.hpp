@@ -51,9 +51,12 @@ public:
 };
 
 struct ForStatementInit {
-  std::string varName;
-  bool definition;
-  unique_ptr<Expression> value;
+  std::string m_varName;
+  bool m_definition;
+  unique_ptr<Type> m_type;
+  unique_ptr<Expression> m_value;
+public:
+  ForStatementInit(std::string&& name, bool defintion, unique_ptr<Type>&& type, unique_ptr<Expression>&& value);
 };
 
 class ForStatement : public Statement {
@@ -61,4 +64,21 @@ private:
   optional<ForStatementInit> m_init;
   unique_ptr<Expression> m_condition;
   unique_ptr<Expression> m_change;
+public:
+  ForStatement(optional<ForStatementInit>&& init, unique_ptr<Expression>&& condition, unique_ptr<Expression>&& change);
+  void printSignature();
+};
+
+/*
+for(i:int 0..5) {
+
+}
+ */
+class ForRangeStatement : public Statement {
+private:
+  std::string m_name;
+  unique_ptr<Type> m_type;
+  unique_ptr<Expression> m_start;
+  unique_ptr<Expression> m_end;
+  unique_ptr<Expression> m_step;
 };
