@@ -1,0 +1,29 @@
+
+typedef Iterator<T> = trait {
+  pub def advance:(&mut this);
+  pub def let current<&mut this>:T;
+  pub def let _<&mut this>:=current; //Interresting
+  pub def hasNext:(&mut this):bool;
+};
+
+typedef IntegerIterator<T:Integer> = class with Iterator {
+  prot index:T;
+  prot max:T;
+  pub def _:=constructor(start:T, max:T) {
+      this.index = start;
+      this.max = max;
+  };
+  pub def advance:=(&this) index+=1;
+  pub def hasNext:=(&this) index<max;
+  pub def let current<&mut this>:=index;
+};
+
+typedef IntegerIteratorStep<T:Integer> = class with IntegerIterator {
+  prot step:T;
+  pub def _:=constructor(start:T, max:T, step:T) {
+    super(start, max);
+    this.step = step;
+  };
+  pub def advance:=(&this) index+=step;
+
+};
