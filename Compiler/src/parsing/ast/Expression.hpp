@@ -15,9 +15,9 @@ class Expression {
   Expression(const TextRange& range);
   virtual ~Expression();
   virtual bool isStatement();
-  virtual bool ignoreFollowingSemicolon();
+  virtual bool isScope(); //We can ignore checking for a semicolon after a scope in a statement
+	virtual bool canBeFinalExpression(); //used in the statement parser
   virtual const Type& getType();
-  virtual bool canHaveType(); //false means void
   virtual bool isTypeKnown();
   //returns true if it has a type after the call
   virtual bool findType() = 0;

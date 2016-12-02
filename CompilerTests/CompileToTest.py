@@ -5,6 +5,10 @@
 
 ##Last modified 2016-11-11
 ##No, 2016-12-03
+###Noo, 2016-12-04
+
+cmakeTarget = "Unix Makefiles" #Ninja
+makeCommand = ["make"] #["ninja"]
 
 from subprocess import call
 from sys import argv
@@ -27,5 +31,5 @@ if not isdir(buildDir):
     makedirs(buildDir)
 chdir(buildDir)
 
-call(["cmake", cmakeRelative]+(opt[2:]if len(opt)>2 else [])+["-GNinja", "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"])
-call(["ninja"])
+call(["cmake", cmakeRelative]+(opt[2:]if len(opt)>2 else [])+["-G"+cmakeTarget, "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"])
+call(makeCommand)

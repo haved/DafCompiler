@@ -9,17 +9,17 @@ bool Scope::isStatement() {
   return true;
 }
 
-bool Scope::ignoreFollowingSemicolon() {
+bool Scope::isScope() {
   return true;
+}
+
+bool Scope::canBeFinalExpression() {
+  return (bool)m_outExpression;
 }
 
 bool Scope::findType() {
   assert(false);
   return false;
-}
-
-bool Scope::canHaveType() {
-  return (bool)m_outExpression;
 }
 
 void Scope::printSignature() {

@@ -130,17 +130,21 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr
     unique_ptr<Expression> expr = parseExpression(lexer);
     if(!expr)
       return none;
-    if(finalOutExpression && lexer.currType()==SCOPE_END && expr->canHaveType()) {
+    if(finalOutExpression && lexer.currType()==SCOPE_END && expr->canBeFinalExpression()) {
       (*finalOutExpression)->swap(expr);
       return none; //We have a final out expression, so we return none, but it shouldn't matter to the caller
     }
-    else if(expr->ignoreFollowingSemicolon()) {
+    else if(expr->isScope() && lexer.currType() != STATEMENT_END) { //A scope doesn't need a semicolon
+			//We only allow ignoring of semicolons after statements they don't evaluate to anything
+			if(expr->canBeFinalExpression()) { //Means the scope has a value itself
+				logDafExpectedToken("a semicolon after a scope with a return value,", lexer);
+			}
       //Welp. Don't mind me, I'm just ignoring things :)
     }
     else if(lexer.expectToken(STATEMENT_END)) { //If we find a semicolon, eat it. Otherwise give error and move on
       lexer.advance();
     }
-    //If we couldn't return the expression as a final output of a scope, AND if its't a statement, we have a problem
+    //If we couldn't return the expression as a final output of a scope, AND if it isn't a statement, we have a problem
     if(!expr->isStatement()) {
       logDaf(lexer.getFile(), expr->getRange(), ERROR) << "Exprected a statement, not just an expression: ";
       expr->printSignature();

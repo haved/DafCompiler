@@ -7,14 +7,14 @@ Expression::Expression(const TextRange& range) : m_range(range) {}
 Expression::~Expression() {}
 
 bool Expression::isStatement() { return false; }
-bool Expression::ignoreFollowingSemicolon() { return false; }
+bool Expression::isScope() { return false; }
 
 bool Expression::isTypeKnown() {
   assert(false);
   return false;
 }
 
-bool Expression::canHaveType() {
+bool Expression::canBeFinalExpression() {
   return true;
 }
 
