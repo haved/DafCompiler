@@ -10,7 +10,7 @@ using std::unique_ptr;
 
 //A statement can be both an expression or a definition, but not all expressions or definitons are statements
 class Statement {
- public:
+public:
   virtual void printSignature()=0;
   virtual ~Statement();
 };
@@ -50,35 +50,13 @@ public:
   void printSignature();
 };
 
-struct ForStatementInit {
-  std::string m_varName;
-  bool m_definition;
-  unique_ptr<Type> m_type;
-  unique_ptr<Expression> m_value;
-public:
-  ForStatementInit(std::string&& name, bool defintion, unique_ptr<Type>&& type, unique_ptr<Expression>&& value);
-};
-
 class ForStatement : public Statement {
 private:
-  optional<ForStatementInit> m_init;
-  unique_ptr<Expression> m_condition;
-  unique_ptr<Expression> m_change;
+	std::string m_variable;
+	unique_ptr<Type> m_type;
+  unique_ptr<Expression> m_range;
+	unique_ptr<Statement> m_body;
 public:
-  ForStatement(optional<ForStatementInit>&& init, unique_ptr<Expression>&& condition, unique_ptr<Expression>&& change);
+  ForStatement(const std::string& variable, unique_ptr<Type>&& type, unique_ptr<Expression>&& range, unique_ptr<Statement>&& body);
   void printSignature();
-};
-
-/*
-for(i:int 0..5) {
-
-}
- */
-class ForRangeStatement : public Statement {
-private:
-  std::string m_name;
-  unique_ptr<Type> m_type;
-  unique_ptr<Expression> m_start;
-  unique_ptr<Expression> m_end;
-  unique_ptr<Expression> m_step;
 };

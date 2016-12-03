@@ -60,3 +60,26 @@ void WhileStatement::printSignature() {
     std::cout << ";" << std::endl;
   }
 }
+
+ForStatement::ForStatement(const std::string& variable, unique_ptr<Type>&& type,
+													 unique_ptr<Expression>&& range, unique_ptr<Statement>&& body)
+	: m_variable(variable), m_type(std::move(type)), m_range(std::move(range)), m_body(std::move(body)) {
+	assert(m_body && m_range);
+}
+
+void ForStatement::printSignature() {
+	std::cout << "for ";
+	std::cout << m_variable;
+	if(m_type) {
+		std::cout << ":";
+		m_type->printSignature();
+	}
+	std::cout << " in ";
+	m_range->printSignature(); //asserted not null
+	if(m_body) {
+		std:: cout << " ";
+		m_body->printSignature();
+	} else {
+		std::cout << ";";
+	}
+}
