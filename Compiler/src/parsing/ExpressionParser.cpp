@@ -316,7 +316,7 @@ unique_ptr<Expression> parseSide(Lexer& lexer, int minimumPrecedence) {
     if(!infixOp || infixOp->precedence<minimumPrecedence)
       return side;
     lexer.advance(); //Eat the infix operator
-    side = mergeExpressionsWithOp(std::move(side), *infixOp, parseSide(lexer, infixOp->precedence));
+    side = mergeExpressionsWithOp(std::move(side), *infixOp, parseSide(lexer, infixOp->precedence+1));
   }
 }
 
