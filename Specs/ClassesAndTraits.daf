@@ -1,0 +1,9 @@
+/** Classes and traits
+* A file used by me to reserach and develop a class system giving you all the control, without being too complicated (spoiler: it is)
+* So here's the basic idea. A type contains data, but also information about what you can do with the type (i.e. what methods it has).
+* This does mean that functions can be declared to work with types both in their own signature, and in the type's signature.
+* This is not too big of a deal however, as the programmers can decide for theirselves weather to assign a function to a type strongly or weakly.
+* If it is attached strongly, it may still be used in the weak sense, so if it's a big problem, just always use the weak copeling, and live your life the way you want to.
+* Classes and traits are identical, save for the fact that classes must be initializabable. 
+*/
+
