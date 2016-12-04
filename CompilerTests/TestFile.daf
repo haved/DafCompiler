@@ -19,5 +19,10 @@ def main:=() {
 		for a:int in 4.7 {
 				total=a;
 		}
+		if (a);
+		else
+			a++;
+		{;
+		a++;;;;a--;;;}
     //It's hard coded in that a scope needn't have semicolons behind it
 };

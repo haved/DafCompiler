@@ -183,7 +183,8 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
       lexer.expectToken(SCOPE_END);
       break;
     }
-    //The statemnt parser handles extra starting semi-colons
+		//We have already skipped starting semi-colons
+		//parseStatement() returns null if it's a semicolon, but we treat none returns as errors
     unique_ptr<Statement> statement = parseStatement(lexer, &finalOutExpression); //Exits any scopes it starts
     if(!statement) {
       //TODO:

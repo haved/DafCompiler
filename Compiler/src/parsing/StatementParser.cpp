@@ -101,7 +101,10 @@ unique_ptr<Statement> parseSpecialStatement(Lexer& lexer) {
 //This however, may not happen if we are parsing the body og another statement, say 'if' or 'for'.
 //Therefore we must know if we can take an expression out
 unique_ptr<Statement> parseStatement(Lexer& lexer, optional<std::unique_ptr<Expression>*> finalOutExpression) {
-  //assert(lexer.currType() != STATEMENT_END); //TODO: If we meet a semicolon, we can't eat it and return none_stmt without some caller thinking it was an error. Let's not force the caller to do the semicolon check, ey?
+	if(lexer.currType() == STATEMENT_END) {
+		lexer.advance(); //Eat semicolon
+		return none_stmt();
+	}
   if(canParseDefinition(lexer)) {
     std::unique_ptr<Definition> def = parseDefinition(lexer, false); //They can't be public in a scope
     //DefinitionParser handles semicolons!
