@@ -70,7 +70,7 @@ optional<FunctionParameter> parseFunctionParameter(Lexer& lexer) {
 
   lexer.advance(); //Eat ':'
 
-  std::unique_ptr<Type> type = parseType(lexer);
+  unique_ptr<Type> type = parseType(lexer);
 
   if(!type)
     return none;
@@ -123,7 +123,7 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
     return none_exp();
   lexer.advance(); //Eat ')'
 
-  std::unique_ptr<Type> type;
+  unique_ptr<Type> type;
   FunctionReturnType returnType = FUNC_NORMAL_RETURN;
   if(lexer.currType()==TYPE_SEPARATOR) {
     lexer.advance(); //Eat ':'
@@ -138,13 +138,13 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
     type = parseType(lexer); //If the type fails, it should have cleaned up after itself, and we don't care
   }
 
-  std::unique_ptr<Expression> body = parseExpression(lexer); //Prints error message if null
+  unique_ptr<Expression> body = parseExpression(lexer); //Prints error message if null
 
   if(!body) //Error recovery should already have been done to pass the body expression
     return none_exp();
 
   FunctionInlineType inlineType = explicitInline?FUNC_TYPE_INLINE:FUNC_TYPE_NORMAL;
-  return std::unique_ptr<FunctionExpression>(new FunctionExpression(std::move(fps), inlineType, std::move(type), returnType, std::move(body),
+  return unique_ptr<FunctionExpression>(new FunctionExpression(std::move(fps), inlineType, std::move(type), returnType, std::move(body),
                                              TextRange(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol)));
 }
 
@@ -185,6 +185,7 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
     }
 		//We have already skipped starting semi-colons
 		//parseStatement() returns null if it's a semicolon, but we treat none returns as errors
+		//TODO: Separate broken statements from semi-colons
     unique_ptr<Statement> statement = parseStatement(lexer, &finalOutExpression); //Exits any scopes it starts
     if(!statement) {
       //TODO:
@@ -201,7 +202,7 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
 
   TextRange range(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol);
 
-  return std::unique_ptr<Scope>(new Scope(range, std::move(statements), std::move(finalOutExpression)));
+  return unique_ptr<Scope>(new Scope(range, std::move(statements), std::move(finalOutExpression)));
 }
 
 unique_ptr<Expression> parsePrimary(Lexer& lexer) {
