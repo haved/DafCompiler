@@ -14,9 +14,9 @@ def main:=() {
     while (a) a();
 		
 		//Fix this! for a = b;
-		for i = myIter i();
+		for i in myIter i();
 		let total := 0;
-		for a:int = 4.7 {
+		for a:int in 4.7 {
 				total=a;
 		}
     //It's hard coded in that a scope needn't have semicolons behind it

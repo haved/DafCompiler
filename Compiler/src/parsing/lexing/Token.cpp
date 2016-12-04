@@ -5,10 +5,10 @@ const char* TOKEN_TEXT[] = {
   "pub", "let", "def", "typedef", "import", "mut", "uncertain", "move",
 
   "prot", "abstract", "extends", "implements", "interface",
-  "constructor", "destructor", "method", "this", "const",
+  "ctor", "dtor",  "this",
   "inline", "virtual", "override",
 
-  "if", "else", "elselse", "for", "while", "do", "switch", "case",
+  "if", "else", "elselse", "for", "in", "while", "do", "switch", "case",
   "continue", "break", "retry", "return",
 
   "char",
@@ -19,7 +19,7 @@ const char* TOKEN_TEXT[] = {
 
   "size_of", "type_of",
 
-  "true", "false", "null"
+  "true", "false", "null", "as"
 };
 
 const char* ONE_CHAR_TOKEN_TEXTS[] = {

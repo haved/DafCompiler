@@ -66,7 +66,7 @@ unique_ptr<Statement> parseForStatement(Lexer& lexer) {
 			return none_stmt();
 	}
 
-	if(!lexer.expectToken(ASSIGN))
+	if(!lexer.expectToken(IN))
 		return none_stmt();
 	lexer.advance(); //Eat 'in'
 
