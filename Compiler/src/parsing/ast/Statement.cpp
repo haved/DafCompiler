@@ -61,9 +61,9 @@ void WhileStatement::printSignature() {
   }
 }
 
-ForStatement::ForStatement(const std::string& variable, unique_ptr<Type>&& type,
+ForStatement::ForStatement(std::string&& variable, shared_ptr<Type>&& type,
 													 unique_ptr<Expression>&& range, unique_ptr<Statement>&& body)
-	: m_variable(variable), m_type(std::move(type)), m_range(std::move(range)), m_body(std::move(body)) {
+	: m_variable(std::move(variable)), m_type(std::move(type)), m_range(std::move(range)), m_body(std::move(body)) {
 	assert(m_body && m_range);
 }
 

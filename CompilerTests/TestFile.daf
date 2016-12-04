@@ -12,5 +12,12 @@ def main:=() {
     }
     a = 3 + 5 - 7;
     while (a) a();
+		
+		//Fix this! for a = b;
+		for i = myIter i();
+		let total := 0;
+		for a:int = 4.7 {
+				total=a;
+		}
     //It's hard coded in that a scope needn't have semicolons behind it
 };

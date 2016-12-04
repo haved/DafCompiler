@@ -3,6 +3,7 @@
 #include "parsing/lexing/Lexer.hpp"
 #include "parsing/ExpressionParser.hpp"
 #include "parsing/DefinitionParser.hpp"
+#include "parsing/TypeParser.hpp"
 #include "DafLogger.hpp"
 
 unique_ptr<Statement> none_stmt() {
@@ -51,10 +52,33 @@ unique_ptr<Statement> parseWhileStatement(Lexer& lexer) {
 unique_ptr<Statement> parseForStatement(Lexer& lexer) {
   assert(lexer.currType()==FOR);
   lexer.advance(); //Eat 'for'
-  if(!lexer.expectToken(LEFT_PAREN))
-    return none_stmt();
-  lexer.advance(); //Eat  '('
-  return none_stmt();
+
+	if(!lexer.expectToken(IDENTIFIER))
+		return none_stmt();
+	std::string variable(lexer.getCurrentToken().text);
+	lexer.advance(); //eat identifier
+
+	shared_ptr<Type> type;
+	if(lexer.currType() == TYPE_SEPARATOR) {
+		lexer.advance(); //Eat ':'
+		type = parseType(lexer);
+		if(!type)
+			return none_stmt();
+	}
+
+	if(!lexer.expectToken(ASSIGN))
+		return none_stmt();
+	lexer.advance(); //Eat 'in'
+
+	std::unique_ptr<Expression> iterator = parseExpression(lexer);
+	if(!iterator)
+		return none_stmt();
+	//TODO:: Remove all the std:: we don't need
+	std::unique_ptr<Statement> body = parseStatement(lexer, boost::none);
+	if(!body)
+		return none_stmt();
+
+	return unique_ptr<Statement>(new ForStatement(std::move(variable), std::move(type), std::move(iterator), std::move(body)));
 }
 
 unique_ptr<Statement> parseSpecialStatement(Lexer& lexer) {
@@ -63,6 +87,8 @@ unique_ptr<Statement> parseSpecialStatement(Lexer& lexer) {
     return parseIfStatement(lexer);
   case WHILE:
     return parseWhileStatement(lexer);
+	case FOR:
+		return parseForStatement(lexer);
   default:
     break;
   }
@@ -75,7 +101,7 @@ unique_ptr<Statement> parseSpecialStatement(Lexer& lexer) {
 //This however, may not happen if we are parsing the body og another statement, say 'if' or 'for'.
 //Therefore we must know if we can take an expression out
 unique_ptr<Statement> parseStatement(Lexer& lexer, optional<std::unique_ptr<Expression>*> finalOutExpression) {
-  assert(lexer.currType() != STATEMENT_END);
+  //assert(lexer.currType() != STATEMENT_END); //TODO: If we meet a semicolon, we can't eat it and return none_stmt without some caller thinking it was an error. Let's not force the caller to do the semicolon check, ey?
   if(canParseDefinition(lexer)) {
     std::unique_ptr<Definition> def = parseDefinition(lexer, false); //They can't be public in a scope
     //DefinitionParser handles semicolons!
@@ -83,7 +109,7 @@ unique_ptr<Statement> parseStatement(Lexer& lexer, optional<std::unique_ptr<Expr
       return none_stmt();
     return unique_ptr<Statement>(new DefinitionStatement(std::move(def)));
   } else if(isSpecialStatementKeyword(lexer.currType())) {
-    return parseSpecialStatement(lexer); //This will eat semicolons and everything, and can't return an expression
+    return parseSpecialStatement(lexer); //This will (or won't) eat semicolons and everything, and can't return an expression
   }
   else if(canParseExpression(lexer)) {
     std::unique_ptr<Expression> expr = parseExpression(lexer);
@@ -99,7 +125,7 @@ unique_ptr<Statement> parseStatement(Lexer& lexer, optional<std::unique_ptr<Expr
     else if(lexer.expectToken(STATEMENT_END)) { //If we find a semicolon, eat it. Otherwise give error and move on
       lexer.advance();
     }
-    //If we couldn't return the expression as a final output of a scope, AND it its't a statement, we have a problem
+    //If we couldn't return the expression as a final output of a scope, AND if its't a statement, we have a problem
     if(!expr->isStatement()) {
       logDaf(lexer.getFile(), expr->getRange(), ERROR) << "Exprected a statement, not just an expression: ";
       expr->printSignature();
