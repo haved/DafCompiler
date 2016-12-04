@@ -183,20 +183,19 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
       lexer.expectToken(SCOPE_END);
       break;
     }
-		//We have already skipped starting semi-colons
-		//parseStatement() returns null if it's a semicolon, but we treat none returns as errors
-		//TODO: Separate broken statements from semi-colons
-    unique_ptr<Statement> statement = parseStatement(lexer, &finalOutExpression); //Exits any scopes it starts
+    optional<unique_ptr<Statement>> statement = parseStatement(lexer, &finalOutExpression); //Exits any scopes it starts
+    if(finalOutExpression)
+      break;
     if(!statement) {
-      //TODO:
+     //TODO:
       //skipUntilNextStatement(lexer); //Won't skip }
       if(lexer.currType()==END_TOKEN)
         break; //To avoid multiple "EOF reached" errors
     }
-    else
-      statements.push_back(std::move(statement));
+    else if(*statement)
+      statements.push_back(std::move(*statement));
     while(lexer.currType()==STATEMENT_END)
-      lexer.advance(); //We eat extra trailing semicolons
+      lexer.advance(); //We eat extra trailing semicolons, in case the programmer felt like adding them in
   }
   lexer.advance(); //Eat '}'
 
