@@ -1,0 +1,24 @@
+2016 Håvard Krogstie
+
+As of yet, I have yet to set a software license, as I'm not sure which to choose.
+
+I'll allow people to do whatever they want to with my code, but I'd rather not have people selling it.
+Selling code compiled with the compiler is of course OK. Because of this, I'm looking at some GNU licenses.
+I'm not too sure about prohibiting the publishing changed binaries without publishing the code.
+I feel like it's enough to prohibit sales.
+A reason for not just setting some GPL is that I don't want people who copy my code to be restricted to the same license.
+As long as they don't sell the code I'm fine.
+I'd also like to have the opportunity to change the license for all the code later, even code written by me under the license.
+
+
+Wanting a license where:
+
+* I'm not liable for anything
+* People can use the code for whatever
+* People can't sell my code or modifications of it
+* Use of my source must contain original copyright and the license
+* Use of my code does not require you to publish source or follow the same license 
+* I have the ability the change the license if I want to
+
+Actually, I'm not to sure about the whole 'selling' point, and without it, the MIT License seems nice.
+Message me if you want some explicit permissions for anything.
