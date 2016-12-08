@@ -11,8 +11,7 @@ private:
 public:
   Scope(const TextRange& range, std::vector<std::unique_ptr<Statement>>&& statements, std::unique_ptr<Expression> finalOutExpression);
   bool isStatement(); //true
-  bool isScope(); //true
-	bool canBeFinalExpression(); //if outExpression
-  void printSignature();
+	void eatSemicolon(Lexer& lexer); //true
+	void printSignature();
   bool findType();
 };

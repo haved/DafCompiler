@@ -10,14 +10,14 @@
 using std::shared_ptr;
 using std::unique_ptr;
 
+class Lexer;
+
 class Expression {
  public:
   Expression(const TextRange& range);
   virtual ~Expression();
   virtual bool isStatement();
-	//TODO: Change to isScopeHenceDontRequireSemicolon()
-  virtual bool isScope(); //We can ignore checking for a semicolon after a scope in a statement
-	virtual bool canBeFinalExpression(); //used in the statement parser
+  virtual void eatSemicolon(Lexer& lexer);
   virtual const Type& getType();
   virtual bool isTypeKnown();
   //returns true if it has a type after the call

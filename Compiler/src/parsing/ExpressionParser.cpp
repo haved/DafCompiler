@@ -200,6 +200,7 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
   }
   lexer.advance(); //Eat '}'
 
+	//TODO: We are using the wrong token here!
   TextRange range(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol);
 
   return unique_ptr<Scope>(new Scope(range, std::move(statements), std::move(finalOutExpression)));

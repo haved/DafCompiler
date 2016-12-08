@@ -19,12 +19,21 @@ def main:=() {
 		for a:int in 4.7 {
 				total=a;
 		}
-		if (a);
+		if x(a);
 		else
 			a++;
 		{;
 		a++;;;;a--;;;
 		};;
-		{a};
+		{a}; //Require semicolons after expression scopes
+
+		if(a) {
+					b
+		};
+		else
+		{
+		g
+		}; //Required!
+
 		a();
 };

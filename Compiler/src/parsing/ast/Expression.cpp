@@ -1,5 +1,6 @@
 #include "parsing/ast/Expression.hpp"
 #include "info/DafSettings.hpp"
+#include "parsing/lexing/Lexer.hpp"
 #include <iostream>
 
 Expression::Expression(const TextRange& range) : m_range(range) {}
@@ -7,15 +8,11 @@ Expression::Expression(const TextRange& range) : m_range(range) {}
 Expression::~Expression() {}
 
 bool Expression::isStatement() { return false; }
-bool Expression::isScope() { return false; }
+void Expression::eatSemicolon(Lexer& lexer) { if(lexer.expectToken(STATEMENT_END)) lexer.advance(); }
 
 bool Expression::isTypeKnown() {
   assert(false);
   return false;
-}
-
-bool Expression::canBeFinalExpression() {
-  return true;
 }
 
 const Type& Expression::getType() {

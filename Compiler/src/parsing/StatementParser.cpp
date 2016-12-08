@@ -6,10 +6,6 @@
 #include "parsing/TypeParser.hpp"
 #include "DafLogger.hpp"
 
-unique_ptr<Statement> none_stmt() {
-  return unique_ptr<Statement>();
-}
-
 bool isSpecialStatementKeyword(TokenType& type) {
   switch(type) {
   case IF:
@@ -107,53 +103,49 @@ optional<unique_ptr<Statement>> parseSpecialStatement(Lexer& lexer) {
 }
 
 //A statement occures either in a scope, or inside another statement such as 'if', 'while', etc.
-//If an expression with a type occurs in a scope, without a trailing semicolon, the scope will evaluate to that expression
+//If an expression with a type occurs last in a scope, without a trailing semicolon, the scope will evaluate to that expression
 //This however, may not happen if we are parsing the body og another statement, say 'if' or 'for'.
 //Therefore we must know if we can take an expression out
 //returns: none if an error occured, a null pointer if there was only a semicolon, which it will eat (only one)
 //none will also be returned if the finalOutExpression is set, but then the caller shouldn't care about the return
 optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr<Expression>*> finalOutExpression) {
+
 	if(lexer.currType() == STATEMENT_END) {
 		lexer.advance(); //Eat semicolon
-		return none_stmt();
+		return unique_ptr<Statement>(); //Not a none, but a null
 	}
-  if(canParseDefinition(lexer)) {
+
+  if(canParseDefinition(lexer)) { //def, let, mut, typedef, namedef
     unique_ptr<Definition> def = parseDefinition(lexer, false); //They can't be public in a scope
     //DefinitionParser handles semicolons!
     if(!def)
       return none;
     return unique_ptr<Statement>(new DefinitionStatement(std::move(def)));
-  } else if(isSpecialStatementKeyword(lexer.currType())) {
-    return parseSpecialStatement(lexer); //This will (or won't) eat semicolons and everything, and can't return an expression
+  }
+	else if(isSpecialStatementKeyword(lexer.currType())) {
+    return parseSpecialStatement(lexer); //This will (or won't) eat semicolons and everything
   }
   else if(canParseExpression(lexer)) {
+
     unique_ptr<Expression> expr = parseExpression(lexer);
     if(!expr)
       return none;
-    if(finalOutExpression && lexer.currType()==SCOPE_END && expr->canBeFinalExpression()) {
+    if(finalOutExpression && lexer.currType()==SCOPE_END) { //All expressions can be final out expressions
       (*finalOutExpression)->swap(expr);
       return none; //We have a final out expression, so we return none, but it shouldn't matter to the caller
     }
-    else if(expr->isScope() && lexer.currType() != STATEMENT_END) { //A scope doesn't need a semicolon
-			//We only allow ignoring of semicolons after statements they don't evaluate to anything
-			if(expr->canBeFinalExpression()) { //Means the scope has a value itself
-				logDafExpectedToken("a semicolon after a scope with a return value,", lexer);
-			}
-      //Welp. Don't mind me, I'm just ignoring things :)
-    }
-    else if(lexer.expectToken(STATEMENT_END)) { //If we find a semicolon, eat it. Otherwise give error and move on
-      lexer.advance();
-    }
-    //If we couldn't return the expression as a final output of a scope, AND if it isn't a statement, we have a problem
-    if(!expr->isStatement()) {
+
+		if(!expr->isStatement()) {
       logDaf(lexer.getFile(), expr->getRange(), ERROR) << "Exprected a statement, not just an expression: ";
       expr->printSignature();
       std::cout << std::endl;
       return none;
     }
+
+		expr->eatSemicolon(lexer);
     return unique_ptr<Statement>(new ExpressionStatement(std::move(expr)));
   }
 
   logDafExpectedToken("a statement", lexer);
-  return none_stmt();
+  return none;
 }

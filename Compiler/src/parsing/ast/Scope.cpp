@@ -1,4 +1,6 @@
 #include "parsing/ast/Scope.hpp"
+#include "parsing/lexing/Lexer.hpp"
+#include "DafLogger.hpp"
 #include <iostream>
 
 Scope::Scope(const TextRange& range, std::vector<std::unique_ptr<Statement>>&& statements,
@@ -9,12 +11,15 @@ bool Scope::isStatement() {
   return true;
 }
 
-bool Scope::isScope() {
-  return true;
-}
-
-bool Scope::canBeFinalExpression() {
-  return (bool)m_outExpression;
+void Scope::eatSemicolon(Lexer& lexer) {
+	if(lexer.currType() != STATEMENT_END) {
+		if((bool)m_outExpression) {
+			logDaf(lexer.getFile(), m_range, WARNING) << "Scopes that return expressions can't ignore semicolon" << std::endl;
+			lexer.expectToken(STATEMENT_END);
+		}
+	}
+	else
+		lexer.advance(); //Eat ';'
 }
 
 bool Scope::findType() {
