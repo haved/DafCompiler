@@ -188,7 +188,7 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
     if(finalOutExpression)
       break;
     if(!statement) {
-     //TODO:
+			//TODO:
       //skipUntilNextStatement(lexer); //Won't skip }
       if(lexer.currType()==END_TOKEN)
         break; //To avoid multiple "EOF reached" errors
@@ -198,10 +198,9 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
     while(lexer.currType()==STATEMENT_END)
       lexer.advance(); //We eat extra trailing semicolons, in case the programmer felt like adding them in
   }
-  lexer.advance(); //Eat '}'
 
-	//TODO: We are using the wrong token here!
   TextRange range(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol);
+	lexer.advance(); //Eat '}'
 
   return unique_ptr<Scope>(new Scope(range, std::move(statements), std::move(finalOutExpression)));
 }
