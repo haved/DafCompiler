@@ -88,12 +88,12 @@ bool Lexer::parseCharLiteral(Token& token) {
 }
 
 bool Lexer::advance() {
-  //   a, b, c
-  //V Turns into V
-  //   b, c, a
+  // -1 0 1 2
+	// advance() adds one, and overrides the new 2
+	// 2 -1 0 1
   currentToken+=1;
-  currentToken%=TOKEN_COUNT_AMOUNT; //3 one would think
-  //Now set the last token
+  currentToken%=TOKEN_COUNT_AMOUNT; //4 one would think
+  //Now set the super look ahead token until it can't be merged
   do {
     while(true) {
       if(isWhitespace(currentChar)) {

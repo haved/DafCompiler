@@ -4,7 +4,7 @@
 #include "parsing/lexing/Token.hpp"
 #include "parsing/lexing/ArgHandler.hpp"
 
-#define TOKEN_COUNT_AMOUNT 3
+#define TOKEN_COUNT_AMOUNT 4
 
 using std::string;
 
@@ -39,8 +39,9 @@ public:
   inline TokenType& currType() {return getCurrentToken().type;}
   inline Token& getLookahead() {return getFutureToken(1);}
   inline Token& getSuperLookahead() {return getFutureToken(2);}
-  inline Token& getSecondToLastToken() {return getFutureToken(-2);}
-  inline Token& getLastToken() {return getFutureToken(-1);}
+	inline Token& getLastToken() {return getSuperLookahead();}
+	inline Token& getSecondToLastToken() {return getLookahead();}
+	inline Token& getPreviousToken() {return getFutureToken(-1);}
   inline bool hasCurrentToken() {return currType() != END_TOKEN;}
   inline const FileForParsing& getFile() {return fileForParsing;}
   bool expectToken(const TokenType& type);

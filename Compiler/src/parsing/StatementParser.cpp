@@ -22,6 +22,17 @@ bool isSpecialStatementKeyword(TokenType& type) {
   }
 }
 
+void setEndFromStatement(int* endLine, int* endCol, unique_ptr<Statement>& statement, Lexer& lexer) {
+	if(statement) { //An actual statement instance
+		*endLine = statement->getRange().getLastLine();
+		*endCol = statement->getRange().getEndCol();
+	} else { //We get the last semicolon
+		assert(lexer.getPreviousToken().type == STATEMENT_END);
+		*endLine = lexer.getPreviousToken().line;
+		*endCol = lexer.getPreviousToken().endCol;
+	}
+}
+
 using boost::none;
 
 optional<unique_ptr<Statement>> parseIfStatement(Lexer& lexer) {
@@ -30,18 +41,12 @@ optional<unique_ptr<Statement>> parseIfStatement(Lexer& lexer) {
   assert(lexer.currType()==IF);
   lexer.advance(); //Eat 'if'nn
   unique_ptr<Expression> condition = parseExpression(lexer);
+  if(!condition)
+    return none;
+
   optional<unique_ptr<Statement>> statement = parseStatement(lexer, boost::none);
 	if(!statement) //A semicolon will be a null pointer. A none is not a statement
 		return none;
-
-	int endLine, endCol;
-	if(*statement) {
-		endLine = (*statement)->getRange().getLastLine();
-		endCol = (*statement)->getRange().getEndCol();
-	} else {
-		endLine = 0;
-		endCol = 0;
-	}
 
   unique_ptr<Statement> else_body;
   if(lexer.currType()==ELSE) {
@@ -51,8 +56,10 @@ optional<unique_ptr<Statement>> parseIfStatement(Lexer& lexer) {
 			return none;
     else_body.reset(else_stmt->release());
   }
-  if(!condition)
-    return none;
+
+	int endLine, endCol;
+	setEndFromStatement(&endLine, &endCol, else_body?else_body:*statement, lexer);
+
   return unique_ptr<Statement>(new IfStatement(std::move(condition), std::move(*statement), std::move(else_body), TextRange(startLine, startCol, endLine, endCol)));
 }
 
