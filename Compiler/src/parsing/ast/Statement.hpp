@@ -1,6 +1,7 @@
 #pragma once
 #include "parsing/ast/Definition.hpp"
 #include "parsing/ast/Expression.hpp"
+#include "parsing/ast/TextRange.hpp"
 #include <memory>
 #include <string>
 #include <boost/optional.hpp>
@@ -10,16 +11,20 @@ using std::unique_ptr;
 
 //A statement can be both an expression or a definition, but not all expressions or definitons are statements
 class Statement {
+protected:
+	TextRange m_range;
 public:
+	Statement(const TextRange& range);
   virtual void printSignature()=0;
   virtual ~Statement();
+	const TextRange& getRange();
 };
 
 class DefinitionStatement : public Statement {
 private:
   unique_ptr<Definition> m_definition;
 public:
-  DefinitionStatement(unique_ptr<Definition>&& definition);
+  DefinitionStatement(unique_ptr<Definition>&& definition, const TextRange& range);
   void printSignature();
 };
 
@@ -27,7 +32,7 @@ class ExpressionStatement : public Statement {
 private:
   unique_ptr<Expression> m_expression;
 public:
-  ExpressionStatement(unique_ptr<Expression>&& expression);
+  ExpressionStatement(unique_ptr<Expression>&& expression, const TextRange& range);
   void printSignature();
 };
 
@@ -37,7 +42,7 @@ private:
   unique_ptr<Statement> m_body;
   unique_ptr<Statement> m_else_body;
 public:
-  IfStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body, unique_ptr<Statement>&& else_body);
+  IfStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body, unique_ptr<Statement>&& else_body, const TextRange& range);
   void printSignature();
 };
 
@@ -46,7 +51,7 @@ private:
   unique_ptr<Expression> m_condition;
   unique_ptr<Statement> m_body;
 public:
-  WhileStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body);
+  WhileStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body, const TextRange& range);
   void printSignature();
 };
 
@@ -54,9 +59,9 @@ class ForStatement : public Statement {
 private:
 	std::string m_variable;
 	shared_ptr<Type> m_type;
-  unique_ptr<Expression> m_range;
+  unique_ptr<Expression> m_iterator;
 	unique_ptr<Statement> m_body;
 public:
-  ForStatement(std::string&& variable, shared_ptr<Type>&& type, unique_ptr<Expression>&& range, unique_ptr<Statement>&& body);
+  ForStatement(std::string&& variable, shared_ptr<Type>&& type, unique_ptr<Expression>&& iterator, unique_ptr<Statement>&& body, const TextRange& range);
   void printSignature();
 };

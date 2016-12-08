@@ -145,8 +145,7 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
 
 	//We are assured that the body isn't null, so the ctor won't complain
   FunctionInlineType inlineType = explicitInline?FUNC_TYPE_INLINE:FUNC_TYPE_NORMAL;
-  return unique_ptr<FunctionExpression>(new FunctionExpression(std::move(fps), inlineType, std::move(type), returnType, std::move(body),
-                                             TextRange(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol)));
+  return unique_ptr<FunctionExpression>(new FunctionExpression(std::move(fps), inlineType, std::move(type), returnType, std::move(body), TextRange(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol)));
 }
 
 unique_ptr<Expression> parseParenthesies(Lexer& lexer) {

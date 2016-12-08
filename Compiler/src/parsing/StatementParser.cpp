@@ -25,13 +25,23 @@ bool isSpecialStatementKeyword(TokenType& type) {
 using boost::none;
 
 optional<unique_ptr<Statement>> parseIfStatement(Lexer& lexer) {
-	//TODO: Store text range for statements, might want take a look at definitions too
+	int startLine = lexer.getCurrentToken().line;
+	int startCol = lexer.getCurrentToken().col;
   assert(lexer.currType()==IF);
-  lexer.advance(); //Eat 'if'
+  lexer.advance(); //Eat 'if'nn
   unique_ptr<Expression> condition = parseExpression(lexer);
   optional<unique_ptr<Statement>> statement = parseStatement(lexer, boost::none);
 	if(!statement) //A semicolon will be a null pointer. A none is not a statement
 		return none;
+
+	int endLine, endCol;
+	if(*statement) {
+		endLine = (*statement)->getRange().getLastLine();
+		endCol = (*statement)->getRange().getEndCol();
+	} else {
+		endLine = 0;
+		endCol = 0;
+	}
 
   unique_ptr<Statement> else_body;
   if(lexer.currType()==ELSE) {
@@ -43,7 +53,7 @@ optional<unique_ptr<Statement>> parseIfStatement(Lexer& lexer) {
   }
   if(!condition)
     return none;
-  return unique_ptr<Statement>(new IfStatement(std::move(condition), std::move(*statement), std::move(else_body)));
+  return unique_ptr<Statement>(new IfStatement(std::move(condition), std::move(*statement), std::move(else_body), TextRange(startLine, startCol, endLine, endCol)));
 }
 
 optional<unique_ptr<Statement>> parseWhileStatement(Lexer& lexer) {
@@ -53,7 +63,7 @@ optional<unique_ptr<Statement>> parseWhileStatement(Lexer& lexer) {
   optional<unique_ptr<Statement>> statement = parseStatement(lexer, boost::none);
 	if(!statement)
 		return none;
-  return unique_ptr<Statement>(new WhileStatement(std::move(condition), std::move(*statement)));
+  return unique_ptr<Statement>(new WhileStatement(std::move(condition), std::move(*statement), TextRange(0,0,0,0)));
 }
 
 optional<unique_ptr<Statement>> parseForStatement(Lexer& lexer) {
@@ -84,7 +94,7 @@ optional<unique_ptr<Statement>> parseForStatement(Lexer& lexer) {
 	if(!body)
 		return none;
 
-	return unique_ptr<Statement>(new ForStatement(std::move(variable), std::move(type), std::move(iterator), std::move(*body)));
+	return unique_ptr<Statement>(new ForStatement(std::move(variable), std::move(type), std::move(iterator), std::move(*body), TextRange(0,0,0,0)));
 }
 
 optional<unique_ptr<Statement>> parseSpecialStatement(Lexer& lexer) {
@@ -120,7 +130,7 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr
     //DefinitionParser handles semicolons!
     if(!def)
       return none;
-    return unique_ptr<Statement>(new DefinitionStatement(std::move(def)));
+    return unique_ptr<Statement>(new DefinitionStatement(std::move(def), TextRange(0,0,0,0)));
   }
 	else if(isSpecialStatementKeyword(lexer.currType())) {
     return parseSpecialStatement(lexer); //This will (or won't) eat semicolons and everything
@@ -142,9 +152,11 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr
       return none;
     }
 
+		TextRange range = expr->getRange(); //TODO: Have it include the semicolon
+
 		expr->eatSemicolon(lexer); //We let the expression have the lexer (not good OO?)
 
-    return unique_ptr<Statement>(new ExpressionStatement(std::move(expr)));
+    return unique_ptr<Statement>(new ExpressionStatement(std::move(expr), range));
   }
 
   logDafExpectedToken("a statement", lexer);
