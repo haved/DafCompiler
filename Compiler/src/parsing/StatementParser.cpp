@@ -142,7 +142,8 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr
       return none;
     }
 
-		expr->eatSemicolon(lexer);
+		expr->eatSemicolon(lexer); //We let the expression have the lexer (not good OO?)
+
     return unique_ptr<Statement>(new ExpressionStatement(std::move(expr)));
   }
 
