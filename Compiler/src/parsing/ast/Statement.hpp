@@ -58,10 +58,9 @@ public:
 class ForStatement : public Statement {
 private:
 	std::string m_variable;
-	shared_ptr<Type> m_type;
   unique_ptr<Expression> m_iterator;
 	unique_ptr<Statement> m_body;
 public:
-  ForStatement(std::string&& variable, shared_ptr<Type>&& type, unique_ptr<Expression>&& iterator, unique_ptr<Statement>&& body, const TextRange& range);
+  ForStatement(std::string&& variable, unique_ptr<Expression>&& iterator, unique_ptr<Statement>&& body, const TextRange& range);
   void printSignature();
 };

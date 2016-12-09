@@ -1,5 +1,18 @@
 // -*- compile-command: "./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
+def main:=()
+
+{
+    if (a) {
+        b++;
+    }
+
+		for i in 3.6 {
+				sum=sum+i;
+		}
+};
+
+/*
 def main:=() {
     mut a := 5;
     a = a + 30;
@@ -36,3 +49,4 @@ def main:=() {
 		}; 
 		a();
 };
+*/

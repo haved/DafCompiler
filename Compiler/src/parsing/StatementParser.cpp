@@ -36,11 +36,12 @@ void setEndFromStatement(int* endLine, int* endCol, unique_ptr<Statement>& state
 using boost::none;
 
 optional<unique_ptr<Statement>> parseIfStatement(Lexer& lexer) {
+  assert(lexer.currType()==IF);
 	int startLine = lexer.getCurrentToken().line;
 	int startCol = lexer.getCurrentToken().col;
-  assert(lexer.currType()==IF);
-  lexer.advance(); //Eat 'if'nn
-  unique_ptr<Expression> condition = parseExpression(lexer);
+  lexer.advance(); //Eat 'if'
+
+	unique_ptr<Expression> condition = parseExpression(lexer);
   if(!condition)
     return none;
 
@@ -48,8 +49,9 @@ optional<unique_ptr<Statement>> parseIfStatement(Lexer& lexer) {
 	if(!statement) //A semicolon will be a null pointer. A none is not a statement
 		return none;
 
+	bool elseFound = lexer.currType() == ELSE;
   unique_ptr<Statement> else_body;
-  if(lexer.currType()==ELSE) {
+  if(elseFound) {
     lexer.advance(); //Eat 'else'
 		optional<unique_ptr<Statement>> else_stmt = parseStatement(lexer, none);
 		if(!else_stmt)
@@ -58,37 +60,38 @@ optional<unique_ptr<Statement>> parseIfStatement(Lexer& lexer) {
   }
 
 	int endLine, endCol;
-	setEndFromStatement(&endLine, &endCol, else_body?else_body:*statement, lexer);
+	setEndFromStatement(&endLine, &endCol, elseFound?else_body:*statement, lexer);
 
   return unique_ptr<Statement>(new IfStatement(std::move(condition), std::move(*statement), std::move(else_body), TextRange(startLine, startCol, endLine, endCol)));
 }
 
 optional<unique_ptr<Statement>> parseWhileStatement(Lexer& lexer) {
   assert(lexer.currType()==WHILE);
+	int startLine = lexer.getCurrentToken().line;
+	int startCol = lexer.getCurrentToken().col;
   lexer.advance(); //Eat 'while'
+
   unique_ptr<Expression> condition = parseExpression(lexer);
   optional<unique_ptr<Statement>> statement = parseStatement(lexer, boost::none);
 	if(!statement)
 		return none;
-  return unique_ptr<Statement>(new WhileStatement(std::move(condition), std::move(*statement), TextRange(0,0,0,0)));
+
+	int endLine, endCol;
+	setEndFromStatement(&endLine, &endCol, *statement, lexer);
+
+	return unique_ptr<Statement>(new WhileStatement(std::move(condition), std::move(*statement), TextRange(startLine, startCol, endLine, endCol)));
 }
 
 optional<unique_ptr<Statement>> parseForStatement(Lexer& lexer) {
   assert(lexer.currType()==FOR);
+	int startLine = lexer.getCurrentToken().line;
+	int startCol = lexer.getCurrentToken().col;
   lexer.advance(); //Eat 'for'
 
 	if(!lexer.expectToken(IDENTIFIER))
 		return none;
 	std::string variable(lexer.getCurrentToken().text);
 	lexer.advance(); //eat identifier
-
-	shared_ptr<Type> type;
-	if(lexer.currType() == TYPE_SEPARATOR) {
-		lexer.advance(); //Eat ':'
-		type = parseType(lexer);
-		if(!type)
-			return none;
-	}
 
 	if(!lexer.expectToken(IN))
 		return none;
@@ -97,11 +100,15 @@ optional<unique_ptr<Statement>> parseForStatement(Lexer& lexer) {
 	unique_ptr<Expression> iterator = parseExpression(lexer);
 	if(!iterator)
 		return none;
+
 	optional<unique_ptr<Statement>> body = parseStatement(lexer, boost::none);
 	if(!body)
 		return none;
 
-	return unique_ptr<Statement>(new ForStatement(std::move(variable), std::move(type), std::move(iterator), std::move(*body), TextRange(0,0,0,0)));
+	int endLine, endCol;
+	setEndFromStatement(&endLine, &endCol, *body, lexer);
+
+	return unique_ptr<Statement>(new ForStatement(std::move(variable), std::move(iterator), std::move(*body), TextRange(startLine, startCol, endLine, endCol)));
 }
 
 optional<unique_ptr<Statement>> parseSpecialStatement(Lexer& lexer) {

@@ -69,19 +69,14 @@ void WhileStatement::printSignature() {
   }
 }
 
-ForStatement::ForStatement(std::string&& variable, shared_ptr<Type>&& type,
-													 unique_ptr<Expression>&& iterator, unique_ptr<Statement>&& body, const TextRange& range)
-	: Statement(range), m_variable(std::move(variable)), m_type(std::move(type)), m_iterator(std::move(iterator)), m_body(std::move(body)) {
+ForStatement::ForStatement(std::string&& variable, unique_ptr<Expression>&& iterator, unique_ptr<Statement>&& body, const TextRange& range)
+	: Statement(range), m_variable(std::move(variable)), m_iterator(std::move(iterator)), m_body(std::move(body)) {
 			assert(m_iterator); //Body my be ';', a.k.a. null
 }
 
 void ForStatement::printSignature() {
 	std::cout << "for ";
 	std::cout << m_variable;
-	if(m_type) {
-		std::cout << ":";
-		m_type->printSignature();
-	}
 	std::cout << " in ";
 	m_iterator->printSignature(); //asserted not null
 	if(m_body) {
