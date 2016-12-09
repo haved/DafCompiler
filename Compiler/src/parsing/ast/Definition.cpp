@@ -4,6 +4,10 @@
 Definition::Definition(bool pub, const TextRange &range) : m_pub(pub), m_range(range) {}
 Definition::~Definition() {}
 
+const TextRange& Definition::getRange() {
+	return m_range;
+}
+
 /*
 inline void Definition::setRange(int line, int col, int endLine, int endCol) {
   m_range.set(line, col, endLine, endCol);

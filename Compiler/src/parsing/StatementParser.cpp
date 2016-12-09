@@ -144,7 +144,8 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr
     //DefinitionParser handles semicolons!
     if(!def)
       return none;
-    return unique_ptr<Statement>(new DefinitionStatement(std::move(def), TextRange(0,0,0,0)));
+		TextRange range = def->getRange();
+    return unique_ptr<Statement>(new DefinitionStatement(std::move(def), range));
   }
 	else if(isSpecialStatementKeyword(lexer.currType())) {
     return parseSpecialStatement(lexer); //This will (or won't) eat semicolons and everything
