@@ -17,7 +17,7 @@ class Expression {
   Expression(const TextRange& range);
   virtual ~Expression();
   virtual bool isStatement();
-  virtual void eatSemicolon(Lexer& lexer);
+  virtual bool needsSemicolonAfterStatement();
   virtual const Type& getType();
   virtual bool isTypeKnown();
   //returns true if it has a type after the call

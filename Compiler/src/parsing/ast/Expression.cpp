@@ -8,7 +8,7 @@ Expression::Expression(const TextRange& range) : m_range(range) {}
 Expression::~Expression() {}
 
 bool Expression::isStatement() { return false; }
-void Expression::eatSemicolon(Lexer& lexer) { if(lexer.expectToken(STATEMENT_END)) lexer.advance(); }
+bool Expression::needsSemicolonAfterStatement() { return true; }
 
 bool Expression::isTypeKnown() {
   assert(false);

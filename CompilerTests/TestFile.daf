@@ -7,6 +7,17 @@ def main:=()
         b++;
     }
 
+		if (b) {
+			 c
+		};
+
+		{};;;
+
+		mut a:=4;
+
+    while(a>4)
+        a++;
+
 		for i in 3.6 {
 				sum=sum+i;
 		}

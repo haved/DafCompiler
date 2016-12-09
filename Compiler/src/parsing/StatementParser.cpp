@@ -150,7 +150,6 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr
     return parseSpecialStatement(lexer); //This will (or won't) eat semicolons and everything
   }
   else if(canParseExpression(lexer)) {
-
     unique_ptr<Expression> expr = parseExpression(lexer);
     if(!expr)
       return none;
@@ -158,7 +157,6 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr
       (*finalOutExpression)->swap(expr);
       return none; //We have a final out expression, so we return none, but it shouldn't matter to the caller
     }
-
 		if(!expr->isStatement()) {
       logDaf(lexer.getFile(), expr->getRange(), ERROR) << "Exprected a statement, not just an expression: ";
       expr->printSignature();
@@ -166,9 +164,12 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr
       return none;
     }
 
-		TextRange range = expr->getRange(); //TODO: Have it include the semicolon
-
-		expr->eatSemicolon(lexer); //We let the expression have the lexer (not good OO?)
+		TextRange range = expr->getRange();
+		if(lexer.currType() == STATEMENT_END) {
+			range = TextRange(range, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol);
+			lexer.advance();
+		} else if(expr->needsSemicolonAfterStatement())
+			lexer.expectToken(STATEMENT_END);
 
     return unique_ptr<Statement>(new ExpressionStatement(std::move(expr), range));
   }

@@ -11,15 +11,12 @@ bool Scope::isStatement() {
   return true;
 }
 
-void Scope::eatSemicolon(Lexer& lexer) {
-	if(lexer.currType() != STATEMENT_END) {
-		if((bool)m_outExpression) {
-			logDaf(lexer.getFile(), m_range, WARNING) << "Scopes that return expressions can't ignore semicolon" << std::endl;
-			lexer.expectToken(STATEMENT_END);
-		}
+bool Scope::needsSemicolonAfterStatement() {
+	if(m_outExpression) {
+		logDaf(WARNING) << "Scopes with outputs need trailing semicolons" << std::endl;
+		return true;
 	}
-	else
-		lexer.advance(); //Eat ';'
+	return false;
 }
 
 bool Scope::findType() {
