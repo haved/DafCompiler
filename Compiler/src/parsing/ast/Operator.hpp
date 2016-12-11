@@ -6,7 +6,7 @@
 
 using std::unique_ptr;
 
-//TODO: Is this even needed?
+//TODO: Once we read the operators, unless we use virtual functions :/
 /*enum INFIX_OPERATORS {
   INFIX_CLASS_ACCESS,
   INFIX_MULT, INFIX_DIV, INFIX_MODULO,

@@ -23,6 +23,17 @@ public:
   void printSignature();
 };
 
+namespace Primitives {
+	enum Primivite {
+		CHAR, I8, U8, I16, U16, I32, U32, I64, U64, USIZE, BOOL, F32, F64
+	};
+};
+
+class PrimitiveType : public Type {
+private:
+	Primitives::Primivite m_primitive;
+};
+
 enum FunctionParameterType {
   FUNC_PARAM_BY_VALUE,
   FUNC_PARAM_BY_REF,
@@ -64,5 +75,3 @@ public:
               FunctionInlineType inlineType, std::shared_ptr<Type>&& returnType, FunctionReturnType returnTypeType);
   void printSignature();
 };
-
-
