@@ -30,11 +30,12 @@ def main:=() {
     if a != 35
        assert(0e3i32);
     else if a < 35
-        assert(0x1);
+				assert(0x1);
     while a > 3 {
           a--;
     }
     a = 3 + 5 - 7;
+		
     while (a) a();
 		
 		//Fix this! for a = b;
