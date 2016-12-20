@@ -1,0 +1,35 @@
+namedef io := import<"daf.iostream">
+namedef _ := io;
+
+#if defined(SHARED_MY_LIBRARY) //The hashtag indicates that the scope isn't really a scope
+		#with def lib:="../include/mylib.so.1.4"; {
+			  linkfile lib;
+		    linkfile shared lib; //For the path of the so
+		}
+#else
+    linkfile "../include/mylib.a";
+
+def TEST #if TAST>3 := 4; //Oh?
+def BRUH #if defined(TEST) := 6 #else := 8; //Oh yes! (ugly, but slightly useful)
+
+def add<T:Addable>:=(&a:T, &b:T):T {
+		a+b
+};
+
+def extractOrPanic<T>:=(&a:Optional<T>):T {
+		with a as T
+		    return a;
+
+    panic("In detroit");
+}
+
+typedef Unpack := trait {
+    def extract<T:Optional<$S> with this>:=extractOrPanic<S>as(&this:T); //Nice
+}
+
+def use := () {
+		let f:Optional=Some(5);
+		printInt(with f as Unpack f.extract()); //Sick
+};
+
+//Class and trait stuff
