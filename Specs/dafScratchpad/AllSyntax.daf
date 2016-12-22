@@ -17,19 +17,33 @@ def add<T:Addable>:=(&a:T, &b:T):T {
 };
 
 def extractOrPanic<T>:=(&a:Optional<T>):T {
-		with a as T
-		    return a;
-
-    panic("In detroit");
+		with a as Some(t)
+				 return t;
+		else; //We need this for the compiler to be happy
+    panic("In detroit"); //A panic is an alternative to a return
 }
 
-typedef Unpack := trait {
-    def extract<T:Optional<$S> with this>:=extractOrPanic<S>as(&this:T); //Nice
+typedef Unpackable<T> := trait {
+    def unpacked:T;
+		def hasSome:bool;
+}
+
+enum Optional<T> {
+		 Some(T),
+		 None
+};
+
+typedef UnpackableOptional<T> := Optional<T> with Unpackable<T> {
+
+}
+
+typedef Unpackable := trait {
+    def extract<this:Optional<$T>>:=extractOrPanic<T>as(&this:Optional<T>); //Nice
 }
 
 def use := () {
-		let f:Optional=Some(5);
+		let f:=Optional.Some(5);
+		with f as Unpack;
+		//f now implements the trait Unpack, and can be used that way
 		printInt(with f as Unpack f.extract()); //Sick
 };
-
-//Class and trait stuff
