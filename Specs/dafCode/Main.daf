@@ -1,0 +1,15 @@
+namedef _ := import<"daf.IO">;
+
+def try_string_to<def s:string, def uncrt out:$T>:bool;
+
+def main:=():int {
+		println("\n"+"Welcome to the daf Dart Score counter!");
+
+		print("How many players? ");
+		let players := with mut playersInput:int; {
+		    while !try_string_to!(input(), uncrt playersInput)
+				    print("No! Enter a number!");
+				playersInput};
+		
+
+}
