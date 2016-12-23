@@ -1,5 +1,13 @@
 namedef _ := import<"daf.IO">;
 
+typedef string := {
+    chars:[..]char;
+		pub def _ := ctor(text:[]char) {
+				chars = text; //Vectors and arrays are somewhat built in, with vectors allways being certain, but of size 0
+				//chars
+		}
+}
+
 def try_string_to<def s:string, def uncrt out:$T>:bool;
 
 def main:=():int {
@@ -11,5 +19,5 @@ def main:=():int {
 				    print("No! Enter a number!");
 				playersInput};
 		
-
+		;
 }
