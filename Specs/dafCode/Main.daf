@@ -3,21 +3,32 @@ namedef _ := import<"daf.IO">;
 typedef string := {
     chars:[..]char;
 		pub def _ := ctor(text:[]char) {
-				chars = text; //Vectors and arrays are somewhat built in, with vectors allways being certain, but of size 0
-				//chars
+				chars = text; //Vectors and arrays are somewhat built in, with vectors always being certain, but of size 0
+				
 		}
 }
 
-def try_string_to<def s:string, def uncrt out:$T>:bool;
+/*
+def push_back<def t:T>:void;
+
+*/
 
 def main:=():int {
 		println("\n"+"Welcome to the daf Dart Score counter!");
 
 		print("How many players? ");
 		let players := with mut playersInput:int; {
-		    while !try_string_to!(input(), uncrt playersInput)
+		    while !input().try_parse_int(uncrt playersInput)
 				    print("No! Enter a number!");
 				playersInput};
 		
-		;
+		mut names:[..]string;
+		names.reserve(players);
+		for i in 0..players {
+				printC<"Enter name #"><i+1><": ">(); //Add the () for a newline, although daf supports expressions that aren't necessary statements
+				let name := input(); //String
+				if name.length == 0
+					 retry;
+				names.push_back();
+		}
 }
