@@ -1,0 +1,25 @@
+//A code file for testing new ways of passing parameters compile time
+
+typedef vector<T\{}> := class /*with a lot of traits*/{
+				
+}
+
+def reverseCopy<T\ToIterator with Appendable> := (&input:T):T {
+		let output :T = with T as ReserveConstructor T(input.size()) else T();
+		for elm in T.iterate().reverse()
+				output.append(elm);
+		return output;
+}
+
+//TODO: Figure out for tomorrow:
+//Expression parameters
+//Default/Optional values
+//Void stuff
+//This and trait stuff
+//Move
+//Uncertain
+//Constructors
+
+def main:=(args:[]string):int {
+		
+};
