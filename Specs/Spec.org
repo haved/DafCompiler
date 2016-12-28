@@ -1,0 +1,14 @@
+#+TITLE: The Daf Specification File
+
+* The daf Specification
+This is a document detailing the syntax and semantic rules of the daf language.
+Its purpose is letting me note everything I need to figure out before finishing the parser.
+** Definitions
+The daf language consists purely of definitions. 
+Everything in a file at the top level is a definition in some form, and if they are prefixed by "pub", 
+they are accessible to other files including it as a name definition.
+*** Def
+The def is the most common top-level definition, and simply defines an alias to an expression. This is the common way of defining procedures, as they too are expressions.
+
+**** Compile-time parameters
+** Expressions
