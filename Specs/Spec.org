@@ -9,6 +9,20 @@ Everything in a file at the top level is a definition in some form, and if they 
 they are accessible to other files including it as a name definition.
 *** Def
 The def is the most common top-level definition, and simply defines an alias to an expression. This is the common way of defining procedures, as they too are expressions.
-
-**** Compile-time parameters
+A def can, once defined, not be changed, but can be evaluated to different values depending on state, or:
+*** Compile-time parameters
+Def, Typedef and Namedef can all take compile time parameters, allowing you to parse the code multiple times with different types and expressions.
+This allows for generic types and functions, and thanks to a pseudo-intelligent type inferring, you don't always need to specify the compile-time parameters.
+**** Syntax
+The syntax is somewhat similar to C++, with '<' and '>' indicating the parameter list. Daf allows you to use '(' and ')' when accessing them, with the same syntax as a normal function.
+This allows you to hide the fact that you are in reality just evaluating a parameterized expression.
+***** Crammed Example
+def name<&a:int, T\Iterator<int>, b:$F, &mut c:T>:=T.new(&a, b, c++);
+mut myInt:=5;
+let b:=name(myInt, type);
+The example above defines name to an expression, but you can only evaluate said expression by also passing
+***** Def
 ** Expressions
+** Types
+** Scopes & Statements
+** Classes and traits
