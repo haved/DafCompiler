@@ -9,7 +9,11 @@ Everything in a file at the top level is a definition in some form, and if they 
 they are accessible to other files including it as a name definition.
 *** Def
 The def is the most common top-level definition, and simply defines an alias to an expression. This is the common way of defining procedures, as they too are expressions.
-A def can, once defined, not be changed, but can be evaluated to different values depending on state, or:
+A def can, once defined, not be changed, but can be evaluated to different values depending on state or compile-time parameters.
+**** Example
+def a:=5;
+def let b:i32=&intPtr;
+def mut c:=(a:int):int;
 *** Compile-time parameters
 Def, Typedef and Namedef can all take compile time parameters, allowing you to parse the code multiple times with different types and expressions.
 This allows for generic types and functions, and thanks to a pseudo-intelligent type inferring, you don't always need to specify the compile-time parameters.
@@ -26,3 +30,38 @@ The example above defines name to an expression, but you can only evaluate said 
 ** Types
 ** Scopes & Statements
 ** Classes and traits
+
+* Stuff that needs to be fleshed out
+** Memory safety and pointers
+Prohibiting null pointers unless you explicitly allow it might not be quite enough. Besides, the idea of not having a pointer data type might not be all too good.
+I don't know if I want to enforce any kind of borrowing lifetime checker, but as a programmer, you'd like to write memory safe code either way. 
+The internal functions might be reason #1 complete memory safety is difficult, but you could simply avoid returning a function pointer to an internal function if it uses local stuff.
+A more structured list:
+*** Pointers and references
+Enforcing that a pointer always points to something is not as easy as removing the null keyword.
+Same can arguably be said about references.
+**** Solution as of yet
+If you want a reference, use a def, if you want to pass a reference, it happens by itself, if you want to return a reference, you are moving into a dangerous territory, and should use abstraction objects.
+Alternatively you could make a non-trivial def evaluating to your target. Problem here is knowing you don't evaluate some large expression when using your "reference". The compiler could optimize a lot away, presumably.
+If you're very concerned, get the address and store it, use it instead. In theory worse as you no longer have the same guarantee of pointing to something proper.
+*** Polymorphic pointer deletion
+You want to enforce virtual destructors when deleting a polymorphic pointer, to assure the calling of destructors of members. The amount of memory freed would also be wrong if you had the wrong type.
+Ensuring destructors are always called is one of the most important and easiest ways of providing memory safety through RAII.
+The fact that a sub type with members would have a different size can be used to detect errors.
+If the allocation and freeing of the polymorphic pointers remembers the size, it could detect that the type whose destructor you're using is too small, and panic.
+This would of course not work if you have a subclass of the same size. In which case the chance of memory leaks is lower, but not ensured. Having a global type id stored in some debug mode could resolve this.
+*** Data-races
+Perhaps the most important reason complete memory safety is incredibly useful is the prevention of data races. Ownership and lifetime rules ensure this, but can make it very difficult to write in certain ways.
+Getting ownership from special mutexes and only letting one reference modify the variable at a time is AFAICS the only way of ensuring it.
+The programmer needs to be able to ensure things in their head before the compiler ensures anything, or the programmer will fight it.
+*** Moving / Destructing members 
+If you have a member as part of an object and move it or in some other way make it uncertain, the whole object becomes a potential memory disaster.
+It is vital that uncertain objects don't ever get treated as initialized, or you'll get double freeing in no time.
+One idea is for the scope to store what members have been made uncertain, and ensure they are initialized before any calls are made to/with the object, or the scope ends.
+The only problem then is having two references to the same object, in which case you'd not know at compile time you just un-initialized a field in both.
+**** Condensed idea: Maybe extreme borrowing checking isn't that bad either way
+*** Function parameters
+It would seem you pretty much always pass parameters by reference in daf, as you wouldn't want to use copy constructors.
+One could almost remove the '&' in front of the parameter in the function's definition. If you really want to pass a copy of the passed parameter, use the constructor manually.
+This would also solve the problem of what constructor to use when you in theory can have indefinite variations with the same signature.
+**** Condensed idea: Don't use '&' in parameter list
