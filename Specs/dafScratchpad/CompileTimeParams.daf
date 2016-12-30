@@ -1,15 +1,25 @@
 //A code file for testing new ways of passing parameters compile time
 
-typedef vector<T\{}> := class /*with a lot of traits*/{
+//Need some way of assuring a type to be initializeable
+typedef vector<T> := class /*with a lot of traits*/{
 				
 }
 
 def reverseCopy<T\ToIterator with Appendable> := (&input:T):T {
-		let output :T = with T as ReserveConstructor T(input.size()) else T();
+		let output :T = with T as ReserveConstructor T.reserve(input.size()) else T();
 		for elm in T.iterate().reverse()
 				output.append(elm);
 		return output;
 }
+
+def take<T>:=(a:T) {
+		mut vector:=Vector<T>.reserve(1);
+		vector.append(copy a);
+};
+
+def takeMove<T>:=(move a:T) {
+		
+};
 
 //TODO: Figure out for tomorrow:
 //Expression parameters
