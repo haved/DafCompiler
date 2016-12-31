@@ -59,9 +59,28 @@ If you have a member as part of an object and move it or in some other way make 
 It is vital that uncertain objects don't ever get treated as initialized, or you'll get double freeing in no time.
 One idea is for the scope to store what members have been made uncertain, and ensure they are initialized before any calls are made to/with the object, or the scope ends.
 The only problem then is having two references to the same object, in which case you'd not know at compile time you just un-initialized a field in both.
-**** Condensed idea: Maybe extreme borrowing checking isn't that bad either way
+**** Condensed idea: Maybe extreme borrowing checking isn't that bad after all
 *** Function parameters
 It would seem you pretty much always pass parameters by reference in daf, as you wouldn't want to use copy constructors.
 One could almost remove the '&' in front of the parameter in the function's definition. If you really want to pass a copy of the passed parameter, use the constructor manually.
 This would also solve the problem of what constructor to use when you in theory can have indefinite variations with the same signature.
 **** Condensed idea: Don't use '&' in parameter list
+** Compilation
+You can write quite a lot of compiler code without deciding how one would use the compiler.
+I've already decided on large units of compilation, but whether or not the compiler should be controlled by daf code itself isn't fully decided.
+A system like that would allow you to do checks during compile time, as well as calling other build functions in other libraries.
+However, a simple system with one command that takes some extra paths is simple and elegant.
+There exists many great make tools already, so writing a new one won't be of that much help to the programmer.
+*** Suggested command syntax
+#+BEGIN_SRC bash
+	# Compile yourself an object file
+	dafc -P src/ me.havard.Main -I otherLib/include -o Program.o
+	# Change -o to -oe to output an executable, linking everything needed
+
+	# To output a static library, use -ol, which doesn't include anything save for your source
+	dafc -P src/ me.myLib.Lib -ol MyLib.a
+	# To output a header, including what libraries are required to link the code,
+#+END_SRC
+The source directory is added as a source path, and a main file / starting point is specified.
+From the starting file, the compiler recursively parses files from all its source and library paths.
+When compiling a program
