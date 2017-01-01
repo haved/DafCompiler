@@ -11,13 +11,15 @@ they are accessible to other files including it as a name definition.
 The def is the most common top-level definition, and simply defines an alias to an expression. This is the common way of defining procedures, as they too are expressions.
 A def can, once defined, not be changed, but can be evaluated to different values depending on state or compile-time parameters.
 **** Example
+#+BEGIN_SRC 
 def a:=5;
-def let b:i32=&intPtr;
-def mut c:=(a:int):int;
-*** Compile-time parameters
+def let b:i32=@intPtr;
+def mut c:(a:int):int=;
+#+END_SRC
+**** Compile-time parameters
 Def, Typedef and Namedef can all take compile time parameters, allowing you to parse the code multiple times with different types and expressions.
 This allows for generic types and functions, and thanks to a pseudo-intelligent type inferring, you don't always need to specify the compile-time parameters.
-**** Syntax
+***** Syntax
 The syntax is somewhat similar to C++, with '<' and '>' indicating the parameter list. Daf allows you to use '(' and ')' when accessing them, with the same syntax as a normal function.
 This allows you to hide the fact that you are in reality just evaluating a parameterized expression.
 ***** Crammed Example
@@ -26,6 +28,22 @@ mut myInt:=5;
 let b:=name(myInt, type);
 The example above defines name to an expression, but you can only evaluate said expression by also passing
 ***** Def
+
+*** Let
+The let definition allows you to allocate and store variables on the stack or among the global variables.
+A let will have an address, so you can point to it and de-reference the pointer.
+Explicit mutability means you need the 'mut' keyword to change the variable after definition.
+
+**** Uncertainty
+In daf, a value may be uncertain, meaning it's not defined, and that you need to set it before use.
+Uncertain class instances are not constructed, and will have to be before use.
+If you move or destruct a class instance, it'll become uncertain.
+You can't return from a sub procedure without asserting that references passed to it are certain.
+This is not the case for moves however, as the passed reference has changed ownership.
+If the moved value is still certain after the function is done, it is destructed, just like any other variable belonging to the scope.
+A function can also take an uncertain reference. In which case the value is uncertain from the start, but needs to be certain by the end of the function.
+"Pointers to uncertain" are pointers to memory locations not yet written to. There is a difference between an uncertain pointer and a pointer to uncertain memory.
+
 ** Expressions
 ** Types
 ** Scopes & Statements
@@ -73,14 +91,13 @@ However, a simple system with one command that takes some extra paths is simple 
 There exists many great make tools already, so writing a new one won't be of that much help to the programmer.
 *** Suggested command syntax
 #+BEGIN_SRC bash
-	# Compile yourself an object file
-	dafc -P src/ me.havard.Main -I otherLib/include -o Program.o
-	# Change -o to -oe to output an executable, linking everything needed
-
-	# To output a static library, use -ol, which doesn't include anything save for your source
-	dafc -P src/ me.myLib.Lib -ol MyLib.a
-	# To output a header, including what libraries are required to link the code,
+	dafc -P src/ me.havard.Main -I otherLib/include -o Program.o -oD Program.linkfile
 #+END_SRC
 The source directory is added as a source path, and a main file / starting point is specified.
 From the starting file, the compiler recursively parses files from all its source and library paths.
-When compiling a program
+This will output an object file with all functions defined. The rest is for now platform specific.
+A special flag is needed for position independent code, needed in shared libraries.
+The -oD will output dependencies found while importing library headers, as well as including the object file itself.
+This allows you to in theory link your program with a script and your link file.
+The link file may include some choices concerning static vs. shared libraries.
+The exact details can be thought out later.
