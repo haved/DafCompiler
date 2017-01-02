@@ -4,9 +4,9 @@
 This is a document detailing the syntax and semantic rules of the daf language.
 Its purpose is letting me note everything I need to figure out before finishing the parser.
 ** Definitions
-The daf language consists purely of definitions. 
+The daf language consists purely of definitions. A 'def' is just one of five, the others having similar syntax but different meaning.
 Everything in a file at the top level is a definition in some form, and if they are prefixed by "pub", 
-they are accessible to other files including it as a name definition.
+they are accessible from other files including it as a name definition.
 *** Def
 The def is the most common top-level definition, and simply defines an alias to an expression. This is the common way of defining procedures, as they too are expressions.
 A def can, once defined, not be changed, but can be evaluated to different values depending on state or compile-time parameters.
@@ -44,11 +44,25 @@ If the moved value is still certain after the function is done, it is destructed
 A function can also take an uncertain reference. In which case the value is uncertain from the start, but needs to be certain by the end of the function.
 "Pointers to uncertain" are pointers to memory locations not yet written to. There is a difference between an uncertain pointer and a pointer to uncertain memory.
 
+*** Typedef
+*** Namedef
+*** Linkfile
+Linkfile definitions are a way of linking the correct files, and keeping track of library dependencies.
+A linkfile definition tells the compiler what extra files to link, and it is stored in the compilers optional linkfile output.
+Here you'll find both the object file the compiler made, as well as all other required files and libraries.
+You'll need another program to read the file and invoke your favorite linker.
+#+BEGIN_SRC daf
+linkfile "FileToLink.o"
+#+END_SRC
+The compiler will simply output the line you placed in the definition, into the output file.
+Therefore, the linkfile reader will specify the format for parsing, and not the compiler.
+I'll have some standard, though, to avoid multiple incompatible formats.
+How shared library includes will be handled is yet to be determined.
+Id like to get the list of required shared libraries after linking.
 ** Expressions
 ** Types
 ** Scopes & Statements
 ** Classes and traits
-
 * Stuff that needs to be fleshed out
 ** Memory safety and pointers
 Prohibiting null pointers unless you explicitly allow it might not be quite enough. Besides, the idea of not having a pointer data type might not be all too good.
@@ -101,3 +115,6 @@ The -oD will output dependencies found while importing library headers, as well 
 This allows you to in theory link your program with a script and your link file.
 The link file may include some choices concerning static vs. shared libraries.
 The exact details can be thought out later.
+** Compile time parameters
+** Pound symbol statements
+** Namedef and type choices
