@@ -118,3 +118,6 @@ The exact details can be thought out later.
 ** Compile time parameters
 ** Pound symbol statements
 ** Namedef and type choices
+** Returning references and storing them
+** Compile time copy/move references
+*** uncertain or not
