@@ -123,3 +123,5 @@ The exact details can be thought out later.
 ** Compile time copy/move references
 *** uncertain or not
 ** Avoid extra hoops with uncertain
+
+When the list of features you need to add and flesh out becomes bigger than the list of pseudo-decided features, you might be subjected to feature creep.
