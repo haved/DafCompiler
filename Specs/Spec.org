@@ -119,5 +119,7 @@ The exact details can be thought out later.
 ** Pound symbol statements
 ** Namedef and type choices
 ** Returning references and storing them
+*** Returning move references is very useful
 ** Compile time copy/move references
 *** uncertain or not
+** Avoid extra hoops with uncertain

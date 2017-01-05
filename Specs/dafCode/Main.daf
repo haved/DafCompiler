@@ -3,8 +3,11 @@ namedef _ := import<"daf.IO">;
 typedef string := {
     chars:[..]char;
 		pub def new := ctor(text:[]char) {
-				chars = text; //Vectors and arrays are somewhat built in, with vectors always being certain, but of size 0
-				
+				chars = [..]char.copy_array(text);				
+		}
+
+		pub def mov := ctor(move other:string) {
+				chars = [..]char.mov(other.chars.move()); //This needs return by move reference :/
 		}
 }
 
@@ -17,7 +20,9 @@ def main:=():int {
 		let players := {
 				let mut playersInput:int;
 		    while !input().try_parse_int(uncrt playersInput) && playersInput > 0
-				    print("No! Enter a number above 0!");
+				    print("No!
+Table of Contents
+ Enter a number above 0!");
 				playersInput};
 
 		mut names:=[..]String.reserve(players);
