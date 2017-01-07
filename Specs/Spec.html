@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>The Daf Specification File</title>
+<!-- 2017-01-07 Sat 15:17 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="Org-mode">
+<meta name="author" content="Håvard Krogstie">
+
+<link  href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<style type="text/css">
+/* org mode styles on top of twbs */
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    font-size: 18px;
+    margin-bottom: 105px;
+}
+
+footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 101px;
+    background-color: #f5f5f5;
+}
+
+footer > div {
+    padding: 10px;
+}
+
+footer p {
+    margin: 0 0 5px;
+    text-align: center;
+    font-size: 16px;
+}
+
+#table-of-contents {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+blockquote p {
+    font-size: 18px;
+}
+
+pre {
+    font-size: 16px;
+}
+
+.footpara {
+    display: inline-block;
+}
+
+figcaption {
+  font-size: 16px;
+  color: #666;
+  font-style: italic;
+  padding-bottom: 15px;
+}
+
+/* from twbs docs */
+
+.bs-docs-sidebar.affix {
+    position: static;
+}
+@media (min-width: 768px) {
+    .bs-docs-sidebar {
+        padding-left: 20px;
+    }
+}
+
+/* All levels of nav */
+.bs-docs-sidebar .nav > li > a {
+    display: block;
+    padding: 4px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #999;
+}
+.bs-docs-sidebar .nav > li > a:hover,
+.bs-docs-sidebar .nav > li > a:focus {
+    padding-left: 19px;
+    color: #A1283B;
+    text-decoration: none;
+    background-color: transparent;
+    border-left: 1px solid #A1283B;
+}
+.bs-docs-sidebar .nav > .active > a,
+.bs-docs-sidebar .nav > .active:hover > a,
+.bs-docs-sidebar .nav > .active:focus > a {
+    padding-left: 18px;
+    font-weight: bold;
+    color: #A1283B;
+    background-color: transparent;
+    border-left: 2px solid #A1283B;
+}
+
+/* Nav: second level (shown on .active) */
+.bs-docs-sidebar .nav .nav {
+    display: none; /* Hide by default, but at >768px, show it */
+    padding-bottom: 10px;
+}
+.bs-docs-sidebar .nav .nav > li > a {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    padding-left: 30px;
+    font-size: 12px;
+    font-weight: normal;
+}
+.bs-docs-sidebar .nav .nav > li > a:hover,
+.bs-docs-sidebar .nav .nav > li > a:focus {
+    padding-left: 29px;
+}
+.bs-docs-sidebar .nav .nav > .active > a,
+.bs-docs-sidebar .nav .nav > .active:hover > a,
+.bs-docs-sidebar .nav .nav > .active:focus > a {
+    padding-left: 28px;
+    font-weight: 500;
+}
+
+/* Nav: third level (shown on .active) */
+.bs-docs-sidebar .nav .nav .nav {
+    padding-bottom: 10px;
+}
+.bs-docs-sidebar .nav .nav .nav > li > a {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    padding-left: 40px;
+    font-size: 12px;
+    font-weight: normal;
+}
+.bs-docs-sidebar .nav .nav .nav > li > a:hover,
+.bs-docs-sidebar .nav .nav .nav > li > a:focus {
+    padding-left: 39px;
+}
+.bs-docs-sidebar .nav .nav .nav > .active > a,
+.bs-docs-sidebar .nav .nav .nav > .active:hover > a,
+.bs-docs-sidebar .nav .nav .nav > .active:focus > a {
+    padding-left: 38px;
+    font-weight: 500;
+}
+
+/* Show and affix the side nav when space allows it */
+@media (min-width: 992px) {
+    .bs-docs-sidebar .nav > .active > ul {
+        display: block;
+    }
+    /* Widen the fixed sidebar */
+    .bs-docs-sidebar.affix,
+    .bs-docs-sidebar.affix-bottom {
+        width: 213px;
+    }
+    .bs-docs-sidebar.affix {
+        position: fixed; /* Undo the static from mobile first approach */
+        top: 20px;
+    }
+    .bs-docs-sidebar.affix-bottom {
+        position: absolute; /* Undo the static from mobile first approach */
+    }
+    .bs-docs-sidebar.affix .bs-docs-sidenav,.bs-docs-sidebar.affix-bottom .bs-docs-sidenav {
+        margin-top: 0;
+        margin-bottom: 0
+    }
+}
+@media (min-width: 1200px) {
+    /* Widen the fixed sidebar again */
+    .bs-docs-sidebar.affix-bottom,
+    .bs-docs-sidebar.affix {
+        width: 263px;
+    }
+}
+</style>
+<script type="text/javascript">
+$(function() {
+    'use strict';
+
+    $('.bs-docs-sidebar li').first().addClass('active');
+
+    $(document.body).scrollspy({target: '.bs-docs-sidebar'});
+
+    $('.bs-docs-sidebar').affix();
+});
+</script>
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  displayAlign: "center",
+  displayIndent: "2em",
+  messageStyle: "none",
+  "HTML-CSS": {
+    scale: 100,
+    styles: {
+      ".MathJax_Display": {
+        "font-size": "100%"
+      }
+    }
+  },
+  "SVG": {
+    scale: 100,
+    styles: {
+      ".MathJax_SVG_Display": {
+        "font-size": "100%",
+        "margin-left": "-2.281em"
+      }
+    }
+  }
+});
+</script>
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_SVG"></script>
+</head>
+<body>
+<div id="content" class="container">
+<div class="row"><div class="col-md-9"><h1 class="title">The Daf Specification File</h1>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> The daf Specification</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+This is a document detailing the syntax and semantic rules of the daf language.
+Its purpose is letting me note everything I need to figure out before finishing the parser.
+</p>
+</div>
+<div id="outline-container-sec-1-1" class="outline-3">
+<h3 id="sec-1-1"><span class="section-number-3">1.1</span> Definitions</h3>
+<div class="outline-text-3" id="text-1-1">
+<p>
+The daf language consists purely of definitions. A 'def' is just one of five, the others having similar syntax but different meaning.
+Everything in a file at the top level is a definition in some form, and if they are prefixed by "pub", 
+they are accessible from other files including it as a name definition.
+</p>
+</div>
+<div id="outline-container-sec-1-1-1" class="outline-4">
+<h4 id="sec-1-1-1"><span class="section-number-4">1.1.1</span> Def</h4>
+<div class="outline-text-4" id="text-1-1-1">
+<p>
+The def is the most common top-level definition, and simply defines an alias to an expression. This is the common way of defining procedures, as they too are expressions.
+A def can, once defined, not be changed, but can be evaluated to different values depending on state or compile-time parameters.
+</p>
+</div>
+<ol class="org-ol"><li><a id="sec-1-1-1-1" name="sec-1-1-1-1"></a>Example<br ><div class="outline-text-5" id="text-1-1-1-1">
+<pre class="example">
+def a:=5;
+def let b:i32=@intPtr;
+def mut c:(a:int):int=;
+</pre>
+</div>
+</li>
+<li><a id="sec-1-1-1-2" name="sec-1-1-1-2"></a>Compile-time parameters<br ><div class="outline-text-5" id="text-1-1-1-2">
+<p>
+Def, Typedef and Namedef can all take compile time parameters, allowing you to parse the code multiple times with different types and expressions.
+This allows for generic types and functions, and thanks to a pseudo-intelligent type inferring, you don't always need to specify the compile-time parameters.
+</p>
+</div>
+<ol class="org-ol"><li><a id="sec-1-1-1-2-1" name="sec-1-1-1-2-1"></a>Syntax<br ><div class="outline-text-6" id="text-1-1-1-2-1">
+<p>
+The syntax is somewhat similar to C++, with '&lt;' and '&gt;' indicating the parameter list. Daf allows you to use '(' and ')' when accessing them, with the same syntax as a normal function.
+This allows you to hide the fact that you are in reality just evaluating a parameterized expression.
+</p>
+</div>
+</li>
+<li><a id="sec-1-1-1-2-2" name="sec-1-1-1-2-2"></a>Crammed Example<br ><div class="outline-text-6" id="text-1-1-1-2-2">
+<p>
+def name&lt;&amp;a:int, T\Iterator&lt;int&gt;, b:$F, &amp;mut c:T&gt;:=T.new(&amp;a, b, c++);
+mut myInt:=5;
+let b:=name(myInt, type);
+The example above defines name to an expression, but you can only evaluate said expression by also passing
+</p>
+</div>
+</li>
+<li><a id="sec-1-1-1-2-3" name="sec-1-1-1-2-3"></a>Def<br ></li></ol>
+</li></ol>
+</div>
+
+<div id="outline-container-sec-1-1-2" class="outline-4">
+<h4 id="sec-1-1-2"><span class="section-number-4">1.1.2</span> Let</h4>
+<div class="outline-text-4" id="text-1-1-2">
+<p>
+The let definition allows you to allocate and store variables on the stack or among the global variables.
+A let will have an address, so you can point to it and de-reference the pointer.
+Explicit mutability means you need the 'mut' keyword to change the variable after definition.
+</p>
+</div>
+
+<ol class="org-ol"><li><a id="sec-1-1-2-1" name="sec-1-1-2-1"></a>Uncertainty<br ><div class="outline-text-5" id="text-1-1-2-1">
+<p>
+In daf, a value may be uncertain, meaning it's not defined, and that you need to set it before use.
+Uncertain class instances are not constructed, and will have to be before use.
+If you move or destruct a class instance, it'll become uncertain.
+You can't return from a sub procedure without asserting that references passed to it are certain.
+This is not the case for moves however, as the passed reference has changed ownership.
+If the moved value is still certain after the function is done, it is destructed, just like any other variable belonging to the scope.
+A function can also take an uncertain reference. In which case the value is uncertain from the start, but needs to be certain by the end of the function.
+"Pointers to uncertain" are pointers to memory locations not yet written to. There is a difference between an uncertain pointer and a pointer to uncertain memory.
+</p>
+</div>
+</li></ol>
+</div>
+
+<div id="outline-container-sec-1-1-3" class="outline-4">
+<h4 id="sec-1-1-3"><span class="section-number-4">1.1.3</span> Typedef</h4>
+</div>
+<div id="outline-container-sec-1-1-4" class="outline-4">
+<h4 id="sec-1-1-4"><span class="section-number-4">1.1.4</span> Namedef</h4>
+</div>
+<div id="outline-container-sec-1-1-5" class="outline-4">
+<h4 id="sec-1-1-5"><span class="section-number-4">1.1.5</span> Linkfile</h4>
+<div class="outline-text-4" id="text-1-1-5">
+<p>
+Linkfile definitions are a way of linking the correct files, and keeping track of library dependencies.
+A linkfile definition tells the compiler what extra files to link, and it is stored in the compilers optional linkfile output.
+Here you'll find both the object file the compiler made, as well as all other required files and libraries.
+You'll need another program to read the file and invoke your favorite linker.
+</p>
+<div class="org-src-container">
+
+<pre class="src src-daf">linkfile "FileToLink.o"
+</pre>
+</div>
+<p>
+The compiler will simply output the line you placed in the definition, into the output file.
+Therefore, the linkfile reader will specify the format for parsing, and not the compiler.
+I'll have some standard, though, to avoid multiple incompatible formats.
+How shared library includes will be handled is yet to be determined.
+Id like to get the list of required shared libraries after linking.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-1-2" class="outline-3">
+<h3 id="sec-1-2"><span class="section-number-3">1.2</span> Expressions</h3>
+</div>
+<div id="outline-container-sec-1-3" class="outline-3">
+<h3 id="sec-1-3"><span class="section-number-3">1.3</span> Types</h3>
+</div>
+<div id="outline-container-sec-1-4" class="outline-3">
+<h3 id="sec-1-4"><span class="section-number-3">1.4</span> Scopes &amp; Statements</h3>
+</div>
+<div id="outline-container-sec-1-5" class="outline-3">
+<h3 id="sec-1-5"><span class="section-number-3">1.5</span> Classes and traits</h3>
+</div>
+</div>
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Stuff that needs to be fleshed out</h2>
+<div class="outline-text-2" id="text-2">
+</div><div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> Memory safety and pointers</h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+Prohibiting null pointers unless you explicitly allow it might not be quite enough. Besides, the idea of not having a pointer data type might not be all too good.
+I don't know if I want to enforce any kind of borrowing lifetime checker, but as a programmer, you'd like to write memory safe code either way. 
+The internal functions might be reason #1 complete memory safety is difficult, but you could simply avoid returning a function pointer to an internal function if it uses local stuff.
+A more structured list:
+</p>
+</div>
+<div id="outline-container-sec-2-1-1" class="outline-4">
+<h4 id="sec-2-1-1"><span class="section-number-4">2.1.1</span> Pointers and references</h4>
+<div class="outline-text-4" id="text-2-1-1">
+<p>
+Enforcing that a pointer always points to something is not as easy as removing the null keyword.
+Same can arguably be said about references.
+</p>
+</div>
+<ol class="org-ol"><li><a id="sec-2-1-1-1" name="sec-2-1-1-1"></a>Solution as of yet<br ><div class="outline-text-5" id="text-2-1-1-1">
+<p>
+If you want a reference, use a def, if you want to pass a reference, it happens by itself, if you want to return a reference, you are moving into a dangerous territory, and should use abstraction objects.
+Alternatively you could make a non-trivial def evaluating to your target. Problem here is knowing you don't evaluate some large expression when using your "reference". The compiler could optimize a lot away, presumably.
+If you're very concerned, get the address and store it, use it instead. In theory worse as you no longer have the same guarantee of pointing to something proper.
+</p>
+</div>
+</li></ol>
+</div>
+<div id="outline-container-sec-2-1-2" class="outline-4">
+<h4 id="sec-2-1-2"><span class="section-number-4">2.1.2</span> Polymorphic pointer deletion</h4>
+<div class="outline-text-4" id="text-2-1-2">
+<p>
+You want to enforce virtual destructors when deleting a polymorphic pointer, to assure the calling of destructors of members. The amount of memory freed would also be wrong if you had the wrong type.
+Ensuring destructors are always called is one of the most important and easiest ways of providing memory safety through RAII.
+The fact that a sub type with members would have a different size can be used to detect errors.
+If the allocation and freeing of the polymorphic pointers remembers the size, it could detect that the type whose destructor you're using is too small, and panic.
+This would of course not work if you have a subclass of the same size. In which case the chance of memory leaks is lower, but not ensured. Having a global type id stored in some debug mode could resolve this.
+</p>
+</div>
+</div>
+<div id="outline-container-sec-2-1-3" class="outline-4">
+<h4 id="sec-2-1-3"><span class="section-number-4">2.1.3</span> Data-races</h4>
+<div class="outline-text-4" id="text-2-1-3">
+<p>
+Perhaps the most important reason complete memory safety is incredibly useful is the prevention of data races. Ownership and lifetime rules ensure this, but can make it very difficult to write in certain ways.
+Getting ownership from special mutexes and only letting one reference modify the variable at a time is AFAICS the only way of ensuring it.
+The programmer needs to be able to ensure things in their head before the compiler ensures anything, or the programmer will fight it.
+</p>
+</div>
+</div>
+<div id="outline-container-sec-2-1-4" class="outline-4">
+<h4 id="sec-2-1-4"><span class="section-number-4">2.1.4</span> Moving / Destructing members</h4>
+<div class="outline-text-4" id="text-2-1-4">
+<p>
+If you have a member as part of an object and move it or in some other way make it uncertain, the whole object becomes a potential memory disaster.
+It is vital that uncertain objects don't ever get treated as initialized, or you'll get double freeing in no time.
+One idea is for the scope to store what members have been made uncertain, and ensure they are initialized before any calls are made to/with the object, or the scope ends.
+The only problem then is having two references to the same object, in which case you'd not know at compile time you just un-initialized a field in both.
+</p>
+</div>
+<ol class="org-ol"><li><a id="sec-2-1-4-1" name="sec-2-1-4-1"></a>Condensed idea: Maybe extreme borrowing checking isn't that bad after all<br ></li></ol>
+</div>
+<div id="outline-container-sec-2-1-5" class="outline-4">
+<h4 id="sec-2-1-5"><span class="section-number-4">2.1.5</span> Function parameters</h4>
+<div class="outline-text-4" id="text-2-1-5">
+<p>
+It would seem you pretty much always pass parameters by reference in daf, as you wouldn't want to use copy constructors.
+One could almost remove the '&amp;' in front of the parameter in the function's definition. If you really want to pass a copy of the passed parameter, use the constructor manually.
+This would also solve the problem of what constructor to use when you in theory can have indefinite variations with the same signature.
+</p>
+</div>
+<ol class="org-ol"><li><a id="sec-2-1-5-1" name="sec-2-1-5-1"></a>Condensed idea: Don't use '&amp;' in parameter list<br ></li></ol>
+</div>
+</div>
+<div id="outline-container-sec-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Compilation</h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+You can write quite a lot of compiler code without deciding how one would use the compiler.
+I've already decided on large units of compilation, but whether or not the compiler should be controlled by daf code itself isn't fully decided.
+A system like that would allow you to do checks during compile time, as well as calling other build functions in other libraries.
+However, a simple system with one command that takes some extra paths is simple and elegant.
+There exists many great make tools already, so writing a new one won't be of that much help to the programmer.
+</p>
+</div>
+<div id="outline-container-sec-2-2-1" class="outline-4">
+<h4 id="sec-2-2-1"><span class="section-number-4">2.2.1</span> Suggested command syntax</h4>
+<div class="outline-text-4" id="text-2-2-1">
+<div class="org-src-container">
+
+<pre class="src src-bash">dafc -P src/ me.havard.Main -I otherLib/include -o Program.o -oD Program.linkfile
+</pre>
+</div>
+<p>
+The source directory is added as a source path, and a main file / starting point is specified.
+From the starting file, the compiler recursively parses files from all its source and library paths.
+This will output an object file with all functions defined. The rest is for now platform specific.
+A special flag is needed for position independent code, needed in shared libraries.
+The -oD will output dependencies found while importing library headers, as well as including the object file itself.
+This allows you to in theory link your program with a script and your link file.
+The link file may include some choices concerning static vs. shared libraries.
+The exact details can be thought out later.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-2-3" class="outline-3">
+<h3 id="sec-2-3"><span class="section-number-3">2.3</span> Compile time parameters</h3>
+</div>
+<div id="outline-container-sec-2-4" class="outline-3">
+<h3 id="sec-2-4"><span class="section-number-3">2.4</span> Pound symbol statements</h3>
+</div>
+<div id="outline-container-sec-2-5" class="outline-3">
+<h3 id="sec-2-5"><span class="section-number-3">2.5</span> Namedef and type choices</h3>
+</div>
+<div id="outline-container-sec-2-6" class="outline-3">
+<h3 id="sec-2-6"><span class="section-number-3">2.6</span> Returning references and storing them</h3>
+<div class="outline-text-3" id="text-2-6">
+</div><div id="outline-container-sec-2-6-1" class="outline-4">
+<h4 id="sec-2-6-1"><span class="section-number-4">2.6.1</span> Returning move references is <del>very useful</del> not going to work</h4>
+<div class="outline-text-4" id="text-2-6-1">
+<p>
+Actually, one could say simply returning something normally is returning a move reference, as ownership is transferred.
+You couldn't really return a move reference, as that would make the target object uncertain outside of the scope the reference was made, and the destructor can't be called.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-2-7" class="outline-3">
+<h3 id="sec-2-7"><span class="section-number-3">2.7</span> Compile time copy/move references</h3>
+<div class="outline-text-3" id="text-2-7">
+</div><div id="outline-container-sec-2-7-1" class="outline-4">
+<h4 id="sec-2-7-1"><span class="section-number-4">2.7.1</span> uncertain or not</h4>
+</div>
+</div>
+<div id="outline-container-sec-2-8" class="outline-3">
+<h3 id="sec-2-8"><span class="section-number-3">2.8</span> Avoid extra hoops with uncertain</h3>
+<div class="outline-text-3" id="text-2-8">
+<p>
+When the list of features you need to add and flesh out becomes bigger than the list of pseudo-decided features, you might be subjected to feature creep.
+</p>
+</div>
+</div>
+</div>
+</div><div class="col-md-3"><nav id="table-of-contents">
+<div id="text-table-of-contents" class="bs-docs-sidebar">
+<ul class="nav">
+<li><a href="#sec-1">1. The daf Specification</a>
+<ul class="nav">
+<li><a href="#sec-1-1">1.1. Definitions</a></li>
+<li><a href="#sec-1-2">1.2. Expressions</a></li>
+<li><a href="#sec-1-3">1.3. Types</a></li>
+<li><a href="#sec-1-4">1.4. Scopes &amp; Statements</a></li>
+<li><a href="#sec-1-5">1.5. Classes and traits</a></li>
+</ul>
+</li>
+<li><a href="#sec-2">2. Stuff that needs to be fleshed out</a>
+<ul class="nav">
+<li><a href="#sec-2-1">2.1. Memory safety and pointers</a></li>
+<li><a href="#sec-2-2">2.2. Compilation</a></li>
+<li><a href="#sec-2-3">2.3. Compile time parameters</a></li>
+<li><a href="#sec-2-4">2.4. Pound symbol statements</a></li>
+<li><a href="#sec-2-5">2.5. Namedef and type choices</a></li>
+<li><a href="#sec-2-6">2.6. Returning references and storing them</a></li>
+<li><a href="#sec-2-7">2.7. Compile time copy/move references</a></li>
+<li><a href="#sec-2-8">2.8. Avoid extra hoops with uncertain</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</nav>
+</div></div></div>
+<footer id="postamble" class="">
+<div><p class="author">Author: Håvard Krogstie</p>
+<p class="date">Created: 2017-01-07 Sat 15:17</p>
+<p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 25.1.1 (<a href="http://orgmode.org">Org-mode</a> 9.0.1)</p>
+</div>
+</footer>
+</body>
+</html>

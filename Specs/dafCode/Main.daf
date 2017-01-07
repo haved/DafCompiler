@@ -1,17 +1,13 @@
 namedef _ := import<"daf.IO">;
 
-typedef string := {
-    chars:[..]char;
-		pub def new := ctor(text:[]char) {
-				chars = [..]char.copy_array(text);				
-		}
+typedef String := {
+    chars:Vec<char>;
+    pub def empty:=ctor() { chars.=empty(); };
+    pub def copy<I\ToType<[]char>>:=ctor(array:T) {
+        chars.=copy(array.to_type!(\[]char));
+    }
 
-		pub def mov := ctor(move other:string) {
-				chars = [..]char.mov(other.chars.move()); //This needs return by move reference :/
-		}
 }
-
-
 
 def main:=():int {
 		println("\n"+"Welcome to the daf Dart Score counter!");
@@ -20,20 +16,18 @@ def main:=():int {
 		let players := {
 				let mut playersInput:int;
 		    while !input().try_parse_int(uncrt playersInput) && playersInput > 0
-				    print("No!
-Table of Contents
- Enter a number above 0!");
+				    println("No!  Enter a number above 0!");
 				playersInput};
 
-		mut names:=[..]String.reserve(players);
+		mut names:=Vec<String>.reserve(players);
 		{
-				let name:String;
+				mut name:string; //uncertain
 				for i in 0..players {
 						printC!("Name of player #", i, ":");
 						name := input(); //String
 						if name.length == 0
 					 		  retry;
-						names.push_back(move name);
+						names.push_back_move(move name);
 				}
 		}
 }

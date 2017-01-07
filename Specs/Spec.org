@@ -14,7 +14,7 @@ A def can, once defined, not be changed, but can be evaluated to different value
 #+BEGIN_SRC 
 def a:=5;
 def let b:i32=@intPtr;
-def mut c:(a:int):int=;
+def mut a:u8=mutByte;
 #+END_SRC
 **** Compile-time parameters
 Def, Typedef and Namedef can all take compile time parameters, allowing you to parse the code multiple times with different types and expressions.
@@ -63,6 +63,7 @@ Id like to get the list of required shared libraries after linking.
 ** Types
 ** Scopes & Statements
 ** Classes and traits
+
 * Stuff that needs to be fleshed out
 ** Memory safety and pointers
 Prohibiting null pointers unless you explicitly allow it might not be quite enough. Besides, the idea of not having a pointer data type might not be all too good.
@@ -119,9 +120,11 @@ The exact details can be thought out later.
 ** Pound symbol statements
 ** Namedef and type choices
 ** Returning references and storing them
-*** Returning move references is very useful
+*** Returning move references is +very useful+ not going to work
+Actually, one could say simply returning something normally is returning a move reference, as ownership is transferred.
+You couldn't really return a move reference, as that would make the target object uncertain outside of the scope the reference was made, and the destructor can't be called.
 ** Compile time copy/move references
 *** uncertain or not
 ** Avoid extra hoops with uncertain
 
-When the list of features you need to add and flesh out becomes bigger than the list of pseudo-decided features, you might be subjected to feature creep.
+When the list of features you need to add and flesh out becomes bigger than the list of pseudo-decided features, you might be subject to feature creep.
