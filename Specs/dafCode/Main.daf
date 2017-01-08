@@ -4,9 +4,8 @@ typedef String := {
     chars:Vec<char>;
     pub def empty:=ctor() { chars.=empty(); };
     pub def copy<I\ToType<[]char>>:=ctor(array:T) {
-        chars.=copy(array.to_type!(\[]char));
+        chars.=copy( array.to_type(\[]char) );
     }
-
 }
 
 def main:=():int {
@@ -17,7 +16,7 @@ def main:=():int {
 				let mut playersInput:int;
 		    while !input().try_parse_int(uncrt playersInput) && playersInput > 0
 				    println("No!  Enter a number above 0!");
-				playersInput};
+				playersInput };
 
 		mut names:=Vec<String>.reserve(players);
 		{
@@ -30,4 +29,5 @@ def main:=():int {
 						names.push_back_move(move name);
 				}
 		}
+
 }
