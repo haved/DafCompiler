@@ -1,11 +1,18 @@
 namedef _ := import<"daf.IO">;
 
+typedef ToType<T> := trait {
+    pub def copy_to:(&this, &uncrt a:T);
+		pub def if :class=T copy_to:=(&this:class, &uncrt a:T) a = this; 
+}
+
+with as ToType<[]char>
+
 typedef String := {
     chars:Vec<char>;
     pub def empty:=ctor() { chars.=empty(); };
-    pub def copy<I\ToType<[]char>>:=ctor(array:T) {
-        chars.=copy( array.to_type(\[]char) );
-    }
+    pub def copy<I\ToType<[]char>>:=ctor(array:T) array.copy_to(chars);
+		pub def
+
 }
 
 def main:=():int {
