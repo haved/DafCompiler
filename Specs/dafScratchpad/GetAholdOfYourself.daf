@@ -1,0 +1,57 @@
+def main:=() {
+		print("This is a joy", 5, []{2,4,5}, "right", '?');
+		let mut a := 5;
+		addOne(mut a);
+		addAnotherOne(mut a);
+}
+
+typedef Number := i8|u8|i16|u16|i32|u32|i64|u64|f32|f64;
+//Here Number becomes a trait implemented by all the types specified
+
+typedef Number2 := trait; //Empty trait used to 
+with Number as Number2; //Hm...
+
+def addOne(mut a:Number) := a++; //Number is a trait, but it don't matter
+def addAnotherOne:=inline (mut a:Number2):int a++; //Here the functions mean the same thing, really
+
+def overloading:=(a:int):int a+2;
+def overloading:=(b:float):float b-2;
+def overloading(T) := (a:T):T a+4;
+
+def use:=() {
+		overloading(5); //7
+		overloading(5.2); //3.2
+		overloading(:int)(5) //9
+
+		//getting the version you want
+		with overloading as (int):int printPointer(overloading);
+}
+
+typedef PrintAllowedTypes := String|Number|Array<PrintAllowedTypes>; //Nice recursion
+
+def print(v:T/PrintAllowedTypes...) := {
+		for elm in v {
+				with v
+				as String
+				    printString(v);
+				as Number
+						printNumber(v);
+				as char
+					  printChar(v);
+				as Array<T> {
+					  printChar('{');
+						for elm2 in elm {
+								if !firstIteration
+									 printString(", ");
+								print(elm2);
+						}
+						printChar('}');
+				}
+		}
+}
+
+def printNumber:=inline (a:Number) { //Number is a trait, so it is recompiled for every number kind ::
+		with a as int; //etc.
+		else;
+}
+
