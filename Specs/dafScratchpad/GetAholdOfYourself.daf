@@ -9,10 +9,10 @@ with i16 as Number;
 
 def a : Number = with def_out as i32 -4 as u32 5 else 6;
 
-typedef Vec(T/Concrete) := {
+typedef Vec(T/Concrete, allocate:float=1.5f) := { //Uppercase This means the current type
 		mut capacity : usize;
 		mut array : []mut T;
-    pub def new:=ctor (size:usize):Vec(T) {
+    pub def reserve_new:=ctor (size:usize):This {
 				capacity = size;
 				let a:=malloc(T.sizeof*capacity+usize.sizeof); //a is [?]mut void
 				with a as []mut usize {
@@ -21,7 +21,15 @@ typedef Vec(T/Concrete) := {
 				}
 		}
 
-		pub def delete:=dtor(this:Vec(T)) {
+		pub def new:=ctor():This {
+				capacity = 0;
+		}
+
+		def at_least_fit:=(mut this:This, new_size:usize) {
+				
+		}
+
+		pub def delete:=dtor(mut this:This) {
 				with a as []mut usize free(&a[-1]);
 		}
 
@@ -34,7 +42,18 @@ typedef Vec(T/Concrete) := {
 		        array[size_mut++].=copy(a);
 		    };
 
-		def mut size_mut(this:This) := with array as []mut usize array[-1];
+		pub def push_rule:=(mut this:This, count:usize, rule:(i:uszie):int) {
+				at_least_fit(size+count);
+				for 0..count
+						push_back(rule(it));
+		}
+
+		def mut size_mut(this:This) := with array as []mut usize array[-1] if capacity > 0 else 0; //Very nice and easily read line
 
 		pub def size(this:This) := size_mut;
+}
+
+def main:=() {
+		let a:=Vec(:int).reserve_new(20);
+		a.push_rule(26, (i:i32):int i*3); //Need to realocate on purpose
 }
