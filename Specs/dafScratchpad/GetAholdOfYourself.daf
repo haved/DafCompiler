@@ -9,7 +9,32 @@ with i16 as Number;
 
 def a : Number = with def_out as i32 -4 as u32 5 else 6;
 
-def func:=(move? a:name) {
-		with a as move { //Yet another case
+typedef Vec(T/Concrete) := {
+		mut capacity : usize;
+		mut array : []mut T;
+    pub def new:=ctor (size:usize):Vec(T) {
+				capacity = size;
+				let a:=malloc(T.sizeof*capacity+usize.sizeof); //a is [?]mut void
+				with a as []mut usize {
+				    a[0] = 0;
+						array = a[1] as []mut T;
+				}
 		}
+
+		pub def delete:=dtor(this:Vec(T)) {
+				with a as []mut usize free(&a[-1]);
+		}
+
+		pub def push_back if T/MoveConstructor & def_out==(move a:T)
+				:=(move a:T) {
+				    array[size_mut++].=move(move a);
+				}
+				else if T/CopyConstructor
+				:=(a:T) {
+		        array[size_mut++].=copy(a);
+		    };
+
+		def mut size_mut(this:This) := with array as []mut usize array[-1];
+
+		pub def size(this:This) := size_mut;
 }
