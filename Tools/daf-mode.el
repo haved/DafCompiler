@@ -1,7 +1,7 @@
 ;; The mode for the daf programming language
 ;; So far just syntax highlighting
 
-(setq daf-keywords '("pub" "mut" "let" "def" "typedef" "namedef" "linkfile"))
+(setq daf-keywords '("pub" "mut" "let" "def" "ctor" "dtor" "typedef" "namedef" "linkfile"))
 (setq daf-control '("if" "else" "with" "as"))
 (setq daf-literals '("null" "this" "true" "false"))
 (setq daf-types '("This" "u8" "i8" "u16" "i16" "u32" "i32" "u64" "i64" "f32" "f64" "char" "usize" "bool"))
