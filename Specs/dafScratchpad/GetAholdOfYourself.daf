@@ -1,5 +1,5 @@
 typedef Number := i32|u32;
-with i16 as Number;
+with i16 as Number; //Number is an abstract type 
 
 def a : Number = with def_out as i32 -4 as u32 5 else 6;
 
