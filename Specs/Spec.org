@@ -1,130 +1,17 @@
-#+TITLE: The Daf Specification File
+#+TITLE: The daf specification
 
-* The daf Specification
-This is a document detailing the syntax and semantic rules of the daf language.
-Its purpose is letting me note everything I need to figure out before finishing the parser.
+* Language constructs
 ** Definitions
-The daf language consists purely of definitions. A 'def' is just one of five, the others having similar syntax but different meaning.
-Everything in a file at the top level is a definition in some form, and if they are prefixed by "pub", 
-they are accessible from other files including it as a name definition.
+Top level constructs are called definitions. They may also be used inside scopes as well.
 *** Def
-The def is the most common top-level definition, and simply defines an alias to an expression. This is the common way of defining procedures, as they too are expressions.
-A def can, once defined, not be changed, but can be evaluated to different values depending on state or compile-time parameters.
-**** Example
-#+BEGIN_SRC 
-def a:=5;
-def let b:i32=@intPtr;
-def mut a:u8=mutByte;
-#+END_SRC
-**** Compile-time parameters
-Def, Typedef and Namedef can all take compile time parameters, allowing you to parse the code multiple times with different types and expressions.
-This allows for generic types and functions, and thanks to a pseudo-intelligent type inferring, you don't always need to specify the compile-time parameters.
-***** Syntax
-The syntax is somewhat similar to C++, with '<' and '>' indicating the parameter list. Daf allows you to use '(' and ')' when accessing them, with the same syntax as a normal function.
-This allows you to hide the fact that you are in reality just evaluating a parameterized expression.
-***** Crammed Example
-def name<&a:int, T\Iterator<int>, b:$F, &mut c:T>:=T.new(&a, b, c++);
-mut myInt:=5;
-let b:=name(myInt, type);
-The example above defines name to an expression, but you can only evaluate said expression by also passing
-***** Def
-
 *** Let
-The let definition allows you to allocate and store variables on the stack or among the global variables.
-A let will have an address, so you can point to it and de-reference the pointer.
-Explicit mutability means you need the 'mut' keyword to change the variable after definition.
-
-**** Uncertainty
-In daf, a value may be uncertain, meaning it's not defined, and that you need to set it before use.
-Uncertain class instances are not constructed, and will have to be before use.
-If you move or destruct a class instance, it'll become uncertain.
-You can't return from a sub procedure without asserting that references passed to it are certain.
-This is not the case for moves however, as the passed reference has changed ownership.
-If the moved value is still certain after the function is done, it is destructed, just like any other variable belonging to the scope.
-A function can also take an uncertain reference. In which case the value is uncertain from the start, but needs to be certain by the end of the function.
-"Pointers to uncertain" are pointers to memory locations not yet written to. There is a difference between an uncertain pointer and a pointer to uncertain memory.
-
 *** Typedef
 *** Namedef
-*** Linkfile
-Linkfile definitions are a way of linking the correct files, and keeping track of library dependencies.
-A linkfile definition tells the compiler what extra files to link, and it is stored in the compilers optional linkfile output.
-Here you'll find both the object file the compiler made, as well as all other required files and libraries.
-You'll need another program to read the file and invoke your favorite linker.
-#+BEGIN_SRC daf
-linkfile "FileToLink.o"
-#+END_SRC
-The compiler will simply output the line you placed in the definition, into the output file.
-Therefore, the linkfile reader will specify the format for parsing, and not the compiler.
-I'll have some standard, though, to avoid multiple incompatible formats.
-How shared library includes will be handled is yet to be determined.
-Id like to get the list of required shared libraries after linking.
-** Expressions
-** Types
-** Scopes & Statements
-** Classes and traits
-
-* Stuff that needs to be fleshed out
-** Memory safety and pointers
-Prohibiting null pointers unless you explicitly allow it might not be quite enough. Besides, the idea of not having a pointer data type might not be all too good.
-I don't know if I want to enforce any kind of borrowing lifetime checker, but as a programmer, you'd like to write memory safe code either way. 
-The internal functions might be reason #1 complete memory safety is difficult, but you could simply avoid returning a function pointer to an internal function if it uses local stuff.
-A more structured list:
-*** Pointers and references
-Enforcing that a pointer always points to something is not as easy as removing the null keyword.
-Same can arguably be said about references.
-**** Solution as of yet
-If you want a reference, use a def, if you want to pass a reference, it happens by itself, if you want to return a reference, you are moving into a dangerous territory, and should use abstraction objects.
-Alternatively you could make a non-trivial def evaluating to your target. Problem here is knowing you don't evaluate some large expression when using your "reference". The compiler could optimize a lot away, presumably.
-If you're very concerned, get the address and store it, use it instead. In theory worse as you no longer have the same guarantee of pointing to something proper.
-*** Polymorphic pointer deletion
-You want to enforce virtual destructors when deleting a polymorphic pointer, to assure the calling of destructors of members. The amount of memory freed would also be wrong if you had the wrong type.
-Ensuring destructors are always called is one of the most important and easiest ways of providing memory safety through RAII.
-The fact that a sub type with members would have a different size can be used to detect errors.
-If the allocation and freeing of the polymorphic pointers remembers the size, it could detect that the type whose destructor you're using is too small, and panic.
-This would of course not work if you have a subclass of the same size. In which case the chance of memory leaks is lower, but not ensured. Having a global type id stored in some debug mode could resolve this.
-*** Data-races
-Perhaps the most important reason complete memory safety is incredibly useful is the prevention of data races. Ownership and lifetime rules ensure this, but can make it very difficult to write in certain ways.
-Getting ownership from special mutexes and only letting one reference modify the variable at a time is AFAICS the only way of ensuring it.
-The programmer needs to be able to ensure things in their head before the compiler ensures anything, or the programmer will fight it.
-*** Moving / Destructing members 
-If you have a member as part of an object and move it or in some other way make it uncertain, the whole object becomes a potential memory disaster.
-It is vital that uncertain objects don't ever get treated as initialized, or you'll get double freeing in no time.
-One idea is for the scope to store what members have been made uncertain, and ensure they are initialized before any calls are made to/with the object, or the scope ends.
-The only problem then is having two references to the same object, in which case you'd not know at compile time you just un-initialized a field in both.
-**** Condensed idea: Maybe extreme borrowing checking isn't that bad after all
-*** Function parameters
-It would seem you pretty much always pass parameters by reference in daf, as you wouldn't want to use copy constructors.
-One could almost remove the '&' in front of the parameter in the function's definition. If you really want to pass a copy of the passed parameter, use the constructor manually.
-This would also solve the problem of what constructor to use when you in theory can have indefinite variations with the same signature.
-**** Condensed idea: Don't use '&' in parameter list
-** Compilation
-You can write quite a lot of compiler code without deciding how one would use the compiler.
-I've already decided on large units of compilation, but whether or not the compiler should be controlled by daf code itself isn't fully decided.
-A system like that would allow you to do checks during compile time, as well as calling other build functions in other libraries.
-However, a simple system with one command that takes some extra paths is simple and elegant.
-There exists many great make tools already, so writing a new one won't be of that much help to the programmer.
-*** Suggested command syntax
-#+BEGIN_SRC bash
-	dafc -P src/ me.havard.Main -I otherLib/include -o Program.o -oD Program.linkfile
-#+END_SRC
-The source directory is added as a source path, and a main file / starting point is specified.
-From the starting file, the compiler recursively parses files from all its source and library paths.
-This will output an object file with all functions defined. The rest is for now platform specific.
-A special flag is needed for position independent code, needed in shared libraries.
-The -oD will output dependencies found while importing library headers, as well as including the object file itself.
-This allows you to in theory link your program with a script and your link file.
-The link file may include some choices concerning static vs. shared libraries.
-The exact details can be thought out later.
-** Compile time parameters
-** Pound symbol statements
-** Namedef and type choices
-** Returning references and storing them
-*** Returning move references is +very useful+ not going to work
-Actually, one could say simply returning something normally is returning a move reference, as ownership is transferred.
-You couldn't really return a move reference, as that would make the target object uncertain outside of the scope the reference was made, and the destructor can't be called.
-** Compile time copy/move references
-*** uncertain or not
-** Avoid extra hoops with uncertain
-
-When the list of features you need to add and flesh out becomes bigger than the list of pseudo-decided features, you might be subject to feature creep.
+*** With as
+*** linkfile
+The linkfile definition simply 
+** Compile time conditionals
+Compile time conditionals are useful when doing multi-platform development,
+or when doing more advanced meta-programming.
+Both in scopes, in type definitions and around global definitions,
+you can use #if to conditionally include or choose between code paths, types or 
