@@ -1,0 +1,39 @@
+namedef io := import<"daf.io">
+
+typedef String := trait {
+	pub def length(:Impl):int; //must define an integer at length recieved when passing a reference to the implementing object as a parameter.
+};
+
+//Rule is, when not stating a type with class or trait, you can't add any fields or otherwise change the size, only add functionality like in a with.
+//You may however make a trait concrete, and even set virtual functions.
+//By starting the type with class, you can with in super-classes and functionality bubbles, but is has to be concrete by the end.
+//You can not with a trait to a class without specifying it's a new trait.
+
+
+typedef c_string := [x]mut char with String with {
+	//This refers to every type 'withed' together up until now.
+	//Impl allows you to refer to the type eventually found once the trait is used in something concrete.
+	//Here w can't define any fields, as that would increase the size and break our compatibility with [x]mut char
+	pub def length:=(this:This) {
+		return strlen(this); //Implicitly converted to [x]mut char because that's our acutal type
+	};
+};
+
+typedef CopyMoveAll := trait {
+	pub def from : ctor(mov other:Impl):Impl;
+	pub def from : ctor(other:Impl):Impl;
+	pub def from(mut impl:Impl, mov other:Impl);
+	pub def from(mut impl:Impl, other:Impl);
+
+	//We require an implementation to define from with the two ctor types, as well as...
+	//from(mut impl:Impl, (mov)+ other:Impl) to be either function call or def parameters
+};
+
+typedef DartPlayer := class with CopyMoveAll with {
+	name:string;
+		
+};
+
+def main := (args:[]c_string) {
+	
+};
