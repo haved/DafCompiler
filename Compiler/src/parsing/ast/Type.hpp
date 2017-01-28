@@ -11,7 +11,11 @@ using boost::optional;
 using std::unique_ptr;
 
 class Type { //We'll have to do type evaluation later
+private:
+  optional<TextRange> m_range;
 public:
+  Type();
+  Type(const TextRange& range);
   virtual ~Type();
   virtual void printSignature()=0;
 	virtual bool calculateSize();
@@ -19,20 +23,27 @@ public:
 	virtual Type* getType();
 };
 
+
+//Internal type representation:
+//A type reference is any use of a type in code
+//Some types are shared, and the type reference will only delete a specified type if it's passed as a unique pointer
+//Otherwise, the type is kept
 class TypeReference { //Maybe this must be an instance of Type
 private:
 	optional<TextRange> m_range;
 	Type* m_type;
 	bool m_deleteType;
 public:
-	TypeReference(Type* type, optional<const TextRange&> range);
-	TypeReference(unique_ptr<Type>&& type, optional<const TextRange&> range);
+	TypeReference();
+	TypeReference(Type* type, const optional<TextRange>& range);
+	TypeReference(unique_ptr<Type>&& type, const optional<TextRange>& range);
 	TypeReference(const TypeReference& other)=delete;
 	TypeReference(TypeReference&& other);
 	TypeReference& operator=(const TypeReference& other)=delete;
 	TypeReference& operator=(TypeReference&& other);
 	~TypeReference();
-	Type* getType(); //We should just forward calls to type, instead of requiring this shit
+	Type* getType();
+	bool hasType();
 	void printSignature();
 };
 
@@ -76,17 +87,14 @@ class FunctionParameter {
 private:
   FunctionParameterType m_ref_type;
   optional<std::string> m_name;
-  std::shared_ptr<Type> m_type;
+  TypeReference m_type;
 public:
-  FunctionParameter(FunctionParameterType ref_type, optional<std::string>&& name, std::shared_ptr<Type>&& type);
+  FunctionParameter(FunctionParameterType ref_type, optional<std::string>&& name, TypeReference&& type);
   FunctionParameter(FunctionParameterType&& other);
   void printSignature();
 };
 
-enum FunctionInlineType {
-  FUNC_TYPE_NORMAL, FUNC_TYPE_INLINE
-};
-
+//TOOO: Enum class
 enum FunctionReturnType {
   FUNC_NORMAL_RETURN, FUNC_LET_RETURN, FUNC_MUT_RETURN
 };
@@ -94,12 +102,12 @@ enum FunctionReturnType {
 class FunctionType : public Type {
 private:
   std::vector<FunctionParameter> m_parameters;
-  FunctionInlineType m_inlineType;
-  std::shared_ptr<Type> m_returnType;
+  bool m_inline;
+  TypeReference m_returnType;
   FunctionReturnType m_returnTypeType;
 public:
   FunctionType(std::vector<FunctionParameter>&& params,
-              FunctionInlineType inlineType, std::shared_ptr<Type>&& returnType, FunctionReturnType returnTypeType);
+              bool isInline, TypeReference&& returnType, FunctionReturnType returnTypeType);
 	int getSize() {assert(false);}
   void printSignature();
 };

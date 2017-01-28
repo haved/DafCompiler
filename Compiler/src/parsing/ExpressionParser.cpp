@@ -19,27 +19,21 @@ inline unique_ptr<Expression> none_exp() {
 
 unique_ptr<Expression> parseVariableExpression(Lexer& lexer) {
   assert(lexer.currType()==IDENTIFIER);
-  Token& token = lexer.getCurrentToken();
-  unique_ptr<Expression> out(new VariableExpression(lexer.getCurrentToken().text,
-                             TextRange(token)));
-  lexer.advance();
-  return out;
+  lexer.advance(); //Eat identifier
+	Token& token = lexer.getPreviousToken();
+  return unique_ptr<Expression>(new VariableExpression(token.text, TextRange(token)));
 }
 
 unique_ptr<Expression> parseIntegerExpression(Lexer& lexer) {
-  Token& token = lexer.getCurrentToken();
-  TextRange range(token);
-  unique_ptr<Expression> out(new IntegerConstantExpression(token.integer, token.integerType, range));
-  lexer.advance();
-  return out;
+	lexer.advance();
+  Token& token = lexer.getPreviousToken();
+	return unique_ptr<Expression>(new IntegerConstantExpression(token.integer, token.integerType, TextRange(token)));
 }
 
 unique_ptr<Expression> parseRealNumberExpression(Lexer& lexer) {
-  Token& token = lexer.getCurrentToken();
-  TextRange range(token);
-  unique_ptr<Expression> out(new RealConstantExpression(token.real, token.realType, range));
-  lexer.advance();
-  return out;
+	lexer.advance();
+  Token& token = lexer.getPreviousToken();
+  return unique_ptr<Expression>(new RealConstantExpression(token.real, token.realType, TextRange(token)));
 }
 
 optional<FunctionParameter> parseFunctionParameter(Lexer& lexer) {
@@ -70,9 +64,9 @@ optional<FunctionParameter> parseFunctionParameter(Lexer& lexer) {
 
   lexer.advance(); //Eat ':'
 
-  unique_ptr<Type> type = parseType(lexer);
+  TypeReference type = parseType(lexer);
 
-  if(!type)
+  if(type.hasType())
     return none;
 
   return FunctionParameter(paramType, std::move(name), std::move(type));
@@ -123,7 +117,7 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
     return none_exp();
   lexer.advance(); //Eat ')'
 
-  unique_ptr<Type> type;
+  TypeReference type;
   FunctionReturnType returnType = FUNC_NORMAL_RETURN;
   if(lexer.currType()==TYPE_SEPARATOR) {
     lexer.advance(); //Eat ':'
@@ -144,8 +138,7 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
     return none_exp();
 
 	//We are assured that the body isn't null, so the ctor won't complain
-  FunctionInlineType inlineType = explicitInline?FUNC_TYPE_INLINE:FUNC_TYPE_NORMAL;
-  return unique_ptr<FunctionExpression>(new FunctionExpression(std::move(fps), inlineType, std::move(type), returnType, std::move(body), TextRange(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol)));
+  return unique_ptr<FunctionExpression>(new FunctionExpression(std::move(fps), explicitInline, std::move(type), returnType, std::move(body), TextRange(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol)));
 }
 
 unique_ptr<Expression> parseParenthesies(Lexer& lexer) {

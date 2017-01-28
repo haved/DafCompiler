@@ -46,9 +46,9 @@ class DefDeclaration {
 public:
   DefType defType;
   std::string name;
-  unique_ptr<Type> type;
+  TypeReference type;
   std::vector<CompileTimeParameter> params;
-  DefDeclaration(DefType defType_p, const std::string& name_p, unique_ptr<Type>&& type_p, std::vector<CompileTimeParameter>&& params_p);
+  DefDeclaration(DefType defType_p, const std::string& name_p, TypeReference&& type_p, std::vector<CompileTimeParameter>&& params_p);
 };
 
 class DefCompileTimeParameter {
@@ -70,7 +70,7 @@ private:
   unique_ptr<Expression> m_expression;
 public:
   Def(bool pub, DefType defType, const std::string& name,
-      unique_ptr<Type>&& type,
+     TypeReference&& type,
       std::vector<CompileTimeParameter>&& params,
       unique_ptr<Expression>&& expression,
       const TextRange& range);
@@ -82,11 +82,11 @@ class Let : public Definition {
 private:
   bool m_mut;
   std::string m_name;
-  unique_ptr<Type> m_type;
+  TypeReference m_type;
   unique_ptr<Expression> m_expression;
 public:
   Let(bool pub, bool mut, const std::string& name,
-      unique_ptr<Type>&& type,
+      TypeReference&& type,
       unique_ptr<Expression>&& expression,
       const TextRange& range);
   void printSignature();

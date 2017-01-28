@@ -34,13 +34,13 @@ CompileTimeParameter::~CompileTimeParameter() {
   delete m_type;
 }
 
-DefDeclaration::DefDeclaration(DefType defType_p, const std::string& name_p, unique_ptr<Type>&& type_p, std::vector<CompileTimeParameter>&& params_p)
+DefDeclaration::DefDeclaration(DefType defType_p, const std::string& name_p, TypeReference&& type_p, std::vector<CompileTimeParameter>&& params_p)
   : defType(defType_p), name(name_p), type(std::move(type_p)), params(std::move(params_p)) {
 
 }
 
 Def::Def(bool pub, DefType defType, const std::string& name,
-         unique_ptr<Type>&& type,
+         TypeReference&& type,
          std::vector<CompileTimeParameter>&& params,
          unique_ptr<Expression>&& expression,
          const TextRange &range)
@@ -48,7 +48,7 @@ Def::Def(bool pub, DefType defType, const std::string& name,
       std::move(type), std::move(params)), m_expression(std::move(expression)) {}
 
 Let::Let(bool pub, bool mut, const std::string& name,
-         unique_ptr<Type>&& type,
+         TypeReference&& type,
          unique_ptr<Expression>&& expression,
          const TextRange &range)
   : Definition(pub, range), m_mut(mut), m_name(name),
@@ -57,10 +57,10 @@ Let::Let(bool pub, bool mut, const std::string& name,
 void Def::printSignature() {
   std::cout << "def " << (m_declaration.defType==DEF_LET?"let ":"") << (m_declaration.defType==DEF_MUT?"mut ":"")
             << m_declaration.name;
-  if(m_declaration.type || m_expression)
+  if(m_declaration.type.hasType() || m_expression)
     std::cout << " :";
-  if(m_declaration.type)
-    m_declaration.type->printSignature();
+  if(m_declaration.type.hasType())
+    m_declaration.type.printSignature();
   if(m_expression) {
     std::cout << "= ";
     m_expression->printSignature();
@@ -73,10 +73,10 @@ void Let::printSignature() { //Duplicate code. I know
   if(m_mut)
     std::cout << "mut ";
   std::cout << m_name;
-  if(m_type || m_expression)
+  if(m_type.hasType() || m_expression)
     std::cout << " :";
-  if(m_type)
-    m_type->printSignature();
+  if(m_type.hasType())
+    m_type.printSignature();
   if(m_expression) {
     std::cout << "= ";
     m_expression->printSignature();

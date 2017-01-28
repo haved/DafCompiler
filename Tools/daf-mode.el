@@ -6,10 +6,10 @@
 (setq daf-literals '("null" "this" "true" "false"))
 (setq daf-types '("This" "u8" "i8" "u16" "i16" "u32" "i32" "u64" "i64" "f32" "f64" "char" "usize" "bool"))
 
-(setq daf-keywords-regexp (regexp-opt daf-keywords 'symbol))
-(setq daf-control-regexp (regexp-opt daf-control 'symbol))
-(setq daf-literals-regexp (regexp-opt daf-literals 'symbol))
-(setq daf-types-regexp (regexp-opt daf-types 'symbol))
+(setq daf-keywords-regexp (regexp-opt daf-keywords 'words-include-escapes))
+(setq daf-control-regexp (regexp-opt daf-control 'words-include-escapes))
+(setq daf-literals-regexp (regexp-opt daf-literals 'words-include-escapes))
+(setq daf-types-regexp (regexp-opt daf-types 'words-include-escapes))
 
 (setq daf-font-lock-keywords
 	  `(

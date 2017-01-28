@@ -36,16 +36,16 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
   std::string name(lexer.getCurrentToken().text);
   lexer.advance(); //Eat identifier
 
-  unique_ptr<Type> type;
+  TypeReference type;
   unique_ptr<Expression> expression;
   bool shallParseExpression = true;
   if(lexer.currType()==TYPE_SEPARATOR) {
     lexer.advance(); //Eat ':'
-    unique_ptr<Type> type_got = parseType(lexer);
-    if(!type_got)
+		TypeReference type_got = parseType(lexer);
+    if(!type_got.hasType())
       skipUntil(lexer, ASSIGN);//Skip until '=' past scopes; means infered type might be wrong, but the program will terminate before that becomes an issue
     else
-      type_got.swap(type);
+      type = std::move(type_got);
 
     shallParseExpression = lexer.currType() != STATEMENT_END;
     if(shallParseExpression) { //If we don't have a semicolon

@@ -34,7 +34,7 @@ void VariableExpression::printSignature() {
   std::cout << m_name;
 }
 
-IntegerConstantExpression::IntegerConstantExpression(daf_largest_uint integer, NumberLiteralConstants::ConstantIntegerType integerType, TextRange &range)
+IntegerConstantExpression::IntegerConstantExpression(daf_largest_uint integer, NumberLiteralConstants::ConstantIntegerType integerType, const TextRange& range)
   : Expression(range), m_integer(integer), m_integerType(integerType) {}
 
 void IntegerConstantExpression::printSignature() {
@@ -61,7 +61,7 @@ void IntegerConstantExpression::printSignature() {
   }
 }
 
-RealConstantExpression::RealConstantExpression(daf_largest_float real, NumberLiteralConstants::ConstantRealType realType, TextRange &range)
+RealConstantExpression::RealConstantExpression(daf_largest_float real, NumberLiteralConstants::ConstantRealType realType, const TextRange& range)
   : Expression(range), m_real(real), m_realType(realType) {}
 
 void RealConstantExpression::printSignature() {
@@ -70,9 +70,7 @@ void RealConstantExpression::printSignature() {
 
 //Maybe add something in daf to make this prettier? I dunno
 FunctionExpression::FunctionExpression(std::vector<FunctionParameter>&& params,
-                      FunctionInlineType inlineType, std::shared_ptr<Type>&& returnType, FunctionReturnType returnTypeType, std::unique_ptr<Expression>&& body,
-                                       const TextRange& range)
-                          : Expression(range), m_function(std::move(params), inlineType, std::move(returnType), returnTypeType), m_body(std::move(body)) {
+                      bool isInline, TypeReference&& returnType, FunctionReturnType returnTypeType, std::unique_ptr<Expression>&& body, const TextRange& range) : Expression(range), m_function(std::move(params), isInline, std::move(returnType), returnTypeType), m_body(std::move(body)) {
   assert(m_body);
 }
 

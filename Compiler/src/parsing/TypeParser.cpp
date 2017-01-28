@@ -1,11 +1,11 @@
 #include "parsing/TypeParser.hpp"
+#include <memory>
 
-unique_ptr<Type> parseType(Lexer& lexer) {
+TypeReference parseType(Lexer& lexer) {
   if(lexer.expectToken(IDENTIFIER)) {
-    unique_ptr<Type> out(new TypedefType(lexer.getCurrentToken().text));
     lexer.advance();
-    return out;
+    return TypeReference(std::unique_ptr<Type>(new TypedefType(lexer.getPreviousToken().text)), TextRange(lexer.getPreviousToken()));
   }
   lexer.advance();
-  return unique_ptr<Type>();
+  return TypeReference(); //Somewhat inconsistent what you return when a null return is possible
 }

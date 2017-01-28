@@ -43,7 +43,7 @@ private:
   daf_largest_uint m_integer;
   NumberLiteralConstants::ConstantIntegerType m_integerType;
 public:
-  IntegerConstantExpression(daf_largest_uint integer, NumberLiteralConstants::ConstantIntegerType integerType, TextRange& range);
+  IntegerConstantExpression(daf_largest_uint integer, NumberLiteralConstants::ConstantIntegerType integerType, const TextRange& range);
   void printSignature();
   bool findType() {return false;}
 };
@@ -53,7 +53,7 @@ private:
   daf_largest_float m_real;
   NumberLiteralConstants::ConstantRealType m_realType;
 public:
-  RealConstantExpression(daf_largest_float real, NumberLiteralConstants::ConstantRealType realType, TextRange& range);
+  RealConstantExpression(daf_largest_float real, NumberLiteralConstants::ConstantRealType realType, const TextRange& range);
   void printSignature();
   bool findType() {return false;}
 };
@@ -71,8 +71,7 @@ private:
   std::unique_ptr<Expression> m_body;
 public:
   FunctionExpression(std::vector<FunctionParameter>&& params,
-                     FunctionInlineType inlineType,
-                     std::shared_ptr<Type>&& returnType,
+                     bool isInline, TypeReference&& returnType,
                      FunctionReturnType returnTypeType,
                      std::unique_ptr<Expression>&& body,
                      const TextRange& range);

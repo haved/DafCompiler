@@ -1,6 +1,10 @@
 #include "parsing/ast/Type.hpp"
 #include <iostream>
 
+Type::Type() : m_range(boost::none) {}
+
+Type::Type(const TextRange& range) : m_range(range) {}
+
 Type::~Type() {}
 
 bool Type::calculateSize() {
@@ -11,12 +15,15 @@ Type* Type::getType() {
 	return this;
 }
 
-TypeReference::TypeReference(Type* type, optional<const TextRange&> range)
+TypeReference::TypeReference()
+	: m_range(), m_type(nullptr), m_deleteType(false) {}
+
+TypeReference::TypeReference(Type* type, const optional<TextRange>& range)
 	: m_range(range), m_type(type), m_deleteType(false) {
 	assert(m_type);
 }
 
-TypeReference::TypeReference(unique_ptr<Type>&& type, optional<const TextRange&> range)
+TypeReference::TypeReference(unique_ptr<Type>&& type, const optional<TextRange>& range)
 	: m_range(range), m_type(type.release()),	m_deleteType(true) {
 	assert(m_type);
 }
@@ -45,8 +52,15 @@ Type* TypeReference::getType() {
 	return m_type;
 }
 
+bool TypeReference::hasType() {
+	return !!m_type;
+}
+
 void TypeReference::printSignature() {
-	m_type->printSignature();
+  if(!m_type)
+    std::cout << "NULL_TYPE";
+  else
+    m_type->printSignature();
 }
 
 TypedefType::TypedefType(const std::string& name) : m_name(name), m_type(nullptr) {}
@@ -76,9 +90,9 @@ int PrimitiveType::getSize() {
 	return 4;
 }
 
-FunctionParameter::FunctionParameter(FunctionParameterType ref_type, optional<std::string>&& name, std::shared_ptr<Type>&& type)
-	: m_ref_type(ref_type), m_name(std::move(name)), m_type(type) {
-	assert(m_type);
+FunctionParameter::FunctionParameter(FunctionParameterType ref_type, optional<std::string>&& name, TypeReference&& type)
+  : m_ref_type(ref_type), m_name(std::move(name)), m_type(std::move(type)) {
+  assert(m_type.hasType());
 }
 
 void FunctionParameter::printSignature() {
@@ -93,15 +107,15 @@ void FunctionParameter::printSignature() {
 	if(m_name)
 		std::cout << *m_name;
 	std::cout << ":";
-	m_type->printSignature();
+  m_type.printSignature();
 }
 
 FunctionType::FunctionType(std::vector<FunctionParameter>&& params,
-      FunctionInlineType inlineType, std::shared_ptr<Type>&& returnType, FunctionReturnType returnTypeType)
-            : m_parameters(params), m_inlineType(inlineType), m_returnType(returnType), m_returnTypeType(returnTypeType) {}
+      bool isInline, TypeReference&& returnType, FunctionReturnType returnTypeType)
+            : m_parameters(std::move(params)), m_inline(isInline), m_returnType(std::move(returnType)), m_returnTypeType(returnTypeType) {}
 
 void FunctionType::printSignature() {
-  if(m_inlineType == FUNC_TYPE_INLINE)
+  if(m_inline)
     std::cout << "inline ";
 
   std::cout << "(";
@@ -112,13 +126,13 @@ void FunctionType::printSignature() {
   }
   std::cout << ")";
 
-  if(m_returnType)  {
+  if(m_returnType.hasType())  {
     std::cout << ":";
     if(m_returnTypeType == FUNC_LET_RETURN)
       std::cout << "let ";
     else if(m_returnTypeType == FUNC_MUT_RETURN)
       std::cout << "mut ";
-    m_returnType->printSignature();
+    m_returnType.printSignature();
   }
 }
 
