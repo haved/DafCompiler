@@ -14,9 +14,11 @@ def moveInto(T, F/MoveableTo(T), uncrt l:T, mov r:T) := {
 	
 };
 
-def case1(a:i32, b:i32) := a*b;
+//def case1(a:i32, b:i32) := a*b; //Let's not
 def case2 : '(:i32, :i32) = '(a:i32, b:i32) a+b; //:void required to not type-infer
 def case3 := (a:i32, b:i32):auto a+b; //Auto required for type inferrence
+
+def test1 := '('uncrt a:i32, 'b:i32) a=b;
 
 def main:=() {
 	let a:=malloc(100);
@@ -27,4 +29,17 @@ def main:=() {
 
 	let mut sum:=add(a,b); //Turns sum into the full expression, replacing a and b with l and r
 	sum = add(a+6, a+b); //Puts a+3 and a+b on the stack (let)
+};
+
+typedef Defer('freer()) := class {
+	def delete := dtor(mut this:This) {
+		freer;
+	};
+};
+
+def main:=() {
+	let a:=malloc(128) as [?]mut char;
+	let a_keepr := Defer( 'free(a) );
+
+	//Maybe we want to use def instead of quotes?
 };
