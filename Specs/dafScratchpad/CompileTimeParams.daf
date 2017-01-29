@@ -1,35 +1,30 @@
-//A code file for testing new ways of passing parameters compile time
 
-//Need some way of assuring a type to be initializeable
-typedef vector<T> := class /*with a lot of traits*/{
-				
-}
+typedef Defer(def call) := class {
 
-def reverseCopy<T\ToIterator with Appendable> := (&input:T):T {
-		let output :T = with T as ReserveConstructor T.reserve(input.size()) else T();
-		for elm in T.iterate().reverse()
-				output.append(elm);
-		return output;
-}
+	pub def _ := ctor():This {};
 
-def take<T>:=(a:T) {
-		mut vector:=Vector<T>.reserve(1);
-		vector.append(copy a);
+	pub def delete := inline ctor(mut this:This) {
+		call; //Evaluate compile time parameter
+	};
 };
 
-def takeMove<T>:=(move a:T) {
-		
+def add(l:i32, r:i32) := l+r;
+
+def moveInto(T, F/MoveableTo(T), uncrt l:T, mov r:T) := {
+	
 };
 
-//TODO: Figure out for tomorrow:
-//Expression parameters
-//Default/Optional values
-//Void stuff
-//This and trait stuff
-//Move
-//Uncertain
-//Constructors
+def case1(a:i32, b:i32) := a*b;
+def case2 : '(:i32, :i32) = '(a:i32, b:i32) a+b; //:void required to not type-infer
+def case3 := (a:i32, b:i32):auto a+b; //Auto required for type inferrence
 
-def main:=(args:[]string):int {
-		
+def main:=() {
+	let a:=malloc(100);
+	let b:=Defer( 'free(100) );
+
+	let a:=5;
+	let b:=7;
+
+	let mut sum:=add(a,b); //Turns sum into the full expression, replacing a and b with l and r
+	sum = add(a+6, a+b); //Puts a+3 and a+b on the stack (let)
 };
