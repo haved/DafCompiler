@@ -22,6 +22,8 @@ def main:=()
 		for a in 3.6 {
 			sum=sum+i;
 		}
+
+	{20}
 };
 
 /*
