@@ -19,3 +19,6 @@ A scope does not require a semicolon after /}/
 *** Unless the scope has a value
 If the scope has a value it evaluates to however, you need to follow rules 2.1 and 2.2
 That means that if you intend to use the scope as an expression, a semicolon is not required.
+
+* NOTE
+You although you can't use a(); as a final output expression, you could use {a();}, which would have the void return type

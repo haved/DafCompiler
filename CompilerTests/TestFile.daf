@@ -1,67 +1,26 @@
 // -*- compile-command: "./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
 def main:=()
-
 {
     if (a) {
         b++;
     }
 
-		if (b) {
-		    c
-		};
+	if (b) {
+	    c
+	};
 
-		{};;;
+	{};;;
 
-		mut a:=4;
+	mut a:=4;
 
     while(a>4)
         a++;
 
-		//TODO
-		for a in 3.6 {
-			sum=sum+i;
-		}
+	//TODO
+	for a in 3.6 {
+		sum=sum+i;
+	}
 
-	{20}
+	{a();}
 };
-
-/*
-def main:=() {
-    mut a := 5;
-    a = a + 30;
-    if a != 35
-       assert(0e3i32);
-    else if a < 35
-				assert(0x1);
-    while a > 3 {
-          a--;
-    }
-    a = 3 + 5 - 7;
-
-    while (a) a();
-		
-		//Fix this! for a = b;
-		for i in myIter i();
-		let total := 0;
-		for a:int in 4.7 {
-				total=a;
-		}
-		if x(a);
-		else
-			a++;
-		{;
-		a++;;;;a--;;;
-		};;
-		{a}; //Require semicolons after expression scopes
-
-		if(a) {
-					b
-		};
-		else
-		{
-		g
-		}; 
-		a();
-};
-*/
