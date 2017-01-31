@@ -19,17 +19,3 @@ pub def main := () {
 
 	//Defering happening here because of destructors
 };
-
-typedef Some(T/From(T)) := class {
-	mut t:T;
-	def _ := ctor(mov t:T):This {
-		this.t = t;
-	};
-	
-};
-
-typedef Optional(T) if T/Pointer := class {
-	mut pointer:T;
-	def assign :(:None) = pointer = null;
-	def assign :(a:Some(T)) = 
-};
