@@ -1,0 +1,21 @@
+#+TITLE: Semicolon rules in daf
+
+* Definitions
+Semicolons are required after a definition, and the definition parser eats them or complains.
+* Statements
+Since statements only occur inside a scope or inside another statement, that is the only other place semicolons are required.
+This also means that in a scope is used as an expression, it doesn't require an outer trailing semicolon.
+
+The main rule is to always have a semicolon after a statement, but there are exceptions.
+** Save for statements containing statements
+To avoid requiring double semicolons, an if, while, for etc. won't require a semicolon.
+If the statement inside neither requires it, none is needed.
+*** Does not include return, break etc.
+As return, break, retry, continue etc. don't contain statements, and thus require semicolons of their own.
+** Save for the last expression in a returning scope
+If the last expression in a scope doesn't have a trailing semicolon, the outer semicolon will evaluate to the value.
+** Save for scopes
+A scope does not require a semicolon after /}/
+*** Unless the scope has a value
+If the scope has a value it evaluates to however, you need to follow rules 2.1 and 2.2
+That means that if you intend to use the scope as an expression, a semicolon is not required.
