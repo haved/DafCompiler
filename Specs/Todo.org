@@ -25,6 +25,9 @@
 **** Function calls
 **** TO DO: Array access
 *** Scopes
+** TO DO: Special types
+*** TO DO: Class and trait definitions
+*** TO DO: Merged types
 * TO DO: Reference resolving
 ** TO DO: Avoid recursion
 * TO DO: Type inference
