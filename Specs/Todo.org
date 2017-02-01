@@ -1,0 +1,39 @@
+#+TITLE: Compiler development TO DO
+
+* TO DO: Parsing
+** TO DO: Definitions
+*** Let
+*** Def
+*** Typedef
+*** TO DO: Namedef
+*** TO DO: With
+*** TO DO: Linkfile
+** TO DO: Statements:
+*** If
+*** For
+*** While
+*** TO DO: Return, Break, Retry, Continue
+*** Definitions
+*** Expressions
+** TO DO: All expressions
+*** Number literals
+*** String literals
+*** Char literals
+*** Variables
+*** Functions
+*** TO DO: Operators
+**** Function calls
+**** TO DO: Array access
+*** Scopes
+* TO DO: Reference resolving
+** TO DO: Avoid recursion
+* TO DO: Type inference
+** TO DO: Type checks for operators
+** TO DO: Type checks for calls
+** TO DO: Using proper type in overloading
+* TO DO: Method checks
+** TO DO: Using proper values
+*** TO DO: Mutability checks
+** TO DO: Proper return values?
+** TO DO: Uncertainty
+* TO DO: Code gen
