@@ -12,9 +12,13 @@
 *** If
 *** For
 *** While
-*** TO DO: Return, Break, Retry, Continue
+*** TO DO: Return
+*** TO DO: Break
+*** TO DO: Retry
+*** TO DO: Continue
 *** Definitions
 *** Expressions
+**** Scopes
 ** TO DO: All expressions
 *** Number literals
 *** String literals
@@ -40,3 +44,6 @@
 ** TO DO: Proper return values?
 ** TO DO: Uncertainty
 * TO DO: Code gen
+
+* More general stuff:
+** Add /isize/ as well
