@@ -12,7 +12,7 @@
 *** If
 *** For
 *** While
-*** TO DO: Return
+*** Return
 *** TO DO: Break
 *** TO DO: Retry
 *** TO DO: Continue
