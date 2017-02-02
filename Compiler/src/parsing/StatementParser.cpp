@@ -111,9 +111,12 @@ optional<unique_ptr<Statement>> parseReturnStatement(Lexer& lexer) {
 
 	lexer.advance();
 
-	unique_ptr<Expression> expression = parseExpression(lexer);
-	if(!expression)
-		return none; //We don't eat any semicolons or do any error recovery here
+	unique_ptr<Expression> expression;
+	if(lexer.currType() != STATEMENT_END) {
+		expression = parseExpression(lexer);
+		if(!expression)
+			return none; //We don't eat any semicolons or do any error recovery here
+	}
 
 	if(lexer.expectToken(STATEMENT_END)) {
 		lexer.advance();
