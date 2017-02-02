@@ -22,7 +22,7 @@ bool isSpecialStatementKeyword(TokenType& type) {
 	}
 }
 
-void setEndFromStatement(int* endLine, int* endCol, unique_ptr<Statement>& statement, Lexer& lexer) {
+void setEndFromStatement(int* endLine, int* endCol, const unique_ptr<Statement>& statement, Lexer& lexer) {
 	if(statement) { //An actual statement instance
 		*endLine = statement->getRange().getLastLine();
 		*endCol = statement->getRange().getEndCol();
@@ -102,6 +102,28 @@ optional<unique_ptr<Statement>> parseForStatement(Lexer& lexer) {
 	return unique_ptr<Statement>(new ForStatement(std::move(iterator), std::move(*body), TextRange(startLine, startCol, endLine, endCol)));
 }
 
+//TODO: These either return none or a value, why not null or a value?
+
+optional<unique_ptr<Statement>> parseReturnStatement(Lexer& lexer) {
+	assert(lexer.currType()==RETURN);
+	int startLine = lexer.getCurrentToken().line;
+	int startCol = lexer.getCurrentToken().col;
+
+	lexer.advance();
+
+	unique_ptr<Expression> expression = parseExpression(lexer);
+	if(!expression)
+		return none; //We don't eat any semicolons or do any error recovery here
+
+	if(lexer.expectToken(STATEMENT_END)) {
+		lexer.advance();
+	}
+
+	TextRange range = TextRange(startLine, startCol, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol);
+	return unique_ptr<Statement>(new ReturnStatement(std::move(expression), range));
+}
+
+
 optional<unique_ptr<Statement>> parseSpecialStatement(Lexer& lexer) {
 	switch(lexer.currType()) {
 	case IF:
@@ -110,6 +132,8 @@ optional<unique_ptr<Statement>> parseSpecialStatement(Lexer& lexer) {
 		return parseWhileStatement(lexer);
 	case FOR:
 		return parseForStatement(lexer);
+	case RETURN:
+		return parseReturnStatement(lexer);
 	default:
 		break;
 	}

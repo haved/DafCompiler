@@ -84,3 +84,14 @@ void ForStatement::printSignature() {
 		std::cout << ";";
 	}
 }
+
+ReturnStatement::ReturnStatement(unique_ptr<Expression>&& value, const TextRange& range) : Statement(range), m_returnValue(std::move(value)) {} //Don't assert a return value
+
+void ReturnStatement::printSignature() {
+	if(m_returnValue) {
+		std::cout << "return ";
+		m_returnValue->printSignature();
+		std::cout << ";" << std::endl;
+	} else
+		std::cout << "return;" << std::endl;
+}

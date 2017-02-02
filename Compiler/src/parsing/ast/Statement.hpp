@@ -63,3 +63,11 @@ public:
 	ForStatement(unique_ptr<Expression>&& iterator, unique_ptr<Statement>&& body, const TextRange& range);
 	void printSignature();
 };
+
+class ReturnStatement : public Statement {
+private:
+	unique_ptr<Expression> m_returnValue; //Optional
+public:
+	ReturnStatement(unique_ptr<Expression>&& value, const TextRange& range);
+	void printSignature();
+};
