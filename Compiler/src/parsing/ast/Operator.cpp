@@ -35,8 +35,8 @@ PrefixOperator PREFIX_OPERATOR_INSTANCES[] = {
 
 PostfixOperator POSTFIX_OPERATOR_INSTANCES[] = {
   //All postfix 110
-  PostfixOperator(PLUS_PLUS, 110),  PostfixOperator(MINUS_MINUS, 110),
-  PostfixOperator(LEFT_PAREN, 110), PostfixOperator(LEFT_BRACKET, 110)
+	PostfixOperator(PLUS_PLUS, 110),  PostfixOperator(MINUS_MINUS, 110),
+	PostfixOperator(LEFT_PAREN, 110), PostfixOperator(LEFT_BRACKET, 110)
 };
 
 //TODO: Call these something else than parse, as they don't eat anything
@@ -73,6 +73,6 @@ boost::optional<const PostfixOperator&> parsePostfixOperator(Lexer& lexer) {
   return boost::none;
 }
 
-bool isPostfixOpEqual(const PostfixOperator& op, PostfixOps::POSTFIX_OPERATORS op_enum) {
-  return &POSTFIX_OPERATOR_INSTANCES[op_enum] == &op;
+bool isPostfixOpEqual(const PostfixOperator& op, PostfixOp op_enum) {
+	return &POSTFIX_OPERATOR_INSTANCES[static_cast<int>(op_enum)] == &op;
 }

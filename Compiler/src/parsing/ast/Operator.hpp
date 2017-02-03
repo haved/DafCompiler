@@ -20,12 +20,10 @@ using std::unique_ptr;
   //Insert +=, '=, *=, /=, %=, <<=, >>=, >>>=
 };*/
 
-namespace PostfixOps {
 //IMPORTANT: Must be aligned with POSTFIX_OPERATOR_INSTANCES
-enum POSTFIX_OPERATORS {
+enum class PostfixOp {
   INCREMENT=0, DECREMEMT, FUNCTION_CALL, ARRAY_ACCESS
 };
-}
 
 struct InfixOperator {
   const TokenType tokenType;
@@ -55,4 +53,4 @@ boost::optional<const PrefixOperator&> parsePrefixOperator(Lexer& lexer);
 
 boost::optional<const PostfixOperator&> parsePostfixOperator(Lexer& lexer);
 
-bool isPostfixOpEqual(const PostfixOperator& op, PostfixOps::POSTFIX_OPERATORS op_enum);
+bool isPostfixOpEqual(const PostfixOperator& op, PostfixOp op_enum);
