@@ -52,3 +52,4 @@ I'd rather not have multiple errors in the console for one misplaced word, but i
 As far as I can remember the error recovery for statements is simply a TO DO
 ** Find out why the expression parser loop forever when a strange token is found
 *** It probably lacks error recovery, maybe even with a TO DO
+** Indent stuff to one tab instead of two spaces
