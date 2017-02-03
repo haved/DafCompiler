@@ -259,13 +259,11 @@ unique_ptr<Expression> parseFunctionCallExpression(Lexer& lexer, unique_ptr<Expr
       }
     }
   }
-  //TODO: Use lexer.getPreviousToken()
-  int lastLine = lexer.getCurrentToken().line;
-  int lastCol = lexer.getCurrentToken().endCol;
+
   lexer.advance(); //Eat ')'
   if(!function)
      return none_exp(); //return none, but eat the entire operator
-  return unique_ptr<Expression>(new FunctionCallExpression(std::move(function), std::move(parameters), lastLine, lastCol));
+  return unique_ptr<Expression>(new FunctionCallExpression(std::move(function), std::move(parameters), lexer.getPreviousToken().line,  lexer.getPreviousToken().endCol));
 }
 
 unique_ptr<Expression> mergeExpressionWithOp(Lexer& lexer, unique_ptr<Expression>&& LHS, const PostfixOperator& postfixOp) {

@@ -39,6 +39,7 @@ PostfixOperator POSTFIX_OPERATOR_INSTANCES[] = {
   PostfixOperator(LEFT_PAREN, 110), PostfixOperator(LEFT_BRACKET, 110)
 };
 
+//TODO: Call these something else than parse, as they don't eat anything
 boost::optional<const InfixOperator&> parseInfixOperator(Lexer& lexer) {
   TokenType curr = lexer.currType();
   for(unsigned int i = 0; i < sizeof(INFIX_OPERATOR_INSTANCES)/sizeof(*INFIX_OPERATOR_INSTANCES); i++) {
