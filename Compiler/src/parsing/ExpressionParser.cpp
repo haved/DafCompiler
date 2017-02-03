@@ -283,13 +283,10 @@ unique_ptr<Expression> parseArrayAccessExpression(Lexer& lexer, unique_ptr<Expre
 unique_ptr<Expression> mergeExpressionWithOp(Lexer& lexer, unique_ptr<Expression>&& LHS, const PostfixOperator& postfixOp) {
 	bool decr=false;
 	if(isPostfixOpEqual(postfixOp,PostfixOps::INCREMENT) || (decr=isPostfixOpEqual(postfixOp,PostfixOps::DECREMEMT))) {
-		//TODO: Use lexer.getPreviousToken() or something like that
-		int line = lexer.getCurrentToken().line;
-		int endCol = lexer.getCurrentToken().endCol;
 		lexer.advance(); //Eat '++' or '--'
 		if(!LHS)
 			return none_exp(); //Can't merge a none expression with an operator, but must still eat the op
-		return unique_ptr<Expression>(new PostfixCrementExpression(std::move(LHS), decr, line, endCol));
+		return unique_ptr<Expression>(new PostfixCrementExpression(std::move(LHS), decr, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol));
 	}
 	else if(isPostfixOpEqual(postfixOp,PostfixOps::FUNCTION_CALL)) {
 		return parseFunctionCallExpression(lexer, std::move(LHS));
