@@ -122,6 +122,8 @@ void PostfixCrementExpression::printSignature() {
 FunctionCallExpression::FunctionCallExpression(unique_ptr<Expression>&& function, std::vector<unique_ptr<Expression>>&& parameters, int lastLine, int lastCol)
   : Expression(TextRange(function->getRange(), lastLine, lastCol)), m_function(std::move(function)), m_params(std::move(parameters)) {
   assert(m_function); //You can't call none
+  for(auto it = m_params.begin(); it != m_params.end(); ++it)
+	  assert(*it != nullptr);
 }
 
 void FunctionCallExpression::printSignature() {
@@ -133,3 +135,15 @@ void FunctionCallExpression::printSignature() {
   }
   std::cout << ")";
 }
+
+ArrayAccessExpression::ArrayAccessExpression(unique_ptr<Expression>&& array, unique_ptr<Expression>&& index, int lastLine, int lastCol) : Expression(TextRange(array->getRange(), lastLine, lastCol)), m_array(std::move(array)), m_index(std::move(index)) {
+	assert(m_array && m_index);
+}
+
+void ArrayAccessExpression::printSignature() {
+	//assert(m_array && m_index);
+	m_array->printSignature();
+	std::cout << "[ ";
+	m_index->printSignature();
+	std::cout << " ]";
+};

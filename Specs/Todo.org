@@ -19,15 +19,15 @@
 *** Definitions
 *** Expressions
 **** Scopes
-** TO DO: All expressions
+** All expressions
 *** Number literals
 *** String literals
 *** Char literals
 *** Variables
 *** Functions
-*** TO DO: Operators
+*** Operators
 **** Function calls
-**** TO DO: Array access
+**** Array access
 *** Scopes
 ** TO DO: Special types
 *** TO DO: Class and trait definitions
@@ -53,3 +53,6 @@ As far as I can remember the error recovery for statements is simply a TO DO
 ** Find out why the expression parser loop forever when a strange token is found
 *** It probably lacks error recovery, maybe even with a TO DO
 ** Indent stuff to one tab instead of two spaces
+** Handle TODO in all files
+** Use more enum classes and keep global scope nice
+** Update tokes (remove dumb, make uncrt, ctor, dtor etc.)

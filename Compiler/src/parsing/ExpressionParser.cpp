@@ -266,6 +266,20 @@ unique_ptr<Expression> parseFunctionCallExpression(Lexer& lexer, unique_ptr<Expr
 	return unique_ptr<Expression>(new FunctionCallExpression(std::move(function), std::move(parameters), lexer.getPreviousToken().line,  lexer.getPreviousToken().endCol));
 }
 
+unique_ptr<Expression> parseArrayAccessExpression(Lexer& lexer, unique_ptr<Expression>&& array) {
+	assert(lexer.currType()==LEFT_BRACKET);
+	lexer.advance(); // [
+	unique_ptr<Expression> index = parseExpression(lexer);
+	if(!index) {
+		skipUntil(lexer, RIGHT_BRACKET);
+	}
+	lexer.advance(); //Eat ']'
+	if(array && index)
+		return unique_ptr<Expression>(new ArrayAccessExpression(std::move(array), std::move(index), lexer.getPreviousToken().line, lexer.getPreviousToken().endCol));
+
+	return none_exp();
+}
+
 unique_ptr<Expression> mergeExpressionWithOp(Lexer& lexer, unique_ptr<Expression>&& LHS, const PostfixOperator& postfixOp) {
 	bool decr=false;
 	if(isPostfixOpEqual(postfixOp,PostfixOps::INCREMENT) || (decr=isPostfixOpEqual(postfixOp,PostfixOps::DECREMEMT))) {
@@ -279,6 +293,8 @@ unique_ptr<Expression> mergeExpressionWithOp(Lexer& lexer, unique_ptr<Expression
 	}
 	else if(isPostfixOpEqual(postfixOp,PostfixOps::FUNCTION_CALL)) {
 		return parseFunctionCallExpression(lexer, std::move(LHS));
+	} else if(isPostfixOpEqual(postfixOp, PostfixOps::ARRAY_ACCESS)) {
+		return parseArrayAccessExpression(lexer, std::move(LHS));
 	}
 	assert(false); //Didn't know what to do with postfix expression
 	return none_exp();

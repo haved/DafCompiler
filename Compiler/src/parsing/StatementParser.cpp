@@ -11,8 +11,8 @@ bool isSpecialStatementKeyword(TokenType& type) {
 	case IF:
 	case FOR:
 	case WHILE:
-	case DO:
-	case SWITCH:
+		//case DO:
+		//case SWITCH:
 	case CONTINUE:
 	case BREAK:
 	case RETRY:

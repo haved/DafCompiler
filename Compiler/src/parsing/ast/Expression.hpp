@@ -130,3 +130,14 @@ public:
 	bool isStatement() {return true;}
 	void printSignature();
 };
+
+class ArrayAccessExpression : public Expression {
+private:
+	unique_ptr<Expression> m_array;
+	unique_ptr<Expression> m_index;
+public:
+	ArrayAccessExpression(unique_ptr<Expression>&& array, unique_ptr<Expression>&& index, int lastLine, int lastCol);
+	bool findType() {return false;}
+	bool isStatement() {return false;}
+	void printSignature();
+};

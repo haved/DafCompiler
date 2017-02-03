@@ -30,6 +30,9 @@ def main:=()
 
 	break; //I don't care where you break at this point
 
+	myArray[2]();
+	how[doo[you]].doo();
+
 	{a();}
 	return;
 	return 4;
