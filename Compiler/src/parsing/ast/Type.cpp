@@ -75,7 +75,7 @@ void TypedefType::printSignature() {
 		m_type->printSignature();
 	}
 	else {
-		std::cout << "TypedefType(" << m_name << ")";
+		std::cout << "type{\"" << m_name << "\"}";
 	}
 }
 

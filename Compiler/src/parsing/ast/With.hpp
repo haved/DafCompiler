@@ -22,7 +22,9 @@ public:
 };
 
 class WithDefinition : public Definition {
-
+private:
+	With_As_Construct m_withConstruct;
+	TextRange m_range;
 };
 
 class WithExpression : public Expression {
