@@ -1,6 +1,6 @@
 // -*- compile-command: "./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
-def main:=()
+def main:=(a:int):int
 {
     if (a) {
         b++;

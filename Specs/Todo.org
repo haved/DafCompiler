@@ -1,21 +1,21 @@
 #+TITLE: Compiler development TO DO
 
-* TODO: Parsing
-** TODO: Definitions
+* TODO Parsing
+** TODO Definitions
 *** Let
 *** Def
 *** Typedef
-*** TODO: Namedef
-*** TODO: With
-*** TODO: Linkfile
-** TODO: Statements:
+*** TODO Namedef
+*** TODO With
+*** TODO Linkfile
+** TODO Statements:
 *** If
 *** For
 *** While
 *** Return
-*** TODO: Break
-*** TODO: Retry
-*** TODO: Continue
+*** TODO Break
+*** TODO Retry
+*** TODO Continue
 *** Definitions
 *** Expressions
 **** Scopes
@@ -29,21 +29,22 @@
 **** Function calls
 **** Array access
 *** Scopes
-** TODO: Special types
-*** TODO: Class and trait definitions
-*** TODO: Merged types
-* TODO: Reference resolving
-** TODO: Avoid recursion
-* TODO: Type inference
-** TODO: Type checks for operators
-** TODO: Type checks for calls
-** TODO: Using proper type in overloading
-* TODO: Method checks
-** TODO: Using proper values
-*** TODO: Mutability checks
-** TODO: Proper return values?
-** TODO: Uncertainty
-* TODO: Code gen
+*** TODO With
+** TODO Special types
+*** TODO Class and trait definitions
+*** TODO Merged types
+* TODO Reference resolving
+** TODO Avoid recursion
+* TODO Type inference
+** TODO Type checks for operators
+** TODO Type checks for calls
+** TODO Using proper type in overloading
+* TODO Method checks
+** TODO Using proper values
+*** TODO Mutability checks
+** TODO Proper return values?
+** TODO Uncertainty
+* TODO Code gen
 
 * More general stuff:
 ** Add /isize/ type
@@ -55,5 +56,7 @@ As far as I can remember the error recovery for statements is simply a TODO
 ** Indent stuff to one tab instead of two spaces
 ** Handle TODO in all files
 ** Use more enum classes and keep global scope nice
-*** Done for PostfixOp
+*** Done for Postfix operators
 ** Update tokes (remove dumb, make uncrt, ctor, dtor etc.)
+
+** What happened to the function parameters??

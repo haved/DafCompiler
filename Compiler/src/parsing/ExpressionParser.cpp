@@ -66,7 +66,7 @@ optional<FunctionParameter> parseFunctionParameter(Lexer& lexer) {
 
 	TypeReference type = parseType(lexer);
 
-	if(type.hasType())
+	if(!type.hasType()) //Has to be due to an error
 		return none;
 
 	return FunctionParameter(paramType, std::move(name), std::move(type));
@@ -137,7 +137,7 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
 	if(!body) //Error recovery should already have been done to pass the body expression
 		return none_exp();
 
-	//We are assured that the body isn't null, so the ctor won't complain
+   	//We are assured that the body isn't null, so the ctor won't complain
 	return unique_ptr<FunctionExpression>(new FunctionExpression(std::move(fps), explicitInline, std::move(type), returnType, std::move(body), TextRange(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol)));
 }
 
