@@ -60,3 +60,5 @@ As far as I can remember the error recovery for statements is simply a TODO
 ** Update tokes (remove dumb, make uncrt, ctor, dtor etc.)
 
 ** What happened to the function parameters??
+** Rethink internal type representation
+*** What about expressions
