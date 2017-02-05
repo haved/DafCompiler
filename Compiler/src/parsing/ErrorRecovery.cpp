@@ -50,7 +50,7 @@ void skipUntil(Lexer& lexer, TokenType type) {
       << " until " << getTokenTypeText(type) << std::endl;
 }
 
-//Skips until a new def/let/typedef or import occurs on the same scope level. Will return if exiting scope
+//Skips until a new def/let/typedef/namedef/with occurs on the same scope level. Will return if exiting scope
 //Will never skip the start of a definition
 void skipUntilNewDefinition(Lexer& lexer) {
   int startLine = lexer.getCurrentToken().line;
@@ -61,7 +61,7 @@ void skipUntilNewDefinition(Lexer& lexer) {
     if(type==STATEMENT_END) {
       lexer.advance(); //Eat ';'
       return;
-    } else if(type==LET || type==DEF || type==TYPEDEF || type==IMPORT || isEndOfScope(type))
+    } else if(type==PUB || type==LET || type==DEF || type==TYPEDEF || type==NAMEDEF || type==WITH || isEndOfScope(type))
       return;
     advanceLexerSkipScopes(lexer);
   }

@@ -52,7 +52,7 @@ Type* TypeReference::getType() {
 	return m_type;
 }
 
-bool TypeReference::hasType() {
+bool TypeReference::hasType() const {
 	return !!m_type;
 }
 

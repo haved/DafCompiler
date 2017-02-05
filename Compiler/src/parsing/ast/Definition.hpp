@@ -15,7 +15,7 @@ protected:
   Definition(bool pub, const TextRange& range);
 public:
   virtual ~Definition();
-	const TextRange& getRange();
+  const TextRange& getRange();
   inline bool isPublic() {return m_pub;}
   virtual void printSignature()=0;
   virtual bool isStatement()=0;

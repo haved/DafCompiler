@@ -24,9 +24,18 @@ public:
 class WithDefinition : public Definition {
 private:
 	With_As_Construct m_withConstruct;
-	TextRange m_range;
+public:
+	WithDefinition(bool pub, With_As_Construct&& withConstruct, const TextRange& range);
+	void printSignature() override;
+	inline bool isStatement() override { return true; }
 };
 
 class WithExpression : public Expression {
-
+	With_As_Construct m_withConstruct;
+	unique_ptr<Expression> m_expression;
+public:
+	WithExpression(With_As_Construct&& withConstruct, int startLine, int startCol, unique_ptr<Expression>&& expression);
+	void printSignature() override;
+	bool findType() override;
+	inline bool isStatement() { return m_expression->isStatement(); }
 };

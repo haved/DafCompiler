@@ -43,7 +43,8 @@ public:
 	TypeReference& operator=(TypeReference&& other);
 	~TypeReference();
 	Type* getType();
-	bool hasType();
+	bool hasType() const;
+	inline operator bool() const {return hasType();}
 	void printSignature();
 };
 
