@@ -37,6 +37,16 @@ def main:=(a:int):int
 		a++;
 	}
 
+	{
+		with int as bool;
+
+		a++;
+		with a as bool {
+			 with with b as int b as floater 4;;;;
+			 with a as int 56
+		}
+	};
+
 	break; //I don't care where you break at this point
 
 	myArray[2]();

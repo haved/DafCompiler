@@ -186,12 +186,13 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
 			if(lexer.currType()==END_TOKEN)
 				break; //To avoid multiple "EOF reached" errors
 		}
-		else if(*statement)
+		else if(*statement) //A null statement (not none, but null), is a semicolon
 			statements.push_back(std::move(*statement));
 		while(lexer.currType()==STATEMENT_END)
 			lexer.advance(); //We eat extra trailing semicolons, in case the programmer felt like adding them in
 	}
 
+	//Is it worth it? It's a vector to pointers, after all
 	statements.shrink_to_fit();
 
 	TextRange range(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol);

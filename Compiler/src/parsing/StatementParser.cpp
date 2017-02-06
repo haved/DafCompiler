@@ -4,6 +4,7 @@
 #include "parsing/ExpressionParser.hpp"
 #include "parsing/DefinitionParser.hpp"
 #include "parsing/TypeParser.hpp"
+#include "parsing/WithParser.hpp"
 #include "DafLogger.hpp"
 
 bool isSpecialStatementKeyword(TokenType& type) {
@@ -167,6 +168,37 @@ unique_ptr<Statement> parseSpecialStatement(Lexer& lexer) {
 	return none_stmt();
 }
 
+unique_ptr<Statement> parseWithAsStatement(Lexer& lexer, optional<unique_ptr<Expression>*> finalOutExpression) {
+	EitherWithDefinitionOrExpression with = parseWith(lexer);
+	if(!with)
+		return none_stmt();
+
+	if(with.isExpression()) {
+		if(finalOutExpression && lexer.currType() == SCOPE_END) {
+			(**finalOutExpression) = with.moveToExpression();
+			return none_stmt();
+		}
+		else {
+			if(!with.getExpression()->isStatement()) {
+				std::cout << "Expected a Statement, not just a lousy with expression" << std::endl;
+				return none_stmt();
+			}
+			TextRange range = with.getExpression()->getRange();
+			if(lexer.currType() == STATEMENT_END) {
+				lexer.advance();
+				range = TextRange(range, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol);
+			} else if(with.getExpression()->needsSemicolonAfterStatement())
+				lexer.expectToken(STATEMENT_END);
+;
+			return unique_ptr<Statement>(    new ExpressionStatement(with.moveToExpression(), range)   );
+		}
+	} else {
+		assert(with.isDefinition());
+		TextRange range = with.getDefinition()->getRange(); //Includes the eaten semi-colon
+		return unique_ptr<Statement>(    new DefinitionStatement(with.moveToDefinition(), range)    );
+	}
+}
+
 //A statement occurs either in a scope, or inside another statement such as 'if', 'while', etc.
 //If an expression with a type occurs last in a scope, without a trailing semicolon, the scope will evaluate to that expression
 //This however, may not happen if we are parsing the body og another statement, say 'if' or 'for'.
@@ -178,6 +210,14 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr
 	if(lexer.currType() == STATEMENT_END) {
 		lexer.advance(); //Eat semicolon
 		return none_stmt(); //Not a none, but a null
+	}
+
+	//Special case as it's both a definition and an expression
+	if(lexer.currType() == WITH) {
+		unique_ptr<Statement> with = parseWithAsStatement(lexer, finalOutExpression);
+		if(!*finalOutExpression && with)
+			return with;
+		return none;
 	}
 
 	if(canParseDefinition(lexer)) { //def, let, mut, typedef, namedef
