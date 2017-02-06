@@ -31,6 +31,12 @@ def main:=(a:int):int
 		retry;
 	}
 
+	let a := with a as int {5};
+
+	with a as int {
+		a++;
+	}
+
 	break; //I don't care where you break at this point
 
 	myArray[2]();

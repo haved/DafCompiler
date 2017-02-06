@@ -99,7 +99,7 @@ EitherWithDefinitionOrExpression parseWith(Lexer& lexer, bool pub) {
 	if(pub) {
 		TextRange range(startLine, startCol, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol);
 		logDaf(lexer.getFile(), range, ERROR)
-			<< "Expected a with definition after 'pub'. Such can't have expression bodies!" << std::endl;
+			<< "Expected a with definition after 'pub'; such can't have expression bodies!" << std::endl;
 		//lexer.expectToken(STATEMENT_END);
 		return EitherWithDefinitionOrExpression();
 	}

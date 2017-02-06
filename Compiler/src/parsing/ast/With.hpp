@@ -37,5 +37,6 @@ public:
 	WithExpression(With_As_Construct&& withConstruct, int startLine, int startCol, unique_ptr<Expression>&& expression);
 	void printSignature() override;
 	bool findType() override;
-	inline bool isStatement() { return m_expression->isStatement(); }
+	inline bool isStatement() override { return m_expression->isStatement(); }
+	inline bool needsSemicolonAfterStatement() override { return false; }
 };

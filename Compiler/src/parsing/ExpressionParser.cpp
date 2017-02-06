@@ -5,6 +5,7 @@
 #include "parsing/ast/Operator.hpp"
 #include "parsing/ast/Scope.hpp"
 #include "parsing/StatementParser.hpp"
+#include "parsing/WithParser.hpp"
 
 #include "parsing/ErrorRecovery.hpp"
 
@@ -208,6 +209,8 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
 		return parseFunctionExpression(lexer);
 	case SCOPE_START:
 		return parseScope(lexer);
+	case WITH:
+		return parseWithExpression(lexer);
 	case INTEGER_LITERAL:
 		return parseIntegerExpression(lexer);
 	case REAL_LITERAL:
