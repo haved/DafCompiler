@@ -1,5 +1,8 @@
 // -*- compile-command: "./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
+with :some as int;
+pub with a as b;
+
 def main:=(a:int):int
 {
     if (a) {
