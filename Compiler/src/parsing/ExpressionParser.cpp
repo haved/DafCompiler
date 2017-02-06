@@ -192,6 +192,8 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
 			lexer.advance(); //We eat extra trailing semicolons, in case the programmer felt like adding them in
 	}
 
+	statements.shrink_to_fit();
+
 	TextRange range(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol);
 	lexer.advance(); //Eat '}'
 
