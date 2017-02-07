@@ -39,4 +39,5 @@ public:
 	bool findType() override;
 	inline bool isStatement() override { return m_expression->isStatement(); }
 	inline bool needsSemicolonAfterStatement() override { return false; }
+	inline const TextRange& getBodyRange() { return m_expression->getRange(); }
 };

@@ -180,7 +180,7 @@ unique_ptr<Statement> parseWithAsStatement(Lexer& lexer, optional<unique_ptr<Exp
 		}
 		else {
 			if(!with.getExpression()->isStatement()) {
-				std::cout << "Expected a Statement, not just a lousy with expression" << std::endl;
+				logDaf(lexer.getFile(), with.getExpression()->getBodyRange(), ERROR) << "expected a statement inside a with statement, not just an expression" << std::endl;
 				return none_stmt();
 			}
 			TextRange range = with.getExpression()->getRange();
@@ -189,14 +189,14 @@ unique_ptr<Statement> parseWithAsStatement(Lexer& lexer, optional<unique_ptr<Exp
 				range = TextRange(range, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol);
 			} else if(with.getExpression()->needsSemicolonAfterStatement())
 				lexer.expectToken(STATEMENT_END);
-;
+
 			return unique_ptr<Statement>(    new ExpressionStatement(with.moveToExpression(), range)   );
 		}
-	} else {
-		assert(with.isDefinition());
-		TextRange range = with.getDefinition()->getRange(); //Includes the eaten semi-colon
-		return unique_ptr<Statement>(    new DefinitionStatement(with.moveToDefinition(), range)    );
 	}
+
+	assert(with.isDefinition());
+	TextRange range = with.getDefinition()->getRange(); //Includes the eaten semi-colon
+	return unique_ptr<Statement>(    new DefinitionStatement(with.moveToDefinition(), range)    );
 }
 
 //A statement occurs either in a scope, or inside another statement such as 'if', 'while', etc.
@@ -214,9 +214,11 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr
 
 	//Special case as it's both a definition and an expression
 	if(lexer.currType() == WITH) {
+		assert(**finalOutExpression == nullptr);
 		unique_ptr<Statement> with = parseWithAsStatement(lexer, finalOutExpression);
-		if(!*finalOutExpression && with)
+		if(!(**finalOutExpression) && with)
 			return with;
+		std::cout << "ERROR_WITH";
 		return none;
 	}
 
