@@ -46,6 +46,7 @@ public:
 	bool hasType() const;
 	inline operator bool() const {return hasType();}
 	void printSignature();
+	inline const TextRange& getRange() { assert(m_range); return *m_range; }
 };
 
 class TypedefType : public Type {

@@ -51,7 +51,7 @@ Let::Let(bool pub, bool mut, const std::string& name,
          TypeReference&& type,
          unique_ptr<Expression>&& expression,
          const TextRange &range)
-  : Definition(pub, range), m_mut(mut), m_name(name),
+	: Definition(pub, range), m_mut(mut), m_name(name),
     m_type(std::move(type)), m_expression(std::move(expression)) {}
 
 void Def::printSignature() {
@@ -84,10 +84,12 @@ void Let::printSignature() { //Duplicate code. I know
   std::cout << ";" << std::endl;
 }
 
-bool Def::isStatement() {
-  return true;
+TypedefDefinition::TypedefDefinition(bool pub, std::string&& name, TypeReference&& type, const TextRange& range) : Definition(pub, range), m_name(std::move(name)), m_type(std::move(type)) {
+	assert(m_type);
 }
 
-bool Let::isStatement() {
-  return true;
+void TypedefDefinition::printSignature() {
+	std::cout << "typedef " << m_name << " := ";
+	m_type.printSignature();
+	std::cout << ";" << std::endl;
 }

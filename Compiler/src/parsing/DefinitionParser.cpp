@@ -86,6 +86,29 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
 	return definition;
 }
 
+unique_ptr<Definition> parseTypedefDefinition(Lexer& lexer, bool pub) {
+	assert(lexer.currType()==TYPEDEF);
+	int startLine = lexer.getCurrentToken().line;
+	int startCol  = lexer.getCurrentToken().col;
+	lexer.advance(); //Eat 'typedef'
+	if(!lexer.expectToken(IDENTIFIER))
+		return none();
+	std::string name(lexer.getCurrentToken().text);
+	lexer.advance(); //Eat identifier
+	if(!lexer.expectToken(DECLARE))
+		return none();
+	lexer.advance(); //Eat ':='
+	TypeReference type = parseType(lexer);
+	if(!type)
+		return none();
+	TextRange range(startLine, startCol, type.getRange());
+	if(lexer.expectToken(STATEMENT_END)) {
+		lexer.advance(); //Eat ';'
+		range = TextRange(range, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol);
+	}
+	return unique_ptr<Definition> (   new TypedefDefinition(pub, std::move(name), std::move(type), range)   );
+}
+
 bool canParseDefinition(Lexer& lexer) {
 	TokenType curr = lexer.currType();
 	return curr==DEF||curr==LET||curr==MUT||curr==WITH||curr==TYPEDEF; //So far the only tokens
@@ -102,6 +125,9 @@ unique_ptr<Definition> parseDefinition(Lexer& lexer, bool pub) {
 		break;
 	case WITH:
 		out = parseWithDefinition(lexer, pub);
+		break;
+	case TYPEDEF:
+		out = parseTypedefDefinition(lexer, pub);
 		break;
 	default:
 		logDafExpectedToken("a definition", lexer);

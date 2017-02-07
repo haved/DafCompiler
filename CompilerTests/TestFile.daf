@@ -61,5 +61,7 @@ def main:=(a:int):int
 	return 4;
 	return 20;
 
-	//typedef a := int;
+	typedef a := int;
 };
+
+pub typedef some := ey;

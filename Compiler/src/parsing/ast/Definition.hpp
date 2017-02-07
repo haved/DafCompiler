@@ -70,13 +70,9 @@ private:
 	DefDeclaration m_declaration;
 	unique_ptr<Expression> m_expression;
 public:
-	Def(bool pub, DefType defType, const std::string& name,
-		TypeReference&& type,
-		std::vector<CompileTimeParameter>&& params,
-		unique_ptr<Expression>&& expression,
-		const TextRange& range);
+	Def(bool pub, DefType defType, const std::string& name, TypeReference&& type, std::vector<CompileTimeParameter>&& params, unique_ptr<Expression>&& expression, const TextRange& range);
 	void printSignature();
-	bool isStatement();
+	inline bool isStatement() override { return true; }
 };
 
 class Let : public Definition {
@@ -86,10 +82,18 @@ private:
 	TypeReference m_type;
 	unique_ptr<Expression> m_expression;
 public:
-	Let(bool pub, bool mut, const std::string& name,
-		TypeReference&& type,
-		unique_ptr<Expression>&& expression,
-		const TextRange& range);
+	Let(bool pub, bool mut, const std::string& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange& range);
 	void printSignature();
-	bool isStatement();
+	inline bool isStatement() override { return true; }
+};
+
+//WithDefinition is in With.hpp
+
+class TypedefDefinition : public Definition {
+	std::string m_name;
+	TypeReference m_type;
+public:
+	TypedefDefinition(bool pub, std::string&& name, TypeReference&& type, const TextRange& range);
+	void printSignature();
+	inline bool isStatement() override { return true; }
 };

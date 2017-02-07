@@ -4,7 +4,8 @@
 ** TODO Definitions
 *** Let
 *** Def
-*** Typedef
+*** DONE Typedef
+	CLOSED: [2017-02-07 Tue 23:00]
 *** TODO Namedef
 *** DONE With
 	CLOSED: [2017-02-07 Tue 16:53]
@@ -33,7 +34,9 @@
 **** Function calls
 **** Array access
 *** Scopes
-*** TODO With
+*** DONE With
+	CLOSED: [2017-02-07 Tue 18:33]
+*** TODO Match
 ** TODO Special types
 *** TODO Class and trait definitions
 *** TODO Merged types
@@ -69,4 +72,11 @@ As far as I can remember the error recovery for statements is simply a TODO
 ** TODO Consider putting With in the definition and expression parsers
 *** Have a special case for statements
 ** TODO Use /override/ more for AST subclasses etc.
-
+** TODO Use two pointers in EitherWith
+Instead of one void pointer and a bool isExpression, have a WithExpression pointer and a WithDefinition pointer, and then simply assert one of them is always null.
+** TODO Search for string references and remove slow copies
+** TODO Make compiler errors lowercase and remove punctuation
+** TODO Check if having a TypeReference object is really necessary
+** TODO See if one couldn't make the Definition parser and Expression parser more similar
+As in ordering of functions found in both. Purely for consistency's sake.
+** TODO Maybe clean up the Statement parser, as 'with' somewhat duplicates expression code
