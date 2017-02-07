@@ -51,21 +51,22 @@
 * TODO Code gen
 
 * More general stuff:
-** Add /isize/ type
-** Error recovery in statements, where only some statements require semicolons
+** TODO Add /isize/ type
+** TODO Error recovery in statements, where only some statements require semicolons
 I'd rather not have multiple errors in the console for one misplaced word, but it's low priority
 As far as I can remember the error recovery for statements is simply a TODO
-** Find out why the expression parser loop forever when a strange token is found
+** TODO Find out why the expression parser loop forever when a strange token is found
 *** It probably lacks error recovery, maybe even with a TODO
-** Indent stuff to one tab instead of two spaces
-** Handle TODO in all files
-** Use more enum classes and keep global scope nice
+** TODO Indent stuff to one tab instead of two spaces
+** TODO Handle TODO in all files
+** TODO Use more enum classes and keep global scope nice
 *** Done for Postfix operators
-** Update tokes (remove dumb, make uncrt, ctor, dtor etc.)
+** TODO Update tokes (remove dumb, make uncrt, ctor, dtor etc.)
 
-** What happened to the function parameters??
-** Rethink internal type representation
+** TODO What happened to the function parameters??
+** TODO Rethink internal type representation
 *** What about expressions
-** Consider putting With in the definition and expression parsers
+** TODO Consider putting With in the definition and expression parsers
 *** Have a special case for statements
-** Use /override/ more for AST subclasses etc.
+** TODO Use /override/ more for AST subclasses etc.
+

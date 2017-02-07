@@ -218,7 +218,6 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr
 		unique_ptr<Statement> with = parseWithAsStatement(lexer, finalOutExpression);
 		if(!(**finalOutExpression) && with)
 			return with;
-		std::cout << "ERROR_WITH";
 		return none;
 	}
 

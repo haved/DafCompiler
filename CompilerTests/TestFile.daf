@@ -39,6 +39,8 @@ def main:=(a:int):int
 		a++;
 	}+3)();
 
+	(with a as int a)();
+	
 	{
 		with int as bool;
 
@@ -58,4 +60,6 @@ def main:=(a:int):int
 	return;
 	return 4;
 	return 20;
+
+	//typedef a := int;
 };
