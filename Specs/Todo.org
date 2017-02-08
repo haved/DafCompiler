@@ -69,9 +69,10 @@ As far as I can remember the error recovery for statements is simply a TODO
 ** TODO Handle TODO in all files
 ** TODO Use more enum classes and keep global scope nice
 *** Done for Postfix operators
-** TODO Update tokes (remove dumb, make uncrt, ctor, dtor etc.)
-
-** TODO What happened to the function parameters??
+** DONE Update tokes (remove dumb, make uncrt, ctor, dtor etc.)
+   CLOSED: [2017-02-08 Wed 09:09]
+** DONE What happened to the function parameters??
+   CLOSED: [2017-02-08 Wed 09:09]
 ** TODO Rethink internal type representation
 *** What about expressions
 ** TODO Consider putting With in the definition and expression parsers

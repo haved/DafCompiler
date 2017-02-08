@@ -54,7 +54,7 @@ def main:=(a:int):int
 	break; //I don't care where you break at this point
 
 	myArray[2]();
-	how[doo[you]].doo();
+	how[doo[you]].doo(a, b, /*mut*/ c);
 
 	{a();}
 	return;

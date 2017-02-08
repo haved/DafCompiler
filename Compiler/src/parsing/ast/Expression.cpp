@@ -131,6 +131,8 @@ void FunctionCallExpression::printSignature() {
 	m_function->printSignature();
 	std::cout << "(";
 	for(auto param = m_params.begin(); param != m_params.end(); ++param) {
+		if(param != m_params.begin())
+			std::cout << ", ";
 		(*param)->printSignature();
 	}
 	std::cout << ")";
