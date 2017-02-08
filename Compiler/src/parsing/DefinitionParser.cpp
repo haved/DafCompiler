@@ -7,7 +7,7 @@
 
 #include "parsing/ErrorRecovery.hpp"
 
-inline unique_ptr<Definition> none() {
+inline unique_ptr<Definition> none_defnt() {
 	return unique_ptr<Definition>();
 }
 
@@ -32,7 +32,7 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
 	assert(def||let); //This means we can start allowing for 'mut i:=0' by simply calling parseLetDef upon 'mut', but then we should then also add it to ErrorRecovery
 
 	if(!lexer.expectToken(IDENTIFIER))
-		return none();
+		return none_defnt();
 
 	std::string name(lexer.getCurrentToken().text);
 	lexer.advance(); //Eat identifier
@@ -51,7 +51,7 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
 		shallParseExpression = lexer.currType() != STATEMENT_END;
 		if(shallParseExpression) { //If we don't have a semicolon
 			if(!lexer.expectToken(ASSIGN))
-				return none();
+				return none_defnt();
 			lexer.advance(); //Eat '='
 		}
 	}
@@ -59,14 +59,14 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
 		lexer.advance(); //Eat ':='
 	else {
 		lexer.expectToken(DECLARE);
-		return none();
+		return none_defnt();
 	}
 	//If current is ; we have a type and return that
 	//Else we look for an expression
 	if(shallParseExpression) {
 		unique_ptr<Expression> expression_got = parseExpression(lexer);
 		if(!expression_got)
-			return none(); //We don't care for cleanup, because we skip until the next def
+			return none_defnt(); //We don't care for cleanup, because we skip until the next def
 		expression_got.swap(expression);
 	}
 	TextRange range(startLine, startCol,
@@ -92,15 +92,15 @@ unique_ptr<Definition> parseTypedefDefinition(Lexer& lexer, bool pub) {
 	int startCol  = lexer.getCurrentToken().col;
 	lexer.advance(); //Eat 'typedef'
 	if(!lexer.expectToken(IDENTIFIER))
-		return none();
+		return none_defnt();
 	std::string name(lexer.getCurrentToken().text);
 	lexer.advance(); //Eat identifier
 	if(!lexer.expectToken(DECLARE))
-		return none();
+		return none_defnt();
 	lexer.advance(); //Eat ':='
 	TypeReference type = parseType(lexer);
 	if(!type)
-		return none();
+		return none_defnt();
 	TextRange range(startLine, startCol, type.getRange());
 	if(lexer.expectToken(STATEMENT_END)) {
 		lexer.advance(); //Eat ';'

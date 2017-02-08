@@ -316,13 +316,10 @@ unique_ptr<Expression> mergeExpressionWithOp(Lexer& lexer, unique_ptr<Expression
 
 unique_ptr<Expression> parseSide(Lexer& lexer, int minimumPrecedence) {
 	unique_ptr<Expression> side;
-	//TODO: Implement a getPreviousToken() in the lexer. Use it here
 	optional<const PrefixOperator&> prefixOp = parsePrefixOperator(lexer);
 	if(prefixOp) {
-		int startLine = lexer.getCurrentToken().line;
-		int startCol = lexer.getCurrentToken().col;
 		lexer.advance(); //Eat prefix operator
-		side = mergeOpWithExpression(*prefixOp, startLine, startCol, parseSide(lexer, prefixOp->precedence+1));
+		side = mergeOpWithExpression(*prefixOp, lexer.getCurrentToken().line, lexer.getCurrentToken().col, parseSide(lexer, prefixOp->precedence+1));
 	}
 	else
 		side = parsePrimary(lexer);
@@ -343,13 +340,13 @@ unique_ptr<Expression> parseSide(Lexer& lexer, int minimumPrecedence) {
 }
 
 bool canParseExpression(Lexer& lexer) {
-	//TODO: Find out if there is even a point to knowing when an expression may start
-	//Checking for every prefix-operator token is hopefully not necessary
+    //I've decided that if you've come to this place, you'll at least try to parse and expression
 	return true;
 	/*TokenType curr = lexer.currType();
 	  return curr==IDENTIFIER||curr==LEFT_PAREN||curr==INLINE||curr==SCOPE_START
       ||curr==CHAR_LITERAL||curr==INTEGER_LITERAL||curr==LONG_LITERAL||curr==FLOAT_LITERAL||curr==DOUBLE_LITERAL;
-	*/}
+	*/
+}
 
 unique_ptr<Expression> parseExpression(Lexer& lexer) {
 	unique_ptr<Expression> expr = parseSide(lexer, 0); //The min precedence is 0
