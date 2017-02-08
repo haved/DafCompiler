@@ -86,3 +86,7 @@ Instead of one void pointer and a bool isExpression, have a WithExpression point
 ** TODO See if one couldn't make the Definition parser and Expression parser more similar
 As in ordering of functions found in both. Purely for consistency's sake.
 ** TODO Maybe clean up the Statement parser, as 'with' somewhat duplicates expression code
+** TODO Add move - prefix operator
+** TODO Add uncrt - prefix operator
+** DONE Add mut as possible prefix for function call arguments
+   CLOSED: [2017-02-08 Wed 14:27]

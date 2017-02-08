@@ -119,11 +119,30 @@ void PostfixCrementExpression::printSignature() {
 	std::cout << (decrement ? "--" : "++");
 }
 
-FunctionCallExpression::FunctionCallExpression(unique_ptr<Expression>&& function, std::vector<unique_ptr<Expression>>&& parameters, int lastLine, int lastCol)
+FunctionCallArgument::FunctionCallArgument(bool mut, unique_ptr<Expression>&& expression) : m_mutableReference(mut), m_expression(std::move(expression)) {
+	//The expression may very well be null
+}
+
+FunctionCallArgument::FunctionCallArgument(FunctionCallArgument&& other) : m_mutableReference(other.m_mutableReference), m_expression(std::move(other.m_expression)) {}
+
+FunctionCallArgument& FunctionCallArgument::operator =(FunctionCallArgument&& RHS) {
+	m_expression = std::move(RHS.m_expression);
+	m_mutableReference = RHS.m_mutableReference;
+	return *this;
+}
+
+void FunctionCallArgument::printSignature() {
+	if(m_mutableReference)
+		std::cout << "mut ";
+	assert(m_expression); //We should never be asked to print a broken argument
+	m_expression->printSignature();
+}
+
+FunctionCallExpression::FunctionCallExpression(unique_ptr<Expression>&& function, std::vector<FunctionCallArgument>&& parameters, int lastLine, int lastCol)
 	: Expression(TextRange(function->getRange(), lastLine, lastCol)), m_function(std::move(function)), m_params(std::move(parameters)) {
 	assert(m_function); //You can't call none
 	for(auto it = m_params.begin(); it != m_params.end(); ++it)
-		assert(*it != nullptr);
+		assert(*it);
 }
 
 void FunctionCallExpression::printSignature() {
@@ -133,7 +152,7 @@ void FunctionCallExpression::printSignature() {
 	for(auto param = m_params.begin(); param != m_params.end(); ++param) {
 		if(param != m_params.begin())
 			std::cout << ", ";
-		(*param)->printSignature();
+		(*param).printSignature();
 	}
 	std::cout << ")";
 }

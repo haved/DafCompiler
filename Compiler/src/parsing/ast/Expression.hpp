@@ -120,12 +120,28 @@ public:
 	void printSignature();
 };
 
+class FunctionCallArgument {
+private:
+	bool m_mutableReference;
+	unique_ptr<Expression> m_expression;
+public:
+	FunctionCallArgument(bool mut, unique_ptr<Expression>&& expression);
+	FunctionCallArgument(const FunctionCallArgument& other) = delete;
+	FunctionCallArgument(FunctionCallArgument&& other);
+	FunctionCallArgument& operator =(const FunctionCallArgument& RHS) = delete;
+	FunctionCallArgument& operator =(FunctionCallArgument&& RHS);
+	inline bool isMut() { return m_mutableReference; }
+	inline Expression& getExpression() { return *m_expression; }
+	void printSignature();
+	inline operator bool() { return !!m_expression; }
+};
+
 class FunctionCallExpression : public Expression {
 private:
 	unique_ptr<Expression> m_function;
-	std::vector<unique_ptr<Expression>> m_params;
+	std::vector<FunctionCallArgument> m_params;
 public:
-	FunctionCallExpression(unique_ptr<Expression>&& function, std::vector<unique_ptr<Expression>>&& parameters, int lastLine, int lastCol);
+	FunctionCallExpression(unique_ptr<Expression>&& function, std::vector<FunctionCallArgument>&& parameters, int lastLine, int lastCol);
 	bool findType() {return false;}
 	bool isStatement() {return true;}
 	void printSignature();

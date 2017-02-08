@@ -236,18 +236,29 @@ unique_ptr<Expression> mergeOpWithExpression(const PrefixOperator& prefixOp, int
 	return unique_ptr<Expression>(new PrefixOperatorExpression(prefixOp, opLine, opCol, std::move(RHS)));
 }
 
+FunctionCallArgument parseFunctionCallArgument(Lexer& lexer) {
+	//TODO: Perhaps take a text range for the argument. Not too big of an issue, but hey
+	bool mut = false;
+	if(lexer.currType() == MUT) {
+		lexer.advance(); //Eat 'mut'
+		mut = true;
+	}
+
+	return FunctionCallArgument(mut, parseExpression(lexer));
+}
+
 unique_ptr<Expression> parseFunctionCallExpression(Lexer& lexer, unique_ptr<Expression>&& function) {
 	assert(lexer.currType()==LEFT_PAREN); //At the start of the function call.
 	lexer.advance(); //Eat '('
-	vector<unique_ptr<Expression>> parameters;
+	vector<FunctionCallArgument> args;
 	if(lexer.currType()!=RIGHT_PAREN) {
 		while(true) {
-			unique_ptr<Expression> param = parseExpression(lexer);
-			if(!param) {
-				skipUntil(lexer, RIGHT_PAREN);
+		    FunctionCallArgument arg = parseFunctionCallArgument(lexer);
+			if(!arg) {
+				skipUntil(lexer, RIGHT_PAREN); //Skip rest of arguments
 				break;
 			}
-			parameters.push_back(std::move(param));
+			args.push_back(std::move(arg));
 			if(lexer.currType()==COMMA)
 				lexer.advance(); //Eat ','
 			else if(lexer.currType()==RIGHT_PAREN)
@@ -259,7 +270,7 @@ unique_ptr<Expression> parseFunctionCallExpression(Lexer& lexer, unique_ptr<Expr
 			}
 			if(!lexer.hasCurrentToken()) {
 				logDaf(lexer.getFile(), lexer.getCurrentToken().line, lexer.getCurrentToken().col, ERROR)
-					<< "Hit EOF while in function call parameter list. Started at " << function->getRange().getLastLine()
+					<< "Hit EOF while in function call argument list. Started at " << function->getRange().getLastLine()
 					<< function->getRange().getEndCol() << std::endl;
 				break;
 			}
@@ -269,7 +280,7 @@ unique_ptr<Expression> parseFunctionCallExpression(Lexer& lexer, unique_ptr<Expr
 	lexer.advance(); //Eat ')'
 	if(!function)
 		return none_exp(); //return none, but eat the entire operator
-	return unique_ptr<Expression>(new FunctionCallExpression(std::move(function), std::move(parameters), lexer.getPreviousToken().line,  lexer.getPreviousToken().endCol));
+	return unique_ptr<Expression>(new FunctionCallExpression(std::move(function), std::move(args), lexer.getPreviousToken().line,  lexer.getPreviousToken().endCol));
 }
 
 unique_ptr<Expression> parseArrayAccessExpression(Lexer& lexer, unique_ptr<Expression>&& array) {
