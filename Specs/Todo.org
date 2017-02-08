@@ -86,6 +86,8 @@ Instead of one void pointer and a bool isExpression, have a WithExpression point
 ** DONE See if one couldn't make the Definition parser and Expression parser more similar
    CLOSED: [2017-02-08 Wed 15:45]
 As in ordering of functions found in both. Purely for consistency's sake.
+** TODO Check consistency between Expression and Statement parser
+** TODO Fix Error recovery to avoid loops and stuff. Use it in the Statement and Scope parsers
 ** TODO Maybe clean up the Statement parser, as 'with' somewhat duplicates expression code
 ** TODO Add move - prefix operator
 ** TODO Add uncrt - prefix operator
