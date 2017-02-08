@@ -83,7 +83,8 @@ Instead of one void pointer and a bool isExpression, have a WithExpression point
 ** TODO Search for string references and remove slow copies
 ** TODO Make compiler errors lowercase and remove punctuation
 ** TODO Check if having a TypeReference object is really necessary
-** TODO See if one couldn't make the Definition parser and Expression parser more similar
+** DONE See if one couldn't make the Definition parser and Expression parser more similar
+   CLOSED: [2017-02-08 Wed 15:45]
 As in ordering of functions found in both. Purely for consistency's sake.
 ** TODO Maybe clean up the Statement parser, as 'with' somewhat duplicates expression code
 ** TODO Add move - prefix operator
