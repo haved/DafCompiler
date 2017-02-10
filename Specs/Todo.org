@@ -36,7 +36,8 @@
 *** Scopes
 *** DONE With
 	CLOSED: [2017-02-07 Tue 18:33]
-**** TODO With else
+**** DONE With else
+	 CLOSED: [2017-02-10 Fri 12:41]
 *** TODO Match
 ** TODO Types
 *** Typedef reference
