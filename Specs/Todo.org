@@ -89,13 +89,16 @@ As far as I can remember the error recovery for statements is simply a TODO
    CLOSED: [2017-02-10 Fri 13:55]
 Instead of one void pointer and a bool isExpression, have a WithExpression pointer and a WithDefinition pointer, and then simply assert one of them is always null.
 ** TODO Search for string references and remove slow copies
+*** DONE For instance the Let and Def definition constructors
+	CLOSED: [2017-02-10 Fri 18:00]
 ** TODO Make compiler errors lowercase and remove punctuation
 ** TODO Check if having a TypeReference object is really necessary
 ** DONE See if one couldn't make the Definition parser and Expression parser more similar
    CLOSED: [2017-02-08 Wed 15:45]
 As in ordering of functions found in both. Purely for consistency's sake.
 ** TODO Check consistency between Expression and Statement parser
-** TODO Fix Error recovery to avoid loops and stuff. Use it in the Statement and Scope parsers
+** DONE Fix Error recovery to avoid loops and stuff. Use it in the Statement and Scope parsers
+   CLOSED: [2017-02-10 Fri 17:59]
 ** TODO Maybe clean up the Statement parser, as 'with' somewhat duplicates expression code
 ** TODO Add move - prefix operator
 ** TODO Add uncrt - prefix operator
