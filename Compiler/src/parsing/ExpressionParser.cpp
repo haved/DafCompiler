@@ -181,8 +181,7 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
 		if(finalOutExpression)
 			break;
 		if(!statement) {
-			//TODO:
-			//skipUntilNextStatement(lexer); //Won't skip }
+			skipUntilNextStatement(lexer); //Won't skip }
 			if(lexer.currType()==END_TOKEN)
 				break; //To avoid multiple "EOF reached" errors
 		}

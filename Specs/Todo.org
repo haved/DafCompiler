@@ -10,7 +10,8 @@
 *** DONE With
 	CLOSED: [2017-02-07 Tue 16:53]
 *** TODO Linkfile
-** TODO Statements:
+** DONE Statements:
+   CLOSED: [2017-02-10 Fri 13:34]
 *** If
 *** For
 *** While
@@ -24,7 +25,7 @@
 *** Definitions
 *** Expressions
 **** Scopes
-** All expressions
+** TODO All expressions
 *** Number literals
 *** String literals
 *** Char literals
@@ -62,10 +63,12 @@
 
 * More general stuff:
 ** TODO Add /isize/ type
-** TODO Error recovery in statements, where only some statements require semicolons
+** DONE Error recovery in statements, where only some statements require semicolons
+   CLOSED: [2017-02-10 Fri 13:34]
 I'd rather not have multiple errors in the console for one misplaced word, but it's low priority
 As far as I can remember the error recovery for statements is simply a TODO
-** TODO Find out why the expression parser loop forever when a strange token is found
+** DONE Find out why the expression parser loop forever when a strange token is found
+   CLOSED: [2017-02-10 Fri 13:36] I was right, it did lack that
 *** It probably lacks error recovery, maybe even with a TODO
 ** TODO Indent stuff to one tab instead of two spaces
 ** TODO Handle TODO in all files
@@ -77,8 +80,10 @@ As far as I can remember the error recovery for statements is simply a TODO
    CLOSED: [2017-02-08 Wed 09:09]
 ** TODO Rethink internal type representation
 *** What about expressions
-** TODO Consider putting With in the definition and expression parsers
-*** Have a special case for statements
+** DONE Consider putting With in the definition and expression parsers
+   CLOSED: [2017-02-10 Fri 13:37] Considered and decided against. See WithParser.hpp and the implementation file. It's nice enough
+*** DONE Have a special case for statements
+	CLOSED: [2017-02-10 Fri 13:38] Done through a class that contains a pointer to either a WithExpression or a WithDefinition, returned by a general parser
 ** TODO Use /override/ more for AST subclasses etc.
 ** TODO Use two pointers in EitherWith
 Instead of one void pointer and a bool isExpression, have a WithExpression pointer and a WithDefinition pointer, and then simply assert one of them is always null.
