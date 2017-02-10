@@ -33,8 +33,9 @@ public:
 class WithExpression : public Expression {
 	With_As_Construct m_withConstruct;
 	unique_ptr<Expression> m_expression;
+	unique_ptr<Expression> m_else_body;
 public:
-	WithExpression(With_As_Construct&& withConstruct, int startLine, int startCol, unique_ptr<Expression>&& expression);
+	WithExpression(With_As_Construct&& withConstruct, int startLine, int startCol, unique_ptr<Expression>&& expression, unique_ptr<Expression>&& m_else_body);
 	void printSignature() override;
 	bool findType() override;
 	inline bool isStatement() override { return m_expression->isStatement(); }

@@ -51,6 +51,8 @@ def main:=(a:int):int
 		};
 	};
 
+	with a as int a() else with a as string a(a);
+
 	break; //I don't care where you break at this point
 
 	myArray[2]();

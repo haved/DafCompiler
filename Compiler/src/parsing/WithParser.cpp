@@ -5,6 +5,11 @@
 
 #include "DafLogger.hpp"
 
+#include <boost/optional.hpp>
+
+using boost::optional;
+using boost::none;
+
 EitherWithDefinitionOrExpression::EitherWithDefinitionOrExpression() : m_pointer(nullptr), m_isExpression(false) {}
 
 EitherWithDefinitionOrExpression::EitherWithDefinitionOrExpression(unique_ptr<WithDefinition>&& definition) : m_pointer(definition.release()), m_isExpression(false) {
@@ -49,11 +54,13 @@ unique_ptr<WithDefinition> EitherWithDefinitionOrExpression::moveToDefinition() 
 	return out;
 }
 
+EitherWithDefinitionOrExpression none_with() {
+	return EitherWithDefinitionOrExpression();
+}
 
-EitherWithDefinitionOrExpression parseWith(Lexer& lexer, bool pub) {
+optional<With_As_Construct> parseWithAsConstruct(Lexer& lexer) {
 	assert(lexer.currType() == WITH);
-	int startLine = lexer.getCurrentToken().line;
-	int startCol =  lexer.getCurrentToken().col;
+	//We don't care about line numbers right here
 	lexer.advance(); //Eat 'with'
 
 	TypeReference type;
@@ -62,38 +69,57 @@ EitherWithDefinitionOrExpression parseWith(Lexer& lexer, bool pub) {
 		lexer.advance(); //Eat ':'
 		type = parseType(lexer);
 		if(!type)
-			return EitherWithDefinitionOrExpression();
+			return none;
 	} else {
 		expression = parseExpression(lexer);
 		if(!expression)
-			return EitherWithDefinitionOrExpression();
+			return none;
 	}
 
 	if(!lexer.expectToken(AS))
-		return EitherWithDefinitionOrExpression();
+		return none;
 
 	lexer.advance(); //Eat 'as' hurr hurr
 
 	TypeReference as_type = parseType(lexer);
 	if(!as_type)
-		return EitherWithDefinitionOrExpression();
+		return none;
 
-	With_As_Construct with = expression ?
+	return expression ?
 		With_As_Construct(std::move(expression), std::move(as_type))
 		:
 		With_As_Construct(std::move(type), std::move(as_type));
 
+}
+
+EitherWithDefinitionOrExpression parseWith(Lexer& lexer, bool pub) {
+	assert(lexer.currType() == WITH);
+	int startLine = lexer.getCurrentToken().line;
+	int startCol =  lexer.getCurrentToken().col;
+
+	optional<With_As_Construct> with = parseWithAsConstruct(lexer);
+
+	if(!with)
+		return none_with();
+
 	if(lexer.currType() == STATEMENT_END) { //Definition!
 		lexer.advance(); //Eat ';'
-		return EitherWithDefinitionOrExpression(unique_ptr<WithDefinition>(     new WithDefinition(pub, std::move(with), TextRange(startLine, startCol, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol))    ));
+		return EitherWithDefinitionOrExpression(unique_ptr<WithDefinition>(     new WithDefinition(pub, std::move(*with), TextRange(startLine, startCol, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol))    ));
 	}
 
 	int preBodyLine = lexer.getCurrentToken().line, preBodyCol = lexer.getCurrentToken().col;
 	unique_ptr<Expression> body = parseExpression(lexer);
+	unique_ptr<Expression> else_body;
 	if(!body) {
 		logDaf(lexer.getFile(), preBodyLine, preBodyCol, ERROR)
 			<< "Perhaps you forgot a semicolon after a with definition" << std::endl;
-		return EitherWithDefinitionOrExpression();
+		return none_with();
+	}
+	if(lexer.currType() == ELSE) {
+		lexer.advance(); //Eat 'else'
+		else_body = parseExpression(lexer);
+		if(!else_body)
+			return none_with();
 	}
 
 	if(pub) {
@@ -101,10 +127,10 @@ EitherWithDefinitionOrExpression parseWith(Lexer& lexer, bool pub) {
 		logDaf(lexer.getFile(), range, ERROR)
 			<< "Expected a with definition after 'pub'; such can't have expression bodies!" << std::endl;
 		//lexer.expectToken(STATEMENT_END);
-		return EitherWithDefinitionOrExpression();
+		return none_with();
 	}
 
-	return EitherWithDefinitionOrExpression(unique_ptr<WithExpression>(  new WithExpression(std::move(with), startLine, startCol, std::move(body))  ));
+	return EitherWithDefinitionOrExpression(unique_ptr<WithExpression>(  new WithExpression(std::move(*with), startLine, startCol, std::move(body), std::move(else_body))  ));
 }
 
 unique_ptr<WithExpression> parseWithExpression(Lexer& lexer) {

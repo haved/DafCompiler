@@ -36,14 +36,25 @@ void WithDefinition::printSignature() {
 	std::cout << ";" << std::endl;
 }
 
-WithExpression::WithExpression(With_As_Construct&& withConstruct, int startLine, int startCol, unique_ptr<Expression>&& expression) : Expression(TextRange(startLine, startCol, expression->getRange())), m_withConstruct(std::move(withConstruct)), m_expression(std::move(expression)) {
+TextRange getRangeToLastExpression(int startLine, int startCol, unique_ptr<Expression>& expression1, unique_ptr<Expression>& expression2) {
+	assert(expression1);
+	unique_ptr<Expression>& lastExp = expression2 ? expression2 : expression1;
+	return TextRange(startLine, startCol, lastExp->getRange());
+}
+
+WithExpression::WithExpression(With_As_Construct&& withConstruct, int startLine, int startCol, unique_ptr<Expression>&& expression, unique_ptr<Expression>&& else_body) : Expression(getRangeToLastExpression(startLine, startCol, expression, else_body)), m_withConstruct(std::move(withConstruct)), m_expression(std::move(expression)), m_else_body(std::move(else_body)) {
 	assert(m_expression);
 }
 
 void WithExpression::printSignature() {
 	m_withConstruct.printSignature();
 	std::cout << " ";
+	assert(m_expression);
 	m_expression->printSignature();
+	if(m_else_body) {
+		std::cout << std::endl << "  else ";
+		m_else_body->printSignature();
+	}
 }
 
 bool WithExpression::findType() {
