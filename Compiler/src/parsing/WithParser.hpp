@@ -10,8 +10,8 @@ using std::unique_ptr;
 
 class EitherWithDefinitionOrExpression {
 private:
-    void* m_pointer;
-	bool m_isExpression;
+    WithDefinition* m_definition;
+	WithExpression* m_expression;
 public:
 	EitherWithDefinitionOrExpression();
 	EitherWithDefinitionOrExpression(unique_ptr<WithDefinition>&& definition);
@@ -22,14 +22,14 @@ public:
 	EitherWithDefinitionOrExpression& operator =(EitherWithDefinitionOrExpression&& other);
 	~EitherWithDefinitionOrExpression();
 
-	inline bool isExpression() const { return m_isExpression && m_pointer; }
-	inline bool isDefinition() const { return !m_isExpression && m_pointer; }
-	inline bool isNone() const { return !m_pointer; }
-	inline bool isSome() const { return !!m_pointer; }
+	inline bool isExpression() const { return !!m_expression; }
+	inline bool isDefinition() const { return !!m_definition; }
+	inline bool isNone() const { return !m_expression && !m_definition; }
+	inline bool isSome() const { return isExpression() || isDefinition(); }
 	inline operator bool() const { return isSome(); }
 
-	inline WithExpression* getExpression() { assert(isExpression()); return (WithExpression*) m_pointer; }
-	inline WithDefinition* getDefinition() { assert(isDefinition()); return (WithDefinition*) m_pointer; }
+	inline WithExpression* getExpression() { assert(isExpression()); return m_expression; }
+	inline WithDefinition* getDefinition() { assert(isDefinition()); return m_definition; }
 	unique_ptr<WithExpression> moveToExpression();
 	unique_ptr<WithDefinition> moveToDefinition();
 };

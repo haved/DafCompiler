@@ -85,7 +85,8 @@ As far as I can remember the error recovery for statements is simply a TODO
 *** DONE Have a special case for statements
 	CLOSED: [2017-02-10 Fri 13:38] Done through a class that contains a pointer to either a WithExpression or a WithDefinition, returned by a general parser
 ** TODO Use /override/ more for AST subclasses etc.
-** TODO Use two pointers in EitherWith
+** DONE Use two pointers in EitherWith
+   CLOSED: [2017-02-10 Fri 13:55]
 Instead of one void pointer and a bool isExpression, have a WithExpression pointer and a WithDefinition pointer, and then simply assert one of them is always null.
 ** TODO Search for string references and remove slow copies
 ** TODO Make compiler errors lowercase and remove punctuation

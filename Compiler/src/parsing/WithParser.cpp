@@ -10,47 +10,47 @@
 using boost::optional;
 using boost::none;
 
-EitherWithDefinitionOrExpression::EitherWithDefinitionOrExpression() : m_pointer(nullptr), m_isExpression(false) {}
+EitherWithDefinitionOrExpression::EitherWithDefinitionOrExpression() : m_definition(nullptr), m_expression(nullptr) {}
 
-EitherWithDefinitionOrExpression::EitherWithDefinitionOrExpression(unique_ptr<WithDefinition>&& definition) : m_pointer(definition.release()), m_isExpression(false) {
-	assert(m_pointer);
+EitherWithDefinitionOrExpression::EitherWithDefinitionOrExpression(unique_ptr<WithDefinition>&& definition) : m_definition(definition.release()), m_expression(nullptr) {
+	assert(m_definition);
 }
 
-EitherWithDefinitionOrExpression::EitherWithDefinitionOrExpression(unique_ptr<WithExpression>&& expression) : m_pointer(expression.release()), m_isExpression(true) {
-	assert(m_pointer);
+EitherWithDefinitionOrExpression::EitherWithDefinitionOrExpression(unique_ptr<WithExpression>&& expression) : m_definition(nullptr), m_expression(expression.release()) {
+	assert(m_expression);
 }
 
-EitherWithDefinitionOrExpression::EitherWithDefinitionOrExpression(EitherWithDefinitionOrExpression&& other) : m_pointer(other.m_pointer), m_isExpression(other.m_isExpression) {
-	other.m_pointer = nullptr;
+EitherWithDefinitionOrExpression::EitherWithDefinitionOrExpression(EitherWithDefinitionOrExpression&& other) : m_definition(other.m_definition), m_expression(other.m_expression) {
+	other.m_definition = nullptr;
+	other.m_expression = nullptr;
+	assert(!(m_expression && m_definition));
 }
 
 EitherWithDefinitionOrExpression::~EitherWithDefinitionOrExpression() {
-	if(m_isExpression)
-		delete (WithExpression*) m_pointer;
-	else
-		delete (WithDefinition*) m_pointer;
+	delete m_expression; //deleting a nullptr is fine
+	delete m_definition;
 }
 
 EitherWithDefinitionOrExpression& EitherWithDefinitionOrExpression::operator =(EitherWithDefinitionOrExpression&& other) {
-	if(m_isExpression)
-		delete (WithExpression*) m_pointer;
-	else
-		delete (WithDefinition*) m_pointer;
-	m_pointer = other.m_pointer;
-	m_isExpression = other.m_isExpression;
-	other.m_pointer = nullptr;
+	delete m_expression;
+	delete m_definition;
+	m_expression = other.m_expression;
+	m_definition = other.m_definition;
+	assert(!(m_definition && m_expression));
+	other.m_expression = nullptr;
+	other.m_definition = nullptr;
 	return *this;
 }
 
 unique_ptr<WithExpression> EitherWithDefinitionOrExpression::moveToExpression() {
 	unique_ptr<WithExpression> out(getExpression());
-	m_pointer = nullptr;
+	m_expression = nullptr;
 	return out;
 }
 
 unique_ptr<WithDefinition> EitherWithDefinitionOrExpression::moveToDefinition() {
 	unique_ptr<WithDefinition> out(getDefinition());
-	m_pointer = nullptr;
+	m_definition = nullptr;
 	return out;
 }
 
