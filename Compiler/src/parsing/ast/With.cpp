@@ -59,4 +59,5 @@ void WithExpression::printSignature() {
 
 bool WithExpression::findType() {
 	assert(false);
+  return false;
 }

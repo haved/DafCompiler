@@ -75,10 +75,10 @@ unique_ptr<Definition> parseLetDefDefinition(Lexer& lexer, bool pub) {
 	unique_ptr<Definition> definition;
 
 	if(def)
-		definition.reset(new Def(pub, mut?DEF_MUT:let?DEF_LET:DEF_NORMAL, name,
-								 std::move(type), std::vector<CompileTimeParameter>(), std::move(expression), range));
+		definition.reset(new Def(pub, mut?DEF_MUT:let?DEF_LET:DEF_NORMAL, std::move(name),
+								 std::move(type), std::move(expression), range));
 	else
-		definition.reset(new Let(pub, mut, name,
+		definition.reset(new Let(pub, mut, std::move(name),
 								 std::move(type), std::move(expression), range));
 
 	if(lexer.expectToken(STATEMENT_END))

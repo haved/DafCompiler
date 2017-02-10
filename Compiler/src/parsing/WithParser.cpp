@@ -27,8 +27,9 @@ EitherWithDefinitionOrExpression::EitherWithDefinitionOrExpression(EitherWithDef
 }
 
 EitherWithDefinitionOrExpression::~EitherWithDefinitionOrExpression() {
-	delete m_expression; //deleting a nullptr is fine
-	delete m_definition;
+  //Keep in mind: In theory, the ownership is always moved out of this class, but extra memory checks doesn't do much harm
+  delete m_expression; //deleting a nullptr is fine
+  delete m_definition;
 }
 
 EitherWithDefinitionOrExpression& EitherWithDefinitionOrExpression::operator =(EitherWithDefinitionOrExpression&& other) {

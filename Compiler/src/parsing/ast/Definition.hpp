@@ -16,7 +16,7 @@ protected:
 	Definition(bool pub, const TextRange& range);
 public:
 	virtual ~Definition();
-	const TextRange& getRange();
+	inline const TextRange& getRange() { return m_range; }
 	inline bool isPublic() {return m_pub;}
 	virtual void printSignature()=0;
 	virtual bool isStatement()=0;
@@ -28,41 +28,12 @@ enum DefType {
 	DEF_MUT
 };
 
-class DefCompileTimeParameter;
-class TypeCompileTimeParameter;
-
-class CompileTimeParameter {
-private:
-	DefCompileTimeParameter* m_def;
-	TypeCompileTimeParameter* m_type;
-public:
-	CompileTimeParameter(std::unique_ptr<DefCompileTimeParameter>&& def);
-	CompileTimeParameter(std::unique_ptr<TypeCompileTimeParameter>&& type);
-	CompileTimeParameter(const CompileTimeParameter& other);
-	CompileTimeParameter& operator =(const CompileTimeParameter& other);
-	~CompileTimeParameter();
-};
-
 class DefDeclaration {
 public:
 	DefType defType;
 	std::string name;
 	TypeReference type;
-	std::vector<CompileTimeParameter> params;
-	DefDeclaration(DefType defType_p, const std::string& name_p, TypeReference&& type_p, std::vector<CompileTimeParameter>&& params_p);
-};
-
-class DefCompileTimeParameter {
-private:
-	TextRange m_range;
-	DefDeclaration m_declaration;
-public:
-	DefCompileTimeParameter(DefDeclaration&& declaration, TextRange& range);
-};
-
-class TypeCompileTimeParameter {
-private:
-	std::string m_name;
+	DefDeclaration(DefType defType_p, std::string&& name_p, TypeReference&& type_p);
 };
 
 class Def : public Definition {
@@ -70,7 +41,7 @@ private:
 	DefDeclaration m_declaration;
 	unique_ptr<Expression> m_expression;
 public:
-	Def(bool pub, DefType defType, const std::string& name, TypeReference&& type, std::vector<CompileTimeParameter>&& params, unique_ptr<Expression>&& expression, const TextRange& range);
+	Def(bool pub, DefType defType, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange& range);
 	void printSignature();
 	inline bool isStatement() override { return true; }
 };
@@ -82,7 +53,7 @@ private:
 	TypeReference m_type;
 	unique_ptr<Expression> m_expression;
 public:
-	Let(bool pub, bool mut, const std::string& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange& range);
+	Let(bool pub, bool mut, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange& range);
 	void printSignature();
 	inline bool isStatement() override { return true; }
 };

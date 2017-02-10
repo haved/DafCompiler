@@ -58,7 +58,7 @@ public:
 	TypedefType(const TypedefType& other)=default;
 	TypedefType& operator=(const TypedefType& other)=default;
 	Type* getType(); //Forwards calls here too, I suppose. How would one do this in daf?
-	int getSize() {assert(false);}
+  int getSize() { assert(false); return 0; }
 	void printSignature();
 };
 
@@ -110,6 +110,6 @@ private:
 public:
   FunctionType(std::vector<FunctionParameter>&& params,
               bool isInline, TypeReference&& returnType, FunctionReturnType returnTypeType);
-	int getSize() {assert(false);}
+  int getSize() { assert(false); return 0; }
   void printSignature();
 };
