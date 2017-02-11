@@ -7,6 +7,12 @@
 #include "parsing/WithParser.hpp"
 #include "DafLogger.hpp"
 
+using boost::none;
+
+unique_ptr<Statement> null_stmt() {
+	return unique_ptr<Statement>();
+}
+
 bool isSpecialStatementKeyword(TokenType& type) {
 	switch(type) {
 	case IF:
@@ -24,10 +30,6 @@ bool isSpecialStatementKeyword(TokenType& type) {
 	}
 }
 
-unique_ptr<Statement> null_stmt() {
-	return unique_ptr<Statement>();
-}
-
 void setEndFromStatement(int* endLine, int* endCol, const unique_ptr<Statement>& statement, Lexer& lexer) {
 	if(statement) { //An actual statement instance
 		*endLine = statement->getRange().getLastLine();
@@ -38,8 +40,6 @@ void setEndFromStatement(int* endLine, int* endCol, const unique_ptr<Statement>&
 		*endCol  = lexer.getPreviousToken().endCol;
 	}
 }
-
-using boost::none;
 
 bool tryParseStatementIntoPointer(Lexer& lexer, unique_ptr<Statement>* statement) {
 	if(lexer.currType() == STATEMENT_END) {
