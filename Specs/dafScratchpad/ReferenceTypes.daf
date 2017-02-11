@@ -1,0 +1,25 @@
+
+namedef _ := import("daf.io");
+
+typedef MutRef(T) := class {
+
+	m_ptr : &mut T;
+
+	def from := ctor(mut ref:T) {
+		m_ptr = &mut ref;
+	};
+
+	def mut _ :T= @T;
+}
+
+def addTwoIfPresent(val:Optional(:MutRef(:int))) {
+	if val
+	   val+=2;
+};
+
+def main:=() {
+	mut a : int = 20;
+	addTwoIfPresent(Optional.from(MutRef.from(mut a)));
+	addTwoIfPresent(None);
+	//a is now 22;
+};
