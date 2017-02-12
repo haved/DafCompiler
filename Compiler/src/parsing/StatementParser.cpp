@@ -168,35 +168,42 @@ unique_ptr<Statement> parseSpecialStatement(Lexer& lexer) {
 	return none_stmt();
 }
 
-unique_ptr<Statement> parseWithAsStatement(Lexer& lexer, optional<unique_ptr<Expression>*> finalOutExpression) {
-	EitherWithDefinitionOrExpression with = parseWith(lexer);
-	if(!with)
-		return none_stmt();
+unique_ptr<Statement> handleExpressionToStatement(unique_ptr<Expression> expression, Lexer& lexer, optional<unique_ptr<Expression>*> finalOutExpression) {
+	assert(expression);
 
-	if(with.isExpression()) {
-		if(finalOutExpression && lexer.currType() == SCOPE_END) {
-			(**finalOutExpression) = with.moveToExpression();
-			return none_stmt();
-		}
-		else {
-			if(!with.getExpression()->isStatement()) {
-				logDaf(lexer.getFile(), with.getExpression()->getBodyRange(), ERROR) << "expected a statement inside a with statement, not just an expression" << std::endl;
-				return none_stmt();
-			}
-			TextRange range = with.getExpression()->getRange();
-			if(lexer.currType() == STATEMENT_END) {
-				lexer.advance();
-				range = TextRange(range, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol);
-			} else if(with.getExpression()->needsSemicolonAfterStatement())
-				lexer.expectToken(STATEMENT_END);
-
-			return unique_ptr<Statement>(    new ExpressionStatement(with.moveToExpression(), range)   );
-		}
+	if(finalOutExpression && lexer.currType()==SCOPE_END) { //All expressions can be final out expressions
+		assert(**finalOutExpression == nullptr);
+		(*finalOutExpression)->swap(expression);
+		return none_stmt(); //We have a final out expression, so we return none, but it shouldn't matter to the caller
 	}
 
-	assert(with.isDefinition());
-	TextRange range = with.getDefinition()->getRange(); //Includes the eaten semi-colon
-	return unique_ptr<Statement>(    new DefinitionStatement(with.moveToDefinition(), range)    );
+	if(!expression->isStatement()) {
+		logDaf(lexer.getFile(), expression->getRange(), ERROR) << "Exprected a statement, not just an expression: ";
+		expression->printSignature();
+		std::cout << std::endl;
+		return none_stmt();
+	}
+
+	TextRange range = expression->getRange();
+	if(lexer.currType() == STATEMENT_END) {
+		range = TextRange(range, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol);
+		lexer.advance();
+	} else if(expression->needsSemicolonAfterStatement())
+		lexer.expectToken(STATEMENT_END);
+
+	return unique_ptr<Statement>(new ExpressionStatement(std::move(expression), range));
+}
+
+unique_ptr<Statement> parseWithAsStatement(Lexer& lexer, optional<unique_ptr<Expression>*> finalOutExpression) {
+	EitherWithDefinitionOrExpression with = parseWith(lexer);
+	if(with.isExpression())
+		return handleExpressionToStatement(with.moveToExpression(), lexer, finalOutExpression);
+	else if(with.isDefinition()) {
+		TextRange range = with.getDefinition()->getRange();
+		return unique_ptr<Statement>( new DefinitionStatement(with.moveToDefinition(), range) );
+	}
+	else
+		return none_stmt();
 }
 
 //A statement occurs either in a scope, or inside another statement such as 'if', 'while', etc.
@@ -206,7 +213,6 @@ unique_ptr<Statement> parseWithAsStatement(Lexer& lexer, optional<unique_ptr<Exp
 //returns: none if an error occured, a null pointer if there was only a semicolon, which it will eat (only one)
 //none will also be returned if the finalOutExpression is set, but then the caller shouldn't care about the return
 optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr<Expression>*> finalOutExpression) {
-
 	if(lexer.currType() == STATEMENT_END) {
 		lexer.advance(); //Eat semicolon
 		return none_stmt(); //Not a none, but a null
@@ -214,14 +220,13 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr
 
 	//Special case as it's both a definition and an expression
 	if(lexer.currType() == WITH) {
-		assert(**finalOutExpression == nullptr);
 		unique_ptr<Statement> with = parseWithAsStatement(lexer, finalOutExpression);
-		if(!(**finalOutExpression) && with)
+		if(with)
 			return with;
 		return none;
 	}
 
-	if(canParseDefinition(lexer)) { //def, let, mut, typedef, namedef
+	if(canParseDefinition(lexer)) { //def, let, mut, typedef, namedef, linkfile but not with
 		unique_ptr<Definition> definition = parseDefinition(lexer, false); //They can't be public in a scope
 		//DefinitionParser handles semicolons!
 		if(!definition)
@@ -229,7 +234,6 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr
 		TextRange range = definition->getRange();
 		return unique_ptr<Statement>(new DefinitionStatement(std::move(definition), range));
 	}
-
 
 	if(isSpecialStatementKeyword(lexer.currType())) {
 		unique_ptr<Statement> statement = parseSpecialStatement(lexer); //This will eat semicolons if that's the behavior of the statement
@@ -240,32 +244,15 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr
 			return none;
 	}
 
-
 	if(canParseExpression(lexer)) {
 		unique_ptr<Expression> expr = parseExpression(lexer);
 		if(!expr)
 			return none;
-
-		if(finalOutExpression && lexer.currType()==SCOPE_END) { //All expressions can be final out expressions
-			(*finalOutExpression)->swap(expr);
-			return none; //We have a final out expression, so we return none, but it shouldn't matter to the caller
-		}
-
-		if(!expr->isStatement()) {
-			logDaf(lexer.getFile(), expr->getRange(), ERROR) << "Exprected a statement, not just an expression: ";
-			expr->printSignature();
-			std::cout << std::endl;
-			return none;
-		}
-
-		TextRange range = expr->getRange();
-		if(lexer.currType() == STATEMENT_END) {
-			range = TextRange(range, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol);
-			lexer.advance();
-		} else if(expr->needsSemicolonAfterStatement())
-			lexer.expectToken(STATEMENT_END);
-
-		return unique_ptr<Statement>(new ExpressionStatement(std::move(expr), range));
+	    //TODO: Swap the meaning of null and none, such that none is for semicolons and null is for errors
+		unique_ptr<Statement> statement = handleExpressionToStatement(std::move(expr), lexer, finalOutExpression);
+		if(statement)
+			return statement;
+		return none;
 	}
 
 	logDafExpectedToken("a statement", lexer);

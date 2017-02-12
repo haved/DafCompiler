@@ -3,8 +3,7 @@
 with :some as int;
 pub with a as b;
 
-def main:=(a:int):int
-{
+def main:=(a:int):int {
     if (a) {
         b++;
     }
