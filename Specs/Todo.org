@@ -107,3 +107,6 @@ As in ordering of functions found in both. Purely for consistency's sake.
 ** TODO Think more about ownership assignment
 ** DONE Add mut as possible prefix for function call arguments
    CLOSED: [2017-02-08 Wed 14:27]
+** DONE Make the Statement parser more consistent by using null as error and none as semicolon
+   CLOSED: [2017-02-12 Sun 22:36]
+*** TODO Actually, remove the dual optional stuff by taking semicolon handling out of the statement parser
