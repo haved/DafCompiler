@@ -79,6 +79,7 @@ As far as I can remember the error recovery for statements is simply a TODO
 ** DONE What happened to the function parameters??
    CLOSED: [2017-02-08 Wed 09:09]
 ** TODO Rethink internal type representation
+The question is: Should we have TypeReference as a class, and then replace unique pointers to typedef references with non-owning pointers to what the typedefs actually reference?
 *** What about expressions
 ** DONE Consider putting With in the definition and expression parsers
    CLOSED: [2017-02-10 Fri 13:37] Considered and decided against. See WithParser.hpp and the implementation file. It's nice enough
@@ -99,8 +100,10 @@ As in ordering of functions found in both. Purely for consistency's sake.
 ** TODO Check consistency between Expression and Statement parser
 ** DONE Fix Error recovery to avoid loops and stuff. Use it in the Statement and Scope parsers
    CLOSED: [2017-02-10 Fri 17:59]
-** TODO Maybe clean up the Statement parser, as 'with' somewhat duplicates expression code
+** DONE Maybe clean up the Statement parser, as 'with' somewhat duplicates expression code
+   CLOSED: [2017-02-12 Sun 19:08]
 ** TODO Add move - prefix operator
 ** TODO Add uncrt - prefix operator
+** TODO Think more about ownership assignment
 ** DONE Add mut as possible prefix for function call arguments
    CLOSED: [2017-02-08 Wed 14:27]
