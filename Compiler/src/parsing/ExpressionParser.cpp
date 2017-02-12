@@ -180,13 +180,14 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
 		optional<unique_ptr<Statement>> statement = parseStatement(lexer, &finalOutExpression); //Exits any scopes it starts
 		if(finalOutExpression)
 			break;
-		if(!statement) {
+    assert(statement); //We've already eaten semicolons
+    if(!*statement) { //I.e. an error occurred
 			skipUntilNextStatement(lexer); //Won't skip }
 			if(lexer.currType()==END_TOKEN)
 				break; //To avoid multiple "EOF reached" errors
 		}
-		else if(*statement) //A null statement (not none, but null), is a semicolon
-			statements.push_back(std::move(*statement));
+    else //It's neither an error nor a semicolon
+      statements.push_back(std::move(*statement));
 		while(lexer.currType()==STATEMENT_END)
 			lexer.advance(); //We eat extra trailing semicolons, in case the programmer felt like adding them in
 	}
