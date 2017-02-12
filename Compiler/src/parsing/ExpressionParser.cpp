@@ -177,19 +177,21 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
 			lexer.expectToken(SCOPE_END);
 			break;
 		}
-		optional<unique_ptr<Statement>> statement = parseStatement(lexer, &finalOutExpression); //Exits any scopes it starts
+		assert(lexer.currType()!=STATEMENT_END);
+		unique_ptr<Statement> statement = parseStatement(lexer, &finalOutExpression); //Exits any scopes it starts
 		if(finalOutExpression)
 			break;
-    assert(statement); //We've already eaten semicolons
-    if(!*statement) { //I.e. an error occurred
+		if(statement)
+			statements.push_back(std::move(statement));
+		else {
 			skipUntilNextStatement(lexer); //Won't skip }
 			if(lexer.currType()==END_TOKEN)
 				break; //To avoid multiple "EOF reached" errors
 		}
-    else //It's neither an error nor a semicolon
-      statements.push_back(std::move(*statement));
+
+		//We eat extra trailing semicolons, in case the programmer felt like adding them in
 		while(lexer.currType()==STATEMENT_END)
-			lexer.advance(); //We eat extra trailing semicolons, in case the programmer felt like adding them in
+			lexer.advance();
 	}
 
 	//Is it worth it? It's a vector to pointers, after all

@@ -14,4 +14,4 @@ using boost::optional;
 //An expression that is a statement and the following semicolon
 //An out expression (returned in the passed pointer), but not the following '}'
 //Returns none if an error occurred, null if it's an empty statement (And they say exceptions are useful :P)
-optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<std::unique_ptr<Expression>*> finalOutExpression);
+unique_ptr<Statement> parseStatement(Lexer& lexer, optional<std::unique_ptr<Expression>*> finalOutExpression);

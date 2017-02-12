@@ -42,17 +42,13 @@ void setEndFromStatement(int* endLine, int* endCol, const unique_ptr<Statement>&
 using boost::none;
 
 bool tryParseStatementIntoPointer(Lexer& lexer, unique_ptr<Statement>* statement) {
-  optional<unique_ptr<Statement>> parsed = parseStatement(lexer, none);
-  if(!parsed) { //None, a.k.a. a semicolon
-    statement->reset(nullptr);
-    return true;
-  }
-
-  if(*parsed) {
-    *statement = std::move(*parsed);
-    return true;
-  }
-  return false;
+	if(lexer.currType() == STATEMENT_END) {
+		lexer.advance(); //Eat semicolon
+		statement->reset(nullptr);
+		return true;
+	}
+	*statement = parseStatement(lexer, none);
+	return !!*statement; //If we got a null pointer, return false
 }
 
 unique_ptr<Statement> parseIfStatement(Lexer& lexer) {
@@ -225,14 +221,10 @@ unique_ptr<Statement> parseWithAsStatement(Lexer& lexer, optional<unique_ptr<Exp
 //If an expression with a type occurs last in a scope, without a trailing semicolon, the scope will evaluate to that expression
 //This however, may not happen if we are parsing the body og another statement, say 'if' or 'for'.
 //Therefore we must know if we can take an expression out
-
-//@RETURNS: null if an error occurred, none if there was only a semicolon, which it will eat (only one)
-//none will also be returned if the finalOutExpression is set, but then the caller shouldn't care about the return
-optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr<Expression>*> finalOutExpression) {
-	if(lexer.currType() == STATEMENT_END) {
-		lexer.advance(); //Eat semicolon
-		return none; //None means semicolon
-	}
+//asserts you're not trying to parse a semicolon as a statement
+//returns null if an error occurred
+unique_ptr<Statement> parseStatement(Lexer& lexer, optional<unique_ptr<Expression>*> finalOutExpression) {
+	assert(lexer.currType() != STATEMENT_END);
 
 	//Special case as it's both a definition and an expression
 	if(lexer.currType() == WITH)
@@ -254,5 +246,5 @@ optional<unique_ptr<Statement>> parseStatement(Lexer& lexer, optional<unique_ptr
 		return handleExpressionToStatement(parseExpression(lexer), lexer, finalOutExpression);
 
 	logDafExpectedToken("a statement", lexer);
-	return none;
+	return null_stmt();
 }
