@@ -80,7 +80,9 @@ As far as I can remember the error recovery for statements is simply a TODO
    CLOSED: [2017-02-08 Wed 09:09]
 ** TODO Rethink internal type representation
 The question is: Should we have TypeReference as a class, and then replace unique pointers to typedef references with non-owning pointers to what the typedefs actually reference?
+It's a lot better than a possible getType() being forwarded through a ton of TypedefType objects.
 *** What about expressions
+The same thing sort of applies to expressions. It's important to remember that in the case of expressions, there is a difference between using a variable and using a definition to a literal.
 ** DONE Consider putting With in the definition and expression parsers
    CLOSED: [2017-02-10 Fri 13:37] Considered and decided against. See WithParser.hpp and the implementation file. It's nice enough
 *** DONE Have a special case for statements
