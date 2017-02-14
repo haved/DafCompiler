@@ -1,4 +1,4 @@
-
+/*
 def malloc:(size:usize):[?]u8; //Foreign
 
 def daf_array_alloc(T):=(size:usize):[]mut T {
@@ -25,13 +25,25 @@ typedef UncrtPrt(T) := class {
 	};
 };
 
-def get_uncrt_ptr:=(uncrt a:int):&uncrt int {
-	&uncrt a;
+def get_uncrt_ptr:=(uncrt a:int):UncrtPtr(:int) {
+	UncrtPtr(&a as &mut int) //or something
 };
 
 def useUncrtPointer:=() {
-	let x:int;
+	let mut x:int;
 	let b:=get_uncrt_ptr(uncrt x);
 	let c = move b.initalize(5); //We can no longer use b
 	
+};*/
+
+def get_uncrt_ptr:=(uncrt a:int):&uncrt int {
+	&uncrt a
+};
+
+def make_crt(move a:&uncrt int, def value:():int):= with a as &mut int { @a = value; a }
+
+def use_uncrt_ptr:=() {
+	let mut x:int;
+	let b:&uncrt int =get_uncrt_ptr(uncrt x);
+	let c:&mut int=make_crt(b, '5);
 };
