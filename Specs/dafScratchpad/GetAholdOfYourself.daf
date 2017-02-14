@@ -1,46 +1,37 @@
-def returnTest := {
-	return 4; //Means the def evaluates to 4
-	0 //We need to have a final output expression
-};
 
-def somethingElse := {
-	returnTest //Works just fine, and the return doesn't affect this scope
-};
+def malloc:(size:usize):[?]u8; //Foreign
 
-typedef Vec(T) := class {
-	mut m_buffer : []T;
-	mut capacity:usize;
-
-	pub def move_from := (array:[]T) {
-		m_buffer = array;
-		capacity = m_buffer.length;
-	}
-
+def daf_array_alloc(T):=(size:usize):[]mut T {
+	let array := malloc(usize.size_of + size*T.size_of);
 	
 };
 
-typedef String := class {
-	mut m_buffer : Vec(:char);
+typedef UncrtPrt(T) := class {
+	mut m_ptr : &mut T;
+	def _ := ctor(ptr : &mut T):This {
+		m_ptr = ptr;
+	}
 
-	pub def move_from := ctor(array:[]char):This { //A move of an array means we now own the array's content
-		m_buffer .= move_from(array);
+	def initialize(move this:This, move t:T):= {
+		//TODO: Tell compiler @m_ptr is uncertain		
+		@m_ptr = t; //Now it's certain
+		m_ptr
 	};
 
-	pub def _ := ctor(a:String, b:String):This {
-		
+	def initialize(move this:This, def val():T):= {
+		//TODO: Tell compiler @m_ptr is uncertain
+		@m_ptr = val;
+		m_ptr
 	};
-
-	pub def length(this:This) := this.m_buffer.length-1;
 };
 
-def case := {
-	def inner(T) := def(mut a:T) {
-		with a as int {
-			a++;
-		}
-	};
+def get_uncrt_ptr:=(uncrt a:int):&uncrt int {
+	&uncrt a;
+};
 
-	let text : []char = daf_alloc(:char, 20); //We can't really talk about ownership of a pointer. daf_alloc places a usize in front and daf_free handles this fine
-
-	let a := String.();
+def useUncrtPointer:=() {
+	let x:int;
+	let b:=get_uncrt_ptr(uncrt x);
+	let c = move b.initalize(5); //We can no longer use b
+	
 };
