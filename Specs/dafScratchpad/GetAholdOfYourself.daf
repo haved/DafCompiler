@@ -36,6 +36,7 @@ def useUncrtPointer:=() {
 	
 };*/
 
+/*
 def get_uncrt_ptr:=(uncrt a:int):&uncrt int {
 	&uncrt a
 };
@@ -46,4 +47,39 @@ def use_uncrt_ptr:=() {
 	let mut x:int;
 	let b:&uncrt int =get_uncrt_ptr(uncrt x);
 	let c:&mut int=make_crt(b, '5);
+};*/
+
+//Combined draft:
+
+typedef UncrtPtr(T) := class {
+	m_ptr :&mut T;
+
+	def _ := ctor(own uncrt a:T):This {
+		//TODO: Pretende a is certain
+		m_ptr = &mut a;
+	};
+
+	def _ := ctor(a:&mut T):This m_ptr = a;
+
+	def initialize dtor(mut this:This, def value:T):&mut T = { //This removes the default destructor
+		//TODO: Pretend a is uncertain
+		@m_ptr = value;
+		m_ptr
+	};
+
+	def initialize dtor(mut this:This, move value:T):=initialize('value);
+}
+
+def allocate(T) : UncrtPtr(:T) = UncrtPtr(malloc(T.size) as &mut T);
+
+def test := () {
+	let myInt := allocate(:int).initialize(8);
+	let mut other : int;
+	let other_ptr := UncrtPtr(own uncrt other);
+	//Now I can't use other
+	//other = 5;
+	//This 5 would be assumed uncertain by our class, as its destructor never called (not that ints usually have destrcutors)
+	let other_useable_ptr := other_ptr.initialize(20);
+	//That was a destructor, so other_ptr is no longer useable, but other is no longer uncertain either
+	//We could not just let the UncrtPtr be destructed, as that would mean it's uncrt parameter is uncrt by the end of the scope (not allowed!)
 };
