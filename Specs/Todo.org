@@ -114,3 +114,13 @@ As in ordering of functions found in both. Purely for consistency's sake.
    CLOSED: [2017-02-12 Sun 22:36]
 *** DONE Actually, remove the dual optional stuff by taking semicolon handling out of the statement parser
 	CLOSED: [2017-02-12 Sun 23:11]
+** TODO Char literal syntax
+
+* Necessary(?) Feature creep
+** TODO Flesh out 'own' syntax and semantics
+** TODO Flesh out 'uncrt' syntax and semantics
+See OwnAndUncrt.daf for thoughts
+** TODO Syntax and semantics for function return type
+As opposed to def return type. Should be a seamless transition between the two
+** TODO Syntax and semantics for function and def parameters
+E.g. What does move and uncrt or own mean for def parameters? What about def-def parameters?
