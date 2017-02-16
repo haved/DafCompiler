@@ -83,3 +83,24 @@ def test := () {
 	//That was a destructor, so other_ptr is no longer useable, but other is no longer uncertain either
 	//We could not just let the UncrtPtr be destructed, as that would mean it's uncrt parameter is uncrt by the end of the scope (not allowed!)
 };
+
+//So uncrt pointers need not be part of the compiler. 'own' on the other hand...
+//TODO: Think about 'own'
+
+//What about making array memebers and pointer targets temporarily uncertain?
+
+def tmp_uncrt(letters:[]mut char, ptr:&mut char) {
+	def once letter := letters[5];
+	move letter; //Way of destructing with default destructor
+	//While this is uncrt nothing else can be done with letters
+	letter = #char "g"
+	//Amazing
+
+	//Alternative way: Have the array give you an abstraction that takes ownership of the array and also lets you do uncrt stuff
+};
+
+//Pointers are not supposed to be safe, so they are not that big an issue.
+//The problem is that arrays are by no means a special construct.
+
+//TODO: Think about def 'once' as well
+
