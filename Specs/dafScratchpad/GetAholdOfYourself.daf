@@ -93,10 +93,17 @@ def tmp_uncrt(letters:[]mut char, ptr:&mut char) {
 	def once letter := letters[5];
 	move letter; //Way of destructing with default destructor
 	//While this is uncrt nothing else can be done with letters
-	letter = #char "g"
+	letter = #char "g";
 	//Amazing
-
 	//Alternative way: Have the array give you an abstraction that takes ownership of the array and also lets you do uncrt stuff
+
+	ptr = #char "5"; //All is well and good
+	def once otherLetter = @ptr;
+	move otherLetter;
+	otherLetter = #char "?";
+	//Same for pointers as arrays. Def once has uncertainty rules.
+	//The def once does not have a memory overhead when referencing a dereference.
+	//It needs to be marked 'once' however to prevent changing index.
 };
 
 //Pointers are not supposed to be safe, so they are not that big an issue.
