@@ -1,115 +1,46 @@
-typedef Number := i32|u32;
-with i16 as Number; //Number is an abstract type 
+def returnTest := {
+	return 4; //Means the def evaluates to 4
+	0 //We need to have a final output expression
+};
 
-def a : Number = with def_out as i32 -4 as u32 5 else 6;
+def somethingElse := {
+	returnTest //Works just fine, and the return doesn't affect this scope
+};
 
-typedef MoveConstructor := trait {
-    def move : ctor(move other:Impl):Impl //Impl has to be concrete for a ctor
-}
+typedef Vec(T) := class {
+	mut m_buffer : []T;
+	mut capacity:usize;
 
-typedef CopyConstructor := trait {
-    def copy : ctor(other:Impl):Impl
-}
-
-typedef MoveOrCopy := MoveConstructor | CopyConstructor;
-
-//Class means it's a concrete type, and it will be the same as if with Iterator was added later
-typedef Vec(T/Concrete&MoveOrCopy, allocateFac:float=1.5f) := class with Iterator { //Uppercase This means the current type
-	mut capacity : usize;
-	mut array : []mut T;
-
-    pub def reserve_new:=ctor (size:usize):This {
-		capacity = size;
-		if capacity > 0
-		    array = allocate(size);
-		else
-			array = null; //Yeah :/
+	pub def move_from := (array:[]T) {
+		m_buffer = array;
+		capacity = m_buffer.length;
 	}
 
-	pub def new:=ctor():This {
-		capacity = 0;
-	}
+	
+};
 
-	pub def delete:=dtor(mut this:This) {
-		with array as []mut usize free(&array[-1]);
-	}
+typedef String := class {
+	mut m_buffer : Vec(:char);
 
-	def allocate(capacity:usize) := {
-		let a:=malloc(T.sizeof*capacity+usize.sizeof); //a is [?]mut void
-		with a as []mut usize {
-		    a[0] = 0;
-			a[1] as []mut T;
+	pub def move_from := ctor(array:[]char):This { //A move of an array means we now own the array's content
+		m_buffer .= move_from(array);
+	};
+
+	pub def _ := ctor(a:String, b:String):This {
+		
+	};
+
+	pub def length(this:This) := this.m_buffer.length-1;
+};
+
+def case := {
+	def inner(T) := def(mut a:T) {
+		with a as int {
+			a++;
 		}
 	};
 
-	def at_least_fit:=(mut this:This, new_size:usize) {
-		if capacity < new_size {
-			reserve(new_size*allocateFac as usize); //allocateFac is 1.5f by default
-		}
-	}
+	let text : []char = daf_alloc(:char, 20); //We can't really talk about ownership of a pointer. daf_alloc places a usize in front and daf_free handles this fine
 
-	pub def reserve:=(mut this:This, new_size:usize) {
-		if capacity >= new_size
-		    return;
-
-		if capacity == 0 {
-			array = allocate(new_size);
-		} else with array as []mut usize {
-		    realloc(&mut array[-1], new_size*T.sizeof+usize.sizeof)
-		}
-		capacity = new_size;
-	}
-
-	pub def shrink_to_fit(mut this:This) {
-		if capacity > size { //size can-t be negative, so array is initialized
-		    capacity = size;
-		   	with array as []mut usize {
-		   	    realloc(&mut array[-1], capacity*T.size_of+usize.sizeof)
-		   	}
-		}
-	}
-
-	pub def push_back if T/MoveConstructor := (move a:T) {
-		at_least_fit(size+1);
-		array[size_mut++].=move(move a);
-	};
-
-	pub def push_back if T/CopyConstructor := (a:T) {
-		at_least_fit(size+1);
-		array[size_mut++].=copy(a);
-	};
-
-	pub def pop_back := (mut this:This):T {
-		with T as MoveConstructor {
-		    output.=move(array[--size_mut]);
-		} else with T as CopyConstructor {
-		  	output.=copy(array[--size_mut]);
-		};
-	}
-
-	pub def push_rule:=(mut this:This, count:usize, rule:(i:uszie):int) {
-		at_least_fit(size+count);
-		for 0..count
-			push_back(rule(it));
-	}
-
-	def mut size_mut(this:This) := with array as []mut usize array[-1] if capacity > 0 else 0;
-
-	pub def size(this:This) := size_mut;
-
-	pub def let get(this:This, i:index) = {
-		if(i<0|i>=size)
-			panic("Index out of bounds");
-		array[i]
-	};
-}
-
-def main:=() {
-	let a:=Vec(:int).reserve_new(20);
-	a.push_rule(26, (i:i32):int i*3); //Need to reallocate on purpose
-	for a {
-		print(it);
-	}
-}
-
-//Still need to figure out inheritance and stuff like that
+	let a := String.();
+};

@@ -1,8 +1,15 @@
+typedef Optional(T) := enum {
+		None,
+		Some(T)
+};
+
+def IfSome(obj:Optional(T), def func(T))
+
 def main := () {
 	let mut a := 4;
 	match a {
 		  6 => {},
 		  4 => print("Got 4"!),
 		  * => {}
-	}; //Because they are all statements
+	}; //Because they are all statements, the match expression itself is a statement
 };
