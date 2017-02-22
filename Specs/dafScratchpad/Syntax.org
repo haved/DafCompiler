@@ -19,7 +19,7 @@ So the possible grammars are:
  - () + : + type + scope
  - () + : + type + = + expression
  - () + := expression
-And only the grammars with colons actually return anything
+And only the grammars with colons actually return anything, and you expect the expression to return
 ** Compile time functions
 A compile time function is also known as a def function, as it in reality is a parameterized def; merely an alias.
 In theory, we can make a normal function inline by just removing the := between its name and its parameter list,
@@ -37,6 +37,12 @@ def funcCmpTime(a:int) {
 def funcCmpTime2 := def(a:int) {
     println("Eyo!")(a);
 };
+
+def inlineWOParam { Eyo! };
+
+def outlineWithoutParam := { Eyo!; }; //This is identical to the previous thing
+
+def thing := def { Eyo! }; //This allows for ugly stuff
 #+END_SRC
 *** Return value
 defs follow the same rules for returning values as functions.
@@ -54,3 +60,16 @@ def useTriple2 {   triple(30)   }; //No return type here either
 //Example 3:
 def getTriple:int {   triple(40)   }; //Returns int 
 #+END_SRC
+*** Parameters
+** Expressions
+*** Returning
+
+
+
+* General stuff
+** Exclamation mark to evaluate a variable as a statement
+It's simply an alternative to '()' which might make it look like a function.
+Only aliases to statements should be able to be 'yelled'.
+** Quoting
+We don't really need a quote char when 'def:=' is 5 characters long.
+
