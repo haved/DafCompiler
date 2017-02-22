@@ -65,7 +65,6 @@ def getTriple:int {   triple(40)   }; //Returns int
 *** Returning
 
 
-
 * General stuff
 ** Exclamation mark to evaluate a variable as a statement
 It's simply an alternative to '()' which might make it look like a function.

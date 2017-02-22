@@ -1,0 +1,34 @@
+#+TITLE: The Daf Grammar
+
+This document details all the grammar in the compiler currently, with descriptions of semantics.
+The syntax for productions in this document are as follows:
+ - production: /token/ + rule + /token/ + <optional> + either A||or B + A or|B or both
+  - Makes a production out of all it's parts
+
+* The wanted grammar
+** Definitions
+*** TODO
+	Add linkfile and namedef to the definition parser
+ - definition: (pub) + let || def || typedef || with_def + /;/
+*** Let
+ - letStep1: /let/
+ - letStep1: /let/ /mut/
+ - letStep1: /mut/
+ - letStep2: letStep1 + *identifier*
+ - let: letStep2 + /:/ + type + /=/ + expression
+ - let: letStep2 + /:=/ + expression
+*** Def
+ - defStep1: /def/ + letStep1
+ - defStep1: /def/ + letStep1 + /once/
+ - defStep2: defStep1 + *identifier*
+*** Typedef
+*** With
+** Expressions
+ - expression: primary
+ - expression: expression + infix op + expression
+ - expression: prefix op + expression
+ - expression: expression + postfix op
+  - These operator grammars are parsed using parseSide and custom merges. This handles precedence, not covered in this document
+ - 
+** Statements
+** Types
