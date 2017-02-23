@@ -4,6 +4,7 @@
 ** TODO Definitions
 *** Let
 *** Def
+**** TODO Add scope syntax
 *** DONE Typedef
 	CLOSED: [2017-02-07 Tue 23:00]
 *** TODO Namedef
@@ -61,7 +62,7 @@
 ** TODO Uncertainty
 * TODO Code gen
 
-* More general stuff:
+* More general stuff
 ** TODO Add /isize/ type
 ** DONE Error recovery in statements, where only some statements require semicolons
    CLOSED: [2017-02-10 Fri 13:34]
@@ -118,9 +119,18 @@ As in ordering of functions found in both. Purely for consistency's sake.
 
 * Necessary(?) Feature creep
 ** TODO Flesh out 'own' syntax and semantics
+For instance:
+ - How does one signal who owns the value afterwards?
+ - Can you combine own and move, what about giving ownership to a move?
+ All this and more in ./dafScratchpad/OwnAndUncrt.daf
 ** TODO Flesh out 'uncrt' syntax and semantics
 See OwnAndUncrt.daf for thoughts
+** TODO 'move' syntax and semantics while we're at it
 ** TODO Syntax and semantics for function return type
 As opposed to def return type. Should be a seamless transition between the two
 ** TODO Syntax and semantics for function and def parameters
 E.g. What does move and uncrt or own mean for def parameters? What about def-def parameters?
+** TODO How the void type is used for def
+I'm thinking simply having it as any other type, 
+with constructs complaining if you're returning an expression as a void value.
+
