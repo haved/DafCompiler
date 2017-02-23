@@ -1,4 +1,4 @@
-/*
+
 def malloc:(size:usize):[?]u8; //Foreign
 
 def daf_array_alloc(T):=(size:usize):[]mut T {
@@ -47,7 +47,7 @@ def use_uncrt_ptr:=() {
 	let mut x:int;
 	let b:&uncrt int =get_uncrt_ptr(uncrt x);
 	let c:&mut int=make_crt(b, '5);
-};*/
+};
 
 //Combined draft:
 
