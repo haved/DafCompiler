@@ -1,0 +1,71 @@
+#+TITlE: Keywords in daf and their purpose
+
+Daf contains a multitude of keywords with non-obvious semantics, and when I describe the language myself,
+I often use words with different meanings in different programming languages.
+This document will serve as a dictionary of sorts, with lots of daf examples.
+Certain words have multiple meanings, but will only have one entry
+
+* Definitions
+** def
+** let
+** mut
+** once
+** with
+** typedef
+** namedef
+** linkfile
+
+* Expressions
+** literal
+** variable
+** with
+
+* Statements
+** expression scope
+** definition scope
+** if
+** for
+** while
+** 
+
+* Scope
+** Scope
+** final output expression
+** Name-scope
+
+* Types
+** class
+** trait
+** or-types
+** pointer
+
+* Functions, aliases & parameters
+** function definition
+** function type
+** compile time function / alias
+** parameter
+** argument
+** reference
+** 'own'
+The keyword 'own' is used to give ownership of a variable to another variable.
+This effectively prevents you from using the variable until the owner dies.
+The compiler forbids owners outliving their property.
+Location: own is written before a parameter in a parameter list.
+Ownership is useful when making abstractions as you get more control.
+Without own, you only get control of a reference in a function body.
+With own, you can keep sole control for as long as your abstraction lives.
+
+#+BEGIN_SRC daf
+typedef Owner(T) := class {
+	m_ptr : &mut T;
+
+	def _ := ctor(own mut ref:T) {
+		m_ptr = &mut ref;
+	};
+
+	def mut _ := @T;
+};
+#+END_SRC
+** 'uncrt'
+** 'move'
+** compile-time parameter
