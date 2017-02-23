@@ -1,24 +1,26 @@
 #+TITLE: The Daf Grammar
 
-This document details all the grammar in the compiler currently, with descriptions of semantics.
+This document details all the grammar in the currently compiler, with descriptions of semantics.
 I'm, trying to use Backus-Naur Form, but I'll primarily focus on readability and not correctness.
 This means I won't bother with <tag markers> all over.
 
 * The wanted grammar
 ** Definitions
-*** TODO
-    Add linkfile and namedef to the definition parser
+*** TODO Add linkfile and namedef to the compilers definition parser
 #+BEGIN_SRC BNF
 <definition-choice>   ::= let | def | typedef | namedef | linkfile
 <definition>          ::= definition-choice ";"
 <global-definition>   ::= "pub" definition | definition
 #+END_SRC
+*** Shared Let & Def
+#+BEGIN_SRC BNF
+<deflet-expl-impl> ::= ":" type " = " expression | " := " expression
+#+END_SRC
 *** Let
 #+BEGIN_SRC BNF
-let-step1 ::= "let" | "let" "mut" | "mut"
-let-step2 ::= let-step1 *identifier*
-let       ::= let-step2 ":" type " = " expression
- .  .  .  . | let-step2 " := " expression
+<let-step1> ::= "let" | "let" "mut" | "mut"
+<let-step2> ::= let-step1 *identifier*
+<let>       ::= let-step2 deflet-expl-impl
 #+END_SRC
 **** Example use
 #+BEGIN_SRC daf
@@ -27,17 +29,29 @@ let mut b : u8 = 50;
 mut c : bool = true;
 #+END_SRC
 *** Def
- - defStep1: /def/ + letStep1
- - defStep1: /def/ + letStep1 + /once/
- - defStep2: defStep1 + *identifier*
+#+BEGIN_SRC BNF
+<def-1-keywords> ::= "def"
+  .  .  .  .  .  . | "def" let-step1
+<def-2-once>  .  ::= def-1-keywords
+  .  .  .  .  .  . | def-1-keywords "once"
+<def-3-identif>  ::= def-2-once *identifier*
+<def-expl-impl>  ::= def-3-identif deflet-expl-impl
+<def-scope>   .  ::= "def" *identifier* scope
+<def-onlyType>   ::= def-3-identif ":" type
+<def-ret-scope>  ::= def-onlyType scope
+<def>   .  .  .  ::= def-expl-impl | def-scope | def-onlyType | def-ret-scope
+#+END_SRC
+**** Example:
+#+BEGIN_SRC daf
+def val : u8 = 20;
+def let mut some := b.g;
+def let once eyo:u8 { let a:=getIndex(); acc[a] };
+def print { println("Hello"); };
+#+END_SRC
+**** TODO Add compile time parameters
 *** Typedef
 *** With
 ** Expressions
- - expression: primary
- - expression: expression + infix op + expression
- - expression: prefix op + expression
- - expression: expression + postfix op
-  - These operator grammars are parsed using parseSide and custom merges. This handles precedence, not covered in this document
- - 
+
 ** Statements
 ** Types
