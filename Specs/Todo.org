@@ -8,6 +8,8 @@
 *** DONE Typedef
 	CLOSED: [2017-02-07 Tue 23:00]
 *** TODO Namedef
+Also requires Name-scope-expressions
+**** TODO + operator for name scope expressions
 *** DONE With
 	CLOSED: [2017-02-07 Tue 16:53]
 *** TODO Linkfile
@@ -134,3 +136,6 @@ E.g. What does move and uncrt or own mean for def parameters? What about def-def
 I'm thinking simply having it as any other type, 
 with constructs complaining if you're returning an expression as a void value.
 
+* Testing
+** TODO Check if some overridden classes lack virtual destructors
+** TODO Assert Definition statements are not public definitions

@@ -6,6 +6,16 @@ This document will serve as a dictionary of sorts, with lots of daf examples.
 Certain words have multiple meanings, but will only have one entry
 
 * Definitions
+All top level constructs in daf are definitions. The =def= is just one of these.
+Global definitions are those who exist in name-scopes,
+while local definitions exist in regular scopes.
+Only the global definitions can be accessed from anywhere in the name-scope,
+or even outside it using the =pub= keyword:
+** pub
+Definitions can be prefixed with =pub= to be accessible outside of their name-scope.
+See: Scope->Name-scope
+An imported file is represented as a name-scope, so to make definitions accessible
+across files, the =pub= keyword mut be used.
 ** def
 ** let
 ** mut
@@ -14,7 +24,6 @@ Certain words have multiple meanings, but will only have one entry
 ** typedef
 ** namedef
 ** linkfile
-
 * Expressions
 ** literal
 ** variable
