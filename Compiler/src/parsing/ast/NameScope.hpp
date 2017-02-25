@@ -27,6 +27,10 @@ private:
 	vector<unique_ptr<Definition>> m_definitions;
 public:
 	NameScope(vector<unique_ptr<Definition>>&& definitions, const TextRange& range);
+	NameScope(const NameScope& other) = delete;
+	NameScope(NameScope&& other) = default;
+	NameScope& operator =(const NameScope& other) = delete;
+	NameScope& operator =(NameScope&& other) = default;
 	void printSignature();
 };
 
