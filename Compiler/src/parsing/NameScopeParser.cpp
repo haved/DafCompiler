@@ -54,9 +54,15 @@ void parseFileAsNameScope(Lexer& lexer, optional<NameScope>* scope) {
 	*scope = NameScope(std::move(definitions), TextRange(startLine, startCol, endLine, endCol));
 }
 
+unique_ptr<NameScopeExpression> parseNameScopeReference(Lexer& lexer) {
+	assert(lexer.currType() == IDENTIFIER);
+	lexer.advance(); //Eat identifier
+	return unique_ptr<NameScopeExpression>(   new NameScopeReference(std::string(lexer.getPreviousToken().text), TextRange(lexer.getPreviousToken()))   );
+}
+
 unique_ptr<NameScopeExpression> parseNameScopeExpression(Lexer& lexer) {
 	switch(lexer.currType()) {
-		//case IDENTIFIER: return parseNameScopeReference(lexer);
+		case IDENTIFIER: return parseNameScopeReference(lexer);
 		//case SCOPE_START: return parseNameScope(lexer);
 	default: break;
 	}

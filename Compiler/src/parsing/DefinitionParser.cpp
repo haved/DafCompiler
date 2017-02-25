@@ -2,6 +2,7 @@
 #include "parsing/ExpressionParser.hpp"
 #include "parsing/TypeParser.hpp"
 #include "parsing/WithParser.hpp"
+#include "parsing/NameScopeParser.hpp"
 #include "DafLogger.hpp"
 #include <iostream>
 
@@ -91,25 +92,56 @@ unique_ptr<Definition> parseTypedefDefinition(Lexer& lexer, bool pub) {
 	int startLine = lexer.getCurrentToken().line;
 	int startCol  = lexer.getCurrentToken().col;
 	lexer.advance(); //Eat 'typedef'
+
 	if(!lexer.expectToken(IDENTIFIER))
 		return none_defnt();
 	std::string name(lexer.getCurrentToken().text);
 	lexer.advance(); //Eat identifier
+
 	if(!lexer.expectToken(DECLARE))
 		return none_defnt();
 	lexer.advance(); //Eat ':='
+
 	TypeReference type = parseType(lexer);
 	if(!type)
 		return none_defnt();
+
 	TextRange range(startLine, startCol, type.getRange());
 	if(lexer.expectToken(STATEMENT_END)) {
 		lexer.advance(); //Eat ';'
 		range = TextRange(range, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol);
 	}
+
 	return unique_ptr<Definition> (   new TypedefDefinition(pub, std::move(name), std::move(type), range)   );
 }
 
+unique_ptr<Definition> parseNamedefDefinition(Lexer& lexer, bool pub) {
+	assert(lexer.currType()==NAMEDEF);
+	int startLine = lexer.getCurrentToken().line;
+	int startCol  = lexer.getCurrentToken().col;
+	lexer.advance(); //Eat 'namedef'
 
+	if(!lexer.expectToken(IDENTIFIER))
+		return none_defnt();
+	std::string name(lexer.getCurrentToken().text);
+	lexer.advance(); //Eat identifier
+
+	if(!lexer.expectToken(DECLARE))
+		return none_defnt();
+	lexer.advance(); //Eat ':='
+
+	unique_ptr<NameScopeExpression> nameScopeExpr = parseNameScopeExpression(lexer);
+	if(!nameScopeExpr)
+		return none_defnt();
+
+	TextRange range(startLine, startCol, nameScopeExpr->getRange());
+	if(lexer.expectToken(STATEMENT_END)) {
+		lexer.advance(); //Eat ';'
+		range = TextRange(range, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol);
+	}
+
+	return unique_ptr<Definition>(   new NamedefDefinition(pub, std::move(name), std::move(nameScopeExpr), range)   );
+}
 
 bool canParseDefinition(Lexer& lexer) {
 	switch(lexer.currType()) {
@@ -140,9 +172,9 @@ unique_ptr<Definition> parseDefinition(Lexer& lexer, bool pub) {
 	case TYPEDEF:
 		out = parseTypedefDefinition(lexer, pub);
 		break;
-		//case NAMEDEF:
-		//out = parseNamedefDefinition(lexer, pub);
-		//break;
+	case NAMEDEF:
+		out = parseNamedefDefinition(lexer, pub);
+		break;
 	default:
 		logDafExpectedToken("a definition", lexer);
 		break;

@@ -9,7 +9,6 @@
 
 using std::vector;
 using std::unique_ptr;
-using std::string;
 using boost::optional;
 
 //To avoid recursive including, the NameScopeExpression class is in Definition.hpp
@@ -28,8 +27,8 @@ public:
 
 class NameScopeReference : public NameScopeExpression {
 private:
-	optional<string> m_name;
+	std::string m_name;
 public:
-	NameScopeReference(optional<string>&& name, const TextRange& range);
+	NameScopeReference(std::string&& name, const TextRange& range);
 	void printSignature();
 };

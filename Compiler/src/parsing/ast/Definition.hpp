@@ -79,6 +79,7 @@ public:
 	NameScopeExpression(const TextRange& range);
 	virtual ~NameScopeExpression();
 	virtual void printSignature()=0;
+  inline const TextRange& getRange() { return m_range; }
 	//virtual void fillDefinitionHashMap or whatever
 };
 

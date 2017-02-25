@@ -12,12 +12,8 @@ void NameScope::printSignature() {
 	std::cout << "} /*name-scope*/"; //The namedef printSignature adds a newline
 }
 
-NameScopeReference::NameScopeReference(optional<string>&& name, const TextRange& range) : NameScopeExpression(range), m_name(std::move(name)) {}
+NameScopeReference::NameScopeReference(std::string&& name, const TextRange& range) : NameScopeExpression(range), m_name(std::move(name)) {}
 
 void NameScopeReference::printSignature() {
-	if(m_name)
-		std::cout << *m_name;
-	else
-		std::cout << "_";
-	std::cout << " /*name-scope reference*/";
+	std::cout << m_name << " /*name-scope reference*/";
 }
