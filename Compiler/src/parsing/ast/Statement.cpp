@@ -15,7 +15,7 @@ const TextRange& Statement::getRange() {
 DefinitionStatement::DefinitionStatement(unique_ptr<Definition>&& definition, const TextRange& range)
 	: Statement(range), m_definition(std::move(definition))
 {
-	assert(m_definition && m_definition->isStatement());
+	assert(m_definition && m_definition->isStatement() && !m_definition->isPublic());
 }
 
 void DefinitionStatement::printSignature() {
