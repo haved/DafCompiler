@@ -91,7 +91,7 @@ const char* getTokenText(const Token& token) {
 	return getTokenTypeText(token.type);
 }
 
-Token::Token() : type(PUB), text(), integerType(NumberLiteralConstants::I32), integer(0), realType(NumberLiteralConstants::F32), real(0.0), line(0), col(0), endCol(0) {}
+Token::Token() : type(NEVER_SET_TOKEN), text(), integerType(NumberLiteralConstants::I32), integer(0), realType(NumberLiteralConstants::F32), real(0.0), line(0), col(0), endCol(0) {}
 
 void resetTokenSetText(Token& token, const std::string& text) {
 	token.text = text;
@@ -100,7 +100,9 @@ void resetTokenSetText(Token& token, const std::string& text) {
 }
 
 void resetTokenSpecialValues(Token& token) {
-	resetTokenSetText(token, "");
+	token.text.clear();
+	token.real = 0.0;
+	token.integer = 0;
 }
 
 bool setTokenFromWord(Token& token, const std::string& text, int line, int startCol, int endCol) {

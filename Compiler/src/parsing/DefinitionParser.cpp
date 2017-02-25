@@ -109,9 +109,20 @@ unique_ptr<Definition> parseTypedefDefinition(Lexer& lexer, bool pub) {
 	return unique_ptr<Definition> (   new TypedefDefinition(pub, std::move(name), std::move(type), range)   );
 }
 
+
+
 bool canParseDefinition(Lexer& lexer) {
-	TokenType curr = lexer.currType();
-	return curr==DEF||curr==LET||curr==MUT||curr==WITH||curr==TYPEDEF; //So far the only tokens
+	switch(lexer.currType()) {
+	case DEF:
+	case LET:
+	case MUT:
+	case WITH:
+	case TYPEDEF:
+	case NAMEDEF:
+		return true;
+	default:
+		return false;
+	}
 }
 
 unique_ptr<Definition> parseDefinition(Lexer& lexer, bool pub) {
@@ -129,6 +140,9 @@ unique_ptr<Definition> parseDefinition(Lexer& lexer, bool pub) {
 	case TYPEDEF:
 		out = parseTypedefDefinition(lexer, pub);
 		break;
+		//case NAMEDEF:
+		//out = parseNamedefDefinition(lexer, pub);
+		//break;
 	default:
 		logDafExpectedToken("a definition", lexer);
 		break;

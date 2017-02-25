@@ -12,15 +12,7 @@ using std::unique_ptr;
 using std::string;
 using boost::optional;
 
-class NameScopeExpression {
-private:
-	TextRange m_range;
-public:
-	NameScopeExpression(const TextRange& range);
-	virtual ~NameScopeExpression();
-	virtual void printSignature()=0;
-	//virtual void fillDefinitionHashMap or whatever
-};
+//To avoid recursive including, the NameScopeExpression class is in Definition.hpp
 
 class NameScope : public NameScopeExpression {
 private:

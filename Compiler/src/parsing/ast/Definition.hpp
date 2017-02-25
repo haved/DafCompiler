@@ -1,13 +1,14 @@
 #pragma once
 
-#include <memory>
-#include <vector>
-#include <boost/optional.hpp>
 #include "parsing/ast/Type.hpp"
 #include "parsing/ast/Expression.hpp"
 #include "parsing/ast/TextRange.hpp"
+#include <memory>
+#include <vector>
+#include <boost/optional.hpp>
 
 using std::unique_ptr;
+using boost::optional;
 
 class Definition {
 protected:
@@ -67,4 +68,26 @@ public:
 	TypedefDefinition(bool pub, std::string&& name, TypeReference&& type, const TextRange& range);
 	void printSignature();
 	inline bool isStatement() override { return true; }
+};
+
+//A tad annoying having to put this here.
+//The alternative would be to create a separate file, or do some fancy forward declaration
+class NameScopeExpression {
+private:
+	TextRange m_range;
+public:
+	NameScopeExpression(const TextRange& range);
+	virtual ~NameScopeExpression();
+	virtual void printSignature()=0;
+	//virtual void fillDefinitionHashMap or whatever
+};
+
+class NamedefDefinition : public Definition {
+private:
+	optional<std::string> m_name;
+	unique_ptr<NameScopeExpression> m_value;
+public:
+	NamedefDefinition(bool pub, optional<std::string>&& name, unique_ptr<NameScopeExpression>&& value, const TextRange& range);
+	void printSignature();
+	inline bool isStatement() { return true; }
 };

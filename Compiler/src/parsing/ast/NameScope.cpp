@@ -1,9 +1,6 @@
 #include  "parsing/ast/NameScope.hpp"
 #include <iostream>
 
-NameScopeExpression::NameScopeExpression(const TextRange& range) : m_range(range) {}
-NameScopeExpression::~NameScopeExpression() {} //Is this even needed?
-
 NameScope::NameScope(vector<unique_ptr<Definition>>&& definitions, const TextRange& range) : NameScopeExpression(range), m_definitions(std::move(definitions)) {}
 
 void NameScope::printSignature() {

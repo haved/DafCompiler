@@ -64,3 +64,20 @@ void TypedefDefinition::printSignature() {
 	m_type.printSignature();
 	std::cout << ";" << std::endl;
 }
+
+NameScopeExpression::NameScopeExpression(const TextRange& range) : m_range(range) {}
+NameScopeExpression::~NameScopeExpression() {} //Is this even needed?
+
+NamedefDefinition::NamedefDefinition(bool pub, optional<std::string>&& name, unique_ptr<NameScopeExpression>&& value, const TextRange& range) : Definition(pub, range), m_name(std::move(name)), m_value(std::move(value)) {
+	assert(m_value);
+}
+
+void NamedefDefinition::printSignature() {
+	std::cout << "namedef ";
+	if(m_name)
+		std::cout << *m_name << " := ";
+	else
+		std::cout << "_ := ";
+	m_value->printSignature();
+	std::cout << ";" << std::endl;
+}

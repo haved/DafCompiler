@@ -17,6 +17,7 @@ Lexer::Lexer(const FileForParsing& file) : fileForParsing(file), infile(),
 	advance(); //To make super-look-ahead an actual token
 	advance(); //To make look-ahead an actual token
 	advance(); //To make current an actual token
+	//getPreviousToken() is a NEVER_SET_TOKEN by default
 }
 
 bool Lexer::expectToken(const TokenType& type) {

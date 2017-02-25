@@ -1,5 +1,7 @@
 // -*- compile-command: "./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
+//namedef _ := io;
+
 with :some as int;
 pub with a as b;
 

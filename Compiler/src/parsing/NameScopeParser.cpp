@@ -25,15 +25,30 @@ void parseGlobalDefinitionList(Lexer& lexer, std::vector<unique_ptr<Definition>>
 	}
 }
 
+NameScope emptyNameScope() {
+	return NameScope(std::vector<unique_ptr<Definition>>(), TextRange(0,0,0,0)); //No tokens, no nothing
+}
+
 void parseFileAsNameScope(Lexer& lexer, optional<NameScope>* scope) {
-	if(!lexer.hasCurrentToken())
-		*scope = NameScope(std::vector<unique_ptr<Definition>>(), TextRange(0,0,0,0)); //No tokens
+	assert(lexer.getPreviousToken().type == NEVER_SET_TOKEN); //We are at the start of the file
+
+	if(!lexer.hasCurrentToken()) {
+		*scope = emptyNameScope();
+		return;
+	}
 
 	int startLine = lexer.getCurrentToken().line;
 	int startCol  = lexer.getCurrentToken().col;
 	std::vector<unique_ptr<Definition>> definitions;
 	parseGlobalDefinitionList(lexer, definitions);
 	lexer.expectToken(END_TOKEN);
+
+	if(lexer.getPreviousToken().type == NEVER_SET_TOKEN) { //We never ate anything!
+		assert(definitions.empty());
+		*scope = emptyNameScope();
+		return;
+	}
+
 	int& endLine = lexer.getPreviousToken().line; //Must be some kind of token
 	int& endCol  = lexer.getPreviousToken().endCol;
 	*scope = NameScope(std::move(definitions), TextRange(startLine, startCol, endLine, endCol));
