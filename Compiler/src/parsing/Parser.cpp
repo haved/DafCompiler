@@ -7,10 +7,10 @@
 #include <iostream>
 
 void parseFileSyntax(FileForParsing& ffp) {
-  Lexer lexer(ffp);
-  parseFileAsNameScope(lexer, &ffp.m_nameScope);
-  assert(ffp.m_nameScope);
-  ffp.m_nameScope->printSignature();
-  std::cout << std::endl;
-  terminateIfErrors();
+	Lexer lexer(ffp);
+	parseFileAsNameScope(lexer, &ffp.m_nameScope);
+	assert(ffp.m_nameScope);
+	ffp.m_nameScope->printSignature();
+	std::cout << std::endl;
+	terminateIfErrors();
 }
