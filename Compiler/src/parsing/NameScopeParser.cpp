@@ -25,6 +25,21 @@ void parseGlobalDefinitionList(Lexer& lexer, std::vector<unique_ptr<Definition>>
 	}
 }
 
+unique_ptr<NameScopeExpression> parseNameScope(Lexer& lexer) {
+    assert(lexer.currType() == SCOPE_START);
+    int startLine = lexer.getCurrentToken().line;
+	int startCol  = lexer.getCurrentToken().col;
+	lexer.advance(); //Eat '{'
+
+	std::vector<unique_ptr<Definition>> definitions;
+	parseGlobalDefinitionList(lexer, definitions); //Fills definitions
+
+	if(lexer.expectToken(SCOPE_END))
+		lexer.advance(); //Eat '}'
+
+	return unique_ptr<NameScopeExpression>( new NameScope(std::move(definitions), TextRange(startLine, startCol, TextRange(lexer.getPreviousToken()))) ); //Bit ugly
+}
+
 NameScope emptyNameScope() {
 	return NameScope(std::vector<unique_ptr<Definition>>(), TextRange(0,0,0,0)); //No tokens, no nothing
 }
@@ -32,7 +47,7 @@ NameScope emptyNameScope() {
 void parseFileAsNameScope(Lexer& lexer, optional<NameScope>* scope) {
 	assert(lexer.getPreviousToken().type == NEVER_SET_TOKEN); //We are at the start of the file
 
-	if(!lexer.hasCurrentToken()) {
+	if(!lexer.hasCurrentToken()) { //Token-less file
 		*scope = emptyNameScope();
 		return;
 	}
@@ -63,7 +78,7 @@ unique_ptr<NameScopeExpression> parseNameScopeReference(Lexer& lexer) {
 unique_ptr<NameScopeExpression> parseNameScopeExpression(Lexer& lexer) {
 	switch(lexer.currType()) {
 		case IDENTIFIER: return parseNameScopeReference(lexer);
-		//case SCOPE_START: return parseNameScope(lexer);
+		case SCOPE_START: return parseNameScope(lexer);
 	default: break;
 	}
 

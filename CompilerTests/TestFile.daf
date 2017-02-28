@@ -1,6 +1,9 @@
 // -*- compile-command: "./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
 namedef _ := io;
+namedef io := {
+	pub def let mut hello:=() {};
+};
 
 with :some as int;
 pub with a as b;
