@@ -7,7 +7,8 @@
 **** TODO Add scope syntax
 *** DONE Typedef
 	CLOSED: [2017-02-07 Tue 23:00]
-*** TODO Namedef
+*** DONE Namedef
+	CLOSED: [2017-02-28 Tue 23:54]
 Also requires Name-scope-expressions
 **** TODO + operator for name scope expressions
 *** DONE With
