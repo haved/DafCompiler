@@ -1,0 +1,23 @@
+//This file shows when you'd use own in daf
+
+pub typedef MutRef(T) := class {
+	m_ptr : &mut T;
+
+	pub def _(own mut a:T):ctor This { //Using ctor is the same as def mut this:=output;
+		m_ptr = &mut a;
+	};
+
+	pub def mut _ := @m_ptr;
+}
+
+pub typedef UniquePtr(T) := class {
+	m_ptr : &mut T;
+
+	pub def _(move ptr:T):ctor This {m_ptr = ptr;};
+	pub def init(move this:This, def init):T {};
+	pub def dtor := 
+};
+
+def main() {
+	
+};

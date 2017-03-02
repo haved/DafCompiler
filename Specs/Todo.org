@@ -137,6 +137,14 @@ E.g. What does move and uncrt or own mean for def parameters? What about def-def
 I'm thinking simply having it as any other type, 
 with constructs complaining if you're returning an expression as a void value.
 
+** TODO What even is the difference between def x(){} and def x:=(){}?
+** TODO When can you access a class' private parts?
+** TODO How do you remove the default destrcutor?
+** TODO How to you make a quick data ctor,move,copy,assign_copy,assign_move?
+** TODO What is the difference between returning from a function and a def?
+*** TODO Returning by reference?
+Should there be a difference between ():= and ():{} perhaps?
+Maybe that is bad, though
 * Testing
 ** TODO Check if some overridden classes lack virtual destructors
 ** TODO Assert Definition statements are not public definitions
