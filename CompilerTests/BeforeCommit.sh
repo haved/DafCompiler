@@ -1,4 +1,6 @@
 #!/usr/bin/bash 
 ./CompileToTest.py
-./RunTests.py -A -M -f ".*\.daf(\.test)?$"
+if $?; then
+	./RunTests.py -A -M -f ".*\.daf(\.test)?$"
+fi
 exit $?
