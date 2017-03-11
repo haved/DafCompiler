@@ -31,5 +31,7 @@ if not isdir(buildDir):
     makedirs(buildDir)
 chdir(buildDir)
 
-call(["cmake", cmakeRelative]+(opt[2:]if len(opt)>2 else [])+["-G"+cmakeTarget, "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"])
-call(makeCommand)
+if call(["cmake", cmakeRelative]+(opt[2:]if len(opt)>2 else [])+["-G"+cmakeTarget, "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"]) != 0:
+    exit(1)
+if call(makeCommand) != 0:
+    exit(1)
