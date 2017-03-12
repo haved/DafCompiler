@@ -2,6 +2,10 @@
 #include "DafLogger.hpp"
 
 //When scope is referenced in this file, both {...}, (...) and [...] are counted as scopes
+bool isStartOfScope(TokenType type) {
+	return type == SCOPE_START || type == LEFT_PAREN || type == LEFT_BRACKET;
+}
+
 bool isEndOfScope(TokenType type) {
 	return type == SCOPE_END || type == RIGHT_PAREN || type == RIGHT_BRACKET;
 }
@@ -107,4 +111,12 @@ bool skipUntilNextStatement(Lexer& lexer) {
 		<< startLine << ":" << startCol
 		<< ") until a statement or the end of a scope" << std::endl;
 	return false;
+}
+
+bool advanceSaveForScopeTokens(Lexer& lexer) {
+	TokenType type = lexer.currType();
+	if(isStartOfScope(type) || isEndOfScope(type))
+		return false;
+	lexer.advance();
+	return true;
 }

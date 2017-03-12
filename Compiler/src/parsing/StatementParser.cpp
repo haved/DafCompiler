@@ -180,7 +180,8 @@ unique_ptr<Statement> parseSpecialStatement(Lexer& lexer) {
 }
 
 unique_ptr<Statement> handleExpressionToStatement(unique_ptr<Expression> expression, Lexer& lexer, optional<unique_ptr<Expression>*> finalOutExpression) {
-	assert(expression);
+	if(!expression)
+		return null_stmt();
 
 	if(finalOutExpression && lexer.currType()==SCOPE_END) { //All expressions can be final out expressions
 		assert(**finalOutExpression == nullptr);
@@ -189,7 +190,7 @@ unique_ptr<Statement> handleExpressionToStatement(unique_ptr<Expression> express
 	}
 
 	if(!expression->isStatement()) {
-		logDaf(lexer.getFile(), expression->getRange(), ERROR) << "Exprected a statement, not just an expression: ";
+		logDaf(lexer.getFile(), expression->getRange(), ERROR) << "expected a statement, not just an expression: ";
 		expression->printSignature();
 		std::cout << std::endl;
 		return null_stmt();
@@ -242,7 +243,7 @@ unique_ptr<Statement> parseStatement(Lexer& lexer, optional<unique_ptr<Expressio
 	if(isSpecialStatementKeyword(lexer.currType()))
 		return parseSpecialStatement(lexer); //This will eat semicolons if that's the behavior of the statement
 
-	if(canParseExpression(lexer))
+	if(canParseExpression(lexer)) //The expression given may still be null
 		return handleExpressionToStatement(parseExpression(lexer), lexer, finalOutExpression);
 
 	logDafExpectedToken("a statement", lexer);

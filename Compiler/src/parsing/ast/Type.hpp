@@ -12,104 +12,100 @@ using std::unique_ptr;
 
 class Type { //We'll have to do type evaluation later
 private:
-  optional<TextRange> m_range;
+	optional<TextRange> m_range;
 public:
-  Type();
-  Type(const TextRange& range);
-  virtual ~Type();
-  virtual void printSignature()=0;
-	virtual bool calculateSize();
-	virtual int getSize()=0;
-	virtual Type* getType();
+	Type(const TextRange& range);
+	Type();
+	virtual ~Type();
+	virtual void printSignature()=0;
+	inline virtual Type* getType() { return this; }
+	inline bool hasRange() { return bool(m_range); }
+	inline const TextRange& getRange() { assert(hasRange()); return *m_range; }
 };
 
-
-//Internal type representation:
-//A type reference is any use of a type in code
-//Some types are shared, and the type reference will only delete a specified type if it's passed as a unique pointer
-//Otherwise, the type is kept
-class TypeReference { //Maybe this must be an instance of Type
+//The TypeReference holds a pointer to a type, which may be an alias for another type. The alias know it hasn't got ownership, so that's how we maintain that.
+class TypeReference {
 private:
-	optional<TextRange> m_range;
-	Type* m_type;
-	bool m_deleteType;
+	unique_ptr<Type> m_type;
 public:
 	TypeReference();
-	TypeReference(Type* type, const optional<TextRange>& range);
-	TypeReference(unique_ptr<Type>&& type, const optional<TextRange>& range);
-	TypeReference(const TypeReference& other)=delete;
-	TypeReference(TypeReference&& other);
-	TypeReference& operator=(const TypeReference& other)=delete;
-	TypeReference& operator=(TypeReference&& other);
-	~TypeReference();
-	Type* getType();
-	bool hasType() const;
-	inline operator bool() const {return hasType();}
+	TypeReference(unique_ptr<Type>&& type);
+	inline bool hasType() { return !!m_type; }
+	inline operator bool() { return hasType(); }
+	inline Type* getType() { if(m_type) return m_type->getType(); else return nullptr; }
+	inline bool hasRange() { return hasType() && m_type->hasRange(); }
+	inline const TextRange& getRange() { assert(m_type); return m_type->getRange(); }
 	void printSignature();
-	inline const TextRange& getRange() { assert(m_range); return *m_range; }
 };
 
-class TypedefType : public Type {
+class AliasForType : public Type {
 private:
 	std::string m_name;
 	Type* m_type;
 public:
-	TypedefType(const std::string& name);
-	TypedefType(const TypedefType& other)=default;
-	TypedefType& operator=(const TypedefType& other)=default;
-	Type* getType(); //Forwards calls here too, I suppose. How would one do this in daf?
-  int getSize() { assert(false); return 0; }
+	AliasForType(std::string&& name, const TextRange& range);
+	AliasForType(const AliasForType& other) = default;
+	AliasForType& operator =(const AliasForType& other) = default;
+	inline Type* getType() { if (m_type) return m_type->getType(); else	return this; }
 	void printSignature();
 };
 
-namespace Primitives {
-	enum Primitive {
-		CHAR, I8, U8, I16, U16, I32, U32, I64, U64, USIZE, BOOL, F32, F64
-	};
-}
+enum class Primitives {
+	CHAR, I8, U8, I16, U16, I32, U32, I64, U64, USIZE, BOOL, F32, F64
+};
 
 class PrimitiveType : public Type {
 private:
-	Primitives::Primitive m_primitive;
+	Primitives m_primitive;
 public:
-	PrimitiveType(Primitives::Primitive primitive);
+	PrimitiveType(Primitives primitive);
 	void printSignature();
-	int getSize();
 };
 
-enum FunctionParameterType {
-	FUNC_PARAM_BY_VALUE,
-  FUNC_PARAM_BY_REF,
-  FUNC_PARAM_BY_MUT_REF,
-  FUNC_PARAM_BY_MOVE,
-	FUNC_PARAM_UNCERTAIN
+enum class FunctionParameterType {
+	BY_VALUE, //Not planned for usage
+	BY_REF,
+	BY_MUT_REF,
+	BY_MOVE,
+	UNCERTAIN,
+	TYPE_PARAM //TODO: Saved for compile time parameters
 };
 
 class FunctionParameter {
 private:
-  FunctionParameterType m_ref_type;
-  optional<std::string> m_name;
-  TypeReference m_type;
+	TextRange m_range;
+	FunctionParameterType m_ref_type;
+	optional<std::string> m_name;
+	TypeReference m_type;
+	bool m_typeInferred; //Type inferring in parameters is not added
 public:
-  FunctionParameter(FunctionParameterType ref_type, optional<std::string>&& name, TypeReference&& type);
-  FunctionParameter(FunctionParameterType&& other);
-  void printSignature();
+	FunctionParameter(FunctionParameterType ref_type, std::string&& name, TypeReference&& type, bool typeInferred, const TextRange& range);
+	FunctionParameter(FunctionParameterType ref_type, TypeReference&& type, bool typeInferred, const TextRange& range);
+	FunctionParameter(FunctionParameter&& other) = default;
+	FunctionParameter& operator = (FunctionParameter&& other) = default;
+	FunctionParameter(const FunctionParameter& other) = delete;
+	FunctionParameter& operator = (const FunctionParameter& other) = delete;
+	void printSignature();
+
+	inline FunctionParameterType getParameterKind() { return m_ref_type; }
+	inline bool isTypeInferred() { return m_typeInferred; }
+	inline const TextRange& getRange() { return m_range; }
 };
 
-//TOOO: Enum class
-enum FunctionReturnType {
-  FUNC_NORMAL_RETURN, FUNC_LET_RETURN, FUNC_MUT_RETURN
+enum class FunctionReturnModifier {
+	NO_RETURN, NORMAL_RETURN, LET_RETURN, MUT_RETURN
 };
 
 class FunctionType : public Type {
 private:
-  std::vector<FunctionParameter> m_parameters;
-  bool m_inline;
-  TypeReference m_returnType;
-  FunctionReturnType m_returnTypeType;
+	std::vector<FunctionParameter> m_parameters;
+	bool m_inline;
+	TypeReference m_returnType;
+	FunctionReturnModifier m_returnTypeModifier;
 public:
-  FunctionType(std::vector<FunctionParameter>&& params,
-              bool isInline, TypeReference&& returnType, FunctionReturnType returnTypeType);
-  int getSize() { assert(false); return 0; }
-  void printSignature();
+    FunctionType(std::vector<FunctionParameter>&& params, bool isInline, TypeReference&& returnType, FunctionReturnModifier returnTypeModif, const TextRange& range);
+	int getSize() { assert(false); return 0; }
+	void printSignature();
+
+	inline std::vector<FunctionParameter>& getParameters() { return m_parameters; }
 };

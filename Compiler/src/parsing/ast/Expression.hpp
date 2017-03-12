@@ -67,17 +67,15 @@ private:
 
 class FunctionExpression : public Expression {
 private:
-	FunctionType m_function;
+	unique_ptr<FunctionType> m_functionType;
 	std::unique_ptr<Expression> m_body;
 public:
-	FunctionExpression(std::vector<FunctionParameter>&& params,
-					   bool isInline, TypeReference&& returnType,
-					   FunctionReturnType returnTypeType,
+	FunctionExpression(unique_ptr<FunctionType>&& type,
 					   std::unique_ptr<Expression>&& body,
 					   const TextRange& range);
 	bool findType() {return false;}
 	bool isTypeKnown() {return true;}
-	Type& getType() {return m_function;}
+	Type& getType() {return *m_functionType;}
 	void printSignature();
 };
 

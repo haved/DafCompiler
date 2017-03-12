@@ -37,109 +37,30 @@ unique_ptr<Expression> parseRealNumberExpression(Lexer& lexer) {
 	return unique_ptr<Expression>(new RealConstantExpression(token.real, token.realType, TextRange(token)));
 }
 
-optional<FunctionParameter> parseFunctionParameter(Lexer& lexer) {
-	FunctionParameterType paramType = FUNC_PARAM_BY_VALUE;
-
-	switch(lexer.getCurrentToken().type) {
-	case REF:
-		paramType = FUNC_PARAM_BY_REF; break;
-	case MUT_REF:
-		paramType = FUNC_PARAM_BY_MUT_REF; break;
-	case MOVE_REF:
-		paramType = FUNC_PARAM_BY_MOVE; break;
-	default: break;
-	}
-
-	if(paramType!=FUNC_PARAM_BY_VALUE)
-		lexer.advance(); //Eat '&move', '&mut' or '&'
-
-	optional<std::string> name;
-	if(lexer.currType() == IDENTIFIER) {
-		name = lexer.getCurrentToken().text;
-		lexer.advance(); //Eat 'identifier'
-	}
-
-	if(!lexer.expectToken(TYPE_SEPARATOR)) {
-		return none;
-	}
-
-	lexer.advance(); //Eat ':'
-
-	TypeReference type = parseType(lexer);
-
-	if(!type.hasType()) //Has to be due to an error
-		return none;
-
-	return FunctionParameter(paramType, std::move(name), std::move(type));
-}
-
 //Either starts at '(', 'inline', or the token after '('
 unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
-	int startLine = lexer.getCurrentToken().line;
-	int startCol = lexer.getCurrentToken().col;
-
-	bool startsWithLeftParen = lexer.currType() == LEFT_PAREN;
-	bool explicitInline = lexer.currType() == INLINE;
-	if(startsWithLeftParen)
-		lexer.advance(); //Eat '('
-	else if(explicitInline) {
-		lexer.advance(); //Eat 'inline'
-		if(!lexer.expectToken(LEFT_PAREN))
-			return none_exp();
-		lexer.advance(); //Eat '('
-	}
-	//We have now gotten past '('
-
-	std::vector<FunctionParameter> fps;
-
-	while(lexer.currType()!=RIGHT_PAREN) {
-		if(!lexer.hasCurrentToken()) {
-			lexer.expectToken(RIGHT_PAREN);
-			return none_exp();
-		}
-		optional<FunctionParameter> parameter = parseFunctionParameter(lexer);
-		if(!parameter) {
-			skipUntil(lexer, RIGHT_PAREN); //Go past all the parameters
-			if(!lexer.hasCurrentToken()) //If we've skipped to the end of the file
-				return none_exp();
-			break;
-		}
-		fps.push_back(std::move(*parameter));
-		if(lexer.currType()!=RIGHT_PAREN) {
-			if(lexer.expectToken(COMMA))
-				lexer.advance(); //Eat ','
-			else {
-				skipUntil(lexer, RIGHT_PAREN);
-				break;
-			}
-		}
-	}
-	if(lexer.currType()!=RIGHT_PAREN) //We really don' goofed
+	unique_ptr<FunctionType> type = parseFunctionType(lexer);
+	if(!type)
 		return none_exp();
-	lexer.advance(); //Eat ')'
-
-	TypeReference type;
-	FunctionReturnType returnType = FUNC_NORMAL_RETURN;
-	if(lexer.currType()==TYPE_SEPARATOR) {
-		lexer.advance(); //Eat ':'
-		if(lexer.currType() == LET) {
-			lexer.advance(); //Eat 'let'
-			returnType = FUNC_LET_RETURN;
-		}
-		if(lexer.currType() == MUT) {
-			lexer.advance(); //Eat 'mut'
-			returnType = FUNC_MUT_RETURN;
-		}
-		type = parseType(lexer); //If the type fails, it should have cleaned up after itself, and we don't care
-	}
 
 	unique_ptr<Expression> body = parseExpression(lexer); //Prints error message if null
-
 	if(!body) //Error recovery should already have been done to pass the body expression
 		return none_exp();
 
+	for(auto it = type->getParameters().begin(); it != type->getParameters().end(); ++it) {
+		if(it->getParameterKind() == FunctionParameterType::TYPE_PARAM) {
+			logDaf(lexer.getFile(), it->getRange(), ERROR) << "A normal function can't take type parameters, aka parameters without a colon" << std::endl;
+			return none_exp();
+		}
+		else if(it->isTypeInferred()) {
+			logDaf(lexer.getFile(), it->getRange(), ERROR) << "A normal function can't take parameters with inferred types" << std::endl;
+			return none_exp();
+		}
+	}
+
+	TextRange range(type->getRange(), body->getRange());
    	//We are assured that the body isn't null, so the ctor won't complain
-	return unique_ptr<FunctionExpression>(new FunctionExpression(std::move(fps), explicitInline, std::move(type), returnType, std::move(body), TextRange(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol)));
+	return std::make_unique<FunctionExpression>(std::move(type), std::move(body), range);
 }
 
 unique_ptr<Expression> parseParenthesies(Lexer& lexer) {
@@ -204,8 +125,7 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
 }
 
 unique_ptr<Expression> parsePrimary(Lexer& lexer) {
-	Token& curr = lexer.getCurrentToken();
-	switch(curr.type) {
+	switch(lexer.currType()) {
 	case IDENTIFIER:
 		return parseVariableExpression(lexer);
 	case LEFT_PAREN:
@@ -223,6 +143,7 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
 	default: break;
 	}
 	logDafExpectedToken("a primary expression", lexer);
+	advanceSaveForScopeTokens(lexer); //We don't want to eat (,{,[,],},) etc.
 	return none_exp();
 }
 
@@ -308,9 +229,9 @@ unique_ptr<Expression> mergeExpressionWithOp(Lexer& lexer, unique_ptr<Expression
 		return unique_ptr<Expression>(new PostfixCrementExpression(std::move(LHS), decr, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol));
 	}
 	else if(isPostfixOpEqual(postfixOp,PostfixOp::FUNCTION_CALL)) {
-		return parseFunctionCallExpression(lexer, std::move(LHS));
+		return parseFunctionCallExpression(lexer, std::move(LHS)); //Handles LHS being null
 	} else if(isPostfixOpEqual(postfixOp, PostfixOp::ARRAY_ACCESS)) {
-		return parseArrayAccessExpression(lexer, std::move(LHS));
+		return parseArrayAccessExpression(lexer, std::move(LHS)); //Handles LHS being null too
 	}
 	assert(false); //Didn't know what to do with postfix expression
 	return none_exp();
@@ -342,7 +263,7 @@ unique_ptr<Expression> parseSide(Lexer& lexer, int minimumPrecedence) {
 }
 
 bool canParseExpression(Lexer& lexer) {
-    //I've decided that if you've come to this place, you'll at least try to parse and expression
+    //I've decided that if you've come to this place, you'll at least try to parse an expression
 	return true;
 	/*TokenType curr = lexer.currType();
 	  return curr==IDENTIFIER||curr==LEFT_PAREN||curr==INLINE||curr==SCOPE_START

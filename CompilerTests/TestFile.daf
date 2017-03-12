@@ -1,75 +1,17 @@
 // -*- compile-command: "./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
-namedef _ := io;
-namedef io := {
-	pub def let mut hello:=() {};
+pub namedef IO := {def a:=4;};
+pub typedef ey := int;
+pub with :int as ey;
+
+def main := (a:int, mut b:ey, move boy:ey, uncrt c:ey, /*dtor*/ inst:MyClass):/*ctor*/ int {
+	b++;
+	thisf = a+b;
+	c = a-b;
+	print(inst.deathMessage());
 };
 
-with :some as int;
-pub with a as b;
-
-def main:=(a:int):int {
-    if (a) {
-        b++;
-    }
-
-	if (b) {
-	    c
-	};
-
-	{};;;
-
-	mut a:=4;
-
-    while(a>4)
-        a++;
-
-	for 3.6 {
-		sum=sum+it;
-		if it == 2
-		    continue;
-		else if it > 5
-		    break;
-		if sum == 20
-		    break;
-		retry;
-	}
-
-	let a := with a as int {5};
-
-	with a as int;
-
-	with a as int ({
-		a++;
-	}+3)();
-
-	//uncrt
-
-	(with a as int a)();
-	
-	{
-		with int as bool;
-
-		a++;
-		with a as bool {
-			 with with b as int b as floater 4();;;;
-			 with a as int 56
-		};
-	};
-
-	with a as int a() else with a as string a(a);
-
-	break; //I don't care where you break at this point
-
-	myArray[2]();
-	how[doo[you]].doo(a, b, mut c);
-
-	{a();}
-	return;
-	return 4;
-	return 20;
-
-	typedef a := int;
-};
-
-pub typedef some := ey;
+def otherFunc := () { return; };
+//def thirdFunc := ():let mut ey = globalVar;
+//def forthFunc := ():mut= { globalChar; };
+def fifthFunc := ():let ey { globalEy };

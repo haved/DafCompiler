@@ -28,20 +28,26 @@ across files, the =pub= keyword mut be used.
 ** literal
 ** variable
 ** with
-
+** scope
+See the scope section for juicy scope details
 * Statements
 ** expression scope
 ** definition scope
 ** if
 ** for
 ** while
-** 
+** return
 
 * Scope
+First things first, there are three types of scopes.
+ - Name-scopes are only parsed in a namedef, and can only contain definitions (but they can be public o.o)
+ - Type-scopes are used in class, trait and functionality definitions, and can contain members as well as definitions
+ - Expression-scopes, or just 'scopes', are blocks of statements, and the most common kind of scope.
 ** Scope
-** final output expression
+*** Returning things
+*** final output expression
 ** Name-scope
-
+** Type-scope
 * Types
 ** class
 ** trait

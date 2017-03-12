@@ -105,6 +105,7 @@ unique_ptr<Definition> parseTypedefDefinition(Lexer& lexer, bool pub) {
 	TypeReference type = parseType(lexer);
 	if(!type)
 		return none_defnt();
+	assert(type.hasRange());
 
 	TextRange range(startLine, startCol, type.getRange());
 	if(lexer.expectToken(STATEMENT_END)) {
