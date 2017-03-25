@@ -37,13 +37,26 @@ unique_ptr<Expression> parseRealNumberExpression(Lexer& lexer) {
 	return unique_ptr<Expression>(new RealConstantExpression(token.real, token.realType, TextRange(token)));
 }
 
-//Either starts at '(', 'inline', or the token after '('
+//Either starts at 'inline', or the token after '('
 unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
+	assert(lexer.currType() != LEFT_PAREN); //We shall always start either at inline, or INSIDE the parameter list
+	bool isInline = false;
+	if(lexer.currType() == INLINE)  {
+		isInline = true;
+		lexer.advance(); //Eat 'inline'
+
+		if(!lexer.expectToken(LEFT_PAREN))
+			return none_exp();
+
+		lexer.advance(); //Eat '('
+	}
+	assert(lexer.getPreviousToken().type == LEFT_PAREN);
+
 	unique_ptr<FunctionType> type = parseFunctionTypeSignature(lexer, true); //Allow eating '='
 	if(!type)
 		return none_exp();
 
-	if(type->requiresScopeBody() && lexer.currType() != SCOPE_START) {
+	if(type->requiresScopedBody() && lexer.currType() != SCOPE_START) {
 		logDafExpectedToken("a scoped function body", lexer);
 	}
 
@@ -53,14 +66,14 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
 
 	TextRange range(type->getRange(), body->getRange());
    	//We are assured that the body isn't null, so the ctor won't complain
-	return std::make_unique<FunctionExpression>(std::move(type), std::move(body), range);
+	return std::make_unique<FunctionExpression>(isInline, std::move(type), std::move(body), range);
 }
 
 unique_ptr<Expression> parseParenthesies(Lexer& lexer) {
 	lexer.advance(); //Eat '('
 	TokenType type = lexer.getCurrentToken().type;
-	if(type == RIGHT_PAREN || type == TYPE_SEPARATOR || lexer.getLookahead().type == TYPE_SEPARATOR
-	   || (lexer.getSuperLookahead().type == TYPE_SEPARATOR && lexer.getLookahead().type != RIGHT_PAREN))
+
+	if(type != LEFT_PAREN && (type == RIGHT_PAREN || type == TYPE_SEPARATOR || lexer.getLookahead().type == TYPE_SEPARATOR || (lexer.getSuperLookahead().type == TYPE_SEPARATOR && lexer.getLookahead().type != RIGHT_PAREN)))
 		return parseFunctionExpression(lexer);
 
 	unique_ptr<Expression> expr = parseExpression(lexer);

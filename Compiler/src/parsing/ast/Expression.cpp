@@ -69,7 +69,7 @@ void RealConstantExpression::printSignature() {
 }
 
 //Maybe add something in daf to make this prettier? I dunno
-FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, std::unique_ptr<Expression>&& body, const TextRange& range) : Expression(range), m_functionType(std::move(type)), m_body(std::move(body)) {
+FunctionExpression::FunctionExpression(bool isInline, unique_ptr<FunctionType>&& type, std::unique_ptr<Expression>&& body, const TextRange& range) : Expression(range), m_inline(isInline), m_functionType(std::move(type)), m_body(std::move(body)) {
 	//ExpressionParser's parseFunctionExpression assures us that none of the parameters are type inferred or type parameters, so we don't
 	assert(m_body);
 }

@@ -2,6 +2,7 @@
 
 #include "parsing/ast/TextRange.hpp"
 #include "parsing/ast/Type.hpp"
+#include "parsing/ast/FunctionSignature.hpp"
 #include "info/PrimitiveSizes.hpp"
 #include "parsing/ast/Operator.hpp"
 #include <string>
@@ -67,12 +68,11 @@ private:
 
 class FunctionExpression : public Expression {
 private:
+	bool m_inline;
 	unique_ptr<FunctionType> m_functionType;
 	std::unique_ptr<Expression> m_body;
 public:
-	FunctionExpression(unique_ptr<FunctionType>&& type,
-					   std::unique_ptr<Expression>&& body,
-					   const TextRange& range);
+	FunctionExpression(bool isInline, unique_ptr<FunctionType>&& type, std::unique_ptr<Expression>&& body, const TextRange& range);
 	bool findType() {return false;}
 	bool isTypeKnown() {return true;}
 	Type& getType() {return *m_functionType;}
