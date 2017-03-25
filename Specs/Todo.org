@@ -3,8 +3,12 @@
 * TODO Parsing
 ** TODO Definitions
 *** Let
+**** TODO Let declaration be two separate tokens
+This could be done by always merging ':' and '='
 *** Def
 **** TODO Add scope syntax
+**** TODO Use return type syntax from function types
+***** TODO Might as well add compile-time parameters while at it
 *** DONE Typedef
 	CLOSED: [2017-02-07 Tue 23:00]
 *** DONE Namedef
@@ -35,6 +39,8 @@ Also requires Name-scope-expressions
 *** Char literals
 *** Variables
 *** Functions
+**** DONE Add all kinds of return type parsing
+	 CLOSED: [2017-03-25 Sat 16:06]
 *** Operators
 **** Function calls
 **** Array access

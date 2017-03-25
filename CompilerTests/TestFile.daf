@@ -19,3 +19,6 @@ def fifthFunc := ():let ey { globalEy };
 def funcFunc  := ()=2;
 
 def func: ():mut int = noe;
+
+def a := 5;
+let b := 20;
