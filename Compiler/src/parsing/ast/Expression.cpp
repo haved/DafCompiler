@@ -75,6 +75,8 @@ FunctionExpression::FunctionExpression(bool isInline, unique_ptr<FunctionType>&&
 }
 
 void FunctionExpression::printSignature() {
+	if(m_inline)
+		std::cout << "inline ";
 	m_functionType->printSignature();
 	std::cout << " ";
 	if(DafSettings::shouldPrintFullSignature()) {

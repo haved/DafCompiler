@@ -40,15 +40,24 @@ unique_ptr<Expression> parseRealNumberExpression(Lexer& lexer) {
 //Either starts at 'inline', or the token after '('
 unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
 	assert(lexer.currType() != LEFT_PAREN); //We shall always start either at inline, or INSIDE the parameter list
+
+	int startLine, startCol;
+
 	bool isInline = false;
 	if(lexer.currType() == INLINE)  {
 		isInline = true;
 		lexer.advance(); //Eat 'inline'
 
+		startLine = lexer.getPreviousToken().line;
+		startCol  = lexer.getPreviousToken().col;
+
 		if(!lexer.expectToken(LEFT_PAREN))
 			return none_exp();
 
 		lexer.advance(); //Eat '('
+	} else {
+		startLine = lexer.getPreviousToken().line;
+		startCol  = lexer.getPreviousToken().col;
 	}
 	assert(lexer.getPreviousToken().type == LEFT_PAREN);
 
@@ -64,7 +73,7 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
 	if(!body) //Error recovery should already have been done to pass the body expression
 		return none_exp();
 
-	TextRange range(type->getRange(), body->getRange());
+	TextRange range(startLine, startCol, body->getRange());
    	//We are assured that the body isn't null, so the ctor won't complain
 	return std::make_unique<FunctionExpression>(isInline, std::move(type), std::move(body), range);
 }

@@ -2,7 +2,6 @@
 #include "DafLogger.hpp"
 #include "parsing/ErrorRecovery.hpp"
 #include "parsing/FunctionSignatureParser.hpp"
-#include <vector>
 
 TypeReference parseAliasForType(Lexer& lexer) {
 	assert(lexer.currType() == IDENTIFIER);
@@ -11,6 +10,7 @@ TypeReference parseAliasForType(Lexer& lexer) {
 		  std::string(lexer.getPreviousToken().text), TextRange(lexer.getPreviousToken())  ));
 }
 
+//Also used by the Expression parser
 unique_ptr<FunctionType> parseFunctionTypeSignature(Lexer& lexer, bool allowEatingEquals) {
 	if(lexer.currType() == LEFT_PAREN)
 		lexer.advance();
@@ -20,7 +20,7 @@ unique_ptr<FunctionType> parseFunctionTypeSignature(Lexer& lexer, bool allowEati
 	int startLine = lexer.getPreviousToken().line;
 	int startCol  = lexer.getPreviousToken().col;
 	std::vector<FuncSignParameter> params;
-	if(!parseFuncSignParameterList(lexer, params, false)) //If this returns false we've really failed
+	if(!parseFuncSignParameterList(lexer, params, false)) //If this returns false we've really failed (EOF?)
 		return std::unique_ptr<FunctionType>();
 	auto returnInfo = parseFuncSignReturnInfo(lexer, allowEatingEquals);
 	if(!returnInfo)

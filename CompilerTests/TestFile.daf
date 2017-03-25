@@ -21,6 +21,8 @@ def funcFunc  := ()=2;
 
 def withParams := (a:int, uncrt b:ur):=3;
 
+def test := (inline(test:A, :A, :b):let={});
+
 def func: ():mut int = noe;
 
 def a := 5;
