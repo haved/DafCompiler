@@ -17,3 +17,5 @@ def thirdFunc := ():let mut ey = globalVar;
 def forthFunc := ():mut= globalChar;
 def fifthFunc := ():let ey { globalEy };
 def funcFunc  := ()=2;
+
+def func: ():mut int = noe;
