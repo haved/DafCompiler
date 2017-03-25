@@ -66,8 +66,8 @@ void FunctionParameter::printSignature() {
 }
 
 FunctionType::FunctionType(std::vector<FunctionParameter>&& params,
-						   bool isInline, TypeReference&& returnType, FunctionReturnModifier returnTypeModif, const TextRange& range)
-	: Type(range), m_parameters(std::move(params)), m_inline(isInline), m_returnType(std::move(returnType)), m_returnTypeModifier(returnTypeModif) {}
+						   bool isInline, TypeReference&& returnType, FunctionReturnModifier returnTypeModif, bool hasBodyEqualsSign, const TextRange& range)
+	: Type(range), m_parameters(std::move(params)), m_inline(isInline), m_returnType(std::move(returnType)), m_returnTypeModifier(returnTypeModif), m_hasBodyEqualsSign(hasBodyEqualsSign) {}
 
 void FunctionType::printSignature() {
 	if(m_inline)
@@ -81,12 +81,16 @@ void FunctionType::printSignature() {
 	}
 	std::cout << ")";
 
-	if(m_returnType.hasType()) {
+	if(m_returnTypeModifier != FunctionReturnModifier::NO_RETURN) {
 		std::cout << ":";
 		if(m_returnTypeModifier == FunctionReturnModifier::LET_RETURN)
 			std::cout << "let ";
 		else if(m_returnTypeModifier == FunctionReturnModifier::MUT_RETURN)
 			std::cout << "mut ";
-		m_returnType.printSignature();
+		if(m_returnType)
+			m_returnType.printSignature();
+	}
+	if(m_hasBodyEqualsSign) {
+		std::cout << "=";
 	}
 }

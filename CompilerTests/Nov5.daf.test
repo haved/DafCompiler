@@ -11,4 +11,5 @@ def main:=(a:int, b:long, c:ANY_IDENTIFIER):int {
     /*():int()+()()+(a:int)(23/*, a*/+45+& & &a)-{a}*/
 };
 
-def anotherFunc:=(a:int):int a*2;
+//Changed 2017-03-25 to include the equals sign
+def anotherFunc:=(a:int):int = a*2;

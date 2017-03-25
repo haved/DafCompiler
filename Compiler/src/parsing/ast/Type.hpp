@@ -88,7 +88,7 @@ public:
 	void printSignature();
 
 	inline FunctionParameterType getParameterKind() { return m_ref_type; }
-	inline bool isTypeInferred() { return m_typeInferred; }
+	//inline bool isTypeInferred() { return m_typeInferred; }
 	inline const TextRange& getRange() { return m_range; }
 };
 
@@ -102,10 +102,14 @@ private:
 	bool m_inline;
 	TypeReference m_returnType;
 	FunctionReturnModifier m_returnTypeModifier;
+	bool m_hasBodyEqualsSign;
 public:
-    FunctionType(std::vector<FunctionParameter>&& params, bool isInline, TypeReference&& returnType, FunctionReturnModifier returnTypeModif, const TextRange& range);
-	int getSize() { assert(false); return 0; }
+    FunctionType(std::vector<FunctionParameter>&& params, bool isInline, TypeReference&& returnType, FunctionReturnModifier returnTypeModif, bool hasBodyEqualsSign, const TextRange& range);
 	void printSignature();
 
+	inline TypeReference& getReturnType() { return m_returnType; }
+	//null return type & something other than NO_RETURN means we must infer the type
+	inline bool isReturnTypeInferred() { return m_returnTypeModifier != FunctionReturnModifier::NO_RETURN && !m_returnType; }
+	inline bool requiresScopeBody() { return !m_hasBodyEqualsSign; } //Only after an '=' may the body not be a scope
 	inline std::vector<FunctionParameter>& getParameters() { return m_parameters; }
 };

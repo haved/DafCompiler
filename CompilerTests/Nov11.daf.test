@@ -8,10 +8,12 @@ def main:=(a:int, b:long, c:ANY_IDENTIFIER):int {
     let a:=5;
     a=a-5*a&2-&mut -a; //Well shit. must change how - works
     call(23, & &a);
-    ():int()+()()+(a:int)(/*23,*/ a+45+& & &a)-{a}
+	//FOLLOWING LINE REMOVED AT 2017-03-25 as function rules got more strict
+    //():int()+()()+(a:int)(/*23,*/ a+45+& & &a)-{a}
 };
 
-def anotherFunc:=(a:int):int a*2;
+//Added '=' at 2017-03-25 to comply with new function body rules
+def anotherFunc:=(a:int):int = a*2;
 
 def test:=(4.1+5.2)*2.4e2f32;
 

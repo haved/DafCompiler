@@ -7,12 +7,24 @@
 
 using boost::optional;
 
-//Start parsing a function parameter list and possibly return type
-//Start parsing at '(', 'inline (' or on the token after, and it'll eat all the way until the end as well as the ')'
-//If there is a ':' it will parse a return type and the return type modifiers
-//It will not parse a return type if there is an equals sign, a null return type without FunctionReturnModifier set to NO_RETURN means you'll infer the type
-//null return means error, but it'll have left a potential parameter list
-std::unique_ptr<FunctionType> parseFunctionType(Lexer& lexer);
+/**
+ * Parses a function signature from '(', 'inline (' or the token after '('
+ * There are multiple grammars possible, some of which need canEatEquals to be true
+ * parameterList  colon   returnModifiers    returnType   equals              RETURN_TYPE    REQUIRE_SCOPE_BODY
+ *      ()                                                                    no return             true
+ *      ()                                                   =                no return             false
+ *      ()          :        let mut                         =                inferred              false
+ *      ()          :        let mut            int          =                explicit              false
+ *      ()          :        let mut            int                           explicit              true
+ *
+ * All signatures need a parameterList.
+ * If there is a colon, something is returned
+ * Return modifiers are always optional
+ * Explicit types are required when you don't have equals, but both can be present
+ * Equals means you don't need the body of a function expression to be a scope
+ * When canEatEquals is false, a.k.a. when parsing a literal type, return needs to be explicit.
+ */
+std::unique_ptr<FunctionType> parseFunctionTypeSignature(Lexer& lexer, bool canEatEquals);
 
 //The type reference will be null if there was an error
 //Will not recover errors itself, but will not return inside a scope

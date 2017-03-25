@@ -39,24 +39,17 @@ unique_ptr<Expression> parseRealNumberExpression(Lexer& lexer) {
 
 //Either starts at '(', 'inline', or the token after '('
 unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
-	unique_ptr<FunctionType> type = parseFunctionType(lexer);
+	unique_ptr<FunctionType> type = parseFunctionTypeSignature(lexer, true); //Allow eating '='
 	if(!type)
 		return none_exp();
+
+	if(type->requiresScopeBody() && lexer.currType() != SCOPE_START) {
+		logDafExpectedToken("a scoped function body", lexer);
+	}
 
 	unique_ptr<Expression> body = parseExpression(lexer); //Prints error message if null
 	if(!body) //Error recovery should already have been done to pass the body expression
 		return none_exp();
-
-	for(auto it = type->getParameters().begin(); it != type->getParameters().end(); ++it) {
-		if(it->getParameterKind() == FunctionParameterType::TYPE_PARAM) {
-			logDaf(lexer.getFile(), it->getRange(), ERROR) << "A normal function can't take type parameters, aka parameters without a colon" << std::endl;
-			return none_exp();
-		}
-		else if(it->isTypeInferred()) {
-			logDaf(lexer.getFile(), it->getRange(), ERROR) << "A normal function can't take parameters with inferred types" << std::endl;
-			return none_exp();
-		}
-	}
 
 	TextRange range(type->getRange(), body->getRange());
    	//We are assured that the body isn't null, so the ctor won't complain

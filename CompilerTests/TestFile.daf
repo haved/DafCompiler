@@ -11,7 +11,9 @@ def main := (a:int, mut b:ey, move boy:ey, uncrt c:ey, /*dtor*/ inst:MyClass):/*
 	print(inst.deathMessage());
 };
 
+//This calls the scope
 def otherFunc := () { return; };
-//def thirdFunc := ():let mut ey = globalVar;
-//def forthFunc := ():mut= { globalChar; };
+def thirdFunc := ():let mut ey = globalVar;
+def forthFunc := ():mut= globalChar;
 def fifthFunc := ():let ey { globalEy };
+def funcFunc  := ()=2;
