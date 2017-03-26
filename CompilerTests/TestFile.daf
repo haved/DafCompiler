@@ -1,4 +1,4 @@
-// -*- compile-command: "./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
+// -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
 pub namedef IO := {def a:=4;};
 pub typedef ey := int;

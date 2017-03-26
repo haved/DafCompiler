@@ -8,7 +8,7 @@
 ###Noo, 2016-12-04
 
 cmakeTarget = "Unix Makefiles" #Ninja
-makeCommand = ["make", "-j3"] #["ninja"]
+makeCommand = ["make", "-j4"] #["ninja"]
 
 from subprocess import call
 from sys import argv
