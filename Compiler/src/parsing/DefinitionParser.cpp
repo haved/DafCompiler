@@ -98,7 +98,7 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 	std::string name(lexer.getCurrentToken().text);
 	lexer.advance(); //Eat identifier
 
-	//TODO Parameter parsing
+	//TODO Parameter parsing, with compile time parameters allowed
 
 	unique_ptr<FuncSignReturnInfo> info = parseFuncSignReturnInfo(lexer, true); //Allow eating equals
 	if(!info)

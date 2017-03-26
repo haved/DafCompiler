@@ -105,12 +105,12 @@ void resetTokenSpecialValues(Token& token) {
 	token.integer = 0;
 }
 
-bool setTokenFromWord(Token& token, const std::string& text, int line, int startCol, int endCol) {
+bool setTokenFromOwnWord(Token& token, int line, int startCol, int endCol) {
 	token.line = line;
 	token.col = startCol;
 	token.endCol = endCol;
 	for(unsigned int tokenType = 0; tokenType < sizeof(TOKEN_TEXT)/sizeof(char*); tokenType++) {
-		if(text==TOKEN_TEXT[tokenType]) {
+		if(token.text==TOKEN_TEXT[tokenType]) {
 			token.type = static_cast<TokenType>(tokenType);
 			resetTokenSpecialValues(token);
 			return true;
@@ -118,7 +118,7 @@ bool setTokenFromWord(Token& token, const std::string& text, int line, int start
 	}
 
 	token.type = IDENTIFIER;
-	resetTokenSetText(token, text);
+	//The text is already set
 	return true;
 }
 

@@ -112,7 +112,8 @@ bool Lexer::advance() {
 				continue; //Otherwise an error was given and we keep looking for tokens
 			}
 			else if(isStartOfText(currentChar)) {
-				std::string word;
+				std::string& word = getLastToken().text;
+				word.clear();
 				word.push_back(currentChar);
 				int startCol = col, startLine = line;
 				while(true) {
@@ -121,7 +122,7 @@ bool Lexer::advance() {
 						break;
 					word.push_back(currentChar);
 				}
-				if(!setTokenFromWord(getLastToken(), word, startLine, startCol, col)) {
+				if(!setTokenFromOwnWord(getLastToken(), startLine, startCol, col)) {
 					logDaf(fileForParsing, line, startCol, ERROR) << "Token '" << word << "' not recognized" << std::endl;
 					continue;
 				}

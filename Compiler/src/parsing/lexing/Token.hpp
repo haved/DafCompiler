@@ -65,7 +65,7 @@ const char* getTokenTypeText(const TokenType& type);
 
 const char* getTokenText(const Token& token);
 
-bool setTokenFromWord(Token& token, const std::string& word, int line, int startCol, int endCol);
+bool setTokenFromOwnWord(Token& token, int line, int startCol, int endCol);
 
 bool setTokenFromSpecialChar(Token& token, char c, int line, int col);
 

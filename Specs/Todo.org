@@ -3,11 +3,14 @@
 * TODO Parsing
 ** TODO Definitions
 *** Let
-**** TODO Let declaration be two separate tokens
+**** DONE Let declaration be two separate tokens
+	 CLOSED: [2017-03-26 Sun 14:30]
 This could be done by always merging ':' and '='
+EDIT: We solved it by just handling it
 *** Def
 **** TODO Add scope syntax
-**** TODO Use return type syntax from function types
+**** DONE Use return type syntax from function types
+	 CLOSED: [2017-03-26 Sun 14:30]
 ***** TODO Might as well add compile-time parameters while at it
 *** DONE Typedef
 	CLOSED: [2017-02-07 Tue 23:00]
@@ -126,6 +129,7 @@ As in ordering of functions found in both. Purely for consistency's sake.
 	CLOSED: [2017-02-12 Sun 23:11]
 ** TODO Char literal syntax
 
+** TODO Speed up lexer by reusing string objects
 * Necessary(?) Feature creep
 ** TODO Flesh out 'own' syntax and semantics
 For instance:
