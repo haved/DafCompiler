@@ -23,10 +23,11 @@ public:
 	virtual bool isStatement()=0;
 };
 
-enum DefType {
+enum class DefType {
 	DEF_NORMAL,
 	DEF_LET,
-	DEF_MUT
+	DEF_MUT,
+	NO_RETURN_DEF
 };
 
 class DefDeclaration {
@@ -79,7 +80,7 @@ public:
 	NameScopeExpression(const TextRange& range);
 	virtual ~NameScopeExpression();
 	virtual void printSignature()=0;
-  inline const TextRange& getRange() { return m_range; }
+	inline const TextRange& getRange() { return m_range; }
 	//virtual void fillDefinitionHashMap or whatever
 };
 

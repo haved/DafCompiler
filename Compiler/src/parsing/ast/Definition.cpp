@@ -18,7 +18,9 @@ Def::Def(bool pub, DefType defType, std::string&& name,
          TypeReference&& type,
          unique_ptr<Expression>&& expression,
          const TextRange &range)
-	: Definition(pub, range), m_declaration(defType, std::move(name), std::move(type)), m_expression(std::move(expression)) {}
+	: Definition(pub, range), m_declaration(defType, std::move(name), std::move(type)), m_expression(std::move(expression)) {
+	assert( !(defType == DefType::NO_RETURN_DEF && m_declaration.type)  ); //We can't have a type when kind is NO_RETURN
+}
 
 Let::Let(bool pub, bool mut, std::string&& name,
          TypeReference&& type,
@@ -26,14 +28,23 @@ Let::Let(bool pub, bool mut, std::string&& name,
          const TextRange &range) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_type(std::move(type)), m_expression(std::move(expression)) {}
 
 void Def::printSignature() {
-	std::cout << "def " << (m_declaration.defType==DEF_LET?"let ":"") << (m_declaration.defType==DEF_MUT?"mut ":"")
-			  << m_declaration.name;
-	if(m_declaration.type.hasType() || m_expression)
-		std::cout << " :";
+	std::cout << "def ";
+
+	switch(m_declaration.defType) {
+	case DefType::DEF_LET: std::cout << "let "; break;
+	case DefType::DEF_MUT: std::cout << "mut "; break;
+	default: break; //DEF_NORMAL or NO_RETURN_DEF
+	}
+
+	std::cout << m_declaration.name << " ";
+
+	if(m_declaration.defType != DefType::NO_RETURN_DEF)
+		std::cout << ": ";
+
 	if(m_declaration.type.hasType())
 		m_declaration.type.printSignature();
 	if(m_expression) {
-		std::cout << "= ";
+		std::cout << "= "; //This equals sign might be misleading and not a part of the source
 		m_expression->printSignature();
 	}
 	std::cout << ";" << std::endl;

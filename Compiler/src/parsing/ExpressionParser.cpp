@@ -96,11 +96,11 @@ unique_ptr<Expression> parseParenthesies(Lexer& lexer) {
 	return expr;
 }
 
-unique_ptr<Expression> parseScope(Lexer& lexer) {
+unique_ptr<Scope> parseScope(Lexer& lexer) {
 	assert(lexer.currType()==SCOPE_START);
 
 	int startLine = lexer.getCurrentToken().line;
-	int startCol = lexer.getCurrentToken().col;
+	int startCol  = lexer.getCurrentToken().col;
 
 	lexer.advance(); //Eat '{'
 	while(lexer.currType()==STATEMENT_END)
@@ -130,7 +130,7 @@ unique_ptr<Expression> parseScope(Lexer& lexer) {
 			lexer.advance();
 	}
 
-	//Is it worth it? It's a vector to pointers, after all
+	//TODO: Is it worth it? It's a vector to pointers, after all
 	statements.shrink_to_fit();
 
 	TextRange range(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol);

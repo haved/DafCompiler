@@ -6,12 +6,13 @@
 //Scope is not in Expression.hpp because it must include Statement, which in turn includes Expression.hpp
 class Scope : public Expression {
 private:
-  std::vector<std::unique_ptr<Statement>> m_statements;
-  std::unique_ptr<Expression> m_outExpression;
+	std::vector<std::unique_ptr<Statement>> m_statements;
+	std::unique_ptr<Expression> m_outExpression;
 public:
-  Scope(const TextRange& range, std::vector<std::unique_ptr<Statement>>&& statements, std::unique_ptr<Expression> finalOutExpression);
-  bool isStatement(); //true
+	Scope(const TextRange& range, std::vector<std::unique_ptr<Statement>>&& statements, std::unique_ptr<Expression> finalOutExpression);
+	bool isStatement(); //true
 	bool needsSemicolonAfterStatement(); //often false
 	void printSignature();
-  bool findType();
+	bool findType();
+	inline bool hasFinalOutExpression() { return !!m_outExpression; }
 };

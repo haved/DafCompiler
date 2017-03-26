@@ -11,6 +11,9 @@ def main := (a:int, mut b:ey, move boy:ey, uncrt c:ey, /*dtor*/ inst:MyClass):/*
 	print(inst.deathMessage());
 };
 
+def a:int = 20;
+def a:int {20};
+
 
 //This calls the scope
 def otherFunc := () { return; };
@@ -27,3 +30,10 @@ def func: ():mut int = noe;
 
 def a := 5;
 let b := 20;
+
+
+let a : = 3;
+def a := 3;
+def let a :mut int=3;
+def b = 2; //TODO: Remove this from everything. It's ugly and confusing
+def test {2++;};

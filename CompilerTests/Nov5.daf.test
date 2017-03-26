@@ -2,7 +2,7 @@
 
 let mut a:int=5;
 pub def mut b:=a;
-def let mut func:myType;
+//def let mut func:myType; REMOVED 2017-03-26 as i'm unsure about syntax
 
 def main:=(a:int, b:long, c:ANY_IDENTIFIER):int {
     let a:=5;

@@ -54,6 +54,8 @@ public:
 	bool hasReturnType();
 	bool typeInferred();
 	const TextRange& getRange();
+	inline FuncSignReturnKind getReturnKind() { return m_kind; }
+	inline TypeReference&& reapType() && { return std::move(m_type); }
 };
 
 class FunctionType : public Type {
