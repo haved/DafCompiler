@@ -20,7 +20,8 @@ def otherFunc := () { return; };
 def thirdFunc := ():let mut ey = globalVar;
 def forthFunc := ():mut= globalChar;
 def fifthFunc := ():let ey { globalEy };
-def funcFunc  := ()=2;
+def funcFunc  := () {2++;};
+def func {2++;};
 
 def withParams := (a:int, uncrt b:ur):=3;
 
@@ -35,5 +36,4 @@ let b := 20;
 let a : = 3;
 def a := 3;
 def let a :mut int=3;
-def b = 2; //TODO: Remove this from everything. It's ugly and confusing
 def test {2++;};

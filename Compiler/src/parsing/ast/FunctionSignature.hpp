@@ -49,12 +49,12 @@ private:
 	bool m_ateEqualsSign; //true means we don't need a scope body
 public:
 	FuncSignReturnInfo(FuncSignReturnKind kind, TypeReference&& type, bool ateEqualsSign, const TextRange& range);
-	void printSignature();
-	bool requiresScopedBody();
-	bool hasReturnType();
-	bool typeInferred();
-	const TextRange& getRange();
-	inline FuncSignReturnKind getReturnKind() { return m_kind; }
+	void printSignature(); //Not const, as that would require TypeReference.printSignature() to be const
+	bool requiresScopedBody() const;
+	bool hasReturnType() const;
+	bool typeInferred() const;
+	const TextRange& getRange() const;
+	FuncSignReturnKind getReturnKind() const;
 	inline TypeReference&& reapType() && { return std::move(m_type); }
 };
 
@@ -65,5 +65,5 @@ private:
 public:
 	FunctionType(std::vector<FuncSignParameter>&& parameters, unique_ptr<FuncSignReturnInfo> returnInfo, const TextRange& range);
 	void printSignature();
-	inline bool requiresScopedBody() { return m_returnInfo->requiresScopedBody(); }
+	inline const FuncSignReturnInfo& getReturnInfo() { return *m_returnInfo; }
 };

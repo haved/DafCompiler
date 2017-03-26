@@ -63,18 +63,22 @@ void FuncSignReturnInfo::printSignature() {
 		std::cout << "=";
 }
 
-bool FuncSignReturnInfo::requiresScopedBody() {
+bool FuncSignReturnInfo::requiresScopedBody() const {
 	return !m_ateEqualsSign; //If we didn't eat an equals sign, we need a potential body to be {}
 }
 
-bool FuncSignReturnInfo::hasReturnType() {
+bool FuncSignReturnInfo::hasReturnType() const {
 	return m_kind != FuncSignReturnKind::NO_RETURN;
 }
 
-bool FuncSignReturnInfo::typeInferred() {
+bool FuncSignReturnInfo::typeInferred() const {
 	return !m_type && hasReturnType();
 }
 
-const TextRange& FuncSignReturnInfo::getRange() {
+const TextRange& FuncSignReturnInfo::getRange() const {
 	return m_range;
+}
+
+FuncSignReturnKind FuncSignReturnInfo::getReturnKind() const {
+	return m_kind;
 }

@@ -104,13 +104,13 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 	if(!info)
 		return none_defnt();
 
-	FuncSignReturnKind kind = info->getReturnKind();
-	if(kind == FuncSignReturnKind::LET_RETURN && def_type != DefType::DEF_MUT)
+	FuncSignReturnKind kind = info->getReturnKind(); //Here we combine our def modifiers with the return info's
+	if(kind == FuncSignReturnKind::LET_RETURN && def_type != DefType::DEF_MUT) //Highest bidder wins
 		def_type = DefType::DEF_LET;
 	else if(kind == FuncSignReturnKind::MUT_RETURN)
 		def_type = DefType::DEF_MUT;
 
-	if(!info->hasReturnType()) { //NO_RETURN
+	if(!info->hasReturnType()) { //NO_RETURN, aka. no ':'
 		if(def_type != DefType::DEF_NORMAL)
 			logDaf(lexer.getFile(), startLine, startCol, ERROR) << "can't have def let/mut on void type def" << std::endl;
 		def_type = DefType::NO_RETURN_DEF;
@@ -123,7 +123,7 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 		if(!scope)
 			return none_defnt();
 		if(!info->hasReturnType() && scope->hasFinalOutExpression())
-			logDaf(lexer.getFile(), scope->getRange(), WARNING) << "scope body has return value that won't be returned from def" << std::endl;
+			logDaf(lexer.getFile(), scope->getFinalOutExpression().getRange(), WARNING) << "scope body has return value that won't be returned from def" << std::endl;
 		body = std::move(scope);
 	} else {
 		if(info->requiresScopedBody())

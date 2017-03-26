@@ -30,8 +30,8 @@ private:
 public:
 	TypeReference();
 	TypeReference(unique_ptr<Type>&& type);
-	inline bool hasType() { return !!m_type; }
-	inline operator bool() { return hasType(); }
+	inline bool hasType() const { return !!m_type; }
+	inline operator bool() const { return hasType(); }
 	inline Type* getType() { if(m_type) return m_type->getType(); else return nullptr; }
 	inline bool hasRange() { return hasType() && m_type->hasRange(); }
 	inline const TextRange& getRange() { assert(m_type); return m_type->getRange(); }

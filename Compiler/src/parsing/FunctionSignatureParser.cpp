@@ -111,6 +111,7 @@ std::unique_ptr<FuncSignReturnInfo> parseFuncSignReturnInfo(Lexer& lexer, bool a
 	if(lexer.currType() != TYPE_SEPARATOR) {
 		bool equalsSignEaten = false;
 		if(lexer.currType() == ASSIGN && allowEatingEquals) {
+			logDaf(lexer.getFile(), lexer.getCurrentToken(), WARNING) << "using only = in a declaration means no return type. If that is what you want, use a scoped body instead" << std::endl;
 			lexer.advance(); //Eat '='
 			equalsSignEaten = true;
 		}

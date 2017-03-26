@@ -65,13 +65,24 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
 	if(!type)
 		return none_exp();
 
-	if(type->requiresScopedBody() && lexer.currType() != SCOPE_START) {
-		logDafExpectedToken("a scoped function body", lexer);
-	}
+	unique_ptr<Expression> body;
 
-	unique_ptr<Expression> body = parseExpression(lexer); //Prints error message if null
-	if(!body) //Error recovery should already have been done to pass the body expression
-		return none_exp();
+	if(lexer.currType() == SCOPE_START) {
+		unique_ptr<Scope> scope = parseScope(lexer);
+		if(!scope)
+			return none_exp();
+		if(!type->getReturnInfo().hasReturnType() && scope->hasFinalOutExpression())
+			logDaf(lexer.getFile(), scope->getFinalOutExpression().getRange(), WARNING) << "function without return type has scoped body with return value" << std::endl;
+		body = std::move(scope);
+	}
+	else {
+		if(type->getReturnInfo().requiresScopedBody())
+			logDafExpectedToken("a scoped function body", lexer);
+		body = parseExpression(lexer); //Prints error message if null
+		if(!body) //Error recovery should already have been done to pass the body expression
+			return none_exp();
+
+	}
 
 	TextRange range(startLine, startCol, body->getRange());
    	//We are assured that the body isn't null, so the ctor won't complain
