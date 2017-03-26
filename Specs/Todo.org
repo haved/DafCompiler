@@ -129,7 +129,8 @@ As in ordering of functions found in both. Purely for consistency's sake.
 	CLOSED: [2017-02-12 Sun 23:11]
 ** TODO Char literal syntax
 
-** TODO Speed up lexer by reusing string objects
+** DONE Speed up lexer by reusing string objects
+   CLOSED: [2017-03-26 Sun 14:39]
 * Necessary(?) Feature creep
 ** TODO Flesh out 'own' syntax and semantics
 For instance:
