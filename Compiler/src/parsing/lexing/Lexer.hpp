@@ -45,4 +45,5 @@ public:
 	inline bool hasCurrentToken() {return currType() != END_TOKEN;}
 	inline const FileForParsing& getFile() {return fileForParsing;}
 	bool expectToken(const TokenType& type);
+	bool expectTokenAfterPrev(const TokenType& type);
 };

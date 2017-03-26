@@ -19,6 +19,7 @@ public:
 	virtual ~Expression();
 	virtual bool isStatement();
 	virtual bool needsSemicolonAfterStatement();
+	virtual bool evaluatesToValue() const;
 	virtual const Type& getType();
 	virtual bool isTypeKnown();
 	//returns true if it has a type after the call

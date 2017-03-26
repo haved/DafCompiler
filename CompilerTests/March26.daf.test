@@ -1,0 +1,39 @@
+// -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
+
+pub namedef IO := {def a:=4;};
+pub typedef ey := int;
+pub with :int as ey;
+
+def main := (a:int, mut b:ey, move boy:ey, uncrt c:ey, /*dtor*/ inst:MyClass):/*ctor*/ int {
+	b++;
+	thisf = a+b;
+	c = a-b;
+	print(inst.deathMessage());
+};
+
+def a:int = 20;
+def a:int {20};
+
+
+//This calls the scope
+def otherFunc := () { return; };
+def thirdFunc := ():let mut ey = globalVar;
+def forthFunc := ():mut= globalChar;
+def fifthFunc := ():let ey { globalEy };
+def funcFunc  := () {2++;};
+def func {2++;};
+
+def withParams := (a:int, uncrt b:ur):=3;
+
+def test := (inline(test:A, :A, :b):let={});
+
+def func: ():mut int = noe;
+
+def a := 5;
+let b := 20;
+
+
+let a : = 3;
+def a := 3;
+def let a :mut int=3;
+def test {2++;};

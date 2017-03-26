@@ -183,7 +183,7 @@ unique_ptr<Statement> handleExpressionToStatement(unique_ptr<Expression> express
 	if(!expression)
 		return null_stmt();
 
-	if(finalOutExpression && lexer.currType()==SCOPE_END) { //All expressions can be final out expressions
+	if(finalOutExpression && lexer.currType()==SCOPE_END && expression->evaluatesToValue()) {
 		assert(**finalOutExpression == nullptr);
 		(*finalOutExpression)->swap(expression);
 		return null_stmt(); //We have a final out expression, so we return none, but it shouldn't matter to the caller
@@ -199,9 +199,9 @@ unique_ptr<Statement> handleExpressionToStatement(unique_ptr<Expression> express
 	TextRange range = expression->getRange();
 	if(lexer.currType() == STATEMENT_END) {
 		range = TextRange(range, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol);
-		lexer.advance();
+		lexer.advance(); //Eat ';'
 	} else if(expression->needsSemicolonAfterStatement())
-		lexer.expectToken(STATEMENT_END);
+		lexer.expectTokenAfterPrev(STATEMENT_END);
 
 	return unique_ptr<Statement>(new ExpressionStatement(std::move(expression), range));
 }

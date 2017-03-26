@@ -14,6 +14,6 @@ public:
 	bool needsSemicolonAfterStatement(); //often false
 	void printSignature();
 	bool findType();
-	inline bool hasFinalOutExpression() const { return !!m_outExpression; }
+	inline bool evaluatesToValue() const override { return !!m_outExpression; } //We know outExpression evaluatesToValue
 	inline Expression& getFinalOutExpression() { assert(m_outExpression); return *m_outExpression; }
 };

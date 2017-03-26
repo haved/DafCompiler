@@ -55,6 +55,14 @@ void logDafExpectedToken(const std::string& expected, Lexer& lexer) {
     logDaf(lexer.getFile(), ERROR) << "expected " << expected << " before EOF" << endl;
 }
 
+void logDafExpectedTokenAfterPrev(const std::string& expected, Lexer& lexer) {
+	assert(lexer.getPreviousToken().type != NEVER_SET_TOKEN);
+
+	Token& prev = lexer.getPreviousToken();
+	logDaf(lexer.getFile(), prev.line, prev.endCol, ERROR) << "expected " << expected << " after '" << getTokenText(prev) << "' token" << endl;
+}
+
+
 void terminateIfErrors() {
   if(errorsOccured == NO_ERROR)
     return;

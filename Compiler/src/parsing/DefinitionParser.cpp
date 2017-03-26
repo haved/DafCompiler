@@ -122,7 +122,7 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 		unique_ptr<Scope> scope = parseScope(lexer);
 		if(!scope)
 			return none_defnt();
-		if(!info->hasReturnType() && scope->hasFinalOutExpression())
+		if(!info->hasReturnType() && scope->evaluatesToValue())
 			logDaf(lexer.getFile(), scope->getFinalOutExpression().getRange(), WARNING) << "scope body has return value that won't be returned from def" << std::endl;
 		body = std::move(scope);
 	} else {

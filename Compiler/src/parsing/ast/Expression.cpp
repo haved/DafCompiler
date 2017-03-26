@@ -9,6 +9,7 @@ Expression::~Expression() {}
 
 bool Expression::isStatement() { return false; }
 bool Expression::needsSemicolonAfterStatement() { return true; }
+bool Expression::evaluatesToValue() const { return true; }
 
 bool Expression::isTypeKnown() {
 	assert(false);

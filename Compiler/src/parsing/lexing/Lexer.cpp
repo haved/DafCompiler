@@ -28,7 +28,15 @@ bool Lexer::expectToken(const TokenType& type) {
 	return true;
 }
 
-bool isWhitespace(char c) {
+bool Lexer::expectTokenAfterPrev(const TokenType& type) {
+	if(type != currType()) {
+		logDafExpectedTokenAfterPrev(getTokenTypeText(type), *this);
+		return false;
+	}
+	return true;
+}
+
+inline bool isWhitespace(char c) {
 	return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }
 

@@ -71,7 +71,7 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
 		unique_ptr<Scope> scope = parseScope(lexer);
 		if(!scope)
 			return none_exp();
-		if(!type->getReturnInfo().hasReturnType() && scope->hasFinalOutExpression())
+		if(!type->getReturnInfo().hasReturnType() && scope->evaluatesToValue())
 			logDaf(lexer.getFile(), scope->getFinalOutExpression().getRange(), WARNING) << "function without return type has scoped body with return value" << std::endl;
 		body = std::move(scope);
 	}

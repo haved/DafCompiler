@@ -48,6 +48,11 @@ Also requires Name-scope-expressions
 **** Function calls
 **** Array access
 *** Scopes
+**** TODO Complain when finalOutExpression is thrown strait to a void
+**** TODO Require semicolon after scope if returns an expression, unless itself is returned
+Already implemented a long time ago, but make the warning better!
+This will require a file id system for the TextRanges
+**** TODO Scopes w/o finalOutExpression can't be finalOutExpressions
 *** DONE With
 	CLOSED: [2017-02-07 Tue 18:33]
 **** DONE With else
@@ -62,6 +67,7 @@ Also requires Name-scope-expressions
 *** TODO Class and trait definitions
 *** TODO Merged types
 * TODO Reference resolving
+** TODO Restructure type reference system
 ** TODO Avoid recursion
 * TODO Type inference
 ** TODO Type checks for operators

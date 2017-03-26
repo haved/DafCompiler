@@ -22,4 +22,5 @@ std::ostream& logDaf(const FileForParsing& file, int line, int col, int logLevel
 std::ostream& logDaf(const FileForParsing &file, const TextRange& range, int logLevel);
 std::ostream& logDaf(const std::string& location, int logLevel);
 void logDafExpectedToken(const std::string& expected, Lexer& lexer);
+void logDafExpectedTokenAfterPrev(const std::string& expected, Lexer& lexer);
 void terminateIfErrors();
