@@ -1,0 +1,32 @@
+#+TITLE: The dafc command interface
+
+* Dafc input
+With dafc, you always get one binary output file, plus an eventual linkfile.
+The input is a set of paths, and the files to be included.
+The input files are specified relative to the paths given.
+The first kind of path is source path, the other include path.
+The difference being that only code from source paths ends up in the output binary.
+** Example command:
+=dafc -S src/ -I libs/someLib haved.Main -o bin/myProg.o -oL bin/Linkfile=
+This command will compile src/haved/Main.daf which in turn will include other files from the source and include paths.
+The output is bin/myProg.o, and the compiler will also output a linkfile at bin/Linkfile
+** Linkfile
+The linkfile we output will be containing all linkfile definitions parsed in code.
+The Linkfile will also include the output binary itself at the end.
+The purpose of the Linkfile is to find all object files and libraries needed to link the final executable.
+You can append extra statements to the linkfile with -L"statement" that will be put at the top.
+There aren't any official linkfile parsing rules, but some kind of priority thing might be needed.
+If you don't include any source paths, the current working directory is included.
+** Help page
+#+BEGIN_SRC 
+The dafc help page
+Usage: dafc [options] <sourceFiles>
+Source files are relative to the added paths, and parsing happens recursivly from there
+Options:
+-S <sourcePath>           Adds a search path for daf code that'll be included in the object file
+-I <includePath>          Adds a search path for daf code that won't be in the object file (headers)
+-o <outputBinary>         Sets the output binary location
+-oL <output linkfile>     Sets the output path and name for the exported linkfile
+-L <statement>            Includes the given statement in the link file
+-h --help                 Prints this help screen
+#+END_SRC
