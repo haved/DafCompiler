@@ -1,8 +1,9 @@
 #pragma once
 
 #include <string>
+#include <fstream>
 #include "parsing/lexing/Token.hpp"
-#include "parsing/lexing/ArgHandler.hpp"
+#include "RegisteredFile.hpp"
 
 #define TOKEN_COUNT_AMOUNT 4
 
@@ -10,7 +11,7 @@ using std::string;
 
 class Lexer {
 private:
-	const FileForParsing& fileForParsing;
+	RegisteredFile m_file; //This is already a pointer
 	std::ifstream infile;
 	Token tokens[TOKEN_COUNT_AMOUNT];
 	int currentToken;
@@ -32,7 +33,7 @@ private:
 	void inferAndCheckFloatType(char* type, int* typeSize, bool realNumber, int line, int col);
 	bool parseNumberLiteral(Token& token);
 public:
-	Lexer(const FileForParsing& file);
+	Lexer(RegisteredFile file);
 	bool advance();
 	inline Token& getFutureToken(int rel) {return tokens[(currentToken+TOKEN_COUNT_AMOUNT+rel)%TOKEN_COUNT_AMOUNT];}
 	inline Token& getCurrentToken() {return getFutureToken(0);}
@@ -43,7 +44,7 @@ public:
 	inline Token& getSecondToLastToken() {return getLookahead();}
 	inline Token& getPreviousToken() {return getFutureToken(-1);}
 	inline bool hasCurrentToken() {return currType() != END_TOKEN;}
-	inline const FileForParsing& getFile() {return fileForParsing;}
+	inline const RegisteredFile& getFile() {return m_file;}
 	bool expectToken(const TokenType& type);
 	bool expectTokenAfterPrev(const TokenType& type);
 };

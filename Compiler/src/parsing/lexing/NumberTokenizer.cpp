@@ -50,7 +50,7 @@ int Lexer::parseBase(string& text) {
 }
 
 //If no digits were passed, different literals give different errors
-void printNoDigitsError(int base, bool real, const FileForParsing& file, int line, int col) {
+void printNoDigitsError(int base, bool real, RegisteredFile file, int line, int col) {
   logDaf(file, line, col, ERROR) << "empty number literal: '"
        <<(base == 16 ? "0x."
             : base == 2 ? "0b" :"")
@@ -239,7 +239,7 @@ void Lexer::inferAndCheckFloatType(char* type, int* typeSize, bool realNumber, i
   }
 }
 
-void parseIntegerToToken(Token& token, int base, std::string& text, char type, int typeSize, const FileForParsing& file, int line, int col, int endCol) {
+void parseIntegerToToken(Token& token, int base, std::string& text, char type, int typeSize, RegisteredFile file, int line, int col, int endCol) {
   if(typeSize == 0)
     typeSize = 32; //Default integer size is 32
   assert(base == 10 || base == 2 || base == 16);

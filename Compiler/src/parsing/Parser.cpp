@@ -5,7 +5,7 @@
 #include "parsing/NameScopeParser.hpp"
 
 #include <iostream>
-
+/*
 void parseFileSyntax(FileForParsing& ffp) {
 	Lexer lexer(ffp);
 	parseFileAsNameScope(lexer, &ffp.m_nameScope);
@@ -14,3 +14,4 @@ void parseFileSyntax(FileForParsing& ffp) {
 	std::cout << std::endl;
 	terminateIfErrors();
 }
+*/

@@ -1,5 +1,6 @@
 #pragma once
 #include "parsing/ast/Type.hpp"
+#include "parsing/ast/FunctionSignature.hpp"
 #include "parsing/lexing/Lexer.hpp"
 
 #include <memory>

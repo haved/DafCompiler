@@ -27,19 +27,19 @@ std::ostream& logDaf(int logLevel) {
   return logDaf(DEFAULT_LOCATION, logLevel);
 }
 
-std::ostream& logDaf(const FileForParsing& file, int logLevel) {
+std::ostream& logDaf(RegisteredFile file, int logLevel) {
   logDafUpdateLevel(logLevel);
-  return cout << file.m_inputName.string() << ": " << logLevelNames[logLevel] << ": ";
+  return cout << file.get().m_inputName << ": " << logLevelNames[logLevel] << ": ";
 }
 
-std::ostream& logDaf(const FileForParsing& file, int line, int col, int logLevel) {
+std::ostream& logDaf(RegisteredFile file, int line, int col, int logLevel) {
     logDafUpdateLevel(logLevel);
-    return std::cout << file.m_inputName.string() << ": " << line << ":" << col << ": " << logLevelNames[logLevel] << ": ";
+    return std::cout << file.get().m_inputName << ": " << line << ":" << col << ": " << logLevelNames[logLevel] << ": ";
 }
 
-std::ostream& logDaf(const FileForParsing &file, const TextRange& range, int logLevel) {
+std::ostream& logDaf(RegisteredFile file, const TextRange& range, int logLevel) {
   logDafUpdateLevel(logLevel);
-  return std::cout << file.m_inputName.string() << ": " << range.getLine() << ":" << range.getCol() << "-" << range.getLastLine() << ":" << range.getEndCol() << ": " << logLevelNames[logLevel] << ": ";
+  return std::cout << file.get().m_inputName << ": " << range.getLine() << ":" << range.getCol() << "-" << range.getLastLine() << ":" << range.getEndCol() << ": " << logLevelNames[logLevel] << ": ";
 }
 
 std::ostream& logDaf(const std::string& location, int logLevel) {

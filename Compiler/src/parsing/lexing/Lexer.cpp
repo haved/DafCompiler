@@ -7,9 +7,10 @@
 #define FIRST_CHAR_COL 0 //The column the first char on a line is
 //TAB_WIDTH is defined in Constants.hpp
 
-Lexer::Lexer(const FileForParsing& file) : fileForParsing(file), infile(),
+Lexer::Lexer(RegisteredFile file) : m_file(file), infile(),
 										   tokens(), currentToken(0), line(0), col(0), currentChar(' '), lookaheadChar(' ') {
-	infile.open(file.m_inputFile.string()); //For the time being, there is no text processing
+	infile.open(file.get().m_inputFile.string()); //For the time being, there is no text processing
+	if(infile)
 	line = 1; //Says where the current char is
 	col = FIRST_CHAR_COL-2; //First char is col 0
 	advanceChar(); //To set look-ahead char
@@ -84,7 +85,7 @@ char Lexer::parseOneChar() {
 	default: break;
 	};
 
-	logDaf(fileForParsing, controlLine, controlCol, ERROR) << "Expected a special char, not '" << control << "'";
+	logDaf(m_file, controlLine, controlCol, ERROR) << "Expected a special char, not '" << control << "'";
 	return control;
 }
 
@@ -131,7 +132,7 @@ bool Lexer::advance() {
 					word.push_back(currentChar);
 				}
 				if(!setTokenFromOwnWord(getLastToken(), startLine, startCol, col)) {
-					logDaf(fileForParsing, line, startCol, ERROR) << "Token '" << word << "' not recognized" << std::endl;
+					logDaf(m_file, line, startCol, ERROR) << "Token '" << word << "' not recognized" << std::endl;
 					continue;
 				}
 				break;
@@ -141,12 +142,12 @@ bool Lexer::advance() {
 				int startCol = col, startLine = line;
 				advanceChar();
 				if(!setTokenFromSpecialChar(getLastToken(), c, startLine, startCol)) {
-					logDaf(fileForParsing, line, col, ERROR) << "Special char '" << currentChar << "' not a token" << std::endl;
+					logDaf(m_file, line, col, ERROR) << "Special char '" << currentChar << "' not a token" << std::endl;
 					continue;
 				}
 				break;
 			} else {
-				logDaf(fileForParsing, line, col, ERROR) << "Character not legal: " << currentChar << std::endl;
+				logDaf(m_file, line, col, ERROR) << "Character not legal: " << currentChar << std::endl;
 				advanceChar();
 				continue;
 			}
@@ -181,7 +182,7 @@ void Lexer::advanceChar() {
 			while(currentChar != '*' || lookaheadChar != '/') {
 				advanceChar();
 				if(currentChar == EOF) {
-					logDaf(fileForParsing, line, col, WARNING) << "File ended during multi-line comment" << std::endl;
+					logDaf(m_file, line, col, WARNING) << "File ended during multi-line comment" << std::endl;
 					break;
 				}
 			}
