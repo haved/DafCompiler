@@ -18,7 +18,7 @@ bool Scope::isStatement() {
 
 bool Scope::needsSemicolonAfterStatement() {
 	if(m_outExpression) {
-		logDaf(WARNING) << "this output forces the scope to have a trailing semicolon" << std::endl;
+		logDaf(m_outExpression->getRange(), WARNING) << "this output expression forces the enclosing scope to have a trailing semicolon" << std::endl;
 		return true; //We might return false here either way, but throw an error instead
 	}
 

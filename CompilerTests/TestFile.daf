@@ -6,11 +6,11 @@ def main:=() {
 		thisIsLegal++;
 	}
 
-/*
-	{
+
+	/*{
 		thisIsNot
-	}
-*/
+	}*/
+
 
 	{
 		thisHoweverIs
