@@ -22,19 +22,19 @@ unique_ptr<Expression> parseVariableExpression(Lexer& lexer) {
 	assert(lexer.currType()==IDENTIFIER);
 	lexer.advance(); //Eat identifier
 	Token& token = lexer.getPreviousToken();
-	return unique_ptr<Expression>(new VariableExpression(token.text, TextRange(token)));
+	return unique_ptr<Expression>(new VariableExpression(token.text, TextRange(lexer.getFile(), token)));
 }
 
 unique_ptr<Expression> parseIntegerExpression(Lexer& lexer) {
 	lexer.advance();
 	Token& token = lexer.getPreviousToken();
-	return unique_ptr<Expression>(new IntegerConstantExpression(token.integer, token.integerType, TextRange(token)));
+	return unique_ptr<Expression>(new IntegerConstantExpression(token.integer, token.integerType, TextRange(lexer.getFile(), token)));
 }
 
 unique_ptr<Expression> parseRealNumberExpression(Lexer& lexer) {
 	lexer.advance();
 	Token& token = lexer.getPreviousToken();
-	return unique_ptr<Expression>(new RealConstantExpression(token.real, token.realType, TextRange(token)));
+	return unique_ptr<Expression>(new RealConstantExpression(token.real, token.realType, TextRange(lexer.getFile(), token)));
 }
 
 //Either starts at 'inline', or the token after '('
@@ -72,7 +72,7 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
 		if(!scope)
 			return none_exp();
 		if(!type->getReturnInfo().hasReturnType() && scope->evaluatesToValue())
-			logDaf(lexer.getFile(), scope->getFinalOutExpression().getRange(), WARNING) << "function without return type has scoped body with return value" << std::endl;
+			logDaf(scope->getFinalOutExpression().getRange(), WARNING) << "function without return type has scoped body with return value" << std::endl;
 		body = std::move(scope);
 	}
 	else {
@@ -144,7 +144,7 @@ unique_ptr<Scope> parseScope(Lexer& lexer) {
 	//TODO: Is it worth it? It's a vector to pointers, after all
 	statements.shrink_to_fit();
 
-	TextRange range(startLine, startCol, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol);
+	TextRange range(lexer.getFile(), startLine, startCol, lexer.getCurrentToken());
 	lexer.advance(); //Eat '}'
 
 	return unique_ptr<Scope>(new Scope(range, std::move(statements), std::move(finalOutExpression)));
@@ -218,7 +218,7 @@ unique_ptr<Expression> parseFunctionCallExpression(Lexer& lexer, unique_ptr<Expr
 				break;
 			}
 			if(!lexer.hasCurrentToken()) {
-				logDaf(lexer.getFile(), lexer.getCurrentToken().line, lexer.getCurrentToken().col, ERROR)
+				logDaf(lexer.getFile(), lexer.getCurrentToken(), ERROR)
 					<< "Hit EOF while in function call argument list. Started at " << function->getRange().getLastLine()
 					<< function->getRange().getEndCol() << std::endl;
 				break;

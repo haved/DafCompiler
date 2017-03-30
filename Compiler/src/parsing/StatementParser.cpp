@@ -76,7 +76,7 @@ unique_ptr<Statement> parseIfStatement(Lexer& lexer) {
 	int endLine, endCol;
   setEndFromStatement(&endLine, &endCol, elseFound?else_body:statement, lexer);
 
-  return unique_ptr<Statement>(new IfStatement(std::move(condition), std::move(statement), std::move(else_body), TextRange(startLine, startCol, endLine, endCol)));
+  return unique_ptr<Statement>(new IfStatement(std::move(condition), std::move(statement), std::move(else_body), TextRange(lexer.getFile(), startLine, startCol, endLine, endCol)));
 }
 
 unique_ptr<Statement> parseWhileStatement(Lexer& lexer) {
@@ -96,7 +96,7 @@ unique_ptr<Statement> parseWhileStatement(Lexer& lexer) {
 	int endLine, endCol;
   setEndFromStatement(&endLine, &endCol, body, lexer);
 
-  return unique_ptr<Statement>(new WhileStatement(std::move(condition), std::move(body), TextRange(startLine, startCol, endLine, endCol)));
+  return unique_ptr<Statement>(new WhileStatement(std::move(condition), std::move(body), TextRange(lexer.getFile(), startLine, startCol, endLine, endCol)));
 }
 
 unique_ptr<Statement> parseForStatement(Lexer& lexer) {
@@ -116,7 +116,7 @@ unique_ptr<Statement> parseForStatement(Lexer& lexer) {
 	int endLine, endCol;
   setEndFromStatement(&endLine, &endCol, body, lexer);
 
-  return unique_ptr<Statement>(new ForStatement(std::move(iterator), std::move(body), TextRange(startLine, startCol, endLine, endCol)));
+  return unique_ptr<Statement>(new ForStatement(std::move(iterator), std::move(body), TextRange(lexer.getFile(), startLine, startCol, endLine, endCol)));
 }
 
 unique_ptr<Statement> parseReturnStatement(Lexer& lexer) {
@@ -137,7 +137,7 @@ unique_ptr<Statement> parseReturnStatement(Lexer& lexer) {
 		lexer.advance(); //Eat semicolon
 	}
 
-	TextRange range(startLine, startCol, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol);
+	TextRange range(lexer.getFile(), startLine, startCol, lexer.getPreviousToken());
 	return unique_ptr<Statement>(new ReturnStatement(std::move(expression), range));
 }
 
@@ -154,7 +154,7 @@ unique_ptr<Statement> parseLoopStatement(Lexer& lexer) {
 	lexer.advance(); //Eat loop word
 	if(lexer.expectToken(STATEMENT_END))
 		lexer.advance(); //Eat semicolon
-    TextRange range(startLine, startCol, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol);
+    TextRange range(lexer.getFile(), startLine, startCol, lexer.getPreviousToken());
 	return unique_ptr<Statement>(new LoopStatement(type, range));
 }
 
@@ -190,7 +190,7 @@ unique_ptr<Statement> handleExpressionToStatement(unique_ptr<Expression> express
 	}
 
 	if(!expression->isStatement()) {
-		logDaf(lexer.getFile(), expression->getRange(), ERROR) << "expected a statement, not just an expression: ";
+		logDaf(expression->getRange(), ERROR) << "expected a statement, not just an expression: ";
 		expression->printSignature();
 		std::cout << std::endl;
 		return null_stmt();

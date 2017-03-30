@@ -37,18 +37,18 @@ unique_ptr<NameScopeExpression> parseNameScope(Lexer& lexer) {
 	if(lexer.expectToken(SCOPE_END))
 		lexer.advance(); //Eat '}'
 
-	return unique_ptr<NameScopeExpression>( new NameScope(std::move(definitions), TextRange(startLine, startCol, TextRange(lexer.getPreviousToken()))) ); //Bit ugly
+	return std::make_unique<NameScope>(std::move(definitions), TextRange(lexer.getFile(), startLine, startCol, lexer.getPreviousToken())); //Bit ugly
 }
 
-NameScope emptyNameScope() {
-	return NameScope(std::vector<unique_ptr<Definition>>(), TextRange(0,0,0,0)); //No tokens, no nothing
+NameScope emptyNameScope(Lexer& lexer) {
+	return NameScope(std::vector<unique_ptr<Definition>>(), TextRange(lexer.getFile(), 0,0,0,0)); //No tokens, no nothing
 }
 
 void parseFileAsNameScope(Lexer& lexer, optional<NameScope>* scope) {
 	assert(lexer.getPreviousToken().type == NEVER_SET_TOKEN); //We are at the start of the file
 
 	if(!lexer.hasCurrentToken()) { //Token-less file
-		*scope = emptyNameScope();
+		*scope = emptyNameScope(lexer);
 		return;
 	}
 
@@ -60,19 +60,19 @@ void parseFileAsNameScope(Lexer& lexer, optional<NameScope>* scope) {
 
 	if(lexer.getPreviousToken().type == NEVER_SET_TOKEN) { //We never ate anything!
 		assert(definitions.empty());
-		*scope = emptyNameScope();
+		*scope = emptyNameScope(lexer);
 		return;
 	}
 
 	int& endLine = lexer.getPreviousToken().line; //Must be some kind of token
 	int& endCol  = lexer.getPreviousToken().endCol;
-	*scope = NameScope(std::move(definitions), TextRange(startLine, startCol, endLine, endCol));
+	*scope = NameScope(std::move(definitions), TextRange(lexer.getFile(), startLine, startCol, endLine, endCol));
 }
 
 unique_ptr<NameScopeExpression> parseNameScopeReference(Lexer& lexer) {
 	assert(lexer.currType() == IDENTIFIER);
 	lexer.advance(); //Eat identifier
-	return unique_ptr<NameScopeExpression>(   new NameScopeReference(std::string(lexer.getPreviousToken().text), TextRange(lexer.getPreviousToken()))   );
+	return unique_ptr<NameScopeExpression>(   new NameScopeReference(std::string(lexer.getPreviousToken().text), TextRange(lexer.getFile(), lexer.getPreviousToken()))   );
 }
 
 unique_ptr<NameScopeExpression> parseNameScopeExpression(Lexer& lexer) {

@@ -21,7 +21,8 @@ class TextRange; //Could be included
 std::ostream& logDaf(int logLevel);
 std::ostream& logDaf(RegisteredFile file, int logLevel);
 std::ostream& logDaf(RegisteredFile file, int line, int col, int logLevel);
-std::ostream& logDaf(RegisteredFile file, const TextRange& range, int logLevel);
+std::ostream& logDaf(RegisteredFile file, Token& token, int logLevel);
+std::ostream& logDaf(const TextRange& range, int logLevel);
 std::ostream& logDaf(const std::string& location, int logLevel);
 void logDafExpectedToken(const std::string& expected, Lexer& lexer);
 void logDafExpectedTokenAfterPrev(const std::string& expected, Lexer& lexer);

@@ -71,7 +71,7 @@ void skipUntilNewDefinition(Lexer& lexer) {
 		} else if(type==PUB || type==LET || type==DEF || type==TYPEDEF || type==NAMEDEF || type==WITH || isEndOfScope(type))
 			return;
 		else if(isEndOfScope(type)) { // Will have to be reworked once we have namespaces
-			logDaf(lexer.getFile(), lexer.getCurrentToken().line, lexer.getCurrentToken().col, ERROR)
+			logDaf(lexer.getFile(), lexer.getCurrentToken(), ERROR)
 				<< "expected a new definition, not " << getTokenTypeText(type) << ". Ended the wrong region" << std::endl;
 			//lexer.advance(); //TODO: Is this good?
 			return; //Is this good? Is there such a thing as an evil human? Evil code? Evil mode??

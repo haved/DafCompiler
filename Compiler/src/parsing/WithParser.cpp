@@ -105,7 +105,7 @@ EitherWithDefinitionOrExpression parseWith(Lexer& lexer, bool pub) {
 
 	if(lexer.currType() == STATEMENT_END) { //Definition!
 		lexer.advance(); //Eat ';'
-		return EitherWithDefinitionOrExpression(unique_ptr<WithDefinition>(     new WithDefinition(pub, std::move(*with), TextRange(startLine, startCol, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol))    ));
+		return EitherWithDefinitionOrExpression(unique_ptr<WithDefinition>(     new WithDefinition(pub, std::move(*with), TextRange(lexer.getFile(), startLine, startCol, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol))    ));
 	}
 
 	int preBodyLine = lexer.getCurrentToken().line, preBodyCol = lexer.getCurrentToken().col;
@@ -124,8 +124,8 @@ EitherWithDefinitionOrExpression parseWith(Lexer& lexer, bool pub) {
 	}
 
 	if(pub) {
-		TextRange range(startLine, startCol, lexer.getPreviousToken().line, lexer.getPreviousToken().endCol);
-		logDaf(lexer.getFile(), range, ERROR)
+		TextRange range(lexer.getFile(), startLine, startCol, lexer.getPreviousToken());
+		logDaf(range, ERROR)
 			<< "Expected a with definition after 'pub'; such can't have expression bodies!" << std::endl;
 		//lexer.expectToken(STATEMENT_END);
 		return none_with();
@@ -140,7 +140,7 @@ unique_ptr<WithExpression> parseWithExpression(Lexer& lexer) {
 		return unique_ptr<WithExpression>();
 	if(!with.isExpression()) {
 		assert(with.isDefinition());
-		logDaf(lexer.getFile(), with.getDefinition()->getRange(), ERROR)
+		logDaf(with.getDefinition()->getRange(), ERROR)
 			<< "Expected a with-expression, got a with-definition without a body!" << std::endl;
 		return unique_ptr<WithExpression>();
 	}
@@ -152,7 +152,7 @@ unique_ptr<WithDefinition> parseWithDefinition(Lexer& lexer, bool pub) {
 	if (!with)
 		return unique_ptr<WithDefinition>();
 	else if(with.isExpression()) {
-		logDaf(lexer.getFile(), with.getExpression()->getRange(), ERROR) << "Expected with definition, but got an expression!" << std::endl;
+		logDaf(with.getExpression()->getRange(), ERROR) << "Expected with definition, but got an expression!" << std::endl;
 		return unique_ptr<WithDefinition>();
 	}
 	return with.moveToDefinition(); //asserted

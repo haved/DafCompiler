@@ -45,7 +45,7 @@ bool parseFuncSignParameter(Lexer& lexer, std::vector<FuncSignParameter>& params
 				logDaf(lexer.getFile(), lexer.getPreviousToken(), ERROR) << "Expected a run-time parameter, not a type-parameter" << std::endl;
 				return false;
 			}
-		    params.emplace_back(std::move(paramName), TextRange(startLine, startCol, lexer.getPreviousToken()));
+		    params.emplace_back(std::move(paramName), TextRange(lexer.getFile(), startLine, startCol, lexer.getPreviousToken()));
 			return true;
 		}
 	}
@@ -104,7 +104,7 @@ std::unique_ptr<FuncSignReturnInfo> parseFuncSignReturnInfo(Lexer& lexer, bool a
 			//return none_fnct();
 		}
 		lexer.advance(); //Eat ':='
-		return std::make_unique<FuncSignReturnInfo>(FuncSignReturnKind::NORMAL_RETURN, TypeReference(), true, TextRange(startLine, startCol, lexer.getPreviousToken()));
+		return std::make_unique<FuncSignReturnInfo>(FuncSignReturnKind::NORMAL_RETURN, TypeReference(), true, TextRange(lexer.getFile(), startLine, startCol, lexer.getPreviousToken()));
 	}
 
 	//Handle NO_RETURN and NO_RETURN with '=''
@@ -115,7 +115,7 @@ std::unique_ptr<FuncSignReturnInfo> parseFuncSignReturnInfo(Lexer& lexer, bool a
 			lexer.advance(); //Eat '='
 			equalsSignEaten = true;
 		}
-		return std::make_unique<FuncSignReturnInfo>(FuncSignReturnKind::NO_RETURN, TypeReference(), equalsSignEaten, TextRange(startLine, startCol, lexer.getPreviousToken()));
+		return std::make_unique<FuncSignReturnInfo>(FuncSignReturnKind::NO_RETURN, TypeReference(), equalsSignEaten, TextRange(lexer.getFile(), startLine, startCol, lexer.getPreviousToken()));
 	}
 
 	//We have by now handled:
@@ -143,7 +143,7 @@ std::unique_ptr<FuncSignReturnInfo> parseFuncSignReturnInfo(Lexer& lexer, bool a
 			logDaf(lexer.getFile(), lexer.getCurrentToken(), ERROR) << "expected a type after ':', as function types require explicit return types" << std::endl;
 		}
 		lexer.advance(); //Eat '='
-		return std::make_unique<FuncSignReturnInfo>(returnModifier, TypeReference(), true, TextRange(startLine, startCol, lexer.getPreviousToken()));
+		return std::make_unique<FuncSignReturnInfo>(returnModifier, TypeReference(), true, TextRange(lexer.getFile(), startLine, startCol, lexer.getPreviousToken()));
 	}
 
 	TypeReference type = parseType(lexer);
@@ -157,5 +157,5 @@ std::unique_ptr<FuncSignReturnInfo> parseFuncSignReturnInfo(Lexer& lexer, bool a
 		ateEquals = true;
 	}
 
-	return std::make_unique<FuncSignReturnInfo>(returnModifier, std::move(type), ateEquals, TextRange(startLine, startCol, lexer.getPreviousToken()));
+	return std::make_unique<FuncSignReturnInfo>(returnModifier, std::move(type), ateEquals, TextRange(lexer.getFile(), startLine, startCol, lexer.getPreviousToken()));
 }

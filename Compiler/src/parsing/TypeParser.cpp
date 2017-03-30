@@ -7,7 +7,7 @@ TypeReference parseAliasForType(Lexer& lexer) {
 	assert(lexer.currType() == IDENTIFIER);
 	lexer.advance(); //Eat 'identifier'
 	return TypeReference(std::make_unique<AliasForType>(
-		  std::string(lexer.getPreviousToken().text), TextRange(lexer.getPreviousToken())  ));
+		  std::string(lexer.getPreviousToken().text), TextRange(lexer.getFile(), lexer.getPreviousToken())  ));
 }
 
 //Also used by the Expression parser

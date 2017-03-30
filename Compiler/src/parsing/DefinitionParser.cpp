@@ -62,7 +62,7 @@ unique_ptr<Definition> parseLetDefinition(Lexer& lexer, bool pub) {
 		return none_defnt(); //We don't care for cleanup, because we skip until the next def
 	expression_got.swap(expression);
 
-	TextRange range(startLine, startCol,
+	TextRange range(lexer.getFile(), startLine, startCol,
 					lexer.getCurrentToken().line,
 					lexer.getCurrentToken().endCol);
 	unique_ptr<Definition> definition(new Let(pub, mut, std::move(name),
@@ -123,7 +123,7 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 		if(!scope)
 			return none_defnt();
 		if(!info->hasReturnType() && scope->evaluatesToValue())
-			logDaf(lexer.getFile(), scope->getFinalOutExpression().getRange(), WARNING) << "scope body has return value that won't be returned from def" << std::endl;
+			logDaf(scope->getFinalOutExpression().getRange(), WARNING) << "scope body has return value that won't be returned from def" << std::endl;
 		body = std::move(scope);
 	} else {
 		if(info->requiresScopedBody())
