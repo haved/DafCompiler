@@ -28,13 +28,22 @@ void TypeReference::printSignature() const {
 	}
 }
 
-AliasForType::AliasForType(std::string&& name, const TextRange& range) : Type(range), m_name(std::move(name)), m_type(nullptr) {}
+AliasForType::AliasForType(std::string&& name, const TextRange& range) : Type(range), m_name(new std::string(std::move(name))), m_name_owner(true), m_type(nullptr) {}
+
+AliasForType::AliasForType(AliasForType&& other) : Type(other.getRange()), m_name(other.m_name), m_name_owner(other.m_name_owner), m_type(other.m_type) {
+	other.m_name_owner = false;
+}
+
+AliasForType::~AliasForType() {
+	if(m_name_owner)
+		delete m_name;
+}
 
 void AliasForType::printSignature() {
 	if(m_type) {
 		m_type ->printSignature();
 	} else {
-		std::cout << "type{\"" << m_name << "\"}";
+		std::cout << "type{\"" << *m_name << "\"}";
 	}
 }
 

@@ -40,13 +40,16 @@ public:
 //Might in the future forget this type once you get a concrete type
 class AliasForType : public Type {
 private:
-	//TODO: Store a string pointer and bool m_owner
-	std::string m_name;
+	std::string* m_name;
+	bool m_name_owner;
 	Type* m_type;
 public:
 	AliasForType(std::string&& text, const TextRange& range);
 	AliasForType(const AliasForType& other)=delete;
 	AliasForType& operator=(const AliasForType& other)=delete;
+	AliasForType(AliasForType&& other);
+	AliasForType& operator=(AliasForType&& other)=delete;
+	~AliasForType();
 	void printSignature() override;
 	Type* getConcreteType() override;
 };

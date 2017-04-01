@@ -6,7 +6,6 @@ def main:=() {
 		thisIsLegal++;
 	}
 
-
 	/*{
 		thisIsNot
 	}*/
@@ -33,3 +32,5 @@ def main:=() {
 
 
 def a { {a++;} }; //This should not complain
+
+def a {{5++;}};
