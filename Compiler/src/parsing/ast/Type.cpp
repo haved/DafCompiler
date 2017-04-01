@@ -2,36 +2,48 @@
 #include "parsing/ast/FunctionSignature.hpp" //To get FunctionType
 #include <iostream>
 
-Type::Type() : m_range(boost::none) {}
-
 Type::Type(const TextRange& range) : m_range(range) {}
 
 Type::~Type() {}
 
-TypeReference::TypeReference()
-	: m_type() {}
+Type* Type::getConcreteType() {
+	return this;
+}
+
+TypeReference::TypeReference() : m_type() {}
 
 TypeReference::TypeReference(unique_ptr<Type>&& type) : m_type(std::move(type)) {}
 
-void TypeReference::printSignature() {
-	if(!m_type)
+Type* TypeReference::getConcreteType() {
+	if(m_type)
+		return m_type->getConcreteType();
+	return nullptr;
+}
+
+void TypeReference::printSignature() const {
+	if(m_type) {
+		m_type -> printSignature();
+	} else {
 		std::cout << "NULL_TYPE";
-	else
-		m_type->printSignature();
+	}
 }
 
 AliasForType::AliasForType(std::string&& name, const TextRange& range) : Type(range), m_name(std::move(name)), m_type(nullptr) {}
 
 void AliasForType::printSignature() {
 	if(m_type) {
-		m_type->printSignature();
-	}
-	else {
+		m_type ->printSignature();
+	} else {
 		std::cout << "type{\"" << m_name << "\"}";
 	}
 }
 
-PrimitiveType::PrimitiveType(Primitives primitive) : m_primitive(primitive) {}
+Type* AliasForType::getConcreteType() {
+	assert(m_type);
+	return m_type;
+}
+
+PrimitiveType::PrimitiveType(Primitives primitive, const TextRange& range) : Type(range), m_primitive(primitive) {}
 
 void PrimitiveType::printSignature() {
 	std::cout << "PrimitiveType";

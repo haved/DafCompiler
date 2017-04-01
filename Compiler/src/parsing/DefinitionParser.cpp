@@ -39,7 +39,7 @@ unique_ptr<Definition> parseLetDefinition(Lexer& lexer, bool pub) {
 
 		if(lexer.currType()!=ASSIGN) {
 			TypeReference type_got = parseType(lexer);
-			if(!type_got.hasType())
+			if(!type_got)
 				skipUntil(lexer, ASSIGN);//Skip until '=' past scopes; means infered type might be wrong, but the program will terminate before that becomes an issue
 			else
 				type = std::move(type_got);
