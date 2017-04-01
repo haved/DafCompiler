@@ -8,7 +8,8 @@
 This could be done by always merging ':' and '='
 EDIT: We solved it by just handling it
 *** Def
-**** TODO Add scope syntax
+**** DONE Add scope syntax
+	 CLOSED: [2017-03-26 Sun 01:30]
 **** DONE Use return type syntax from function types
 	 CLOSED: [2017-03-26 Sun 14:30]
 ***** TODO Might as well add compile-time parameters while at it
@@ -48,11 +49,14 @@ Also requires Name-scope-expressions
 **** Function calls
 **** Array access
 *** Scopes
-**** TODO Complain when finalOutExpression is thrown strait to a void
-**** TODO Require semicolon after scope if returns an expression, unless itself is returned
+**** DONE Complain when finalOutExpression is thrown strait to a void
+	 CLOSED: [2017-04-01 Sat 23:18] Actually March 26 or something
+**** DONE Require semicolon after scope if returns an expression, unless itself is returned
+	 CLOSED: [2017-04-01 Sat 23:18] Actually ~March 26 here as well
 Already implemented a long time ago, but make the warning better!
 This will require a file id system for the TextRanges
-**** TODO Scopes w/o finalOutExpression can't be finalOutExpressions
+**** DONE Scopes w/o finalOutExpression can't be finalOutExpressions
+	 CLOSED: [2017-04-01 Sat 23:20] March 26 was not a good day for marking things as done, was it
 *** DONE With
 	CLOSED: [2017-02-07 Tue 18:33]
 **** DONE With else
@@ -80,6 +84,12 @@ This will require a file id system for the TextRanges
 ** TODO Uncertainty
 * TODO Code gen
 
+* TODO Language design
+** TODO Should return types be direct, or is return by reference fine?
+Could one potentially optimize it such that registers are used when beneficial?
+** TODO Could you pass parameters by value with the same signature?
+The compiler might just decide that a given function deserves registers instead of pointers,
+but how would we then deal with already compiled functions?
 * More general stuff
 ** TODO Add /isize/ type
 ** DONE Error recovery in statements, where only some statements require semicolons
