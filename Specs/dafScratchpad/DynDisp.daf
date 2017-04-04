@@ -1,0 +1,75 @@
+
+/*
+I want an object model where instanceof feels good to use, where you have access to parents as if they were members.
+*/
+
+def malloc:(size:usize):&mut u8;
+
+typedef uncrt_ptr(T) := class {
+	m_ptr:&mut T;
+	def _(m_ptr:&mut T):ctor This { m_ptr = ptr; }
+	def _(dtor this:This, def init(uncrt x:T)):T = {init(@m_ptr as uncrt); @m_ptr}
+};
+
+def malloc_object(T) := uncrt_ptr(T)(malloc(sizeof8(T) as &mut T);
+
+typedef mybeOwn(T) := class {
+	m_ptr : &mut T;
+	m_owner : bool;
+
+	def alloc(args...) : ctor This { //Okaay. Forwarding might be nice
+		m_ptr = malloc_object(T)(def(uncrt x:T){x.=(args);});
+		m_owner = true;
+	};
+
+	def pointTo(ptr:&mut T) : ctor This {
+		m_ptr = ptr;
+		m_owner = false;
+	};
+
+	def destroy:=(dtor this:This) {
+		if(m_owner)
+			free(m_ptr);
+	};
+
+	def takeFrom(mut other:This): ctor This = {
+		m_ptr = other.m_ptr;
+		m_owner = other.m_owner;
+		other.m_owner = false;
+	};
+
+	def mut _ := @m_ptr;
+};
+
+typedef TextRange := class {
+	m_startLine, m_startCol, m_endLine, m_endCol:int;
+	pub def _ := (startLine:int, startCol:int, endLine:int, endCol:int):ctor This {
+		m_startLine = startLine;
+		m_startCol = startCol;
+		m_endLine = endLine;
+		m_endCol = endCol;
+	};
+};
+
+typedef Expression := class {
+	m_range:TextRange;
+	prot _:=(range:TextRange):ctor This {
+		 m_range = range;
+	};
+
+	//I'm fairly 'eh' about this
+	pub _ : enum ExpressionType += {
+		def printSignature:=() {
+			
+		};
+	};
+};
+
+typedef VariableExpression := class with m_expr:Expression {
+	m_text : maybeOwn(string);
+
+	pub _:=(text:string, range:TextRange):ctor This {
+		m_expr.=(range);
+		m_text = maybeOwn(string).alloc(move text);
+	};
+};
