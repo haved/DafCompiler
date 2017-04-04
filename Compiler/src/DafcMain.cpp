@@ -19,5 +19,8 @@ int main(int argc, const char** argv) {
 	terminateIfErrors();
 
 	//TODO: Reference evaluation and type inferring
+
+	
+
 	//TODO: Code gen
 }
