@@ -1,0 +1,34 @@
+
+typedef Optional(T) := enum {
+	Some {
+		mut m_elm:T;
+		pub def mut? _(mut? this) := m_elm;
+		};
+	None;
+
+	def _(move p:T):Some={let a:Some; a.m_elm=move p; a};
+	def _():=None;
+};
+
+def None(T) := Optional(T).None;
+
+def Some(T) := def(move a:T) := Optional(T).Some();
+
+typedef Either(T,T2) := enum {
+	Left {
+		 mut m_elm:T;
+		 pub def mut? _(mut? this) := m_elm;
+	};
+	Right {
+		 mut m_elm:T2;
+		 pub def mut? _(mut? this) := m_elm;
+	};
+};
+
+def toInt(T):=(a:Either(int, T)):Optional(int) {
+	if def once myInt :int= a.Left {
+		return Some(myInt);
+	}
+	return None;
+};
+

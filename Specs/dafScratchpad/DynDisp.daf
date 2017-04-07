@@ -49,6 +49,10 @@ typedef TextRange := class {
 		m_endLine = endLine;
 		m_endCol = endCol;
 	};
+
+	pub def _ :=(token:Token):ctor This {
+
+	};
 };
 
 typedef Expression := class {
@@ -57,12 +61,7 @@ typedef Expression := class {
 		 m_range = range;
 	};
 
-	//I'm fairly 'eh' about this
-	pub _ : enum ExpressionType += {
-		def printSignature:=() {
-			
-		};
-	};
+	virt printSignature:();
 };
 
 typedef VariableExpression := class with m_expr:Expression {
@@ -72,4 +71,30 @@ typedef VariableExpression := class with m_expr:Expression {
 		m_expr.=(range);
 		m_text = maybeOwn(string).alloc(move text);
 	};
+
+	def override printSignature:=() {
+		print(m_text);
+	};
+};
+
+typedef Optional(T) := enum {
+	Some {
+		mut m_val : T;
+		pub def _ := m_val;
+	};
+
+	None;
+
+	pub def _() = None;
+	pub def _(move T) = {let a:Some; a.m_val=move T; a}; //We should perhaps complain if we don't move by the end of the scope
+};
+
+def parsePrimary:=(mut lexer:Lexer):Opt(Box(Expression)) {
+	namedef _ := Tokens;
+	if(lexer.currType() == IDENTIFIER) {
+		return Box(VariableExpression).alloc(lexer.currToken().text);
+	}
+	return None;
+
+	//((dtor a:Lexer))(lexer); //Dangerous destructing. Don't do this 'aight?
 };
