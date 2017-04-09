@@ -1,6 +1,7 @@
 #pragma once
 
 #include "parsing/ast/TextRange.hpp"
+#include "parsing/lexing/Token.hpp"
 
 #include <string>
 #include <memory>
@@ -55,9 +56,16 @@ public:
 };
 
 //We don't count pointers or arrays here
+#define TOKEN_PRIMITVE_BIND(TOKEN, PRIMITIVE) PRIMITIVE,
 enum class Primitives {
-	U8, I8, U16, I16, U32, I32, U64, I64, F32, F64, BOOL, USIZE, ISIZE, CHAR
+#include "parsing/ast/TokenPrimitiveMapping.hpp"
 };
+#undef TOKEN_PRIMITVE_BIND
+
+bool isTokenPrimitive(TokenType type);
+//asserts a proper primitive token
+Primitives tokenTypeToPrimitive(TokenType type);
+TokenType primitiveToTokenType(Primitives primitive);
 
 class PrimitiveType : public Type {
 private:

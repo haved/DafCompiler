@@ -35,6 +35,12 @@ TypeReference parseFunctionTypeAsType(Lexer& lexer) {
 	return TypeReference(std::move(funcType));
 }
 
+TypeReference parsePrimitive(Lexer& lexer) {
+	//assert(isTokenPrimitive(lexer.currType()))
+	lexer.advance(); //Return primitive
+	return TypeReference(std::make_unique<PrimitiveType>(tokenTypeToPrimitive(lexer.getPreviousToken().type), TextRange(lexer.getFile(), lexer.getPreviousToken())));
+}
+
 TypeReference parseType(Lexer& lexer) {
 	switch(lexer.currType()) {
 	case LEFT_PAREN:
@@ -44,6 +50,9 @@ TypeReference parseType(Lexer& lexer) {
 	default:
 		break;
 	}
+	if(isTokenPrimitive(lexer.currType()))
+		return parsePrimitive(lexer);
+
 	logDafExpectedToken("a type", lexer);
 	return TypeReference();
 }

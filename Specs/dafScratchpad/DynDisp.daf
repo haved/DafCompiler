@@ -1,100 +1,31 @@
-
-/*
-I want an object model where instanceof feels good to use, where you have access to parents as if they were members.
-*/
-
-def malloc:(size:usize):&mut u8;
-
-typedef uncrt_ptr(T) := class {
-	m_ptr:&mut T;
-	def _(m_ptr:&mut T):ctor This { m_ptr = ptr; }
-	def _(dtor this:This, def init(uncrt x:T)):T = {init(@m_ptr as uncrt); @m_ptr}
-};
-
-def malloc_object(T) := uncrt_ptr(T)(malloc(sizeof8(T) as &mut T);
-
-typedef mybeOwn(T) := class {
-	m_ptr : &mut T;
-	m_owner : bool;
-
-	def alloc(args...) : ctor This { //Okaay. Forwarding might be nice
-		m_ptr = malloc_object(T)(def(uncrt x:T){x.=(args);});
-		m_owner = true;
-	};
-
-	def pointTo(ptr:&mut T) : ctor This {
-		m_ptr = ptr;
-		m_owner = false;
-	};
-
-	def destroy:=(dtor this:This) {
-		if(m_owner)
-			free(m_ptr);
-	};
-
-	def takeFrom(mut other:This): ctor This = {
-		m_ptr = other.m_ptr;
-		m_owner = other.m_owner;
-		other.m_owner = false;
-	};
-
-	def mut _ := @m_ptr;
-};
-
 typedef TextRange := class {
-	m_startLine, m_startCol, m_endLine, m_endCol:int;
-	pub def _ := (startLine:int, startCol:int, endLine:int, endCol:int):ctor This {
-		m_startLine = startLine;
-		m_startCol = startCol;
-		m_endLine = endLine;
-		m_endCol = endCol;
-	};
-
-	pub def _ :=(token:Token):ctor This {
-
-	};
+	m_line, m_col, m_endLine, m_endCol : int;
+	//Default ctor if no else is specified.
 };
 
 typedef Expression := class {
-	m_range:TextRange;
-	prot _:=(range:TextRange):ctor This {
+	prot m_range : TextRange;
+
+	prot def _ := (range:TextRange) ctor This {
 		 m_range = range;
 	};
+	pub def range := m_range;
 
-	virt printSignature:();
+	pub typedef ExpressionType := enum {
+		BASE;
+	};
+	pub EXP_TYPE := ExpressionType.BASE;
 };
 
 typedef VariableExpression := class with m_expr:Expression {
-	m_text : maybeOwn(string);
+	m_name : &string;
+	m_tagret : &Expression;
 
-	pub _:=(text:string, range:TextRange):ctor This {
+	pub def _:=(name:&string, target:&Expression, range:TextRange) {
 		m_expr.=(range);
-		m_text = maybeOwn(string).alloc(move text);
-	};
-
-	def override printSignature:=() {
-		print(m_text);
-	};
-};
-
-typedef Optional(T) := enum {
-	Some {
-		mut m_val : T;
-		pub def _ := m_val;
-	};
-
-	None;
-
-	pub def _() = None;
-	pub def _(move T) = {let a:Some; a.m_val=move T; a}; //We should perhaps complain if we don't move by the end of the scope
-};
-
-def parsePrimary:=(mut lexer:Lexer):Opt(Box(Expression)) {
-	namedef _ := Tokens;
-	if(lexer.currType() == IDENTIFIER) {
-		return Box(VariableExpression).alloc(lexer.currToken().text);
 	}
-	return None;
 
-	//((dtor a:Lexer))(lexer); //Dangerous destructing. Don't do this 'aight?
+	with :ExpressionType as {
+		
+	};
 };

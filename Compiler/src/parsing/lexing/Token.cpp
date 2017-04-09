@@ -2,22 +2,22 @@
 
 //TODO: Huge performance boost potential
 const char* TOKEN_TEXT[] = {
-	"pub", "let", "def", "typedef", "namedef", "with", "as", "mut", "uncrt", "move",
+	"pub", "let", "def", "typedef", "namedef", "with", "as", "mut", "uncrt", "certain", "move",
 
-	"prot",
-	"ctor", "dtor",  "this",
+	"class", "trait", "enum", "prot",
+	"ctor", "dtor",  "this", //own
 	"inline", "virt", "override",
 
 	"if", "else", "elselse", "for", "while", "do", "match",
 	"continue", "break", "retry", "return",
 
 	"char",
-	"int8", "uint8", "int16", "uint16", "int32", "uint32",
-	"int64", "uint64", "usize", "boolean", "float", "double",
+	"i8", "u8", "i16", "u16", "i32", "u32",
+	"i64", "u64", "usize", "isize", "bool", "f32", "f64",
 
-	"shared", "unique", "new", "delete",
+	//	"shared", "unique", "new", "delete",
 
-	"size_of", "type_of",
+	"size_of", "type_of", "length_of"
 
 	"true", "false", "null"
 };
@@ -61,8 +61,9 @@ TokenMerge TOKEN_MERGES[] = {
 	TokenMerge(GREATER, ASSIGN, GREATER_OR_EQUAL), TokenMerge(LOWER, ASSIGN, LOWER_OR_EQUAL),
 	TokenMerge(PLUS, PLUS, PLUS_PLUS), TokenMerge(MINUS, MINUS, MINUS_MINUS),
 
-	TokenMerge(REF, MUT, MUT_REF), TokenMerge(REF, MOVE, MOVE_REF),
-	TokenMerge(REF, UNIQUE, UNIQUE_PTR), TokenMerge(REF, SHARED, SHARED_PTR)
+	TokenMerge(REF, MUT, MUT_REF)
+	//, TokenMerge(REF, MOVE, MOVE_REF),
+	//TokenMerge(REF, UNIQUE, UNIQUE_PTR), TokenMerge(REF, SHARED, SHARED_PTR)
 };
 
 const char* getTokenTypeText(const TokenType& type) {
