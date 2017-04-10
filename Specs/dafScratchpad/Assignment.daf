@@ -1,0 +1,57 @@
+
+typedef Vec3 := class {
+	pub mut x,y,z:f32;
+	pub def _ := (x:f32, y:f32, z:f32):ctor This { //ctor makes 'this' a thing
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	};
+	//The rest we don't care about
+};
+
+typedef String := class {
+	mut m_chars : []mut char;
+
+	def _:=(chars:[]char):ctor This {
+		m_chars = alloc_copy(chars);
+	};
+
+	def _:=(other:String):ctor This {
+		m_chars = alloc_copy(other.m_chars);
+	};
+
+	def _:=(dtor other:String):ctor This {
+		m_chars = other.m_chars;
+		//other is destroyed without its default dtor
+	};
+
+	def _:=(dtor this:This) {
+		free(m_chars);
+	};
+
+	def assign:=(mut this:This, other:String) {
+		m_chars = alloc_copy(other.m_chars);
+	};
+
+	def assign:=(mut this:This, dtor other:String) {
+		m_chars = other.m_chars;
+		//other is destoryed without its default dtor
+	};
+
+	def /*move*/ copy(this:This) := This(this); //amazing
+};
+
+def main:=() {
+	let mut a := 6;
+	let mut b := a; //b is a copy of a
+	b++; a++; //all good
+
+	let mut text := String("Hello there");
+	let mut text2 := text; //text is copied into text2
+	text = text2.copy; //text's assign function is called with a move parameter
+
+	let mut vec := Vec3(20, 40, 50);
+	vec.x+=3;
+	let mut otherVec := vec;
+	otherVec = move vec;
+};

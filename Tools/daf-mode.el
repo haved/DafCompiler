@@ -1,10 +1,10 @@
 ;; The mode for the daf programming language
 ;; So far just syntax highlighting
 
-(setq daf-keywords '("pub" "prot" "mut" "let" "def" "virt" "class" "trait" "ctor" "dtor" "typedef" "namedef" "with" "as" "linkfile" "move" "uncrt"))
+(setq daf-keywords '("pub" "prot" "let" "def" "mut" "typedef" "namedef" "with" "as" "linkfile" "move" "uncrt" "certain" "class" "trait" "enum" "virt" "ctor" "dtor"))
 (setq daf-control '("if" "else" "for" "while" "break" "continue" "retry" "return"))
 (setq daf-literals '("null" "this" "true" "false"))
-(setq daf-types '("This" "u8" "i8" "u16" "i16" "u32" "i32" "u64" "i64" "f32" "f64" "char" "usize" "bool"))
+(setq daf-types '("This" "u8" "i8" "u16" "i16" "u32" "i32" "u64" "i64" "f32" "f64" "char" "usize" "isize" "bool"))
 
 (setq daf-keywords-regexp (regexp-opt daf-keywords 'words))
 (setq daf-control-regexp (regexp-opt daf-control 'words))
