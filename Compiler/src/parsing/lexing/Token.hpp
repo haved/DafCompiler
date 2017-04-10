@@ -1,4 +1,5 @@
 #pragma once
+#include "info/PrimitiveSizes.hpp"
 #include <string>
 
 enum TokenType {
@@ -47,8 +48,6 @@ enum TokenType {
 
 #define FIRST_PRIMITVE_TOKEN CHAR
 #define LAST_PRIMITIVE_TOKEN F64_TOKEN
-
-#include "info/PrimitiveSizes.hpp"
 
 struct Token {
 	TokenType type;
