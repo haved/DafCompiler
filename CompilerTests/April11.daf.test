@@ -1,0 +1,38 @@
+// -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
+
+def main:=() {
+	a++;
+	{
+		thisIsLegal++;
+	}
+
+	/*{
+		thisIsNot
+	}*/
+
+
+	{
+		thisHoweverIs
+	};
+
+	{
+		{
+			thisIsOk++;
+		}
+	}
+
+	/*{
+		{
+			thisIsNot++
+		}
+	}*/
+
+	a++;
+
+	let a:i8=20;
+};
+
+
+def a { {a++;} }; //This should not complain
+
+def a {{5++;}};

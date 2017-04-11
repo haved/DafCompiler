@@ -32,6 +32,8 @@ WithDefinition::WithDefinition(bool pub, With_As_Construct&& withConstruct, cons
 }
 
 void WithDefinition::printSignature() {
+	if(m_pub)
+		std::cout << "pub ";
 	m_withConstruct.printSignature();
 	std::cout << ";" << std::endl;
 }

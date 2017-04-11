@@ -64,8 +64,8 @@ void parseFileAsNameScope(Lexer& lexer, optional<NameScope>* scope) {
 		return;
 	}
 
-	int& endLine = lexer.getPreviousToken().line; //Must be some kind of token
-	int& endCol  = lexer.getPreviousToken().endCol;
+	int endLine = lexer.getPreviousToken().line; //Must be some kind of token
+	int endCol  = lexer.getPreviousToken().endCol;
 	*scope = NameScope(std::move(definitions), TextRange(lexer.getFile(), startLine, startCol, endLine, endCol));
 }
 

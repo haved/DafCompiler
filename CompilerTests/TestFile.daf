@@ -1,38 +1,9 @@
 // -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
-def main:=() {
-	a++;
-	{
-		thisIsLegal++;
-	}
-
-	/*{
-		thisIsNot
-	}*/
-
-
-	{
-		thisHoweverIs
-	};
-
-	{
-		{
-			thisIsOk++;
-		}
-	}
-
-	/*{
-		{
-			thisIsNot++
-		}
-	}*/
-
-	a++;
-
-	let a:i8=20;
-};
-
-
-def a { {a++;} }; //This should not complain
-
-def a {{5++;}};
+def a:int {6};
+def b:int= 5;
+def mut c:= {7};
+def d:= 7;
+def mut e:let= a; //following colon, either a type or =, or both
+def let f:={noe++}; //cant have let on void type
+def g{noe++;};

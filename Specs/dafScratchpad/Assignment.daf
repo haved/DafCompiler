@@ -6,7 +6,14 @@ typedef Vec3 := class {
 		this.y = y;
 		this.z = z;
 	};
-	//The rest we don't care about
+	//Automaticly provides copy ctor and assignment, plus a dtor which in this case does nothing
+	//Doesn't provide a move ctor or assignment, as none of the members provide it either
+	//This makes implicit move parameters legal, but not explicit.
+	//If any of the aforementioned are defined, no automatic defining takes place.
+	//aka. as soon as you provide a special copy constructor, you no longer have a default destructor.
+	//If you want to delete copying for some reason, you do a private:
+	//def DELETE := (other:This):ctor This{};
+	//You can call it whatever you like. A bit ugly perhaps, but gets the job done
 };
 
 typedef String := class {
@@ -37,21 +44,21 @@ typedef String := class {
 		m_chars = other.m_chars;
 		//other is destoryed without its default dtor
 	};
-
-	def /*move*/ copy(this:This) := This(this); //amazing
 };
 
 def main:=() {
 	let mut a := 6;
 	let mut b := a; //b is a copy of a
 	b++; a++; //all good
+	let mut c := move b; //doesn't even work
 
 	let mut text := String("Hello there");
 	let mut text2 := text; //text is copied into text2
-	text = text2.copy; //text's assign function is called with a move parameter
+	text = text2; //text's assign function is called with a copy parameter
 
 	let mut vec := Vec3(20, 40, 50);
 	vec.x+=3;
 	let mut otherVec := vec;
-	otherVec = move vec;
+	otherVec = move vec; //doesn't work, as only copy is implemented for this class
+	
 };

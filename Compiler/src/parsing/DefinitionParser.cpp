@@ -122,12 +122,19 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 		unique_ptr<Scope> scope = parseScope(lexer);
 		if(!scope)
 			return none_defnt();
-		if(!info->hasReturnType() && scope->evaluatesToValue())
+		if(def_type == DefType::NO_RETURN_DEF && scope->evaluatesToValue())
 			logDaf(scope->getFinalOutExpression().getRange(), WARNING) << "scope body has return value that won't be returned from def" << std::endl;
+	    //We can't complain about scope body not evaluating to a value, as the return statement is a thing
 		body = std::move(scope);
+	} else if(lexer.currType() == STATEMENT_END && info->requiresScopedBody()) {
+		//We ask if we require a scope body to know we don't error on def x:int=;
+		//at which point the error in the else body makes more sense
+		logDaf(lexer.getFile(), lexer.getCurrentToken(), ERROR) << "def must evaluate to an expression, not ';'" << std::endl;
+		return none_defnt();
 	} else {
 		if(info->requiresScopedBody())
 			logDafExpectedToken("a scope body after def without '='", lexer);
+		//else it's weird being after = without a return type, but it's already warned about
 		body = parseExpression(lexer);
 		if(!body)
 			return none_defnt();
@@ -136,6 +143,7 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 	if(lexer.expectToken(STATEMENT_END))
 		lexer.advance(); //Eat the ';' as promised
 
+	assert(body);
 	TextRange range(startLine, startCol, body->getRange());
 
 	return unique_ptr<Definition>(new Def(pub, def_type, std::move(name), std::move(*info).reapType(), std::move(body), range));

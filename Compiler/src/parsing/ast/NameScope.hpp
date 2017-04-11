@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <boost/optional.hpp>
+#include <map>
 
 using std::vector;
 using std::unique_ptr;
@@ -16,6 +17,7 @@ using boost::optional;
 class NameScope : public NameScopeExpression {
 private:
 	vector<unique_ptr<Definition>> m_definitions;
+	std::map<std::string, Definition*> m_definitionMap;
 public:
 	NameScope(vector<unique_ptr<Definition>>&& definitions, const TextRange& range);
 	NameScope(const NameScope& other) = delete;
@@ -23,6 +25,8 @@ public:
 	NameScope& operator =(const NameScope& other) = delete;
 	NameScope& operator =(NameScope&& other) = default;
 	void printSignature();
+	void makeDefinitionMap();
+	void makeEverythingConcrete();
 };
 
 class NameScopeReference : public NameScopeExpression {

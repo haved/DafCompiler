@@ -41,6 +41,21 @@ enum class FuncSignReturnKind {
 	MUT_RETURN
 };
 
+/* Possible:
+  () {...}
+  ():int {...}
+  ():int= 5
+  ():= 5
+  ():= {...}
+  ():let int {...}
+  ():let = 6;
+  //Colon means return type
+  //In which case a type or equals is required
+  //If equals without an explicit type, type is inferred
+  //If no equals, scoped body required
+  // ()=5 is possible, but is warned about as it doesn't return shit
+  // () {5} should be warned about by the caller, as it neither returns shit
+ */
 class FuncSignReturnInfo {
 private:
 	TextRange m_range;

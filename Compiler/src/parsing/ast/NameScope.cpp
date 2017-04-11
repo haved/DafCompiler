@@ -12,6 +12,16 @@ void NameScope::printSignature() {
 	std::cout << "} /*name-scope*/"; //The namedef printSignature adds a newline
 }
 
+void NameScope::makeDefinitionMap() {
+	for(auto it = m_definitions.begin(); it != m_definitions.end(); ++it) {
+
+	}
+}
+
+void NameScope::makeEverythingConcrete() {
+
+}
+
 NameScopeReference::NameScopeReference(std::string&& name, const TextRange& range) : NameScopeExpression(range), m_name(std::move(name)) {}
 
 void NameScopeReference::printSignature() {

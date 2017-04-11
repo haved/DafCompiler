@@ -5,10 +5,15 @@
 #include "parsing/ast/TextRange.hpp"
 #include <memory>
 #include <vector>
+#include <string>
 #include <boost/optional.hpp>
+#include <map>
 
 using std::unique_ptr;
 using boost::optional;
+
+class NamedDefinition;
+using NamedDefinitionMap = std::map<std::string, NamedDefinition>;
 
 class Definition {
 protected:
@@ -19,7 +24,8 @@ public:
 	virtual ~Definition();
 	inline const TextRange& getRange() { return m_range; }
 	inline bool isPublic() {return m_pub;}
-	virtual void printSignature()=0;
+    virtual void addToMap(NamedDefinitionMap& map){}
+	virtual void printSignature()=0; //Children print 'pub ' if needed
 	virtual bool isStatement()=0;
 };
 
@@ -30,17 +36,11 @@ enum class DefType {
 	NO_RETURN_DEF
 };
 
-class DefDeclaration {
-public:
-	DefType defType;
-	std::string name;
-	TypeReference type;
-	DefDeclaration(DefType defType_p, std::string&& name_p, TypeReference&& type_p);
-};
-
 class Def : public Definition {
 private:
-	DefDeclaration m_declaration;
+	DefType m_defType;
+	std::string m_name;
+	TypeReference m_type;
 	unique_ptr<Expression> m_expression;
 public:
 	Def(bool pub, DefType defType, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange& range);
@@ -72,7 +72,7 @@ public:
 };
 
 //A tad annoying having to put this here.
-//The alternative would be to create a separate file, or do some fancy forward declaration
+//The alternative would be to create a separate file, or do some /very/ fancy forward declaration
 class NameScopeExpression {
 private:
 	TextRange m_range;
@@ -86,10 +86,27 @@ public:
 
 class NamedefDefinition : public Definition {
 private:
-	optional<std::string> m_name;
+	std::string m_name;
 	unique_ptr<NameScopeExpression> m_value;
 public:
-	NamedefDefinition(bool pub, optional<std::string>&& name, unique_ptr<NameScopeExpression>&& value, const TextRange& range);
+	NamedefDefinition(bool pub, std::string&& name, unique_ptr<NameScopeExpression>&& value, const TextRange& range);
 	void printSignature();
 	inline bool isStatement() { return true; }
+};
+
+enum class NamedDefinitionType {
+	LET, DEF, TYPEDEF, NAMEDEF
+};
+struct NamedDefinition {
+	NamedDefinitionType type;
+	union {
+		Let* let;
+		Def* def;
+		TypedefDefinition* type_def;
+		NamedefDefinition* namedef;
+	} pointer;
+	NamedDefinition(Let* let) : type(NamedDefinitionType::LET), pointer{.let=let} {}
+	NamedDefinition(Def* def) : type(NamedDefinitionType::DEF), pointer{.def=def} {}
+	NamedDefinition(TypedefDefinition* type_def) : type(NamedDefinitionType::TYPEDEF), pointer{.type_def=type_def} {}
+	NamedDefinition(NamedefDefinition* namedef) : type(NamedDefinitionType::NAMEDEF), pointer{.namedef=namedef} {}
 };
