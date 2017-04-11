@@ -1,7 +1,7 @@
 #include  "parsing/ast/NameScope.hpp"
 #include <iostream>
 
-NameScope::NameScope(vector<unique_ptr<Definition>>&& definitions, const TextRange& range) : NameScopeExpression(range), m_definitions(std::move(definitions)) {}
+NameScope::NameScope(vector<unique_ptr<Definition>>&& definitions, const TextRange& range) : NameScopeExpression(range), m_definitions(std::move(definitions)), m_definitionMap() {}
 
 void NameScope::printSignature() {
 	std::cout << "{ /*name-scope*/" << std::endl;
@@ -14,7 +14,7 @@ void NameScope::printSignature() {
 
 void NameScope::makeDefinitionMap() {
 	for(auto it = m_definitions.begin(); it != m_definitions.end(); ++it) {
-
+		(*it)->addToMap(m_definitionMap);
 	}
 }
 

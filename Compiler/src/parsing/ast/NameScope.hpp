@@ -17,7 +17,7 @@ using boost::optional;
 class NameScope : public NameScopeExpression {
 private:
 	vector<unique_ptr<Definition>> m_definitions;
-	std::map<std::string, Definition*> m_definitionMap;
+    NamedDefinitionMap m_definitionMap;
 public:
 	NameScope(vector<unique_ptr<Definition>>&& definitions, const TextRange& range);
 	NameScope(const NameScope& other) = delete;

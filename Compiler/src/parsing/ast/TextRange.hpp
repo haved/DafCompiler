@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 
 #include "RegisteredFile.hpp"
 
@@ -24,4 +25,6 @@ public:
 	inline int getCol() const {return m_colStart;}
 	inline int getLastLine() const {return m_lineEnd;}
 	inline int getEndCol() const {return m_colEnd;}
+	void printRangeTo(std::ostream& stream) const;
+	void printStartTo(std::ostream& stream) const;
 };

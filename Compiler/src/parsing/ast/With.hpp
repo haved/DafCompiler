@@ -26,6 +26,7 @@ private:
 	With_As_Construct m_withConstruct;
 public:
 	WithDefinition(bool pub, With_As_Construct&& withConstruct, const TextRange& range);
+	void addToMap(NamedDefinitionMap& map) override {}; //We don't add this to the map
 	void printSignature() override;
 	inline bool isStatement() override { return true; }
 };
@@ -40,5 +41,4 @@ public:
 	bool findType() override;
 	inline bool isStatement() override { return m_expression->isStatement(); }
 	inline bool needsSemicolonAfterStatement() override { return false; }
-	inline const TextRange& getBodyRange() { return m_expression->getRange(); }
 };

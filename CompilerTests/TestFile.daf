@@ -7,3 +7,13 @@ def d:= 7;
 def mut e:let= a; //following colon, either a type or =, or both
 def let f:={noe++}; //cant have let on void type
 def g{noe++;};
+
+def main:=() {
+	def myInt:int=4;
+	def myFunc:=(a:int):={5};
+};
+
+namedef h := test;
+//typedef h := i32;
+def x := 5;
+//def x := 7;

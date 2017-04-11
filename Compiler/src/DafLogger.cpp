@@ -42,7 +42,8 @@ std::ostream& logDaf(RegisteredFile file, Token& token, int logLevel) {
 
 std::ostream& logDaf(const TextRange& range, int logLevel) {
   logDafUpdateLevel(logLevel);
-  return std::cout << range.getFile().get().m_inputName << ": " << range.getLine() << ":" << range.getCol() << "-" << range.getLastLine() << ":" << range.getEndCol() << ": " << logLevelNames[logLevel] << ": ";
+  range.printRangeTo(std::cout);
+  return std::cout  << ": " << logLevelNames[logLevel] << ": ";
 }
 
 std::ostream& logDaf(const std::string& location, int logLevel) {

@@ -1,4 +1,5 @@
 #include "parsing/ast/Definition.hpp"
+#include "DafLogger.hpp"
 #include <iostream>
 
 Definition::Definition(bool pub, const TextRange &range) : m_pub(pub), m_range(range) {}
@@ -10,6 +11,14 @@ Def::Def(bool pub, DefType defType, std::string&& name, TypeReference&& type, un
 }
 
 Let::Let(bool pub, bool mut, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_type(std::move(type)), m_expression(std::move(expression)) {}
+
+void Def::addToMap(NamedDefinitionMap& map) {
+	tryAddNamedDefinitionToMap(map, m_name, this);
+}
+
+void Let::addToMap(NamedDefinitionMap& map) {
+	tryAddNamedDefinitionToMap(map, m_name, this);
+}
 
 void Def::printSignature() {
 	if(m_pub)
@@ -30,12 +39,13 @@ void Def::printSignature() {
 	if(m_type.hasType())
 		m_type.printSignature();
 
-	std::cout << "= "; //This equals sign might be misleading and not a part of the source
+	if(m_defType != DefType::NO_RETURN_DEF) //Without return, only = is a bit ugly, though technically also correct
+		std::cout << "= ";
 	m_expression->printSignature();
 	std::cout << ";" << std::endl;
 }
 
-void Let::printSignature() { //Duplicate code. I know
+void Let::printSignature() {
 	if(m_pub)
 		std::cout << "pub ";
 	std::cout << "let ";
@@ -57,6 +67,10 @@ TypedefDefinition::TypedefDefinition(bool pub, std::string&& name, TypeReference
 	assert(m_type);
 }
 
+void TypedefDefinition::addToMap(NamedDefinitionMap& map) {
+	tryAddNamedDefinitionToMap(map, m_name, this);
+}
+
 void TypedefDefinition::printSignature() {
 	if(m_pub)
 		std::cout << "pub ";
@@ -72,6 +86,10 @@ NamedefDefinition::NamedefDefinition(bool pub, std::string&& name, unique_ptr<Na
 	assert(m_value);
 }
 
+void NamedefDefinition::addToMap(NamedDefinitionMap& map) {
+	tryAddNamedDefinitionToMap(map, m_name, this);
+}
+
 void NamedefDefinition::printSignature() {
 	if(m_pub)
 		std::cout << "pub ";
@@ -79,4 +97,15 @@ void NamedefDefinition::printSignature() {
 	std::cout << m_name << " := ";
 	m_value->printSignature();
 	std::cout << ";" << std::endl;
+}
+
+void tryAddNamedDefinitionToMap(NamedDefinitionMap& map, std::string& name, NamedDefinition definition) {
+	auto it = map.find(name);
+	if(it != map.end()) {
+		auto& out = logDaf(definition.pointer.definition->getRange(), ERROR) << "name '" << name << "' already defined at ";
+		it->second.pointer.definition->getRange().printStartTo(out);
+		out << std::endl;
+	} else {
+		map.insert({name, definition});
+	}
 }

@@ -127,17 +127,17 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 	    //We can't complain about scope body not evaluating to a value, as the return statement is a thing
 		body = std::move(scope);
 	} else if(lexer.currType() == STATEMENT_END && info->requiresScopedBody()) {
-		//We ask if we require a scope body to know we don't error on def x:int=;
-		//at which point the error in the else body makes more sense
+		//We check that we require a scope body. def x:=; is too borked to deserve this error
 		logDaf(lexer.getFile(), lexer.getCurrentToken(), ERROR) << "def must evaluate to an expression, not ';'" << std::endl;
 		return none_defnt();
 	} else {
-		if(info->requiresScopedBody())
-			logDafExpectedToken("a scope body after def without '='", lexer);
-		//else it's weird being after = without a return type, but it's already warned about
 		body = parseExpression(lexer);
 		if(!body)
 			return none_defnt();
+
+		//only if we actually got an expression, we complain that it wasn't a scope
+		if(info->requiresScopedBody())
+			logDafExpectedToken("a scope body after def without '='", lexer);
 	}
 
 	if(lexer.expectToken(STATEMENT_END))

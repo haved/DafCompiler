@@ -1,6 +1,6 @@
 def a:=5;
 let mut b:int=a+5;
-let a:int=4;
+let a___:int=4; //a changed to a___ on 2017-04-11, as one no longer can define any name twice
 def main:=(i:int, b:MyClass):int {
 	let mut b:=5;
 	def let mut b_ref := b;

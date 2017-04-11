@@ -1,5 +1,6 @@
 #include "parsing/ast/TextRange.hpp"
 #include "parsing/lexing/Token.hpp"
+#include "FileController.hpp"
 
 #include <iostream>
 #include <cassert>
@@ -19,3 +20,11 @@ TextRange::TextRange(RegisteredFile file, const Token& token) : TextRange(file, 
 TextRange::TextRange(RegisteredFile file, const Token& startToken, int endLine, int endCol) : TextRange(file, startToken.line, startToken.col, endLine, endCol) {}
 
 TextRange::TextRange(RegisteredFile file, int line, int col, const Token& endToken) : TextRange(file, line, col, endToken.line, endToken.endCol) {}
+
+void TextRange::printRangeTo(std::ostream& stream) const {
+	stream << m_file.get().m_inputName << ": " << m_lineStart << ":" << m_colStart << "-" << m_lineEnd << ":" << m_colEnd;
+}
+
+void TextRange::printStartTo(std::ostream& stream) const {
+	stream << m_file.get().m_inputName << ": " << m_lineStart << ":" << m_colStart;
+}

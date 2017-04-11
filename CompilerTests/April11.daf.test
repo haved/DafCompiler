@@ -35,4 +35,4 @@ def main:=() {
 
 def a { {a++;} }; //This should not complain
 
-def a {{5++;}};
+def a2 {{5++;}}; //a changed to a2 later on 2017-04-11, as the definition maps are a thing

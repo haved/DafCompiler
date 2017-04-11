@@ -12,7 +12,7 @@ def main := (a:int, mut b:ey, move boy:ey, uncrt c:ey, /*dtor*/ inst:MyClass):/*
 };
 
 def a:int = 20;
-def a:int {20};
+def a2:int {20}; //All cases of aX | testX | funcX with X being a number, has X added at 2017-04-11 when definitions no longer could share names
 
 
 //This calls the scope
@@ -27,13 +27,13 @@ def withParams := (a:int, uncrt b:ur):=3;
 
 def test := (inline(test:A, :A, :b):let={});
 
-def func: ():mut int = noe;
+def func2: ():mut int = noe;
 
-def a := 5;
+def a3 := 5;
 let b := 20;
 
 
-let a : = 3;
-def a := 3;
-def let a :mut int=3;
-def test {2++;};
+let a4 : = 3;
+def a5 := 3;
+def let a6 :mut int=3;
+def test2 {2++;};
