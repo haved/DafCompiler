@@ -40,7 +40,7 @@ public:
 	inline int getSourcePathCount() { return m_sourcePaths.size(); }
 	inline int getFileCount() { return m_registeredFiles.size(); }
 	inline RegisteredFileInternal* getFileAt(uint index) { return &m_registeredFiles[index]; }
-	inline RegisteredFile getFileReference(uint index) { assert(index >= 0 && index < m_registeredFiles.size()); return RegisteredFile(this, index); }
+	inline RegisteredFile getFileReference(uint index) { assert(index < m_registeredFiles.size()); return RegisteredFile(this, index); }
 	void printFiles();
 };
 

@@ -100,19 +100,26 @@ public:
 enum class NamedDefinitionType {
 	LET, DEF, TYPEDEF, NAMEDEF
 };
+union NamedDefinitionPointerUnion {
+	Let* let;
+	Def* def;
+	TypedefDefinition* type_def;
+	NamedefDefinition* namedef;
+	Definition* definition;
+
+	NamedDefinitionPointerUnion(Let* let) : let(let) {}
+	NamedDefinitionPointerUnion(Def* def) : def(def) {}
+	NamedDefinitionPointerUnion(TypedefDefinition* type_def) : type_def(type_def) {}
+	NamedDefinitionPointerUnion(NamedefDefinition* namedef) : namedef(namedef) {}
+};
+
 struct NamedDefinition {
 	NamedDefinitionType type;
-	union {
-		Let* let;
-		Def* def;
-		TypedefDefinition* type_def;
-		NamedefDefinition* namedef;
-		Definition* definition;
-	} pointer;
-	NamedDefinition(Let* let) : type(NamedDefinitionType::LET), pointer{.let=let} {}
-	NamedDefinition(Def* def) : type(NamedDefinitionType::DEF), pointer{.def=def} {}
-	NamedDefinition(TypedefDefinition* type_def) : type(NamedDefinitionType::TYPEDEF), pointer{.type_def=type_def} {}
-	NamedDefinition(NamedefDefinition* namedef) : type(NamedDefinitionType::NAMEDEF), pointer{.namedef=namedef} {}
+	NamedDefinitionPointerUnion pointer;
+	NamedDefinition(Let* let) : type(NamedDefinitionType::LET), pointer(let) {}
+	NamedDefinition(Def* def) : type(NamedDefinitionType::DEF), pointer(def) {}
+	NamedDefinition(TypedefDefinition* type_def) : type(NamedDefinitionType::TYPEDEF), pointer(type_def) {}
+	NamedDefinition(NamedefDefinition* namedef) : type(NamedDefinitionType::NAMEDEF), pointer(namedef) {}
 };
 
 void tryAddNamedDefinitionToMap(NamedDefinitionMap& map, std::string& name, NamedDefinition definition);

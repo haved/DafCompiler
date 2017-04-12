@@ -296,6 +296,7 @@ unique_ptr<Expression> parseSide(Lexer& lexer, int minimumPrecedence) {
 
 bool canParseExpression(Lexer& lexer) {
     //I've decided that if you've come to this place, you'll at least try to parse an expression
+	(void) lexer;
 	return true;
 	/*TokenType curr = lexer.currType();
 	  return curr==IDENTIFIER||curr==LEFT_PAREN||curr==INLINE||curr==SCOPE_START
