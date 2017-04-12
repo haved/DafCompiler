@@ -170,4 +170,4 @@ void ArrayAccessExpression::printSignature() {
 	std::cout << "[ ";
 	m_index->printSignature();
 	std::cout << " ]";
-};
+}

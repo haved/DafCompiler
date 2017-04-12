@@ -69,7 +69,7 @@ bool parseFuncSignParameterList(Lexer& lexer, std::vector<FuncSignParameter>& pa
 				lexer.expectToken(RIGHT_PAREN);
 				return false;
 			}
-			else if(!parseFuncSignParameter(lexer, parameters, false)) {
+			else if(!parseFuncSignParameter(lexer, parameters, allowCompileTimeParams)) {
 				skipUntil(lexer, RIGHT_PAREN); //A borked parameter, and we stop parameter parsing completely
 				break;
 			}

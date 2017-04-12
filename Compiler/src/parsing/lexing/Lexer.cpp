@@ -89,11 +89,15 @@ char Lexer::parseOneChar() {
 	return control;
 }
 
+//TODO
 bool Lexer::parseStringLiteral(Token& token) {
+	(void) token;
 	return false;
 }
 
+//TODO
 bool Lexer::parseCharLiteral(Token& token) {
+	(void) token;
 	return false;
 }
 
