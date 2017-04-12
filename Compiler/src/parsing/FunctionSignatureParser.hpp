@@ -1,5 +1,6 @@
 #pragma once
 #include "parsing/ast/FunctionSignature.hpp"
+#include "parsing/ast/Expression.hpp"
 #include "parsing/lexing/Lexer.hpp"
 
 #include <memory>
@@ -11,3 +12,5 @@ bool parseFuncSignParameterList(Lexer& lexer, std::vector<FuncSignParameter>& pa
 
 //When called, you should either be at ':' or '=', or you'll get no return type and it'll require a scope body
 std::unique_ptr<FuncSignReturnInfo> parseFuncSignReturnInfo(Lexer& lexer, bool allowEatingEquals);
+
+std::unique_ptr<Expression> parseBodyGivenReturnInfo(Lexer& lexer, const FuncSignReturnInfo& info, const char* scopeHasUselessReturn, const char* noExpression, const char* requiresScope);

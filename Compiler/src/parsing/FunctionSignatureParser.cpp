@@ -1,5 +1,6 @@
 #include "parsing/FunctionSignatureParser.hpp"
 #include "parsing/TypeParser.hpp"
+#include "parsing/ExpressionParser.hpp"
 #include "DafLogger.hpp"
 #include "parsing/ErrorRecovery.hpp"
 
@@ -158,4 +159,35 @@ std::unique_ptr<FuncSignReturnInfo> parseFuncSignReturnInfo(Lexer& lexer, bool a
 	}
 
 	return std::make_unique<FuncSignReturnInfo>(returnModifier, std::move(type), ateEquals, TextRange(lexer.getFile(), startLine, startCol, lexer.getPreviousToken()));
+}
+
+auto none_exp() {
+	return unique_ptr<Expression>();
+}
+
+std::unique_ptr<Expression> parseBodyGivenReturnInfo(Lexer& lexer, const FuncSignReturnInfo& info, const char* scopeHasUselessReturn, const char* noExpression, const char* requiresScope) {
+	unique_ptr<Expression> body;
+
+	if(lexer.currType() == SCOPE_START) {
+		unique_ptr<Scope> scope = parseScope(lexer);
+		if(!scope)
+			return none_exp();
+		if(!info.hasReturnType() && scope->evaluatesToValue())
+			logDaf(scope->getFinalOutExpression().getRange(), WARNING) << scopeHasUselessReturn << std::endl;
+	    //We can't complain about scope body not evaluating to a value, as the return statement is a thing
+		body = std::move(scope);
+	} else if(lexer.currType() == STATEMENT_END && info.requiresScopedBody()) {
+		//We check that we require a scope body. def x:=; is too borked to deserve this error
+		logDaf(lexer.getFile(), lexer.getCurrentToken(), ERROR) << noExpression << std::endl;
+		return none_exp();
+	} else {
+		body = parseExpression(lexer);
+		if(!body)
+			return none_exp();
+
+		//only if we actually got an expression, we complain that it wasn't a scope
+		if(info.requiresScopedBody())
+			logDafExpectedToken(requiresScope, lexer);
+	}
+	return body;
 }

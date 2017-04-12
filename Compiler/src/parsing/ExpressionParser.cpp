@@ -1,5 +1,6 @@
 #include "parsing/ExpressionParser.hpp"
 #include "parsing/TypeParser.hpp"
+#include "parsing/FunctionSignatureParser.hpp"
 #include "DafLogger.hpp"
 
 #include "parsing/ast/Operator.hpp"
@@ -65,30 +66,14 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
 	if(!type)
 		return none_exp();
 
-	//TODO This exact body-finding code is VERY similar to the one used when parsing def. You know what to do
-	unique_ptr<Expression> body;
+	unique_ptr<Expression> body =
+		parseBodyGivenReturnInfo(lexer, type->getReturnInfo(),
+								 "function without return type has scoped body with return value",
+								 "function expressions must have bodies",
+								 "a scoped function body");
 
-	if(lexer.currType() == SCOPE_START) {
-		unique_ptr<Scope> scope = parseScope(lexer);
-		if(!scope)
-			return none_exp();
-		if(!type->getReturnInfo().hasReturnType() && scope->evaluatesToValue())
-			logDaf(scope->getFinalOutExpression().getRange(), WARNING) << "function without return type has scoped body with return value" << std::endl;
-		body = std::move(scope);
-	}
-	else if(lexer.currType() == STATEMENT_END && type->getReturnInfo().requiresScopedBody()) {
-		//We check that we require a scope body, because ():=; deserves a different error
-		logDaf(lexer.getFile(), lexer.getCurrentToken(), ERROR) << "function expressions must have bodies" << std::endl;
+	if(!body)
 		return none_exp();
-	}
-	else {
-		body = parseExpression(lexer); //Prints error message if null
-		if(!body)
-			return none_exp();
-
-		if(type->getReturnInfo().requiresScopedBody())
-			logDafExpectedToken("a scoped function body", lexer);
-	}
 
 	TextRange range(startLine, startCol, body->getRange());
    	//We are assured that the body isn't null, so the ctor won't complain
