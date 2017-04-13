@@ -1,32 +1,37 @@
-// Daf should let you write stuff easily. Abstractions should be easy to use without any added friction.
+//Daf is all about easy and usefull zero-cost abstractions. Templates should let you change elements of your program easily, for effortless benchmarking of different algorithms
 
-pub typedef To(T) := trait {
-	pub def to:def(this:Impl, T):T;
+namedef C := {
+	pub def malloc:=(size:usize):&mut u8 #foreign "malloc";
+	pub def free  :=(ptr:&mut u8) #foreign "free";
 };
 
-pub typedef ToMut(T) := trait with To(T) {
-	pub def to:def(T):mut T;
+typedef Allocator := trait {
+	pub def allocate : (:Impl, size:usize):&mut u8;
+	pub def free : (:Impl, ptr:&mut u8);
 };
 
-pub typedef Box(T) := class with ToMut(T) {
-	m_ptr:&mut T;
-
-	pub def _(def constrcutor(uncrt T)):ctor This {//ctor means def mut _ := output
-		m_ptr = malloc(T.size_of);
-		constructor(@m_ptr as uncrt);
-	};
-
-	pub def _(dtor this:This) { //dtor means mut
-		free(m_ptr);
-	};
-
-	pub def mut to:=@m_ptr;
-	pub def mut 
+typedef TypeAllocator(T) := trait {
+	pub def allocateType(T) : (:Impl):&mut T;
+	pub def freeType(T) : (:Impl, &mut T);
 };
 
-pub def giveMeABox(val:int):= Box(int)(val);
-
-pub def use_Box:=() {
-	let mut a := giveMeABox(40);
-	a.
+with(T) Allocator as TypeAllocator(T) with { //Allocator is a TypeAllocator(T) for any given T
+	pub def allocateType(T):=():&mut T := allocate(type_id(T).size) as &mut T;
+	pub def freeType(T):=(ptr:&mut T) {free(ptr as &mut u8);};
 };
+
+typedef PoolAllocator(T) := class with TypeAllocator(T) {
+	
+};
+
+typedef Dobbelbar := trait {
+	pub def dobbel : (:Impl):Impl;
+};
+
+with(T/Number) as Dobbelbar with {
+	pub def dobbel := (this:Impl):=this*2;
+};
+
+typedef Number := u8|i8|u16|i16|u32|i32|u64|i64|f32|f64;
+
+
