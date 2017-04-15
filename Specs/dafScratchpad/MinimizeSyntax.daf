@@ -1,0 +1,52 @@
+
+//First idea: We remove def parameters completely, use $T to have type T
+
+typedef Number := u8|i8|u16|i16|u32|i32|u64|i64|f32|f64;
+
+def timesThree := (a:$T/Number) := a*3;
+
+def main := () {
+	let a := 4;
+	mut b := timesThree(a);
+	b+=3;
+};
+
+typedef Allocator := trait {
+	pub def allocate : (:Impl, size:usize):&mut u8;
+	pub def free : (:Impl, ptr:&mut u8);
+};
+
+typedef TypeAllocator(T) := trait {
+	pub def allocateType : (:Impl):&mut T;
+	pub def freeType : (:Impl, :&mut T);
+};
+
+with(T) Allocator as TypeAllocator(T) with {
+	pub def allocateType := (this:Impl) := allocate(type_info(T).size) as &mut T;
+	pub def freeType := (this:Impl, ptr:&mut T) { free(ptr as &mut u8); };
+};
+
+typedef Malloc := class with Allocator {
+	pub def allocate := C.malloc;
+	pub def free := C.free;
+};
+
+typedef Defer(def call:()) := class {
+	def _ := (dtor this:This) {
+		call();
+	};
+};
+
+def useMyFunc := (def sizeof:(T):int):int {
+	return sizeof(:int);
+};
+
+def use := () {
+	let a := C.malloc(300);
+	let a_owner := Defer((){free(a);}){};
+
+	def mySizeOf := (T):= type_info(T).size;
+	let sizeOfInt := useMyFunc(mySizeOf);
+};
+
+//So far it seems this is a good idea
