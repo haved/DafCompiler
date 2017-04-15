@@ -1,37 +1,11 @@
-//Daf is all about easy and usefull zero-cost abstractions. Templates should let you change elements of your program easily, for effortless benchmarking of different algorithms
 
 namedef C := {
-	pub def malloc:=(size:usize):&mut u8 #foreign "malloc";
-	pub def free  :=(ptr:&mut u8) #foreign "free";
+	pub def malloc : (size:usize):&mut u8 = #foreign;
+	pub def free : (ptr:&mut u8) = #foreign;
 };
 
 typedef Allocator := trait {
-	pub def allocate : (:Impl, size:usize):&mut u8;
-	pub def free : (:Impl, ptr:&mut u8);
+	pub def alloc : (size:usize):&mut u8;
+	pub def free : (ptr:&mut u8);
 };
-
-typedef TypeAllocator(T) := trait {
-	pub def allocateType(T) : (:Impl):&mut T;
-	pub def freeType(T) : (:Impl, &mut T);
-};
-
-with(T) Allocator as TypeAllocator(T) with { //Allocator is a TypeAllocator(T) for any given T
-	pub def allocateType(T):=():&mut T := allocate(type_id(T).size) as &mut T;
-	pub def freeType(T):=(ptr:&mut T) {free(ptr as &mut u8);};
-};
-
-typedef PoolAllocator(T) := class with TypeAllocator(T) {
-	
-};
-
-typedef Dobbelbar := trait {
-	pub def dobbel : (:Impl):Impl;
-};
-
-with(T/Number) as Dobbelbar with {
-	pub def dobbel := (this:Impl):=this*2;
-};
-
-typedef Number := u8|i8|u16|i16|u32|i32|u64|i64|f32|f64;
-
 

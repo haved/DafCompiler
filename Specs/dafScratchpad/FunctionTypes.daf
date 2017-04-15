@@ -1,0 +1,46 @@
+//For this first one:
+// - Explicit type
+// - Different parameter names in type and expression
+// - Implicit return type for expression
+def simple : (a:i32, b:i32):f32 = (t:i32, n:i32) := t/(n as f32);
+
+//For quick, we use type inferrence twice
+def quick := (a:i32, b:i32, c:i32) := a+b+c;
+
+//Here we try overloading
+def overload := (a:string):= a.length;
+def overload := (a:[]char):= len(a);
+//We now have a def with two types, depending on wanted type, we choose
+//The signature for this def x type becomes:
+def x : (:string):usize || (:[]char):usize
+//If we were to make this a full def:
+= with def_output as (:string):usize
+	overload //We use the top one from above
+else
+	overload //We use the bottom one from above
+; //With & match syntax is not finished
+
+//We now have a type parameter, meaning a different function is compiled for each type
+//(Though this function would be inlined)
+def typeParam := (T):= type_info(T).size;
+//This def now has the type (T):usize which only defs can have
+
+//paramters of unknown type
+def double := (a:$T) if T instanceof Number := a*2;
+//we can get a concrete version (possible to point to) by doing:
+let double_ptr := double as (:i32):i32;
+
+//We now pass a function pointer
+def funcAsParam := (p:():i32):f32 := p() as f32;
+
+//We now compile one version for each new p parameter we give it
+def funcAsParamFaster := (def p:():i32):f32 := p() as f32;
+//If we want a pointer to the above function, it can't contain defs or typedefs (Type params)
+//We use magic to make it work
+let funcAsParamFasterPtr := (p:():i32):f32 := funcAsParamFaster(def p);
+//This encapsulates it in another function call, which will be inlined, but uses the pointer
+//Thus, we no longer have def parameters, so we can use a let if we want
+
+//This is how we turn away type parameters
+def funcWithTypeParam := (T, a:$T2) if T instanceof ():T := T();
+let funcWithTypeParamPtr := ():= 
