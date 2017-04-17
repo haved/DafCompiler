@@ -1,0 +1,24 @@
+
+def main := () {
+	mut x:=String("Test");
+	def x_ref := x;
+	x_ref.size(); //Legal
+	let x_ptr := &x; //x_ref wouldn't work
+
+	def a := 5+4;
+	//let a_ptr := &a; //Nope
+	func(a); //Fine
+
+	def move newString := String("New");
+	//Only possible for movable values as output
+
+	def move getString := {
+		let a:=String("a");
+		mut b:=String("b");
+		b=a.concat(b);
+		b.append(a);
+		a
+	}; //This works because evaluating to a let defined inside a scope, is about the same as a functions return value;
+
+	let otherString := String(getString);
+}

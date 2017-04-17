@@ -1,4 +1,31 @@
-//For this first one:
+//At the top we only give examples. Explanations are located further down
+
+def func : (:i32, :i32):i32 = (a:i32, b:i32):= 4*a+b;
+typedef funcType := (a:i32, b:i32);
+
+def func2 := (func:(:i32):f64, a:i32):= func(a);
+
+def funk := (mut x:i32) {x++;};
+
+def funki := (x:$T) if T instof Number := x*2;
+def funkier := (T, a:$T2) if T._ instof (:T2):T := with T._ as (:T2):T T._(a);
+//NOTE: The T._ above means among everything defined as _ in the type T
+
+def overload := (a:String):=a.length();
+def overload := (a:[]char):=len(a);
+
+def getX := (mut a:Vec3):mut=a.x;
+def getX := (a:vec3):let=a.x;
+def getY := (mut? a:Vec3):mut?=a.y;
+
+def steal := (move x:String) := String(move x);
+def destroy := (dtor x:String) := {let tmp:=x.array; tmp};
+
+def makeText := ():ctor
+
+
+
+
 // - Explicit type
 // - Different parameter names in type and expression
 // - Implicit return type for expression
@@ -18,7 +45,7 @@ def x : (:string):usize || (:[]char):usize
 	overload //We use the top one from above
 else
 	overload //We use the bottom one from above
-; //With & match syntax is not finished
+; //with & match syntax is not finished
 
 //We now have a type parameter, meaning a different function is compiled for each type
 //(Though this function would be inlined)
@@ -35,12 +62,27 @@ def funcAsParam := (p:():i32):f32 := p() as f32;
 
 //We now compile one version for each new p parameter we give it
 def funcAsParamFaster := (def p:():i32):f32 := p() as f32;
-//If we want a pointer to the above function, it can't contain defs or typedefs (Type params)
-//We use magic to make it work
+//If we want a pointer to the above function, it can't contain defs or typedefs (Type parameters)
+//We make an enclosing function to make it work, which will be inlined to remove the overhead
 let funcAsParamFasterPtr := (p:():i32):f32 := funcAsParamFaster(def p);
-//This encapsulates it in another function call, which will be inlined, but uses the pointer
+//This encapsulates it in another function call, which will be inlined, but uses the function pointer given
 //Thus, we no longer have def parameters, so we can use a let if we want
 
-//This is how we turn away type parameters
-def funcWithTypeParam := (T, a:$T2) if T instanceof ():T := T();
-let funcWithTypeParamPtr := ():= 
+//The following takes a type with an anonymous function definition
+def funcWithTypeParam := (T, a:$T2) if T instanceof (:T2):T := T(a);
+//We can again encapsulate to get a signature without def and typedef, which we can point to
+let funcWithTypeParamPtr := (a:i32) := funcWithTypeParam(i32, a);
+
+//The same as above can be done with defs as well
+def add := (def a:i32, def b:i32):i32 =a+b;
+let addOne := (a:i32):= add(1, a);
+//If you haven't caught on, lets can only hold function pointers
+
+//We've already seen what we do to def parameters
+def offset := (def a:[]mut $T, index:usize):mut T {
+	a[index];
+};
+
+	//TODO: The difference between (a:$T) and (def a:$T)
+	//TODO: Parameter list
+	//TODO in some other file: Typedef and namedef parameters
