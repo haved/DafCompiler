@@ -1,4 +1,22 @@
 
+def letsThink := () {
+
+	typedef SS := class {
+		pub mut array : [10]char;
+		pub def _:(other:This):This = #default;
+	};
+	def a := SS{{'1', '2', '3', '4'}};
+	let b := a; //Copy ctor is never called
+	let func := (a:SS):SS {
+		a
+	};
+	let c := func(b); //We do a copy ctor, but only once
+};
+
+
+
+
+
 def main := () {
 	mut x:=String("Test");
 	def x_ref := x;
@@ -21,4 +39,16 @@ def main := () {
 	}; //This works because evaluating to a let defined inside a scope, is about the same as a functions return value;
 
 	let otherString := String(getString);
-}
+
+	def something := 5;
+	def someFunc  := () := 5;
+	def something2 := someFunc(); //Should be identical to something
+
+	def take := (move a:String):String {
+		return move a; //this initializes the output with the move ctor with a;
+	};
+
+	def take := (move a:String):String {
+		a
+	};
+};
