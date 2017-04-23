@@ -1,0 +1,9 @@
+typedef StringMaybeOwner := class {
+ pub text:&mut String;
+ def _ := text; //well shit
+};
+
+def main := () {
+	mut a:=String();
+	
+};

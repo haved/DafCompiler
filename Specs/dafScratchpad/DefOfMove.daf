@@ -1,4 +1,10 @@
 
+def thinkingAtSchool := () {
+	def a := 5; //This is sort of a constructor
+	let b := a;
+	
+};
+
 def letsThink := () {
 
 	typedef SS := class {
@@ -11,6 +17,8 @@ def letsThink := () {
 		a
 	};
 	let c := func(b); //We do a copy ctor, but only once
+
+
 };
 
 
