@@ -11,18 +11,51 @@ typedef StringMaybeOwner := class with text:&mut String {
 		owner = true;
 	};
 
-	pub def takeOwnership := (a:StringMaybeOwner):ctor This {
+	pub def takeOwnership := (mut a:This):ctor This {
 		text = a.text;
 		owner = true;
+		assert(a.owner);
 		a.owner = false;
 	};
 
-	pub def take := (dtor a:StringMaybeOwner):ctor This {
+	pub def reap := (dtor a:This):ctor This {
 		text = a.text;
-		owner = true;
+		owner = a.owner;
+	};
+
+	pub def reference := (a:&mut String) {
+		text = a;
+		owner = false;
+	};
+
+	pub def reference := (a:This):ctor This {
+		text = a.text;
+		owner = false;
+	}
+
+	pub def _ := (dtor a:This) {
+		if owner
+			free(text);
 	};
 };
 
 def main := () {
-    
+    mut a := String("text");
+	mut b := StringMaybeOwner.alloc("text2");
+	mut c := StringMaybeOwner.takeOwnership(b);
+	mut d := StringMaybeOwner.reference(&mut a);
+	mut e := d.reap();
+	c = b; //invokes dtor on c and then copy ctor
+
+	mut funky := StringMaybeOwner.reap(StringMaybeOwner.takeOwnership(StringMaybeOwner.alloc(String("Hey")).reap())); //Uses move semantics for reap in both cases
+	def other := {
+		let a := StringMaybeOwner("hello");
+		let b := a.reap();
+		b
+	};
+
+	mut x := other;
+	StringMaybeOwner(other); //Immediate destructing
+	let y := StringMaybeOwner.reap(move x);
+	let z := StringMaybeOwner.reap(move other); //How should be signify that this is in fact something you only can move from
 };
