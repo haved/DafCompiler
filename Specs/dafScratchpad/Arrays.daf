@@ -1,0 +1,13 @@
+
+typedef MyType := class {
+	pub mut field : i32;
+};
+
+def fill:=(uncrt array:$T) if T instof ConstArray {
+	
+};
+
+def main := () {
+	mut intArray : [10]i32; //All values are uncertain
+    
+};

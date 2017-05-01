@@ -1,0 +1,21 @@
+
+namedef io := import<"daf.io">;
+
+def main := () {
+	//We are looking for the number of nodes we can mark in a tree, with no two marked nodes being closer than a given minimum distance.
+	//The input is given as one int n, the number of nodes, one int d, the closest two marked nodes can be.
+	//Then follows n-1 lines, starting at i=1 up to i=n-1, where the integer on the line, x, is the parent of node i,
+    //We know x < i for any given line. Node 0 is thus the root
+
+	let nodeCount := io.readInt();
+	let minDist := io.readInt();
+
+	typedef Node := class {
+		pub parent:i32;
+		pub distanceToRoot:i32;
+		pub mut children:Vec(:i32);
+		pub def _ := ():ctor This = This{0,0,0};
+	};
+
+    mut nodes := Array(:Node).full(nodeCount);
+};
