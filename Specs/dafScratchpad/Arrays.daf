@@ -3,11 +3,31 @@ typedef MyType := class {
 	pub mut field : i32;
 };
 
-def fill:=(uncrt array:$T) if T instof ConstArray {
-	
+typedef Array := trait with Indexable {
+	typedef type;
+	def len := (:Impl):i32;
 };
 
+def fill:=(array:$T/Array, value:T.type) {
+	for(0..array.len()) {
+		array[i] = value;
+	}
+};
+
+def noCtor := (T):T {
+	with output as certain;
+};
+
+
+
 def main := () {
-	mut intArray : [10]i32; //All values are uncertain
-    
+	mut intArray : {:[10]i32, 0}; //Repeats last expression to fill array
+	mut dynArray := Box(:[]char, getSize(), 0); //Heap allocates, takes a count and value parameter
+	mut vec := Vec(:i32);
+	mut otherVec := Vec(:i32, getSize()); //Gets a capacity to the given size
+	mut zeroVec := Vec(:i32, getSize(), 0) //Fills with zeros, length becomes the size
+	mut extraCap := Vec(:i32, getSize(), 0, extraCap()); //Fills with zeroes up to size, makes capacity extra-cap bigger
+	mut weirdFill := Vec({:[5]= 0, 1, 2}); //Fills vector with i32s 0, 1, 2, 2, 2
+	mut intArray2 := intArray; //Copies the array
+	mut intArrayPtr :[]i32=intArray2;
 };
