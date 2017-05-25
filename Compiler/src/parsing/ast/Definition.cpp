@@ -99,11 +99,11 @@ void NamedefDefinition::printSignature() {
 	std::cout << ";" << std::endl;
 }
 
-void tryAddNamedDefinitionToMap(NamedDefinitionMap& map, std::string& name, NamedDefinition definition) {
+void tryAddNamedDefinitionToMap(NamedDefinitionMap& map, std::string& name, Definition* definition) {
 	auto it = map.find(name);
 	if(it != map.end()) {
-		auto& out = logDaf(definition.pointer.definition->getRange(), ERROR) << "name '" << name << "' already defined at ";
-		it->second.pointer.definition->getRange().printStartTo(out);
+		auto& out = logDaf(definition->getRange(), ERROR) << "name '" << name << "' already defined at ";
+		it->second->getRange().printStartTo(out);
 		out << std::endl;
 	} else {
 		map.insert({name, definition});

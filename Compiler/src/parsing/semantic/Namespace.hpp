@@ -11,10 +11,10 @@
    Both implement Namespace somehow, as they both can be searched for definitions with a given name.
  */
 
-class NamedDefinition;
+class Definition;
 
 class Namespace {
 public:
-	virtual NamedDefinition tryGetDefinitionFromName(const std::string& name)=0;
-	virtual ~Namespace() {}
+	virtual Definition* tryGetDefinitionFromName(const std::string& name)=0;
+	virtual ~Namespace() {}; //We have to do this
 };

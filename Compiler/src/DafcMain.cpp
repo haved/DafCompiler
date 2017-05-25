@@ -38,7 +38,7 @@ int main(int argc, const char** argv) {
 	*/
 
 	for(int i = 0; i < files.getFileCount(); i++) {
-		NameScope& scope = *files.getFileAt(i)->m_nameScope;
+		NameScope& scope = *files.getFileAt(i)->m_nameScope; //An optional
 		scope.makeEverythingConcrete(); //Recursive
 	}
 	terminateIfErrors(); //This step could definitely log errors

@@ -14,8 +14,7 @@
 using std::unique_ptr;
 using boost::optional;
 
-class NamedDefinition;
-using NamedDefinitionMap = std::map<std::string, NamedDefinition>;
+using NamedDefinitionMap = std::map<std::string, Definition*>;
 
 class Definition {
 protected:
@@ -26,10 +25,10 @@ public:
 	virtual ~Definition();
 	inline const TextRange& getRange() { return m_range; }
 	inline bool isPublic() {return m_pub;}
-    virtual void addToMap(NamedDefinitionMap& map)=0;
 	virtual void printSignature()=0; //Children print 'pub ' if needed
 	virtual bool isStatement()=0;
 
+	virtual void addToMap(NamedDefinitionMap& map)=0;
 	//TODO: Find out what the return value even means
 	virtual bool makeConcrete(NamespaceStack ns_stack)=0; //TODO: We need to keep a list of pseudo-concrete types
 };
@@ -102,7 +101,7 @@ public:
 	virtual ~NameScopeExpression();
 	virtual void printSignature()=0;
 	inline const TextRange& getRange() { return m_range; }
-	virtual NamedDefinition tryGetDefinitionFromName(const std::string& name) override =0;
+	virtual Definition* tryGetDefinitionFromName(const std::string& name) override =0;
 };
 
 class NamedefDefinition : public Definition {
@@ -118,29 +117,4 @@ public:
 	virtual bool makeConcrete(NamespaceStack ns_stack) override { return true; } //TODO
 };
 
-enum class NamedDefinitionType {
-	LET, DEF, TYPEDEF, NAMEDEF
-};
-union NamedDefinitionPointerUnion {
-	Let* let;
-	Def* def;
-	TypedefDefinition* type_def;
-	NamedefDefinition* namedef;
-	Definition* definition;
-
-	NamedDefinitionPointerUnion(Let* let) : let(let) {}
-	NamedDefinitionPointerUnion(Def* def) : def(def) {}
-	NamedDefinitionPointerUnion(TypedefDefinition* type_def) : type_def(type_def) {}
-	NamedDefinitionPointerUnion(NamedefDefinition* namedef) : namedef(namedef) {}
-};
-
-struct NamedDefinition {
-	NamedDefinitionType type;
-	NamedDefinitionPointerUnion pointer;
-	NamedDefinition(Let* let) : type(NamedDefinitionType::LET), pointer(let) {}
-	NamedDefinition(Def* def) : type(NamedDefinitionType::DEF), pointer(def) {}
-	NamedDefinition(TypedefDefinition* type_def) : type(NamedDefinitionType::TYPEDEF), pointer(type_def) {}
-	NamedDefinition(NamedefDefinition* namedef) : type(NamedDefinitionType::NAMEDEF), pointer(namedef) {}
-};
-
-void tryAddNamedDefinitionToMap(NamedDefinitionMap& map, std::string& name, NamedDefinition definition);
+void tryAddNamedDefinitionToMap(NamedDefinitionMap& map, std::string& name, Definition* definition);

@@ -34,17 +34,17 @@ void NameScope::makeEverythingConcrete() {
 	}
 }
 
-NamedDefinition NameScope::tryGetDefinitionFromName(const std::string& name) {
+Definition* NameScope::tryGetDefinitionFromName(const std::string& name) {
 	if(m_definitionMap.empty()) {
 		if(m_definitions.empty())
-			return NamedDefinition((Let*)nullptr);
+			return nullptr;
 		else
 			makeDefinitionMap();
 	}
 	auto it = m_definitionMap.find(name);
 	if(it!=m_definitionMap.end())
 		return (*it).second;
-	return NamedDefinition((Let*)nullptr);
+	return nullptr;
 }
 
 NameScopeReference::NameScopeReference(std::string&& name, const TextRange& range) : NameScopeExpression(range), m_name(std::move(name)) {}

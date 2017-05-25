@@ -17,3 +17,4 @@ namedef h := test;
 //typedef h := i32;
 def x := 5;
 //def x := 7;
+def x:=3;

@@ -14,5 +14,5 @@ public:
 	NamespaceStack();
 	void push(Namespace* name_space);
 	void pop();
-	NamedDefinition* tryGetDefinitionFromName(const std::string& name); //Never complains, just returns null
+	Definition* tryGetDefinitionFromName(const std::string& name); //Never complains, just returns null
 };
