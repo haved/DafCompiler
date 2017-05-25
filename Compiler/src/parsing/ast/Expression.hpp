@@ -5,6 +5,7 @@
 #include "parsing/ast/FunctionSignature.hpp"
 #include "info/PrimitiveSizes.hpp"
 #include "parsing/ast/Operator.hpp"
+#include "parsing/semantic/NamespaceStack.hpp"
 #include <string>
 #include <vector>
 #include <memory>
@@ -17,13 +18,18 @@ class Expression {
 public:
 	Expression(const TextRange& range);
 	virtual ~Expression();
+
+	// === Used by Statement parser ===
 	virtual bool isStatement();
-	virtual bool needsSemicolonAfterStatement();
-	virtual bool evaluatesToValue() const;
+	virtual bool needsSemicolonAfterStatement(); //A scope doesn't, unless it returns something
+	virtual bool evaluatesToValue() const; //This expression can't be returned unless this is true
+
+	virtual bool makeConcrete(NamespaceStack& ns_stack) { return true; }
 	virtual const Type& getType();
 	virtual bool isTypeKnown();
 	//returns true if it has a type after the call
 	virtual bool findType() = 0;
+
 	virtual void printSignature() = 0;
 	const TextRange& getRange();
 protected:

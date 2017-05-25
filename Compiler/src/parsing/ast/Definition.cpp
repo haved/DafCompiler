@@ -20,6 +20,11 @@ void Let::addToMap(NamedDefinitionMap& map) {
 	tryAddNamedDefinitionToMap(map, m_name, this);
 }
 
+bool Def::makeConcrete(NamespaceStack& ns_stack) {
+	m_expression->makeConcrete(ns_stack);
+	return true;
+}
+
 void Def::printSignature() {
 	if(m_pub)
 		std::cout << "pub ";

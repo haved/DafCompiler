@@ -30,7 +30,7 @@ public:
 
 	virtual void addToMap(NamedDefinitionMap& map)=0;
 	//TODO: Find out what the return value even means
-	virtual bool makeConcrete(NamespaceStack ns_stack)=0; //TODO: We need to keep a list of pseudo-concrete types
+	virtual bool makeConcrete(NamespaceStack& ns_stack)=0; //TODO: We need to keep a list of pseudo-concrete types
 };
 
 enum class DefType {
@@ -52,7 +52,7 @@ public:
 	inline bool isStatement() override { return true; }
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
-	virtual bool makeConcrete(NamespaceStack ns_stack) override { return true; } //TODO
+	virtual bool makeConcrete(NamespaceStack& ns_stack) override;
 };
 
 class Let : public Definition {
@@ -67,7 +67,7 @@ public:
 	inline bool isStatement() override { return true; }
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
-	virtual bool makeConcrete(NamespaceStack ns_stack) override { return true; } //TODO
+	virtual bool makeConcrete(NamespaceStack& ns_stack) override { return true; } //TODO
 };
 
 //WithDefinition is in With.hpp
@@ -81,18 +81,11 @@ public:
 	inline bool isStatement() override { return true; }
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
-	virtual bool makeConcrete(NamespaceStack ns_stack) override { return true; } //TODO
+	virtual bool makeConcrete(NamespaceStack& ns_stack) override { return true; } //TODO
 };
 
-
-//Here there be dragons
-//BELLOW THIS LINE: Namedef and the abstraction layer between definitions and names
-//NamedDefinition is a general pair between a name and a definition pointer
-//NameScopeExpression is some kind of namespace or reference to one
-//TODO: Find out if we really need these enums to differentiate Definition pointer. (use polymorphism?)
-
-struct NamedDefinition;
-
+//The NameScopeExpression is a list of on-ordered definitions, i.e. a name-scope or an imported file
+//It's here because it's used by NamedefDefinition
 class NameScopeExpression : public Namespace {
 private:
 	TextRange m_range;
@@ -114,7 +107,7 @@ public:
 	inline bool isStatement() { return true; }
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
-	virtual bool makeConcrete(NamespaceStack ns_stack) override { return true; } //TODO
+	virtual bool makeConcrete(NamespaceStack& ns_stack) override { return true; } //TODO
 };
 
 void tryAddNamedDefinitionToMap(NamedDefinitionMap& map, std::string& name, Definition* definition);

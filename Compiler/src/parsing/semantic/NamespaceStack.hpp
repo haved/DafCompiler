@@ -7,6 +7,8 @@
 
 /* SEE Namespace.hpp for an EXPLANATION */
 
+class Definition;
+
 class NamespaceStack {
 private:
 	std::deque<Namespace*> m_namespaces;

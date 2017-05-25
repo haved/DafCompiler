@@ -12,10 +12,10 @@ private:
 	std::unique_ptr<Expression> m_outExpression;
 public:
 	Scope(const TextRange& range, std::vector<std::unique_ptr<Statement>>&& statements, std::unique_ptr<Expression> finalOutExpression);
-	bool isStatement(); //true
-	bool needsSemicolonAfterStatement(); //often false
-	void printSignature();
+	bool isStatement() override; //true
+	bool needsSemicolonAfterStatement() override; //if we have a finalOutExpression
+	void printSignature() override;
 	bool findType();
-	inline bool evaluatesToValue() const override { return !!m_outExpression; } //We know outExpression evaluatesToValue
+	bool evaluatesToValue() const override; //We can only be a finalOutExpression if we ourselves have one
 	inline Expression& getFinalOutExpression() { assert(m_outExpression); return *m_outExpression; }
 };
