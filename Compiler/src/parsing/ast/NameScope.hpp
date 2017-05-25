@@ -18,15 +18,16 @@ class NameScope : public NameScopeExpression {
 private:
 	vector<unique_ptr<Definition>> m_definitions;
     NamedDefinitionMap m_definitionMap;
+	void makeDefinitionMap();
 public:
 	NameScope(vector<unique_ptr<Definition>>&& definitions, const TextRange& range);
 	NameScope(const NameScope& other) = delete;
-	NameScope(NameScope&& other) = default;
+	NameScope(NameScope&& other);
 	NameScope& operator =(const NameScope& other) = delete;
-	NameScope& operator =(NameScope&& other) = default;
-	void printSignature();
-	void makeDefinitionMap();
+	NameScope& operator =(NameScope&& other);
+	void printSignature() override;
 	void makeEverythingConcrete();
+	virtual NamedDefinition tryGetDefinitionFromName(const std::string& name) override;
 };
 
 class NameScopeReference : public NameScopeExpression {
@@ -34,5 +35,6 @@ private:
 	std::string m_name;
 public:
 	NameScopeReference(std::string&& name, const TextRange& range);
-	void printSignature();
+	void printSignature() override;
+    virtual NamedDefinition tryGetDefinitionFromName(const std::string& name) override { return NamedDefinition((Let*)nullptr); } //TODO: Make this concrete and stuff
 };

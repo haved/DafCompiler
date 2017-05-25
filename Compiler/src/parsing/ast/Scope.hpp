@@ -4,6 +4,8 @@
 #include <memory>
 
 //Scope is not in Expression.hpp because it must include Statement, which in turn includes Expression.hpp
+//TODO: Make some kind of Namespace implementation that can be filled and used while resolving references in the scope
+
 class Scope : public Expression {
 private:
 	std::vector<std::unique_ptr<Statement>> m_statements;

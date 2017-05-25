@@ -2,8 +2,13 @@ cmake_minimum_required (VERSION 3.4.3)
 project (DafCompiler)
 set(DafCompiler_VERSION_MAJOR 1)
 
+option(EXTRA_WARNINGS "ExtraWarnings" OFF)
+
 if(UNIX)
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -std=c++17 -Weffc++")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++17 -Weffc++")
+endif()
+if(EXTRA_WARNINGS)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -pedantic")
 endif()
 
 file(GLOB MySources
@@ -26,6 +31,11 @@ file(GLOB MySourcesParsingAst
 	src/parsing/ast/*.cpp
 )
 
+file(GLOB MySourcesParsingSemantic
+	src/parsing/semantic/*.hpp
+	src/parsing/semantic/*.cpp
+)
+
 file(GLOB MySourcesInfo
   src/info/*.hpp
   src/info/*.cpp
@@ -43,7 +53,7 @@ MESSAGE(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 INCLUDE_DIRECTORIES(${LLVM_INCLUDE_DIRS})
 ADD_DEFINITIONS(${LLVM_DEFINITIONS})
 
-add_executable(DafCompiler ${MySources} ${MySourcesParsing} ${MySourcesParsingLexing} ${MySourcesParsingAst} ${MySourcesInfo})
+add_executable(DafCompiler ${MySources} ${MySourcesParsing} ${MySourcesParsingLexing} ${MySourcesParsingAst} ${MySourcesParsingSemantic} ${MySourcesInfo})
 target_include_directories(DafCompiler PUBLIC "${CMAKE_SOURCE_DIR}/src")
 
 # Find the libraries that correspond to the LLVM components

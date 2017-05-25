@@ -1,4 +1,25 @@
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+//NO: This file is borked. This def move stuff is not good
+
+
+
+
+
+
+
 def thinkingAtSchool := () {
 	def a := 5; //This is sort of a constructor
 	let b := a;

@@ -106,20 +106,19 @@ bool FileRegistry::tryAddFile(std::string&& inputName) {
 		}
 	}
 
-	if(found) {
-		for(auto prevFile = m_registeredFiles.begin(); prevFile != m_registeredFiles.end(); ++prevFile) {
-			if(equivalent(prevFile->m_inputFile, inputFile)) {
-				logDaf(FATAL_ERROR) << "file " << inputName << " already added" << std::endl;
-				terminateIfErrors();
-			}
-		}
-		m_registeredFiles.emplace_back(std::move(inputName), std::move(inputFile), lastDirSource);
-		return true;
-	}
-	else {
+	if(!found) {
 		logDaf(FATAL_ERROR) << inputName << ": file not found" << std::endl;
 		return false;
 	}
+
+	for(auto prevFile = m_registeredFiles.begin(); prevFile != m_registeredFiles.end(); ++prevFile) {
+		if(equivalent(prevFile->m_inputFile, inputFile)) {
+			logDaf(FATAL_ERROR) << "file " << inputName << " already added" << std::endl;
+			terminateIfErrors();
+		}
+	}
+	m_registeredFiles.push_back(RegisteredFileInternal(std::move(inputName), std::move(inputFile), lastDirSource));
+	return true;
 }
 
 void FileRegistry::printFiles() {

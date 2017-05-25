@@ -26,9 +26,11 @@ private:
 	With_As_Construct m_withConstruct;
 public:
 	WithDefinition(bool pub, With_As_Construct&& withConstruct, const TextRange& range);
-	void addToMap(NamedDefinitionMap& map) override {(void)map;}; //We don't add this to the map
 	void printSignature() override;
 	inline bool isStatement() override { return true; }
+
+	virtual void addToMap(NamedDefinitionMap& map) override {(void)map;}; //We don't add this to the map
+	virtual bool makeConcrete(NamespaceStack ns_stack) override { return true; } //TODO
 };
 
 class WithExpression : public Expression {

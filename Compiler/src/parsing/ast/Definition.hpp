@@ -3,6 +3,8 @@
 #include "parsing/ast/Type.hpp"
 #include "parsing/ast/Expression.hpp"
 #include "parsing/ast/TextRange.hpp"
+#include "parsing/semantic/NamespaceStack.hpp"
+#include "parsing/semantic/Namespace.hpp"
 #include <memory>
 #include <vector>
 #include <string>
@@ -27,6 +29,9 @@ public:
     virtual void addToMap(NamedDefinitionMap& map)=0;
 	virtual void printSignature()=0; //Children print 'pub ' if needed
 	virtual bool isStatement()=0;
+
+	//TODO: Find out what the return value even means
+	virtual bool makeConcrete(NamespaceStack ns_stack)=0; //TODO: We need to keep a list of pseudo-concrete types
 };
 
 enum class DefType {
@@ -44,9 +49,11 @@ private:
 	unique_ptr<Expression> m_expression;
 public:
 	Def(bool pub, DefType defType, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange& range);
-	void addToMap(NamedDefinitionMap& map) override;
 	void printSignature();
 	inline bool isStatement() override { return true; }
+
+	virtual void addToMap(NamedDefinitionMap& map) override;
+	virtual bool makeConcrete(NamespaceStack ns_stack) override { return true; } //TODO
 };
 
 class Let : public Definition {
@@ -57,9 +64,11 @@ private:
 	unique_ptr<Expression> m_expression;
 public:
 	Let(bool pub, bool mut, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange& range);
-	void addToMap(NamedDefinitionMap& map) override;
 	void printSignature();
 	inline bool isStatement() override { return true; }
+
+	virtual void addToMap(NamedDefinitionMap& map) override;
+	virtual bool makeConcrete(NamespaceStack ns_stack) override { return true; } //TODO
 };
 
 //WithDefinition is in With.hpp
@@ -69,14 +78,23 @@ class TypedefDefinition : public Definition {
 	TypeReference m_type;
 public:
 	TypedefDefinition(bool pub, std::string&& name, TypeReference&& type, const TextRange& range);
-	void addToMap(NamedDefinitionMap& map) override;
 	void printSignature();
 	inline bool isStatement() override { return true; }
+
+	virtual void addToMap(NamedDefinitionMap& map) override;
+	virtual bool makeConcrete(NamespaceStack ns_stack) override { return true; } //TODO
 };
 
-//A tad annoying having to put this here.
-//The alternative would be to create a separate file, or do some /very/ fancy forward declaration
-class NameScopeExpression {
+
+//Here there be dragons
+//BELLOW THIS LINE: Namedef and the abstraction layer between definitions and names
+//NamedDefinition is a general pair between a name and a definition pointer
+//NameScopeExpression is some kind of namespace or reference to one
+//TODO: Find out if we really need these enums to differentiate Definition pointer. (use polymorphism?)
+
+struct NamedDefinition;
+
+class NameScopeExpression : public Namespace {
 private:
 	TextRange m_range;
 public:
@@ -84,6 +102,7 @@ public:
 	virtual ~NameScopeExpression();
 	virtual void printSignature()=0;
 	inline const TextRange& getRange() { return m_range; }
+	virtual NamedDefinition tryGetDefinitionFromName(const std::string& name) override =0;
 };
 
 class NamedefDefinition : public Definition {
@@ -92,9 +111,11 @@ private:
 	unique_ptr<NameScopeExpression> m_value;
 public:
 	NamedefDefinition(bool pub, std::string&& name, unique_ptr<NameScopeExpression>&& value, const TextRange& range);
-	void addToMap(NamedDefinitionMap& map) override;
 	void printSignature();
 	inline bool isStatement() { return true; }
+
+	virtual void addToMap(NamedDefinitionMap& map) override;
+	virtual bool makeConcrete(NamespaceStack ns_stack) override { return true; } //TODO
 };
 
 enum class NamedDefinitionType {

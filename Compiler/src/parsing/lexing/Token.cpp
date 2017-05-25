@@ -87,8 +87,11 @@ const char* getTokenTypeText(const TokenType& type) {
 }
 
 const char* getTokenText(const Token& token) {
-	if(token.type >= FIRST_TEXT_TOKEN && token.type <= LAST_TEXT_TOKEN)
+	if(token.type >= FIRST_TEXT_TOKEN && token.type <= LAST_TEXT_TOKEN) {
+		if(token.text.size()==0)
+			return "_";
 		return token.text.c_str();
+	}
 	return getTokenTypeText(token.type);
 }
 
@@ -101,7 +104,7 @@ void resetTokenSetText(Token& token, const std::string& text) {
 }
 
 void resetTokenSpecialValues(Token& token) {
-	token.text.clear();
+	token.text.clear(); //TODO: Find out if this is bad for performance
 	token.real = 0.0;
 	token.integer = 0;
 }
@@ -110,6 +113,7 @@ bool setTokenFromOwnWord(Token& token, int line, int startCol, int endCol) {
 	token.line = line;
 	token.col = startCol;
 	token.endCol = endCol;
+	//TODO: This atrocity
 	for(unsigned int tokenType = 0; tokenType < sizeof(TOKEN_TEXT)/sizeof(char*); tokenType++) {
 		if(token.text==TOKEN_TEXT[tokenType]) {
 			token.type = static_cast<TokenType>(tokenType);
@@ -119,6 +123,8 @@ bool setTokenFromOwnWord(Token& token, int line, int startCol, int endCol) {
 	}
 
 	token.type = IDENTIFIER;
+	if(token.text == "_")
+		token.text.clear(); //A size 0 identifier
 	//The text is already set
 	return true;
 }

@@ -26,6 +26,7 @@ int main(int argc, const char** argv) {
 
 	//TODO: Reference evaluation and type inferring
 
+	/*
 	//We start with the first file
 	//NOTE: This can be done while adding the definitions
 	for(int i = 0; i < files.getFileCount(); i++) {
@@ -34,6 +35,7 @@ int main(int argc, const char** argv) {
 	}
 	terminateIfErrors(); //Definitions given the same name
 	//We must make all name scopes' maps before we make stuff concrete
+	*/
 
 	for(int i = 0; i < files.getFileCount(); i++) {
 		NameScope& scope = *files.getFileAt(i)->m_nameScope;

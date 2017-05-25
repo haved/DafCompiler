@@ -15,6 +15,8 @@ struct RegisteredFileInternal {
 	bool m_sourceIncluded;
 	optional<NameScope> m_nameScope;
 	RegisteredFileInternal(std::string&& inputName, fs::path&& inputFile, bool sourceIncluded);
+	RegisteredFileInternal(RegisteredFileInternal&& other) = default;
+	RegisteredFileInternal(RegisteredFileInternal& other) = delete;
 	void printOneliner();
 };
 
