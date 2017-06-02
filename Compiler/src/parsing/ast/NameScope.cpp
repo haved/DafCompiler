@@ -41,6 +41,7 @@ Definition* NameScope::tryGetDefinitionFromName(const std::string& name) {
 		else
 			makeDefinitionMap();
 	}
+
 	auto it = m_definitionMap.find(name);
 	if(it!=m_definitionMap.end())
 		return (*it).second;

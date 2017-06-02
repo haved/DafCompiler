@@ -98,7 +98,9 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 	std::string name(lexer.getCurrentToken().text);
 	lexer.advance(); //Eat identifier
 
-	//TODO Parameter parsing, with compile time parameters allowed
+	std::vector<FuncSignParameter> parameters;
+	if(lexer.currType() == LEFT_PAREN)
+		parseFuncSignParameterList(lexer, parameters, true); //Allow compile time parameters
 
 	unique_ptr<FuncSignReturnInfo> info = parseFuncSignReturnInfo(lexer, true); //Allow eating equals
 	if(!info)
@@ -129,7 +131,7 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 
 	TextRange range(startLine, startCol, body->getRange());
 
-	return unique_ptr<Definition>(new Def(pub, def_type, std::move(name), std::move(*info).reapType(), std::move(body), range));
+	return unique_ptr<Definition>(new Def(pub, def_type, std::move(name), std::move(parameters), std::move(*info).reapType(), std::move(body), range));
 }
 
 unique_ptr<Definition> parseTypedefDefinition(Lexer& lexer, bool pub) {

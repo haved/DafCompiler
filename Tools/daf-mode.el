@@ -21,11 +21,13 @@
 				))
 
 ;;;###autoload
-(define-derived-mode daf-mode c-mode "daf mode"
+(define-derived-mode daf-mode text-mode "daf mode"
 	"Major mode for editing daf files"
 
 	;;syntax highlighting
-	(setq font-lock-defaults '((daf-font-lock-keywords))))
+	(setq font-lock-defaults '((daf-font-lock-keywords)))
+	(local-set-key (kbd "TAB") 'self-insert-command)
+)
 
 (add-to-list 'auto-mode-alist '("\\.daf\\'" . daf-mode))
 

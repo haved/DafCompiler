@@ -18,3 +18,9 @@ namedef h := test;
 def x := 5;
 //def x := 7;
 def x:=3;
+
+def let a := {a++;};
+
+pub def main(a:int):int {
+	let a := 5;
+};

@@ -3,6 +3,7 @@
 #include "parsing/ast/Type.hpp"
 #include "parsing/ast/Expression.hpp"
 #include "parsing/ast/TextRange.hpp"
+#include "parsing/ast/FunctionSignature.hpp"
 #include "parsing/semantic/NamespaceStack.hpp"
 #include "parsing/semantic/Namespace.hpp"
 #include <memory>
@@ -44,10 +45,11 @@ class Def : public Definition {
 private:
 	DefType m_defType;
 	std::string m_name;
+	std::vector<FuncSignParameter> m_parameters;
 	TypeReference m_type;
 	unique_ptr<Expression> m_expression;
 public:
-	Def(bool pub, DefType defType, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange& range);
+	Def(bool pub, DefType defType, std::string&& name, std::vector<FuncSignParameter>&& params, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange& range);
 	void printSignature();
 	inline bool isStatement() override { return true; }
 
