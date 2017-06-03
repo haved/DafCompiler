@@ -1,4 +1,55 @@
 #pragma once
+#include <string>
+#include <vector>
+#include <memory>
+#include "parsing/ast/Type.hpp"
+
+using std::unique_ptr;
+
+class FunctionParameter {
+protected:
+	std::string m_name;
+	FunctionParameter(std::string&& name);
+public:
+	virtual ~FunctionParameter() {}
+	virtual void printSignature()=0;
+};
+
+class ValueParameter : public FunctionParameter {
+private:
+	bool m_def;
+	TypeReference m_type;
+public:
+	ValueParameter(bool def, std::string&& name, TypeReference&& type);
+	void printSignature() override;
+};
+
+// TODO: Merge this one and the one in Def
+enum class FunctionReturnKind {
+	NO_RETURN,
+	VALUE_RETURN,
+	REFERENCE_RETURN,
+	MUT_REF_RETURN
+};
+
+class FunctionType : public Type {
+private:
+	std::vector<unique_ptr<FunctionParameter>> m_parameters;
+	FunctionReturnKind m_returnKind;
+	TypeReference m_returnType;
+	bool m_ateEquals;
+public:
+	FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, FunctionReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range);
+	void printSignature();
+	inline std::vector<unique_ptr<FunctionParameter>>& getParams() { return m_parameters; }
+	inline FunctionReturnKind getReturnKind() { return m_returnKind; }
+	inline bool ateEqualsSign() { return m_ateEquals; }
+	inline TypeReference&& reapReturnType() { return std::move(m_returnType); }
+};
+
+
+/*
+
 #include "parsing/ast/Type.hpp"
 #include "parsing/ast/TextRange.hpp"
 
@@ -41,7 +92,7 @@ enum class FuncSignReturnKind {
 	MUT_RETURN
 };
 
-/* Possible:
+/ Possible:
   () {...}
   ():int {...}
   ():int= 5
@@ -55,7 +106,7 @@ enum class FuncSignReturnKind {
   //If no equals, scoped body required
   // ()=5 is possible, but is warned about as it doesn't return shit
   // () {5} should be warned about by the caller, as it neither returns shit
- */
+ /
 class FuncSignReturnInfo {
 private:
 	TextRange m_range;
@@ -82,3 +133,4 @@ public:
 	void printSignature();
 	inline const FuncSignReturnInfo& getReturnInfo() { return *m_returnInfo; }
 };
+*/

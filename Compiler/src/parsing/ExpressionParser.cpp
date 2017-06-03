@@ -38,9 +38,12 @@ unique_ptr<Expression> parseRealNumberExpression(Lexer& lexer) {
 	return unique_ptr<Expression>(new RealConstantExpression(token.real, token.realType, TextRange(lexer.getFile(), token)));
 }
 
-//Either starts at 'inline', or the token after '('
+/*
+
+//Starts at def
 unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
-	assert(lexer.currType() != LEFT_PAREN); //We shall always start either at inline, or INSIDE the parameter list
+	assert(lexer.currType() == DEF);
+	lexer.advance(); //Eat 'def'
 
 	int startLine, startCol;
 
@@ -62,7 +65,8 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
 	}
 	assert(lexer.getPreviousToken().type == LEFT_PAREN);
 
-	unique_ptr<FunctionType> type = parseFunctionTypeSignature(lexer, true); //Allow eating '='
+	constexpr bool ALLOW_EATING_EQUALS = true;
+	unique_ptr<FunctionType> type = parseFunctionTypeSignature(lexer, ALLOW_EATING_EQUALS);
 	if(!type)
 		return none_exp();
 
@@ -80,13 +84,15 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
 	return std::make_unique<FunctionExpression>(isInline, std::move(type), std::move(body), range);
 }
 
+*/
+
 unique_ptr<Expression> parseParenthesies(Lexer& lexer) {
 	lexer.advance(); //Eat '('
-	TokenType type = lexer.getCurrentToken().type;
+	//TokenType type = lexer.getCurrentToken().type;
 
-	if(type != LEFT_PAREN && (type == RIGHT_PAREN || type == TYPE_SEPARATOR || lexer.getLookahead().type == TYPE_SEPARATOR || (lexer.getSuperLookahead().type == TYPE_SEPARATOR && lexer.getLookahead().type != RIGHT_PAREN)))
+	/*if(type != LEFT_PAREN && (type == RIGHT_PAREN || type == TYPE_SEPARATOR || lexer.getLookahead().type == TYPE_SEPARATOR || (lexer.getSuperLookahead().type == TYPE_SEPARATOR && lexer.getLookahead().type != RIGHT_PAREN)))
 		return parseFunctionExpression(lexer);
-
+*/
 	unique_ptr<Expression> expr = parseExpression(lexer);
 	if(!expr || !lexer.expectToken(RIGHT_PAREN)) {
 		skipUntil(lexer, RIGHT_PAREN);
@@ -147,8 +153,8 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
 		return parseVariableExpression(lexer);
 	case LEFT_PAREN:
 		return parseParenthesies(lexer);
-	case INLINE:
-		return parseFunctionExpression(lexer);
+		//case INLINE: //TODO: def handling
+		//return parseFunctionExpression(lexer);
 	case SCOPE_START:
 		return parseScope(lexer);
 	case WITH:

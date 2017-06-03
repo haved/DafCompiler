@@ -5,8 +5,8 @@
 Definition::Definition(bool pub, const TextRange &range) : m_pub(pub), m_range(range) {}
 Definition::~Definition() {}
 
-Def::Def(bool pub, DefType defType, std::string&& name, std::vector<FuncSignParameter>&& params, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_defType(defType), m_name(std::move(name)), m_parameters(std::move(params)), m_type(std::move(type)), m_expression(std::move(expression)) {
-	assert( !(defType == DefType::NO_RETURN_DEF && m_type)  ); //We can't have a return type when kind is NO_RETURN
+Def::Def(bool pub, DefReturnType defType, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_defType(defType), m_name(std::move(name)), m_type(std::move(type)), m_expression(std::move(expression)) {
+	assert( !(defType == DefReturnType::NO_RETURN_DEF && m_type)  ); //We can't have a return type when kind is NO_RETURN
 	assert(m_expression); //We assert a body
 }
 
@@ -31,32 +31,23 @@ void Def::printSignature() {
 	std::cout << "def ";
 
 	switch(m_defType) {
-	case DefType::DEF_LET: std::cout << "let "; break;
-	case DefType::DEF_MUT: std::cout << "mut "; break;
+	case DefReturnType::DEF_LET: std::cout << "let "; break;
+	case DefReturnType::DEF_MUT: std::cout << "mut "; break;
 	default: break; //DEF_NORMAL or NO_RETURN_DEF
 	}
 
-	std::cout << m_name << " ";
+	std::cout << m_name;
 
-	if(!m_parameters.empty()) {
-		std::cout << "(";
-		for(unsigned int i = 0; i < m_parameters.size(); i++) {
-			if(i != 0)
-				std::cout << ", ";
-			m_parameters[i].printSignature();
-		}
-		std::cout << ")";
-	}
+	if(m_defType != DefReturnType::NO_RETURN_DEF)
+		std::cout << ":";
 
-	if(m_defType != DefType::NO_RETURN_DEF)
-		std::cout << ": ";
-
-	if(m_type.hasType())
+	if(m_type)
 		m_type.printSignature();
 
-	if(m_defType != DefType::NO_RETURN_DEF) //Without return, only = is a bit ugly, though technically also correct
-		std::cout << "= ";
+	std::cout << "=";
+
 	m_expression->printSignature();
+
 	std::cout << ";" << std::endl;
 }
 

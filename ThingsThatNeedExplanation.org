@@ -6,7 +6,7 @@ and this compiler is the largest and most complicated piece of software I've eve
 With the language design and compiler code base being as volatile as they are,
 my ability to write clean code is put to the test.
 Here I'll note the parts of the code base in particular need of explanation.
-If you want to understand anything at all, I recommend you start at 
+If you want to understand anything at all, I recommend you start at the main method.
 * The Codebase
 ** Expressions
 *** evaluatesToValue() and needsSemicolonAfterStatement()
@@ -32,4 +32,12 @@ As a final note and TODO for myself: Do I need two methods? ...or would just one
  - return false for normal scopes
  - return true for scopes that return something
 
+** Functions and defs
+When parsing defs with parameter lists and return values, the function signature syntax is used.
+This code is also used when parsing def function types and normal function types.
+Therefore weather or not you can parse compile time parameters is parameterized. A function type without def can't take compile time parameters.
+The same goes for weather or not you can eat an equals sign, which can't be done in types, where the equals sign signifies the split between type and expression.
+The def parser uses the function type parser to parse its return info even when it doesn't have parameters. There is thus no difference between an empty parameter list and not having one at all.
+The type parser also uses it, which makes perfect sense as the entry point is called parseFunctionType and returns a FunctionType.
+Although the FunctionType is a type, it is located in FunctionSignature.hpp, for dubious reasons.
 * The Language

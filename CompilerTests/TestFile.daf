@@ -1,17 +1,17 @@
 // -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
+def a := 5;
+
 def a:int {6};
 def b:int= 5;
 def mut c:= {7};
 def d:= 7;
-def mut e:let= a; //following colon, either a type or =, or both
+def mut e:= a; //following colon, either a type or =, or both
 def let f:={noe++}; //cant have let on void type
 def g{noe++;};
 
-def main:=() {
-	def myInt:int=4;
-	def myFunc:=(a:int):={5};
-};
+//ERROR: def a:={};
+//WARNING: def a {5};
 
 namedef h := test;
 //typedef h := i32;
@@ -19,8 +19,31 @@ def x := 5;
 //def x := 7;
 def x:=3;
 
-def let a := {a++;};
+def let a := {a++};
 
-pub def main(a:int):int {
+pub def main(a:int) {
 	let a := 5;
 };
+
+def a := 5;
+def a {};
+def a() := 50;
+def a(a:int):int {6};
+
+def a : (a:int):int = func;
+
+def a :let=b;
+def mut c := b;
+
+def get():mut=b;
+
+/*
+So...
+
+When we reach where there may be a parameter list followed by a return type,
+we simply invoke parseFunctionType, with extra options allowCompileTimeParameters and allowEatingEquals
+The returned type contains weather or not the equals was eaten and if there is a return type, and what kind.
+Type inference is also a possibility.
+This returned type can be used when parsing the body, assuring scopes and return values and whatnot, in one common function.
+
+*/

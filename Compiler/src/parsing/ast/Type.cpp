@@ -93,12 +93,3 @@ PrimitiveType::PrimitiveType(Primitives primitive, const TextRange& range) : Typ
 void PrimitiveType::printSignature() {
 	std::cout << getTokenTypeText(primitiveToTokenType(m_primitive));
 }
-
-FunctionType::FunctionType(std::vector<FuncSignParameter>&& parameters, unique_ptr<FuncSignReturnInfo> returnInfo, const TextRange& range) : Type(range), m_parameters(std::move(parameters)), m_returnInfo(std::move(returnInfo)) {
-	assert(m_returnInfo);
-}
-
-void FunctionType::printSignature() {
-	printParameterListSignature(m_parameters);
-	m_returnInfo->printSignature();
-}

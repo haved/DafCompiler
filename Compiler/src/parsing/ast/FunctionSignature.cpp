@@ -1,6 +1,57 @@
 #include "parsing/ast/FunctionSignature.hpp"
 #include "DafLogger.hpp"
 
+FunctionParameter::FunctionParameter(std::string&& name) : m_name(std::move(name)) {}
+
+ValueParameter::ValueParameter(bool def, std::string&& name, TypeReference&& type) : FunctionParameter(std::move(name)), m_def(def), m_type(std::move(type)) {
+	assert(m_type);
+}
+
+void ValueParameter::printSignature() {
+	if(m_def)
+		std::cout << "def ";
+	std::cout << m_name;
+	std::cout << ":";
+	m_type.printSignature();
+}
+
+FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, FunctionReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_returnType(std::move(returnType)), m_ateEquals(ateEqualsSign) {
+
+	// If we are explicitly told we don't have a return type, we assert we weren't given one
+	if(m_returnKind == FunctionReturnKind::NO_RETURN)
+		assert(!m_returnType.hasType());
+	else if(!m_ateEquals) // If we don't infer return type (=), but have a return type (:)
+		assert(m_returnType.hasType()); //Then we require an explicit type
+}
+
+void FunctionType::printSignature() {
+
+	if(m_parameters.size() > 0) {
+		std::cout << "(";
+		for(unsigned int i = 0; i < m_parameters.size(); i++) {
+			if(i!=0)
+				std::cout << ", ";
+			m_parameters[i]->printSignature();
+		}
+		std::cout << ")";
+	}
+
+	if(m_returnKind != FunctionReturnKind::NO_RETURN) {
+		std::cout << ":";
+		if(m_returnKind == FunctionReturnKind::REFERENCE_RETURN)
+			std::cout << "let ";
+		else if(m_returnKind == FunctionReturnKind::MUT_REF_RETURN)
+			std::cout << "mut ";
+
+		if(m_returnType.hasType())
+			m_returnType.printSignature();
+	}
+
+	if(m_ateEquals)
+		std::cout << "=";
+}
+
+/*
 FuncSignParameter::FuncSignParameter(FuncSignParameterKind kind, std::string&& name, TypeReference&& type, const TextRange& range) : m_range(range), m_kind(kind), m_name(std::move(name)), m_type(std::move(type)) {
 	assert(kind != FuncSignParameterKind::TYPE_PARAM);
 }
@@ -82,3 +133,4 @@ const TextRange& FuncSignReturnInfo::getRange() const {
 FuncSignReturnKind FuncSignReturnInfo::getReturnKind() const {
 	return m_kind;
 }
+*/

@@ -34,7 +34,7 @@ public:
 	virtual bool makeConcrete(NamespaceStack& ns_stack)=0; //TODO: We need to keep a list of pseudo-concrete types
 };
 
-enum class DefType {
+enum class DefReturnType {
 	DEF_NORMAL,
 	DEF_LET,
 	DEF_MUT,
@@ -43,13 +43,12 @@ enum class DefType {
 
 class Def : public Definition {
 private:
-	DefType m_defType;
+	DefReturnType m_defType;
 	std::string m_name;
-	std::vector<FuncSignParameter> m_parameters;
 	TypeReference m_type;
 	unique_ptr<Expression> m_expression;
 public:
-	Def(bool pub, DefType defType, std::string&& name, std::vector<FuncSignParameter>&& params, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange& range);
+	Def(bool pub, DefReturnType defType, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange& range);
 	void printSignature();
 	inline bool isStatement() override { return true; }
 

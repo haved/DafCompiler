@@ -10,18 +10,56 @@ TypeReference parseAliasForType(Lexer& lexer) {
 		  std::string(lexer.getPreviousToken().text), TextRange(lexer.getFile(), lexer.getPreviousToken())  ));
 }
 
-//Also used by the Expression parser
-unique_ptr<FunctionType> parseFunctionTypeSignature(Lexer& lexer, bool allowEatingEquals) {
-	if(lexer.currType() == LEFT_PAREN)
-		lexer.advance();
-	else
-		assert(lexer.getPreviousToken().type == LEFT_PAREN);
+TypeReference parseFunctionType(Lexer& lexer) {
+	//This one is defined in FunctionSignatureParser.hpp
+	return TypeReference(parseFunctionType(lexer, AllowCompileTimeParameters::NO, AllowEatingEqualsSign::NO));
+}
 
-	int startLine = lexer.getPreviousToken().line;
-	int startCol  = lexer.getPreviousToken().col;
+TypeReference parsePrimitive(Lexer& lexer) {
+	//assert(isTokenPrimitive(lexer.currType()))
+	lexer.advance(); //Return primitive
+	return TypeReference(std::make_unique<PrimitiveType>(tokenTypeToPrimitive(lexer.getPreviousToken().type), TextRange(lexer.getFile(), lexer.getPreviousToken())));
+}
+
+TypeReference parseType(Lexer& lexer) {
+	switch(lexer.currType()) {
+	case LEFT_PAREN:
+		return parseFunctionType(lexer);
+	case IDENTIFIER:
+		return parseAliasForType(lexer);
+	default:
+		break;
+	}
+	if(isTokenPrimitive(lexer.currType()))
+		return parsePrimitive(lexer);
+
+	logDafExpectedToken("a type", lexer);
+	return TypeReference();
+}
+
+
+
+
+/*
+//Not used by definition parser as it has an identifier between def and list
+unique_ptr<FunctionType> parseDefFunctionTypeSignature(Lexer lexer) {
+	assert(lexer.currType() == DEF);
+	lexer.advance(); //Eat 'def'
+	constexpr bool DONT_ALLOW_EATING_EAQUALS = false;
+	constexpr bool ALLOW_COMPILE_TIME_PARAMETERS = true;
+	return parseFunctionTypeSignature(lexer, DONT_ALLOW_EATING_EAQUALS, ALLOW_COMPILE_TIME_PARAMETERS);
+}
+
+//Also used by the Expression parser
+unique_ptr<FunctionType> parseFunctionTypeSignature(Lexer& lexer, bool allowEatingEquals, bool allowCompileTimeParams) {
+	int startLine = lexer.getCurrentToken().line;
+	int startCol  = lexer.getCurrentToken().col;
 	std::vector<FuncSignParameter> params;
-	if(!parseFuncSignParameterList(lexer, params, false)) //If this returns false we've really failed (EOF?)
-		return std::unique_ptr<FunctionType>();
+	if(lexer.currType() == LEFT_PAREN) {
+		if(!parseFuncSignParameterList(lexer, params, allowCompileTimeParams))
+			return std::unique_ptr<FunctionType>();
+	}
+
 	auto returnInfo = parseFuncSignReturnInfo(lexer, allowEatingEquals);
 	if(!returnInfo)
 		return std::unique_ptr<FunctionType>();
@@ -34,25 +72,4 @@ TypeReference parseFunctionTypeAsType(Lexer& lexer) {
 	auto funcType = parseFunctionTypeSignature(lexer, false); //Don't eat equals
 	return TypeReference(std::move(funcType));
 }
-
-TypeReference parsePrimitive(Lexer& lexer) {
-	//assert(isTokenPrimitive(lexer.currType()))
-	lexer.advance(); //Return primitive
-	return TypeReference(std::make_unique<PrimitiveType>(tokenTypeToPrimitive(lexer.getPreviousToken().type), TextRange(lexer.getFile(), lexer.getPreviousToken())));
-}
-
-TypeReference parseType(Lexer& lexer) {
-	switch(lexer.currType()) {
-	case LEFT_PAREN:
-		return parseFunctionTypeAsType(lexer);
-	case IDENTIFIER:
-		return parseAliasForType(lexer);
-	default:
-		break;
-	}
-	if(isTokenPrimitive(lexer.currType()))
-		return parsePrimitive(lexer);
-
-	logDafExpectedToken("a type", lexer);
-	return TypeReference();
-}
+*/

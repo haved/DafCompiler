@@ -32,12 +32,12 @@ void advanceLexerSkipScopes(Lexer& lexer) {
 }
 
 //Skips until the wanted token is the current token, or until the current token is the end of a scope, to allow outside functions to know about the scope end
-void skipUntil(Lexer& lexer, TokenType type) {
+bool skipUntil(Lexer& lexer, TokenType type) {
 	int startLine = lexer.getCurrentToken().line;
 	int startCol  = lexer.getCurrentToken().col;
 	while(lexer.hasCurrentToken()) {
 		if(lexer.currType()==type)
-			return;
+			return true;
 		else if(isEndOfScope(lexer.currType())) { //Maybe even a different end of scope to the one we want
 			if(isEndOfScope(type)) { //One scope ended before a sub-scope did
 				logDaf(lexer.getFile(),
@@ -45,9 +45,9 @@ void skipUntil(Lexer& lexer, TokenType type) {
 					<< "expected " << getTokenTypeText(type) << " before "
 					<< getTokenTypeText(lexer.currType()) << ". Ended the wrong region" << std::endl;
 				//lexer.advance(); //TODO: Does this make things even worse? I just don't want to get stuck
-				return; //TODO: Is this good? We could eat the end of a scope, but would end up with more errors :/
+				return false; //TODO: Is this good? We could eat the end of a scope, but would end up with more errors :/
 			} else
-				return; //We don't exit scopes
+				return false; //We don't exit scopes
 		}
 		advanceLexerSkipScopes(lexer); //Will skip things, and skip sub-scopes
 	}
@@ -55,6 +55,7 @@ void skipUntil(Lexer& lexer, TokenType type) {
 		<< "EOF hit when skipping from "
 		<< startLine << ":" << startCol
 		<< " until " << getTokenTypeText(type) << std::endl;
+	return false;
 }
 
 //Skips until a new def/let/typedef/namedef/with occurs on the same scope level. Will return if exiting scope

@@ -1,6 +1,127 @@
 #include "parsing/FunctionSignatureParser.hpp"
 #include "parsing/TypeParser.hpp"
 #include "parsing/ExpressionParser.hpp"
+#include "parsing/ErrorRecovery.hpp"
+#include "DafLogger.hpp"
+
+#include "parsing/ast/FunctionSignature.hpp"
+
+using ACTP = AllowCompileTimeParameters;
+using AEES = AllowEatingEqualsSign;
+
+unique_ptr<FunctionType> none_funcTyp() {
+	return unique_ptr<FunctionType>();
+}
+
+bool parseFunctionParameter(Lexer& lexer, std::vector<unique_ptr<FunctionParameter>>& params, AllowCompileTimeParameters compTimeParam) {
+	if(!lexer.expectToken(IDENTIFIER))
+		return false;
+	std::string name(lexer.getCurrentToken().text);
+	lexer.advance(); //Eat identifier
+	if(!lexer.expectToken(TYPE_SEPARATOR))
+		return false;
+	lexer.advance(); //Eat ':'
+	TypeReference type = parseType(lexer);
+	if(!type)
+		return false;
+	params.push_back(std::make_unique<ValueParameter>(false, std::move(name), std::move(type)));
+	return true;
+}
+
+unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowCompileTimeParameters compTimeParam, AllowEatingEqualsSign equalSignEdible) {
+
+	int startLine = lexer.getCurrentToken().line;
+	int startCol  = lexer.getCurrentToken().col;
+
+	std::vector<unique_ptr<FunctionParameter>> params;
+	if(lexer.currType() == LEFT_PAREN) {
+		if(lexer.getLookahead().type != RIGHT_PAREN) {
+			do {
+				lexer.advance(); //Eat ( or comma
+
+				if( !parseFunctionParameter(lexer, params, compTimeParam) ) {
+					if(skipUntil(lexer, RIGHT_PAREN))
+						break;
+					return none_funcTyp();
+				}
+			} while(lexer.currType() == COMMA);
+		} else
+			lexer.advance(); //Eat ( such that we now are guaranteed to be at ')'
+
+		if(!lexer.expectToken(RIGHT_PAREN)) {
+			if(skipUntil(lexer, RIGHT_PAREN))
+				;
+			else
+				return none_funcTyp();
+		}
+		lexer.advance(); //Eat )
+	}
+
+	//We have now eaten parameters
+	auto return_kind = FunctionReturnKind::NO_RETURN;
+	bool ateEqualsSign = false;
+	TypeReference type;
+
+	if(lexer.currType() == DECLARE) {
+		if(equalSignEdible != AEES::YES)
+			logDaf(lexer.getFile(), lexer.getCurrentToken(), ERROR) << "can't handle declaration operator here" << std::endl;
+		return_kind = FunctionReturnKind::VALUE_RETURN;
+	}
+	else if(lexer.currType() == TYPE_SEPARATOR) {
+		return_kind = FunctionReturnKind::VALUE_RETURN;
+		lexer.advance(); //Eat ':'
+		if(lexer.currType() == LET) {
+			return_kind = FunctionReturnKind::REFERENCE_RETURN;
+			lexer.advance(); //Eat 'let'
+		}
+		if(lexer.currType() == MUT) {
+			return_kind = FunctionReturnKind::MUT_REF_RETURN;
+			lexer.advance(); //Eat 'mut'
+		}
+
+		if(lexer.currType() != ASSIGN || equalSignEdible != AEES::YES) { // '='
+			type = parseType(lexer);
+			if(!type)
+				return none_funcTyp();
+		}
+	}
+
+	if((lexer.currType() == ASSIGN || lexer.currType() == DECLARE) && equalSignEdible == AEES::YES) {
+		lexer.advance(); //Eat '=' or ':='
+		ateEqualsSign = true;
+		if(return_kind == FunctionReturnKind::NO_RETURN)
+			logDaf(lexer.getFile(), lexer.getPreviousToken(), WARNING) << "functions without return types should use scopes as opposed to equals signs" << std::endl;
+	}
+
+	TextRange range(lexer.getFile(), startLine, startCol, lexer.getPreviousToken());
+	return std::make_unique<FunctionType>(std::move(params), return_kind, std::move(type), ateEqualsSign, range);
+}
+
+
+unique_ptr<Expression> parseFunctionBody(Lexer& lexer, FunctionType& type) {
+	if(!type.ateEqualsSign())
+		lexer.expectToken(SCOPE_START);
+	unique_ptr<Expression> body = parseExpression(lexer);
+	if(!body)
+		return body; //none expression
+
+	if(type.getReturnKind() == FunctionReturnKind::NO_RETURN) {
+		if(body->evaluatesToValue())
+			logDaf(body->getRange(), WARNING) << "function body return value ignored" << std::endl;
+	}
+	else { //We expect a return value
+		if(!body->evaluatesToValue())
+			logDaf(body->getRange(), ERROR) << "function body doesn't return anything" << std::endl;
+	}
+
+	return body;
+}
+
+/*
+
+#include "parsing/FunctionSignatureParser.hpp"
+#include "parsing/TypeParser.hpp"
+#include "parsing/ExpressionParser.hpp"
 #include "DafLogger.hpp"
 #include "parsing/ErrorRecovery.hpp"
 
@@ -191,3 +312,4 @@ std::unique_ptr<Expression> parseBodyGivenReturnInfo(Lexer& lexer, const FuncSig
 	}
 	return body;
 }
+*/

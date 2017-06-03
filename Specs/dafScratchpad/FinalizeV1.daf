@@ -55,3 +55,8 @@ def eyo {
 		b(a);
 	};
 };
+
+
+typedef something := class {
+	
+};

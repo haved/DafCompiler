@@ -81,6 +81,71 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 
 	lexer.advance(); //Eat 'def'
 
+	auto def_return_type = DefReturnType::DEF_NORMAL;
+
+	if(lexer.currType() == LET) {
+		def_return_type = DefReturnType::DEF_LET;
+		lexer.advance(); //Eat 'let'
+	}
+    if(lexer.currType() == MUT) {
+		def_return_type = DefReturnType::DEF_MUT;
+		lexer.advance(); //Eat 'mut'
+	}
+
+	if(!lexer.expectToken(IDENTIFIER))
+		return none_defnt();
+
+	std::string name(lexer.getCurrentToken().text);
+	lexer.advance(); //Eat identifier
+
+	unique_ptr<FunctionType> functionType = parseFunctionType(lexer, AllowCompileTimeParameters::YES, AllowEatingEqualsSign::YES);
+	if(!functionType)
+		return none_defnt();
+
+	unique_ptr<Expression> body = parseFunctionBody(lexer, *functionType);
+	if(!body)
+		return none_defnt();
+
+	if(lexer.expectToken(STATEMENT_END))
+		lexer.advance(); // Eat ';'
+
+	TextRange range(lexer.getFile(), startLine, startCol, lexer.getPreviousToken());
+
+	//TODO: Add packing in, in which case the def is normal return type
+	if(functionType->getParams().empty() || true) { //We don't need to pack anything into anything
+		auto funcRet = functionType->getReturnKind();
+		if(funcRet != FunctionReturnKind::VALUE_RETURN) {
+			if(def_return_type != DefReturnType::DEF_NORMAL)
+				logDaf(lexer.getFile(), startLine, startCol, ERROR) << "Multiple specifications of return kind of def" << std::endl;
+			switch(funcRet) {
+			case FunctionReturnKind::NO_RETURN:
+				def_return_type = DefReturnType::NO_RETURN_DEF;
+				break;
+			case FunctionReturnKind::REFERENCE_RETURN:
+				def_return_type = DefReturnType::DEF_LET;
+				break;
+			case FunctionReturnKind::MUT_REF_RETURN:
+				def_return_type = DefReturnType::DEF_MUT;
+				break;
+			default: break;
+			}
+		}
+
+		return std::make_unique<Def>(pub, def_return_type, std::move(name), functionType->reapReturnType(), std::move(body), range);
+	}
+	return none_defnt(); //TODO
+}
+
+/*
+
+unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
+	assert(lexer.currType() == DEF);
+
+	int startLine = lexer.getCurrentToken().line;
+	int startCol  = lexer.getCurrentToken().col;
+
+	lexer.advance(); //Eat 'def'
+
 	auto def_type = DefType::DEF_NORMAL;
 
     if(lexer.currType() == LET) {
@@ -131,8 +196,15 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 
 	TextRange range(startLine, startCol, body->getRange());
 
-	return unique_ptr<Definition>(new Def(pub, def_type, std::move(name), std::move(parameters), std::move(*info).reapType(), std::move(body), range));
+	if(parameters.size() == 0) {
+		return unique_ptr<Definition>(new Def(pub, def_type, std::move(name), std::move(parameters), std::move(*info).reapType(), std::move(body), range));
+	} else {
+		//A def doesn't really have parameters, so we pack in a function expression
+		auto func := unique_ptr<FunctionExpression>(new FunctionExpression());
+	}
 }
+
+*/
 
 unique_ptr<Definition> parseTypedefDefinition(Lexer& lexer, bool pub) {
 	assert(lexer.currType()==TYPEDEF);
