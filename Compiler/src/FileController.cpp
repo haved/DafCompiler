@@ -71,19 +71,20 @@ SourcePath::SourcePath(bool p_sourceIncluded, fs::path&& p_path) : sourceInclude
 FileRegistry::FileRegistry() : m_registeredFiles(), m_sourcePaths(), m_outputFile(), m_linkFileOutput(), m_linkfileStatements() {}
 
 bool FileRegistry::tryAddPath(fs::path&& path, bool sourceIncluded) {
-	if(!fs::is_directory(path))
+	if(!fs::is_directory(path)) {
 		logDaf(FATAL_ERROR) << "source path " << path << " doesn't exist" << std::endl;
-	else
-		m_sourcePaths.emplace_back(sourceIncluded, std::move(path));
+		return false;
+	}
 
-	return true; //TODO
+	m_sourcePaths.emplace_back(sourceIncluded, std::move(path));
+	return true;
 }
 
 bool FileRegistry::setOutput(fs::path&& path) {
 	if(m_outputFile.size()!=0)
 		logDaf(WARNING) << "setting output a second time, from " << m_outputFile << " to " << path << std::endl;
 	m_outputFile = std::move(path);
-	return false; //TODO
+	return true;
 }
 
 bool FileRegistry::tryAddFile(std::string&& inputName) {

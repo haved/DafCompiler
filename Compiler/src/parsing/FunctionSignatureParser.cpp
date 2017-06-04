@@ -130,10 +130,18 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
 	int startCol  = lexer.getCurrentToken().col;
 
 	bool def = lexer.currType() == DEF;
-	if(def)
+	ReturnKind def_return_kind = ReturnKind::VALUE_RETURN;
+	if(def) {
 		lexer.advance(); //Eat def
-
-	//TODO: Add let mut parsing here
+		if(lexer.currType() == LET) {
+			lexer.advance(); //Eat 'let'
+			def_return_kind = ReturnKind::REF_RETURN;
+		}
+		if(lexer.currType() == MUT) {
+			lexer.advance(); //Eat 'mut'
+			def_return_kind = ReturnKind::MUT_REF_RETURN;
+		}
+    }
 
 	bool isInline = lexer.currType() == INLINE;
 	if(isInline)
@@ -148,6 +156,9 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
 		return none_expr();
 
 	TextRange range(lexer.getFile(), startLine, startCol, lexer.getPreviousToken());
+
+	ReturnKind mergedReturnKind = mergeDefReturnKinds(def_return_kind, type->getReturnKind(), range);
+	type->setReturnKind(mergedReturnKind);
 	return std::unique_ptr<FunctionExpression>(new FunctionExpression(isInline, std::move(type), std::move(body), range));
 }
 

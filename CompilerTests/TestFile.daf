@@ -63,3 +63,7 @@ def b {
 };
 
 def test : def(a:int):int = func;
+
+def test():mut int {
+	a
+};

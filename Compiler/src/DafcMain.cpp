@@ -36,7 +36,7 @@ int main(int argc, const char** argv) {
 	terminateIfErrors(); //Definitions given the same name
 	//We must make all name scopes' maps before we make stuff concrete
 	*/
-
+	
 	for(int i = 0; i < files.getFileCount(); i++) {
 		NameScope& scope = *files.getFileAt(i)->m_nameScope; //An optional
 		scope.makeEverythingConcrete(); //Recursive

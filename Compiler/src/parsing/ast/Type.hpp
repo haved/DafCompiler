@@ -33,7 +33,7 @@ public:
 	inline bool hasType() const { return bool(m_type); }
 	inline operator bool() const { return hasType(); }
 	void printSignature() const;
-	//TODO: This is no longer part of TypeReference
+
 	inline bool hasRange() const { return hasType(); }
 	inline const TextRange& getRange() const { assert(m_type); return m_type->getRange(); }
 };
