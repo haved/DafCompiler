@@ -38,3 +38,28 @@ def a :let=b;
 def mut c := b;
 
 def get():mut=b;
+
+def block{
+a();
+a();
+a();
+a();
+a();
+a();
+a();
+a();
+a();
+a();
+a();
+a();
+a();
+};
+
+def a := {
+	a
+};
+
+def b {
+};
+
+def test : def(a:int):int = func;

@@ -12,7 +12,10 @@ TypeReference parseAliasForType(Lexer& lexer) {
 
 TypeReference parseFunctionType(Lexer& lexer) {
 	//This one is defined in FunctionSignatureParser.hpp
-	return TypeReference(parseFunctionType(lexer, AllowCompileTimeParameters::NO, AllowEatingEqualsSign::NO));
+	bool def = lexer.currType() == DEF;
+	if(def)
+		lexer.advance(); //Eat 'def'
+	return TypeReference(parseFunctionType(lexer, def ? AllowCompileTimeParameters::YES : AllowCompileTimeParameters::NO, AllowEatingEqualsSign::NO));
 }
 
 TypeReference parsePrimitive(Lexer& lexer) {
@@ -24,6 +27,8 @@ TypeReference parsePrimitive(Lexer& lexer) {
 TypeReference parseType(Lexer& lexer) {
 	switch(lexer.currType()) {
 	case LEFT_PAREN:
+		return parseFunctionType(lexer);
+	case DEF:
 		return parseFunctionType(lexer);
 	case IDENTIFIER:
 		return parseAliasForType(lexer);
