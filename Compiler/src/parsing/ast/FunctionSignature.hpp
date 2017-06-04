@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include "parsing/ast/Type.hpp"
+#include "parsing/ast/Expression.hpp"
 
 using std::unique_ptr;
 
@@ -47,7 +48,23 @@ public:
 	inline TypeReference&& reapReturnType() { return std::move(m_returnType); }
 };
 
+class FunctionExpression : public Expression {
+private:
+	bool m_inline;
+	unique_ptr<FunctionType> m_type;
+	unique_ptr<Expression> m_body;
+public:
+	FunctionExpression(bool isInline, unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range);
 
+	bool findType() override { assert(false); return true; }
+	bool isTypeKnown() override { return true; }
+	Type& getType() override { return *m_type; }
+
+	void printSignature();
+};
+
+
+//TODO: Remove
 /*
 
 #include "parsing/ast/Type.hpp"

@@ -138,7 +138,7 @@ unique_ptr<Scope> parseScope(Lexer& lexer) {
 			lexer.advance();
 	}
 
-	//TODO: Is it worth it? It's a vector to pointers, after all
+	//TODO: Optimize: Is it worth it? It's a vector to pointers, after all
 	statements.shrink_to_fit();
 
 	TextRange range(lexer.getFile(), startLine, startCol, lexer.getCurrentToken());
@@ -153,8 +153,8 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
 		return parseVariableExpression(lexer);
 	case LEFT_PAREN:
 		return parseParenthesies(lexer);
-		//case INLINE: //TODO: def handling
-		//return parseFunctionExpression(lexer);
+    case DEF:
+		return parseFunctionExpression(lexer); //In FunctionSignatureParser.cpp
 	case SCOPE_START:
 		return parseScope(lexer);
 	case WITH:

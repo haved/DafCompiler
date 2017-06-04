@@ -13,6 +13,8 @@ def g{noe++;};
 //ERROR: def a:={};
 //WARNING: def a {5};
 
+def a := def(a:int):let={a};
+
 namedef h := test;
 //typedef h := i32;
 def x := 5;

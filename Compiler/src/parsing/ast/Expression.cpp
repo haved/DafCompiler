@@ -69,25 +69,6 @@ void RealConstantExpression::printSignature() {
 	std::cout << m_real;
 }
 
-//Maybe add something in daf to make this prettier? I dunno
-FunctionExpression::FunctionExpression(bool isInline, unique_ptr<FunctionType>&& type, std::unique_ptr<Expression>&& body, const TextRange& range) : Expression(range), m_inline(isInline), m_functionType(std::move(type)), m_body(std::move(body)) {
-	//ExpressionParser's parseFunctionExpression assures us that none of the parameters are type inferred or type parameters, so we don't
-	assert(m_body);
-}
-
-void FunctionExpression::printSignature() {
-	if(m_inline)
-		std::cout << "inline ";
-	m_functionType->printSignature();
-	std::cout << " ";
-	if(DafSettings::shouldPrintFullSignature()) {
-		assert(m_body);
-		m_body->printSignature();
-	} else {
-		std::cout << "{...}";
-	}
-}
-
 InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, const InfixOperator& op,
                                                  std::unique_ptr<Expression>&& RHS)
 	: Expression(TextRange(LHS->getRange(), RHS->getRange())), LHS(std::move(LHS)), op(op), RHS(std::move(RHS)) {}

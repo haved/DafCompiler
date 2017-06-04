@@ -117,6 +117,39 @@ unique_ptr<Expression> parseFunctionBody(Lexer& lexer, FunctionType& type) {
 	return body;
 }
 
+unique_ptr<Expression> none_expr() {
+	return unique_ptr<Expression>();
+}
+
+//Can start at def to allow compile time parameters, at 'inline', at '(', or ':', '=' if you're weird, or '{' for just a body
+unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
+
+	int startLine = lexer.getCurrentToken().line;
+	int startCol  = lexer.getCurrentToken().col;
+
+	bool def = lexer.currType() == DEF;
+	if(def)
+		lexer.advance(); //Eat def
+
+	//TODO: Add let mut parsing here
+
+	bool isInline = lexer.currType() == INLINE;
+	if(isInline)
+		lexer.advance(); //Eat inline
+
+	unique_ptr<FunctionType> type = parseFunctionType(lexer, def?AllowCompileTimeParameters::YES : AllowCompileTimeParameters::NO, AllowEatingEqualsSign::YES);
+	if(!type)
+		return none_expr();
+
+	unique_ptr<Expression> body = parseFunctionBody(lexer, *type);
+	if(!body)
+		return none_expr();
+
+	TextRange range(lexer.getFile(), startLine, startCol, lexer.getPreviousToken());
+	return std::unique_ptr<FunctionExpression>(new FunctionExpression(isInline, std::move(type), std::move(body), range));
+}
+
+//TODO: Remove
 /*
 
 #include "parsing/FunctionSignatureParser.hpp"

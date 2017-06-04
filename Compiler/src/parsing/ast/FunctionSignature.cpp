@@ -1,5 +1,6 @@
 #include "parsing/ast/FunctionSignature.hpp"
 #include "DafLogger.hpp"
+#include "info/DafSettings.hpp"
 
 FunctionParameter::FunctionParameter(std::string&& name) : m_name(std::move(name)) {}
 
@@ -50,6 +51,27 @@ void FunctionType::printSignature() {
 	if(m_ateEquals)
 		std::cout << "=";
 }
+
+FunctionExpression::FunctionExpression(bool isInline, unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range) : Expression(range), m_inline(isInline), m_type(std::move(type)), m_body(std::move(body)) {
+	assert(m_body);
+}
+
+void FunctionExpression::printSignature() {
+	if(m_inline)
+		std::cout << "inline ";
+	m_type->printSignature();
+	std::cout << " ";
+	if(DafSettings::shouldPrintFullSignature()) {
+		assert(m_body);
+		m_body->printSignature();
+	} else {
+		std::cout << "{...}";
+	}
+}
+
+
+
+//TODO: Remove
 
 /*
 FuncSignParameter::FuncSignParameter(FuncSignParameterKind kind, std::string&& name, TypeReference&& type, const TextRange& range) : m_range(range), m_kind(kind), m_name(std::move(name)), m_type(std::move(type)) {

@@ -2,7 +2,6 @@
 
 #include "parsing/ast/TextRange.hpp"
 #include "parsing/ast/Type.hpp"
-#include "parsing/ast/FunctionSignature.hpp"
 #include "info/PrimitiveSizes.hpp"
 #include "parsing/ast/Operator.hpp"
 #include "parsing/semantic/NamespaceStack.hpp"
@@ -15,6 +14,8 @@ using std::unique_ptr;
 class Lexer;
 
 class Expression {
+protected:
+	TextRange m_range;
 public:
 	Expression(const TextRange& range);
 	virtual ~Expression();
@@ -25,6 +26,7 @@ public:
 	virtual bool evaluatesToValue() const; //This expression can't be returned unless this is true
 
 	virtual bool makeConcrete(NamespaceStack& ns_stack) { return true; }
+
 	virtual const Type& getType();
 	virtual bool isTypeKnown();
 	//returns true if it has a type after the call
@@ -32,8 +34,6 @@ public:
 
 	virtual void printSignature() = 0;
 	const TextRange& getRange();
-protected:
-	TextRange m_range;
 };
 
 
@@ -73,6 +73,8 @@ private:
 	std::string m_text;
 };
 
+//Function Expression is located in FunctionSignature.hpp
+/* TODO: Remove
 class FunctionExpression : public Expression {
 private:
 	bool m_inline;
@@ -84,7 +86,7 @@ public:
 	bool isTypeKnown() {return true;}
 	Type& getType() {return *m_functionType;}
 	void printSignature();
-};
+};*/
 
 //TODO: Use m_ prefix for private fields
 class InfixOperatorExpression : public Expression {

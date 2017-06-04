@@ -16,8 +16,10 @@ enum class AllowEatingEqualsSign {
 // May start at either left parenthesis for a parameter list, a colon for a return type, an equals sign it may be allowed to eat, or none at all
 unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowCompileTimeParameters compTimeParam, AllowEatingEqualsSign equalSignEdible);
 
-
 unique_ptr<Expression> parseFunctionBody(Lexer& lexer, FunctionType& type);
+
+//Can start at def to allow compile time parameters, at 'inline', at '(', at ':', '=' if you're weird, or the body: So many possibilities
+unique_ptr<Expression> parseFunctionExpression(Lexer& lexer);
 
 /*
 #include "parsing/ast/FunctionSignature.hpp"
