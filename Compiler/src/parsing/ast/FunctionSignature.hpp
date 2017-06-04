@@ -41,8 +41,10 @@ private:
 public:
 	FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range);
 	void printSignature();
+	//TODO: Does putting the definitions in the header make compilation slower?
 	inline std::vector<unique_ptr<FunctionParameter>>& getParams() { return m_parameters; }
 	inline ReturnKind getReturnKind() { return m_returnKind; }
+	inline void setReturnKind(ReturnKind newKind) { m_returnKind = newKind; }
 	inline bool ateEqualsSign() { return m_ateEquals; }
 	inline TypeReference&& reapReturnType() { return std::move(m_returnType); }
 };
@@ -61,6 +63,8 @@ public:
 
 	void printSignature();
 };
+
+ReturnKind mergeDefReturnKinds(ReturnKind defKind, ReturnKind funcKind, TextRange def_range);
 
 
 //TODO: Remove

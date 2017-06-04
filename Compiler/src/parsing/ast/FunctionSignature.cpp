@@ -69,7 +69,17 @@ void FunctionExpression::printSignature() {
 	}
 }
 
+ReturnKind mergeDefReturnKinds(ReturnKind defKind, ReturnKind funcKind, TextRange def_range) {
+	assert(defKind != ReturnKind::NO_RETURN); //A def can't have no return, as that is part of the function type
 
+    if(funcKind != ReturnKind::VALUE_RETURN) { //We either have none or a reference return
+		if(defKind != ReturnKind::VALUE_RETURN)
+			logDaf(def_range.getFile(), def_range.getLine(), def_range.getCol(), ERROR) << "can't have return modifiers all over the place" << std::endl;
+		defKind = funcKind;
+	}
+
+	return defKind;
+}
 
 //TODO: Remove
 

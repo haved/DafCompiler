@@ -92,6 +92,11 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 		lexer.advance(); //Eat 'mut'
 	}
 
+	bool isInline = lexer.currType() == INLINE;
+	if(isInline)
+		lexer.advance(); //Eat 'inline'
+
+
 	if(!lexer.expectToken(IDENTIFIER))
 		return none_defnt();
 
@@ -111,18 +116,18 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 
 	TextRange range(lexer.getFile(), startLine, startCol, lexer.getPreviousToken());
 
-	//TODO: Add packing in, in which case the def is normal return type
-	if(functionType->getParams().empty() || true) { //We don't need to pack anything into anything
-		auto functionRetKind = functionType->getReturnKind();
-		if(functionRetKind != ReturnKind::VALUE_RETURN) { //We either have none or a reference return
-			if(def_return_type != ReturnKind::VALUE_RETURN)
-				logDaf(lexer.getFile(), startLine, startCol, ERROR) << "can't have return modifiers all over the place" << std::endl;
-			def_return_type = functionRetKind;
-		}
+	ReturnKind mergedReturnKind = mergeDefReturnKinds(def_return_type, functionType->getReturnKind(), range);
 
-		return std::make_unique<Def>(pub, def_return_type, std::move(name), functionType->reapReturnType(), std::move(body), range);
+	if(functionType->getParams().empty()) { //We don't need to pack anything into anything
+		if(isInline)
+			logDaf(range, NOTE) << "we currently ignore inline defs, unless they are functions" << std::endl;
+		return std::make_unique<Def>(pub, mergedReturnKind, std::move(name), functionType->reapReturnType(), std::move(body), range);
+	} else { //We have parameters and must thus pack our def into a function
+	    functionType->setReturnKind(mergedReturnKind);
+		TextRange packedRange(functionType->getRange(), body->getRange());
+		unique_ptr<Expression> packedFunction = std::make_unique<FunctionExpression>(isInline, std::move(functionType), std::move(body), packedRange);
+		return std::make_unique<Def>(pub, ReturnKind::VALUE_RETURN, std::move(name), TypeReference(), std::move(packedFunction), range);
 	}
-	return none_defnt(); //TODO
 }
 
 /*
