@@ -73,21 +73,6 @@ private:
 	std::string m_text;
 };
 
-//Function Expression is located in FunctionSignature.hpp
-/* TODO: Remove
-class FunctionExpression : public Expression {
-private:
-	bool m_inline;
-	unique_ptr<FunctionType> m_functionType;
-	std::unique_ptr<Expression> m_body;
-public:
-	FunctionExpression(bool isInline, unique_ptr<FunctionType>&& type, std::unique_ptr<Expression>&& body, const TextRange& range);
-	bool findType() {return false;}
-	bool isTypeKnown() {return true;}
-	Type& getType() {return *m_functionType;}
-	void printSignature();
-};*/
-
 //TODO: Use m_ prefix for private fields
 class InfixOperatorExpression : public Expression {
 private:

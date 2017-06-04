@@ -38,14 +38,3 @@ def a :let=b;
 def mut c := b;
 
 def get():mut=b;
-
-/*
-So...
-
-When we reach where there may be a parameter list followed by a return type,
-we simply invoke parseFunctionType, with extra options allowCompileTimeParameters and allowEatingEquals
-The returned type contains weather or not the equals was eaten and if there is a return type, and what kind.
-Type inference is also a possibility.
-This returned type can be used when parsing the body, assuring scopes and return values and whatnot, in one common function.
-
-*/

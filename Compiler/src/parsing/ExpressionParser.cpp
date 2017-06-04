@@ -38,54 +38,6 @@ unique_ptr<Expression> parseRealNumberExpression(Lexer& lexer) {
 	return unique_ptr<Expression>(new RealConstantExpression(token.real, token.realType, TextRange(lexer.getFile(), token)));
 }
 
-/*
-
-//Starts at def
-unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
-	assert(lexer.currType() == DEF);
-	lexer.advance(); //Eat 'def'
-
-	int startLine, startCol;
-
-	bool isInline = false;
-	if(lexer.currType() == INLINE)  {
-		isInline = true;
-		lexer.advance(); //Eat 'inline'
-
-		startLine = lexer.getPreviousToken().line;
-		startCol  = lexer.getPreviousToken().col;
-
-		if(!lexer.expectToken(LEFT_PAREN))
-			return none_exp();
-
-		lexer.advance(); //Eat '('
-	} else {
-		startLine = lexer.getPreviousToken().line;
-		startCol  = lexer.getPreviousToken().col;
-	}
-	assert(lexer.getPreviousToken().type == LEFT_PAREN);
-
-	constexpr bool ALLOW_EATING_EQUALS = true;
-	unique_ptr<FunctionType> type = parseFunctionTypeSignature(lexer, ALLOW_EATING_EQUALS);
-	if(!type)
-		return none_exp();
-
-	unique_ptr<Expression> body =
-		parseBodyGivenReturnInfo(lexer, type->getReturnInfo(),
-								 "function without return type has scoped body with return value",
-								 "function expressions must have bodies",
-								 "a scoped function body");
-
-	if(!body)
-		return none_exp();
-
-	TextRange range(startLine, startCol, body->getRange());
-   	//We are assured that the body isn't null, so the ctor won't complain
-	return std::make_unique<FunctionExpression>(isInline, std::move(type), std::move(body), range);
-}
-
-*/
-
 unique_ptr<Expression> parseParenthesies(Lexer& lexer) {
 	lexer.advance(); //Eat '('
 	//TokenType type = lexer.getCurrentToken().type;
