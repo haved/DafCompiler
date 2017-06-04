@@ -25,25 +25,24 @@ public:
 	void printSignature() override;
 };
 
-// TODO: Merge this one and the one in Def
-enum class FunctionReturnKind {
+enum class ReturnKind {
 	NO_RETURN,
 	VALUE_RETURN,
-	REFERENCE_RETURN,
+	REF_RETURN,
 	MUT_REF_RETURN
 };
 
 class FunctionType : public Type {
 private:
 	std::vector<unique_ptr<FunctionParameter>> m_parameters;
-	FunctionReturnKind m_returnKind;
+	ReturnKind m_returnKind;
 	TypeReference m_returnType;
 	bool m_ateEquals;
 public:
-	FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, FunctionReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range);
+	FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range);
 	void printSignature();
 	inline std::vector<unique_ptr<FunctionParameter>>& getParams() { return m_parameters; }
-	inline FunctionReturnKind getReturnKind() { return m_returnKind; }
+	inline ReturnKind getReturnKind() { return m_returnKind; }
 	inline bool ateEqualsSign() { return m_ateEquals; }
 	inline TypeReference&& reapReturnType() { return std::move(m_returnType); }
 };

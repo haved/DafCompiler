@@ -34,21 +34,14 @@ public:
 	virtual bool makeConcrete(NamespaceStack& ns_stack)=0; //TODO: We need to keep a list of pseudo-concrete types
 };
 
-enum class DefReturnType {
-	DEF_NORMAL,
-	DEF_LET,
-	DEF_MUT,
-	NO_RETURN_DEF
-};
-
 class Def : public Definition {
 private:
-	DefReturnType m_defType;
+	ReturnKind m_returnKind;
 	std::string m_name;
 	TypeReference m_type;
 	unique_ptr<Expression> m_expression;
 public:
-	Def(bool pub, DefReturnType defType, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange& range);
+	Def(bool pub, ReturnKind defKind, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange& range);
 	void printSignature();
 	inline bool isStatement() override { return true; }
 

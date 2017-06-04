@@ -58,24 +58,26 @@ unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowCompileTimeParamet
 	}
 
 	//We have now eaten parameters
-	auto return_kind = FunctionReturnKind::NO_RETURN;
+	auto return_kind = ReturnKind::NO_RETURN;
 	bool ateEqualsSign = false;
 	TypeReference type;
 
 	if(lexer.currType() == DECLARE) {
 		if(equalSignEdible != AEES::YES)
 			logDaf(lexer.getFile(), lexer.getCurrentToken(), ERROR) << "can't handle declaration operator here" << std::endl;
-		return_kind = FunctionReturnKind::VALUE_RETURN;
+		lexer.advance(); //Eat ':='
+		ateEqualsSign = true;
+		return_kind = ReturnKind::VALUE_RETURN;
 	}
 	else if(lexer.currType() == TYPE_SEPARATOR) {
-		return_kind = FunctionReturnKind::VALUE_RETURN;
+		return_kind = ReturnKind::VALUE_RETURN;
 		lexer.advance(); //Eat ':'
 		if(lexer.currType() == LET) {
-			return_kind = FunctionReturnKind::REFERENCE_RETURN;
+			return_kind = ReturnKind::REF_RETURN;
 			lexer.advance(); //Eat 'let'
 		}
 		if(lexer.currType() == MUT) {
-			return_kind = FunctionReturnKind::MUT_REF_RETURN;
+			return_kind = ReturnKind::MUT_REF_RETURN;
 			lexer.advance(); //Eat 'mut'
 		}
 
@@ -86,10 +88,10 @@ unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowCompileTimeParamet
 		}
 	}
 
-	if((lexer.currType() == ASSIGN || lexer.currType() == DECLARE) && equalSignEdible == AEES::YES) {
-		lexer.advance(); //Eat '=' or ':='
+	if(lexer.currType() == ASSIGN && equalSignEdible == AEES::YES && !ateEqualsSign) {
+		lexer.advance(); //Eat '='
 		ateEqualsSign = true;
-		if(return_kind == FunctionReturnKind::NO_RETURN)
+		if(return_kind == ReturnKind::NO_RETURN)
 			logDaf(lexer.getFile(), lexer.getPreviousToken(), WARNING) << "functions without return types should use scopes as opposed to equals signs" << std::endl;
 	}
 
@@ -105,7 +107,7 @@ unique_ptr<Expression> parseFunctionBody(Lexer& lexer, FunctionType& type) {
 	if(!body)
 		return body; //none expression
 
-	if(type.getReturnKind() == FunctionReturnKind::NO_RETURN) {
+	if(type.getReturnKind() == ReturnKind::NO_RETURN) {
 		if(body->evaluatesToValue())
 			logDaf(body->getRange(), WARNING) << "function body return value ignored" << std::endl;
 	}

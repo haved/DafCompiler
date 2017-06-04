@@ -16,10 +16,10 @@ void ValueParameter::printSignature() {
 	m_type.printSignature();
 }
 
-FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, FunctionReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_returnType(std::move(returnType)), m_ateEquals(ateEqualsSign) {
+FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_returnType(std::move(returnType)), m_ateEquals(ateEqualsSign) {
 
 	// If we are explicitly told we don't have a return type, we assert we weren't given one
-	if(m_returnKind == FunctionReturnKind::NO_RETURN)
+	if(m_returnKind == ReturnKind::NO_RETURN)
 		assert(!m_returnType.hasType());
 	else if(!m_ateEquals) // If we don't infer return type (=), but have a return type (:)
 		assert(m_returnType.hasType()); //Then we require an explicit type
@@ -37,11 +37,11 @@ void FunctionType::printSignature() {
 		std::cout << ")";
 	}
 
-	if(m_returnKind != FunctionReturnKind::NO_RETURN) {
+	if(m_returnKind != ReturnKind::NO_RETURN) {
 		std::cout << ":";
-		if(m_returnKind == FunctionReturnKind::REFERENCE_RETURN)
+		if(m_returnKind == ReturnKind::REF_RETURN)
 			std::cout << "let ";
-		else if(m_returnKind == FunctionReturnKind::MUT_REF_RETURN)
+		else if(m_returnKind == ReturnKind::MUT_REF_RETURN)
 			std::cout << "mut ";
 
 		if(m_returnType.hasType())

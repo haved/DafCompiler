@@ -5,8 +5,8 @@
 Definition::Definition(bool pub, const TextRange &range) : m_pub(pub), m_range(range) {}
 Definition::~Definition() {}
 
-Def::Def(bool pub, DefReturnType defType, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_defType(defType), m_name(std::move(name)), m_type(std::move(type)), m_expression(std::move(expression)) {
-	assert( !(defType == DefReturnType::NO_RETURN_DEF && m_type)  ); //We can't have a return type when kind is NO_RETURN
+Def::Def(bool pub, ReturnKind defType, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_returnKind(defType), m_name(std::move(name)), m_type(std::move(type)), m_expression(std::move(expression)) {
+	assert( !(defType == ReturnKind::NO_RETURN && m_type)  ); //We can't have a return type when kind is NO_RETURN
 	assert(m_expression); //We assert a body
 }
 
@@ -30,15 +30,15 @@ void Def::printSignature() {
 		std::cout << "pub ";
 	std::cout << "def ";
 
-	switch(m_defType) {
-	case DefReturnType::DEF_LET: std::cout << "let "; break;
-	case DefReturnType::DEF_MUT: std::cout << "mut "; break;
-	default: break; //DEF_NORMAL or NO_RETURN_DEF
+	switch(m_returnKind) {
+	case ReturnKind::REF_RETURN: std::cout << "let "; break;
+	case ReturnKind::MUT_REF_RETURN: std::cout << "mut "; break;
+	default: break; //VALUE_RETURN or NO_RETURN
 	}
 
 	std::cout << m_name;
 
-	if(m_defType != DefReturnType::NO_RETURN_DEF)
+	if(m_returnKind != ReturnKind::NO_RETURN)
 		std::cout << ":";
 
 	if(m_type)

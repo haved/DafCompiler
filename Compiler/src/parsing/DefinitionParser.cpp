@@ -81,14 +81,14 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 
 	lexer.advance(); //Eat 'def'
 
-	auto def_return_type = DefReturnType::DEF_NORMAL;
+	auto def_return_type = ReturnKind::VALUE_RETURN;
 
 	if(lexer.currType() == LET) {
-		def_return_type = DefReturnType::DEF_LET;
+		def_return_type = ReturnKind::REF_RETURN;
 		lexer.advance(); //Eat 'let'
 	}
     if(lexer.currType() == MUT) {
-		def_return_type = DefReturnType::DEF_MUT;
+		def_return_type = ReturnKind::MUT_REF_RETURN;
 		lexer.advance(); //Eat 'mut'
 	}
 
@@ -113,22 +113,11 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 
 	//TODO: Add packing in, in which case the def is normal return type
 	if(functionType->getParams().empty() || true) { //We don't need to pack anything into anything
-		auto funcRet = functionType->getReturnKind();
-		if(funcRet != FunctionReturnKind::VALUE_RETURN) {
-			if(def_return_type != DefReturnType::DEF_NORMAL)
-				logDaf(lexer.getFile(), startLine, startCol, ERROR) << "Multiple specifications of return kind of def" << std::endl;
-			switch(funcRet) {
-			case FunctionReturnKind::NO_RETURN:
-				def_return_type = DefReturnType::NO_RETURN_DEF;
-				break;
-			case FunctionReturnKind::REFERENCE_RETURN:
-				def_return_type = DefReturnType::DEF_LET;
-				break;
-			case FunctionReturnKind::MUT_REF_RETURN:
-				def_return_type = DefReturnType::DEF_MUT;
-				break;
-			default: break;
-			}
+		auto functionRetKind = functionType->getReturnKind();
+		if(functionRetKind != ReturnKind::VALUE_RETURN) { //We either have none or a reference return
+			if(def_return_type != ReturnKind::VALUE_RETURN)
+				logDaf(lexer.getFile(), startLine, startCol, ERROR) << "can't have return modifiers all over the place" << std::endl;
+			def_return_type = functionRetKind;
 		}
 
 		return std::make_unique<Def>(pub, def_return_type, std::move(name), functionType->reapReturnType(), std::move(body), range);
