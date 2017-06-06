@@ -67,3 +67,6 @@ def test : def(a:int):int = func;
 def test():mut int {
 	a
 };
+
+def a := def mut(a:int):int =5;
+def b := def ():mut int {a(6)}; //TODO: Have print def in printSignarture. This looks weird

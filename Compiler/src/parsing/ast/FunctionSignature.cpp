@@ -4,13 +4,12 @@
 
 FunctionParameter::FunctionParameter(std::string&& name) : m_name(std::move(name)) {}
 
-ValueParameter::ValueParameter(bool def, std::string&& name, TypeReference&& type) : FunctionParameter(std::move(name)), m_def(def), m_type(std::move(type)) {
+ValueParameter::ValueParameter(ParameterModifier modif, std::string&& name, TypeReference&& type) : FunctionParameter(std::move(name)), m_modif(modif), m_type(std::move(type)) {
 	assert(m_type);
 }
 
 void ValueParameter::printSignature() {
-	if(m_def)
-		std::cout << "def ";
+    //TODO: Print modifier
 	std::cout << m_name;
 	std::cout << ":";
 	m_type.printSignature();
@@ -26,8 +25,12 @@ FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, 
 }
 
 void FunctionType::printSignature() {
+	printSignatureMustHaveList(true);
+}
 
-	if(m_parameters.size() > 0) {
+void FunctionType::printSignatureMustHaveList(bool list) {
+
+	if(m_parameters.size() > 0 || list) {
 		std::cout << "(";
 		for(unsigned int i = 0; i < m_parameters.size(); i++) {
 			if(i!=0)
@@ -50,6 +53,10 @@ void FunctionType::printSignature() {
 
 	if(m_ateEquals)
 		std::cout << "=";
+}
+
+void FunctionType::printSignatureMaybeList() {
+	printSignatureMustHaveList(false);
 }
 
 FunctionExpression::FunctionExpression(bool isInline, unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range) : Expression(range), m_inline(isInline), m_type(std::move(type)), m_body(std::move(body)) {

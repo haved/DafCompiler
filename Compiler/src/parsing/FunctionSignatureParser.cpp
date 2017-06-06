@@ -24,11 +24,13 @@ bool parseFunctionParameter(Lexer& lexer, std::vector<unique_ptr<FunctionParamet
 	TypeReference type = parseType(lexer);
 	if(!type)
 		return false;
-	params.push_back(std::make_unique<ValueParameter>(false, std::move(name), std::move(type)));
+	params.push_back(std::make_unique<ValueParameter>(ParameterModifier::NONE, std::move(name), std::move(type)));
 	return true;
 }
 
-unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowCompileTimeParameters compTimeParam, AllowEatingEqualsSign equalSignEdible) {
+unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowCompileTimeParameters compTimeParam, AllowEatingEqualsSign equalSignEdibleEnum) {
+
+	bool equalSignEdible = static_cast<bool>(equalSignEdibleEnum);
 
 	int startLine = lexer.getCurrentToken().line;
 	int startCol  = lexer.getCurrentToken().col;
@@ -62,8 +64,9 @@ unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowCompileTimeParamet
 	bool ateEqualsSign = false;
 	TypeReference type;
 
+	//TODO: Almost as if I don't want to merge ':' and '='
 	if(lexer.currType() == DECLARE) {
-		if(equalSignEdible != AEES::YES)
+		if(!equalSignEdible)
 			logDaf(lexer.getFile(), lexer.getCurrentToken(), ERROR) << "can't handle declaration operator here" << std::endl;
 		lexer.advance(); //Eat ':='
 		ateEqualsSign = true;
@@ -81,14 +84,14 @@ unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowCompileTimeParamet
 			lexer.advance(); //Eat 'mut'
 		}
 
-		if(lexer.currType() != ASSIGN || equalSignEdible != AEES::YES) { // '='
+		if(lexer.currType() != ASSIGN || !equalSignEdible) { // '='
 			type = parseType(lexer);
 			if(!type)
 				return none_funcTyp();
 		}
 	}
 
-	if(lexer.currType() == ASSIGN && equalSignEdible == AEES::YES && !ateEqualsSign) {
+	if(lexer.currType() == ASSIGN && equalSignEdible && !ateEqualsSign) {
 		lexer.advance(); //Eat '='
 		ateEqualsSign = true;
 		if(return_kind == ReturnKind::NO_RETURN)

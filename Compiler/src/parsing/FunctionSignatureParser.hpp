@@ -5,12 +5,12 @@
 #include "parsing/ast/Expression.hpp"
 #include <memory>
 
-enum class AllowCompileTimeParameters {
-	YES, NO
+enum AllowCompileTimeParameters:bool {
+	YES = true, NO = false
 };
 
-enum class AllowEatingEqualsSign {
-	YES, NO
+enum class AllowEatingEqualsSign:bool {
+	YES = true, NO = false
 };
 
 // May start at either left parenthesis for a parameter list, a colon for a return type, an equals sign it may be allowed to eat, or none at all
