@@ -73,5 +73,11 @@ def b := def ():mut int {a(6)}; //TODO: Have print def in printSignarture. This 
 
 def c(mut a:int, def c:(a:int), move a:()) {};
 
-//def c:(T) {a};
 def a(a:$T):T {a};
+
+def x(mut a:int) {};
+def y(dtor a:$T) {};
+def z(def a:int) {};
+
+//def c:(T) {a};
+

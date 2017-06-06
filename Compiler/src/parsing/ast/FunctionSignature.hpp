@@ -63,6 +63,7 @@ private:
 	ReturnKind m_returnKind;
 	TypeReference m_returnType;
 	bool m_ateEquals;
+	bool m_cmpTimeOnly;
 	void printSignatureMustHaveList(bool withList);
 public:
 	FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range);

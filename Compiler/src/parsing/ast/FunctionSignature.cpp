@@ -41,7 +41,7 @@ void ValueParameter::printSignature() {
 }
 
 bool ValueParameter::isCompileTimeOnly() {
-	return false;
+	return m_modif == ParameterModifier::DEF;
 }
 
 ValueParameterTypeInferred::ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName) : FunctionParameter(std::move(name)), m_modif(modif), m_typeName(std::move(typeName)) {
@@ -72,17 +72,25 @@ bool TypedefParameter::isCompileTimeOnly() {
 }
 
 
-FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_returnType(std::move(returnType)), m_ateEquals(ateEqualsSign) {
+FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_returnType(std::move(returnType)), m_ateEquals(ateEqualsSign), m_cmpTimeOnly(false) {
 
 	// If we are explicitly told we don't have a return type, we assert we weren't given one
 	if(m_returnKind == ReturnKind::NO_RETURN)
 		assert(!m_returnType.hasType());
 	else if(!m_ateEquals) // If we don't infer return type (=), but have a return type (:)
 		assert(m_returnType.hasType()); //Then we require an explicit type
+
+	for(auto it = m_parameters.begin(); it != m_parameters.end(); ++it)
+		if((*it)->isCompileTimeOnly()) {
+			m_cmpTimeOnly = true;
+			break;
+		}
 }
 
 void FunctionType::printSignatureMustHaveList(bool list) {
 
+	if(m_cmpTimeOnly)
+		std::cout << "def ";
 	if(m_parameters.size() > 0 || list) {
 		std::cout << "(";
 		for(unsigned int i = 0; i < m_parameters.size(); i++) {
