@@ -66,6 +66,10 @@ void logDafExpectedTokenAfterPrev(const std::string& expected, Lexer& lexer) {
 	logDaf(lexer.getFile(), prev.line, prev.endCol, ERROR) << "expected " << expected << " after '" << getTokenText(prev) << "' token" << endl;
 }
 
+void logDafExpectedProperIdentifier(Lexer& lexer) {
+	Token& curr = lexer.getCurrentToken();
+	logDaf(lexer.getFile(), curr.line, curr.col, ERROR) << "expected an identifier, not just '_'" << std::endl;
+}
 
 void terminateIfErrors() {
   if(errorsOccured == NO_ERROR)

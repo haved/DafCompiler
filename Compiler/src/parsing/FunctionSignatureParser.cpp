@@ -6,25 +6,83 @@
 
 #include "parsing/ast/FunctionSignature.hpp"
 
-using ACTP = AllowCompileTimeParameters;
-using AEES = AllowEatingEqualsSign;
-
 unique_ptr<FunctionType> none_funcTyp() {
 	return unique_ptr<FunctionType>();
 }
 
-bool parseFunctionParameter(Lexer& lexer, std::vector<unique_ptr<FunctionParameter>>& params, AllowCompileTimeParameters compTimeParam) {
+ParameterModifier parseParameterModifier(Lexer& lexer) {
+	TokenType type = lexer.currType();
+
+	switch(type) {
+	case DEF:
+		lexer.advance();
+		return ParameterModifier::DEF;
+	case MUT:
+		lexer.advance();
+		return ParameterModifier::MUT;
+	case MOVE:
+		lexer.advance();
+		return ParameterModifier::MOVE;
+	case UNCERTAIN:
+		lexer.advance();
+		return ParameterModifier::UNCRT;
+	case DESTRUCTOR:
+		lexer.advance();
+		return ParameterModifier::DTOR;
+	default:
+		return ParameterModifier::NONE;
+	}
+}
+
+bool parseFunctionParameter(Lexer& lexer, std::vector<unique_ptr<FunctionParameter>>& params, AllowCompileTimeParameters compTimeParamEnum) {
+
+	bool compTimeParam = static_cast<bool>(compTimeParamEnum);
+
+	ParameterModifier modif = parseParameterModifier(lexer);
+
 	if(!lexer.expectToken(IDENTIFIER))
 		return false;
 	std::string name(lexer.getCurrentToken().text);
-	lexer.advance(); //Eat identifier
+	//NOTE: We don't eat identifier here, as we want to check if it's proper is some cases
+
+	//We assume you meant value parameter if you forgot colon but have a modifier
+	if(modif == ParameterModifier::NONE && lexer.getLookahead().type != TYPE_SEPARATOR) {
+		if(!compTimeParam)
+			logDaf(lexer.getFile(), lexer.getPreviousToken(), ERROR) << "type parameters are only allowed in def parameter lists." << std::endl;
+
+		if(!lexer.expectProperIdentifier())
+			return false;
+
+		lexer.advance(); //Eat proper identifier
+
+		params.push_back(std::make_unique<TypedefParameter>(std::move(name)));
+		return true;
+	}
+
+	lexer.advance(); //Eat identifier making up name of parameter
+
 	if(!lexer.expectToken(TYPE_SEPARATOR))
 		return false;
 	lexer.advance(); //Eat ':'
+
+	if(lexer.currType() == TYPE_INFERRED) {
+		if(!compTimeParam)
+			logDaf(lexer.getFile(), lexer.getPreviousToken(), ERROR) << "type inferring is only allowed in def parameter lists." << std::endl;
+		lexer.advance(); //Eat '$'
+
+		if(!lexer.expectProperIdentifier()) //Gives normal expected identifier error if different token
+			return false;
+
+		params.push_back(std::make_unique<ValueParameterTypeInferred>(modif, std::move(name), std::string(lexer.getCurrentToken().text)));
+
+		lexer.advance(); //Eat identifier
+		return true;
+	}
+
 	TypeReference type = parseType(lexer);
 	if(!type)
 		return false;
-	params.push_back(std::make_unique<ValueParameter>(ParameterModifier::NONE, std::move(name), std::move(type)));
+	params.push_back(std::make_unique<ValueParameter>(modif, std::move(name), std::move(type)));
 	return true;
 }
 

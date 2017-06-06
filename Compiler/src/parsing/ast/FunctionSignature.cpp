@@ -2,18 +2,75 @@
 #include "DafLogger.hpp"
 #include "info/DafSettings.hpp"
 
-FunctionParameter::FunctionParameter(std::string&& name) : m_name(std::move(name)) {}
+FunctionParameter::FunctionParameter(std::string&& name) : m_name(std::move(name)) {} //An empty name is allowed
+
+void printParameterModifier(ParameterModifier modif) {
+	switch(modif) {
+	case ParameterModifier:: NONE:
+		return;
+	case ParameterModifier::DEF:
+		std::cout << "def ";
+		break;
+	case ParameterModifier::MUT:
+		std::cout << "mut ";
+		break;
+	case ParameterModifier::MOVE:
+		std::cout << "move ";
+		break;
+	case ParameterModifier::UNCRT:
+		std::cout << "uncrt ";
+		break;
+	case ParameterModifier::DTOR:
+		std::cout << "dtor ";
+		break;
+	default:
+		assert(false);
+	}
+}
 
 ValueParameter::ValueParameter(ParameterModifier modif, std::string&& name, TypeReference&& type) : FunctionParameter(std::move(name)), m_modif(modif), m_type(std::move(type)) {
 	assert(m_type);
+	//We allow m_name to be underscore
 }
 
 void ValueParameter::printSignature() {
-    //TODO: Print modifier
+    printParameterModifier(m_modif);
 	std::cout << m_name;
 	std::cout << ":";
 	m_type.printSignature();
 }
+
+bool ValueParameter::isCompileTimeOnly() {
+	return false;
+}
+
+ValueParameterTypeInferred::ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName) : FunctionParameter(std::move(name)), m_modif(modif), m_typeName(std::move(typeName)) {
+    assert(m_typeName.size() > 0); //TODO: do this for all identifiers that can't be underscore
+}
+
+void ValueParameterTypeInferred::printSignature() {
+	printParameterModifier(m_modif);
+	std::cout << m_name;
+	std::cout << ":$";
+	std::cout << m_typeName;
+}
+
+bool ValueParameterTypeInferred::isCompileTimeOnly() {
+	return true;
+}
+
+TypedefParameter::TypedefParameter(std::string&& name) : FunctionParameter(std::move(name)) {
+	assert(m_name.size() > 0); //We can't have empty type parameters. That gets too insane
+}
+
+void TypedefParameter::printSignature() {
+	std::cout << m_name;
+}
+
+bool TypedefParameter::isCompileTimeOnly() {
+	return true;
+}
+
 
 FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_returnType(std::move(returnType)), m_ateEquals(ateEqualsSign) {
 
@@ -22,10 +79,6 @@ FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, 
 		assert(!m_returnType.hasType());
 	else if(!m_ateEquals) // If we don't infer return type (=), but have a return type (:)
 		assert(m_returnType.hasType()); //Then we require an explicit type
-}
-
-void FunctionType::printSignature() {
-	printSignatureMustHaveList(true);
 }
 
 void FunctionType::printSignatureMustHaveList(bool list) {
@@ -53,6 +106,10 @@ void FunctionType::printSignatureMustHaveList(bool list) {
 
 	if(m_ateEquals)
 		std::cout << "=";
+}
+
+void FunctionType::printSignature() {
+	printSignatureMustHaveList(true);
 }
 
 void FunctionType::printSignatureMaybeList() {

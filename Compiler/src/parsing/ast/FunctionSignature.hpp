@@ -14,6 +14,7 @@ protected:
 public:
 	virtual ~FunctionParameter() {}
 	virtual void printSignature()=0;
+	virtual bool isCompileTimeOnly()=0;
 };
 
 //TODO: def mut a(b:int):int should be automatically be converted to def a : def(b:int):mut int just like in the definition and expression-parser.
@@ -30,6 +31,7 @@ private:
 public:
 	ValueParameter(ParameterModifier modif, std::string&& name, TypeReference&& type);
 	void printSignature() override;
+	bool isCompileTimeOnly() override;
 };
 
 // move a:$T //TODO: Add some restrictions perhaps
@@ -38,8 +40,17 @@ private:
 	ParameterModifier m_modif;
 	std::string m_typeName;
 public:
-	ValueParameterTypeInferred(ParameterModifier modif, std::string&&name, std::string&& typeName);
+	ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName);
 	void printSignature() override;
+	bool isCompileTimeOnly() override;
+};
+
+//TODO: Add restrictions here too
+class TypedefParameter : public FunctionParameter {
+public:
+	TypedefParameter(std::string&& name);
+	void printSignature() override;
+	bool isCompileTimeOnly() override;
 };
 
 enum class ReturnKind {

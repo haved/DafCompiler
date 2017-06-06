@@ -41,4 +41,9 @@ The same goes for weather or not you can eat an equals sign, which can't be done
 The def parser uses the function type parser to parse its return info even when it doesn't have parameters. There is thus no difference between an empty parameter list and not having one at all.
 The type parser also uses it, which makes perfect sense as the entry point is called parseFunctionType and returns a FunctionType.
 Although the FunctionType is a type, it is located in FunctionSignature.hpp, for dubious reasons.
+** Identifiers
+The _ identifier is turned into an identifier with length 0 by the lexer.
+This can be problematic as by no means all identifiers can be underscores.
+In the future I might make some system where identifiers get assigned numbers from the lexer,
+but then you would need a bidirectional map for printing proper error messages.
 * The Language

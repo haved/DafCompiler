@@ -47,4 +47,5 @@ public:
 	inline const RegisteredFile& getFile() {return m_file;}
 	bool expectToken(const TokenType& type);
 	bool expectTokenAfterPrev(const TokenType& type);
+	bool expectProperIdentifier();
 };

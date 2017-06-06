@@ -26,4 +26,5 @@ std::ostream& logDaf(const TextRange& range, int logLevel);
 std::ostream& logDaf(const std::string& location, int logLevel);
 void logDafExpectedToken(const std::string& expected, Lexer& lexer);
 void logDafExpectedTokenAfterPrev(const std::string& expected, Lexer& lexer);
+void logDafExpectedProperIdentifier(Lexer& lexer);
 void terminateIfErrors();

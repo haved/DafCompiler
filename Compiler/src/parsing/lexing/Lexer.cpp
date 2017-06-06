@@ -37,6 +37,16 @@ bool Lexer::expectTokenAfterPrev(const TokenType& type) {
 	return true;
 }
 
+bool Lexer::expectProperIdentifier() {
+    if(!expectToken(IDENTIFIER))
+		return false;
+	if(getCurrentToken().text.size()==0) {
+		logDafExpectedProperIdentifier(*this);
+		return false;
+	}
+	return true;
+}
+
 inline bool isWhitespace(char c) {
 	return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }
