@@ -46,4 +46,11 @@ The _ identifier is turned into an identifier with length 0 by the lexer.
 This can be problematic as by no means all identifiers can be underscores.
 In the future I might make some system where identifiers get assigned numbers from the lexer,
 but then you would need a bidirectional map for printing proper error messages.
+
+** Namespaces, Namedefs and NameScopes
+A Namespace is anything that contains named definitions, so both a NameScopeExpression (global, unordered), and a normal Scope (ordered definitions and statements) count.
+Namedefs are definitions to NameScopeExpressions, a NameScope being one of such, import declarations being another option.
+The namedef assigns a name to the NameScopeExpression, allowing you to put them withing each other and reference one another.
+The NamespaceStack is used when resolving references in the language. It is pushed and popped when entering NameScopes and normal Scopes,
+with the difference being not all identifiers in the Scope being added at once, but rather as you go.
 * The Language
