@@ -10,6 +10,21 @@ unique_ptr<FunctionType> none_funcTyp() {
 	return unique_ptr<FunctionType>();
 }
 
+ReturnKind parseReturnKind(Lexer& lexer) {
+	auto return_type = ReturnKind::VALUE_RETURN;
+
+	if(lexer.currType() == LET) {
+		return_type = ReturnKind::REF_RETURN;
+		lexer.advance(); //Eat 'let'
+	}
+    if(lexer.currType() == MUT) {
+		return_type = ReturnKind::MUT_REF_RETURN;
+		lexer.advance(); //Eat 'mut'
+	}
+
+	return return_type;
+}
+
 ParameterModifier parseParameterModifier(Lexer& lexer) {
 	TokenType type = lexer.currType();
 
@@ -174,7 +189,7 @@ unique_ptr<Expression> parseFunctionBody(Lexer& lexer, FunctionType& type) {
 	}
 	else { //We expect a return value
 		if(!body->evaluatesToValue())
-			logDaf(body->getRange(), ERROR) << "function body doesn't return anything" << std::endl;
+			logDaf(body->getRange(), ERROR) << "function body needs a return value" << std::endl;
 	}
 
 	return body;
@@ -190,27 +205,18 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
 	int startLine = lexer.getCurrentToken().line;
 	int startCol  = lexer.getCurrentToken().col;
 
+	ReturnKind defReturnKind = ReturnKind::VALUE_RETURN;
 	bool def = lexer.currType() == DEF;
-	ReturnKind def_return_kind = ReturnKind::VALUE_RETURN;
 	if(def) {
-		lexer.advance(); //Eat def
-		if(lexer.currType() == LET) {
-			lexer.advance(); //Eat 'let'
-			def_return_kind = ReturnKind::REF_RETURN;
-		}
-		if(lexer.currType() == MUT) {
-			lexer.advance(); //Eat 'mut'
-			def_return_kind = ReturnKind::MUT_REF_RETURN;
-		}
-    }
-
-	bool isInline = lexer.currType() == INLINE;
-	if(isInline)
-		lexer.advance(); //Eat inline
+		lexer.advance(); //Eat 'def'
+		defReturnKind = parseReturnKind(lexer);
+	}
 
 	unique_ptr<FunctionType> type = parseFunctionType(lexer, def?AllowCompileTimeParameters::YES : AllowCompileTimeParameters::NO, AllowEatingEqualsSign::YES);
 	if(!type)
 		return none_expr();
+
+	type->mergeInDefReturnKind(defReturnKind);
 
 	unique_ptr<Expression> body = parseFunctionBody(lexer, *type);
 	if(!body)
@@ -218,8 +224,6 @@ unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
 
 	TextRange range(lexer.getFile(), startLine, startCol, lexer.getPreviousToken());
 
-	ReturnKind mergedReturnKind = mergeDefReturnKinds(def_return_kind, type->getReturnKind(), range);
-	type->setReturnKind(mergedReturnKind);
-	return std::unique_ptr<FunctionExpression>(new FunctionExpression(isInline, std::move(type), std::move(body), range));
+	return std::unique_ptr<FunctionExpression>(new FunctionExpression(std::move(type), std::move(body), range));
 }
 

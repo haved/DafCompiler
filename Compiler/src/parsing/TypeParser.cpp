@@ -12,10 +12,15 @@ TypeReference parseAliasForType(Lexer& lexer) {
 
 TypeReference parseFunctionType(Lexer& lexer) {
 	//This one is defined in FunctionSignatureParser.hpp
+	ReturnKind defReturnKind = ReturnKind::VALUE_RETURN;
 	bool def = lexer.currType() == DEF;
-	if(def)
+	if(def) {
 		lexer.advance(); //Eat 'def'
-	return TypeReference(parseFunctionType(lexer, def ? AllowCompileTimeParameters::YES : AllowCompileTimeParameters::NO, AllowEatingEqualsSign::NO));
+		defReturnKind = parseReturnKind(lexer);
+	}
+	auto functionType = parseFunctionType(lexer, def ? AllowCompileTimeParameters::YES : AllowCompileTimeParameters::NO, AllowEatingEqualsSign::NO);
+	functionType->mergeInDefReturnKind(defReturnKind);
+	return TypeReference(std::move(functionType));
 }
 
 TypeReference parsePrimitive(Lexer& lexer) {

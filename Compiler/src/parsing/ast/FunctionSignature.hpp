@@ -71,19 +71,19 @@ public:
 	void printSignatureMaybeList(); //Only list if parameters
 	//TODO: Does putting the definitions in the header make compilation slower?
 	inline std::vector<unique_ptr<FunctionParameter>>& getParams() { return m_parameters; }
+	void mergeInDefReturnKind(ReturnKind def);
 	inline ReturnKind getReturnKind() { return m_returnKind; }
-	inline void setReturnKind(ReturnKind newKind) { m_returnKind = newKind; }
+	//inline void setReturnKind(ReturnKind newKind) { m_returnKind = newKind; }
 	inline bool ateEqualsSign() { return m_ateEquals; }
 	inline TypeReference&& reapReturnType() { return std::move(m_returnType); }
 };
 
 class FunctionExpression : public Expression {
 private:
-	bool m_inline;
 	unique_ptr<FunctionType> m_type;
 	unique_ptr<Expression> m_body;
 public:
-	FunctionExpression(bool isInline, unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range);
+	FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range);
 
 	bool findType() override { assert(false); return true; }
 	bool isTypeKnown() override { return true; }
@@ -91,5 +91,3 @@ public:
 
 	void printSignature();
 };
-
-ReturnKind mergeDefReturnKinds(ReturnKind defKind, ReturnKind funcKind, TextRange def_range);

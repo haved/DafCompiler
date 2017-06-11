@@ -66,10 +66,12 @@ def test : def(a:int):int = func;
 
 def test():mut int {
 	a
-};
+}; //How are we?
 
 def a := def mut(a:int):int =5;
 def b := def ():mut int {a(6)}; //TODO: Have print def in printSignarture. This looks weird
+
+
 
 def c(mut a:int, def c:(a:int), move a:()) {};
 
@@ -78,6 +80,9 @@ def a(a:$T):T {a};
 def x(mut a:int) {};
 def y(dtor a:$T) {};
 def z(def a:int) {};
+
+def mut a : def mut():int = def mut():int = a;
+def a : mut def ():mut int = def ():mut int {a};
 
 //def c:(T) {a};
 

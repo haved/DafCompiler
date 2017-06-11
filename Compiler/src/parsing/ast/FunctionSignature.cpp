@@ -124,13 +124,23 @@ void FunctionType::printSignatureMaybeList() {
 	printSignatureMustHaveList(false);
 }
 
-FunctionExpression::FunctionExpression(bool isInline, unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range) : Expression(range), m_inline(isInline), m_type(std::move(type)), m_body(std::move(body)) {
+void FunctionType::mergeInDefReturnKind(ReturnKind defKind) {
+	assert(defKind != ReturnKind::NO_RETURN); //A def can't have no return, as that is part of the function type
+
+	if(defKind != ReturnKind::VALUE_RETURN) {
+		if(m_returnKind == ReturnKind::NO_RETURN)
+			logDaf(getRange(), ERROR) << "return modifiers applied to function without return value" << std::endl;
+		else if(m_returnKind != ReturnKind::VALUE_RETURN)
+			logDaf(getRange(), ERROR) << "can't have return modifiers all over the place" << std::endl;
+		m_returnKind = defKind;
+	}
+}
+
+FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range) : Expression(range), m_type(std::move(type)), m_body(std::move(body)) {
 	assert(m_body);
 }
 
 void FunctionExpression::printSignature() {
-	if(m_inline)
-		std::cout << "inline ";
 	m_type->printSignature();
 	std::cout << " ";
 	if(DafSettings::shouldPrintFullSignature()) {
@@ -139,16 +149,4 @@ void FunctionExpression::printSignature() {
 	} else {
 		std::cout << "{...}";
 	}
-}
-
-ReturnKind mergeDefReturnKinds(ReturnKind defKind, ReturnKind funcKind, TextRange def_range) {
-	assert(defKind != ReturnKind::NO_RETURN); //A def can't have no return, as that is part of the function type
-
-    if(funcKind != ReturnKind::VALUE_RETURN) { //We either have none or a reference return
-		if(defKind != ReturnKind::VALUE_RETURN)
-			logDaf(def_range.getFile(), def_range.getLine(), def_range.getCol(), ERROR) << "can't have return modifiers all over the place" << std::endl;
-		defKind = funcKind;
-	}
-
-	return defKind;
 }

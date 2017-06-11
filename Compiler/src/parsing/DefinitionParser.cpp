@@ -81,21 +81,9 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 
 	lexer.advance(); //Eat 'def'
 
-	auto def_return_type = ReturnKind::VALUE_RETURN;
+	ReturnKind defReturnKind = parseReturnKind(lexer);
 
-	if(lexer.currType() == LET) {
-		def_return_type = ReturnKind::REF_RETURN;
-		lexer.advance(); //Eat 'let'
-	}
-    if(lexer.currType() == MUT) {
-		def_return_type = ReturnKind::MUT_REF_RETURN;
-		lexer.advance(); //Eat 'mut'
-	}
-
-	bool isInline = lexer.currType() == INLINE;
-	if(isInline)
-		lexer.advance(); //Eat 'inline'
-
+	//TODO: Gotta find out about that inline and what it even means
 
 	if(!lexer.expectToken(IDENTIFIER))
 		return none_defnt();
@@ -106,6 +94,7 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 	unique_ptr<FunctionType> functionType = parseFunctionType(lexer, AllowCompileTimeParameters::YES, AllowEatingEqualsSign::YES);
 	if(!functionType)
 		return none_defnt();
+	functionType->mergeInDefReturnKind(defReturnKind);
 
 	unique_ptr<Expression> body = parseFunctionBody(lexer, *functionType);
 	if(!body)
@@ -116,16 +105,11 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 
 	TextRange range(lexer.getFile(), startLine, startCol, lexer.getPreviousToken());
 
-	ReturnKind mergedReturnKind = mergeDefReturnKinds(def_return_type, functionType->getReturnKind(), range);
-
 	if(functionType->getParams().empty()) { //We don't need to pack anything into anything
-		if(isInline)
-			logDaf(range, NOTE) << "we currently ignore inline defs, unless they are functions" << std::endl;
-		return std::make_unique<Def>(pub, mergedReturnKind, std::move(name), functionType->reapReturnType(), std::move(body), range);
+		return std::make_unique<Def>(pub, functionType->getReturnKind(), std::move(name), functionType->reapReturnType(), std::move(body), range);
 	} else { //We have parameters and must thus pack our def into a function
-	    functionType->setReturnKind(mergedReturnKind);
 		TextRange packedRange(functionType->getRange(), body->getRange());
-		unique_ptr<Expression> packedFunction = std::make_unique<FunctionExpression>(isInline, std::move(functionType), std::move(body), packedRange);
+		unique_ptr<Expression> packedFunction = std::make_unique<FunctionExpression>(std::move(functionType), std::move(body), packedRange);
 		return std::make_unique<Def>(pub, ReturnKind::VALUE_RETURN, std::move(name), TypeReference(), std::move(packedFunction), range);
 	}
 }

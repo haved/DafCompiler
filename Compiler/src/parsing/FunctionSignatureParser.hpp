@@ -20,3 +20,5 @@ unique_ptr<Expression> parseFunctionBody(Lexer& lexer, FunctionType& type);
 
 //Can start at def to allow compile time parameters, at 'inline', at '(', at ':', '=' if you're weird, or the body: So many possibilities
 unique_ptr<Expression> parseFunctionExpression(Lexer& lexer);
+
+ReturnKind parseReturnKind(Lexer& lexer);
