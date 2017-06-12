@@ -6,8 +6,9 @@
 Scope::Scope(const TextRange& range, std::vector<std::unique_ptr<Statement>>&& statements,
              std::unique_ptr<Expression> outExpression)
 	: Expression(range), m_statements(std::move(statements)), m_outExpression(std::move(outExpression)) {
-	//Fail if a given output can't evaluate to a value
-	assert(!m_outExpression || m_outExpression->evaluatesToValue());
+
+	if(m_outExpression)
+		assert(m_outExpression->evaluatesToValue());
 }
 
 bool Scope::isStatement() { //override
@@ -28,8 +29,18 @@ bool Scope::needsSemicolonAfterStatement() { //override
 	return false;
 }
 
+
+void Scope::makeConcrete(NamespaceStack& ns_stack) {
+	ScopeNamespace scopeNs;
+	ns_stack.push(&scopeNs);
+	for(auto it = m_statements.begin(); it != m_statements.end(); ++it) {
+		scopeNs.addStatement(**it);
+		(*it)->makeConcrete(ns_stack);
+	}
+}
+
 bool Scope::findType() { //override
-	assert(false);
+    //TODO
 	return false;
 }
 
@@ -45,3 +56,17 @@ void Scope::printSignature() { //override
 	std::cout << "}";
 }
 
+
+ScopeNamespace::ScopeNamespace() : m_definitionMap() {}
+
+void ScopeNamespace::addStatement(Statement& statement) {
+	statement.addToMap(m_definitionMap);
+}
+
+//TODO: This is repeated from NameScope. Do something about that, maybe make Namespace a proper class
+Definition* ScopeNamespace::tryGetDefinitionFromName(const std::string& name) {
+    auto it = m_definitionMap.find(name);
+	if(it != m_definitionMap.end())
+		return it->second;
+	return nullptr;
+}

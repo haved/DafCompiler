@@ -1,5 +1,6 @@
 #pragma once
 #include "parsing/ast/Statement.hpp" //includes both expression and definition
+#include "parsing/semantic/Namespace.hpp"
 #include <vector>
 #include <memory>
 
@@ -12,10 +13,23 @@ private:
 	std::unique_ptr<Expression> m_outExpression;
 public:
 	Scope(const TextRange& range, std::vector<std::unique_ptr<Statement>>&& statements, std::unique_ptr<Expression> finalOutExpression);
-	bool isStatement() override; //true
-	bool needsSemicolonAfterStatement() override; //if we have a finalOutExpression
-	void printSignature() override;
-	bool findType();
-	bool evaluatesToValue() const override; //We can only be a finalOutExpression if we ourselves have one
+	virtual bool isStatement() override; //true
+	virtual bool evaluatesToValue() const override; //We can only be a finalOutExpression if we ourselves have one
+	virtual bool needsSemicolonAfterStatement() override; //if we have a finalOutExpression
+
+	virtual bool findType();
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+
+	virtual void printSignature() override;
 	inline Expression& getFinalOutExpression() { assert(m_outExpression); return *m_outExpression; }
+};
+
+//Used to temporarily know all definitions declared previously in the scope
+class ScopeNamespace : public Namespace {
+private:
+	NamedDefinitionMap m_definitionMap;
+public:
+	ScopeNamespace();
+	void addStatement(Statement& statement);
+	Definition* tryGetDefinitionFromName(const std::string& name);
 };

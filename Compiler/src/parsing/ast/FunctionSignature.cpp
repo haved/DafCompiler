@@ -128,10 +128,14 @@ void FunctionType::mergeInDefReturnKind(ReturnKind defKind) {
 	assert(defKind != ReturnKind::NO_RETURN); //A def can't have no return, as that is part of the function type
 
 	if(defKind != ReturnKind::VALUE_RETURN) {
-		if(m_returnKind == ReturnKind::NO_RETURN)
-			logDaf(getRange(), ERROR) << "return modifiers applied to function without return value" << std::endl;
-		else if(m_returnKind != ReturnKind::VALUE_RETURN)
-			logDaf(getRange(), ERROR) << "can't have return modifiers all over the place" << std::endl;
+		if(m_returnKind == ReturnKind::NO_RETURN) {
+			const TextRange& range = getRange();
+			logDaf(range.getFile(), range.getLine(), range.getCol(), ERROR) << "return modifiers applied to function without return value" << std::endl;
+		}
+		else if(m_returnKind != ReturnKind::VALUE_RETURN) {
+			const TextRange& range = getRange();
+			logDaf(range.getFile(), range.getLine(), range.getCol(), ERROR) << "can't have multiple return modifiers in def" << std::endl;
+		}
 		m_returnKind = defKind;
 	}
 }

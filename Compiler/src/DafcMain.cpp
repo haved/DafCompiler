@@ -36,12 +36,16 @@ int main(int argc, const char** argv) {
 	terminateIfErrors(); //Definitions given the same name
 	//We must make all name scopes' maps before we make stuff concrete
 	*/
-	
+
+	NamespaceStack ns_stack;
+	//This is where we make files importable though the namespace stack
 	for(int i = 0; i < files.getFileCount(); i++) {
 		NameScope& scope = *files.getFileAt(i)->m_nameScope; //An optional
-		scope.makeEverythingConcrete(); //Recursive
+		scope.makeConcrete(ns_stack); //Recursive
 	}
 	terminateIfErrors(); //This step could definitely log errors
 
 	//TODO: Code gen
+
+	return 0;
 }

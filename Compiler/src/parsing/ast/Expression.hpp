@@ -25,7 +25,8 @@ public:
 	virtual bool needsSemicolonAfterStatement(); //A scope doesn't, unless it returns something
 	virtual bool evaluatesToValue() const; //This expression can't be returned unless this is true
 
-	virtual bool makeConcrete(NamespaceStack& ns_stack) { return true; }
+	//TODO =0
+	virtual void makeConcrete(NamespaceStack& ns_stack) {}
 
 	virtual const Type& getType();
 	virtual bool isTypeKnown();
@@ -42,6 +43,10 @@ private:
 	std::string m_name;
 public:
 	VariableExpression(const std::string& name, const TextRange& range);
+
+	//TODO: Make concrete
+	virtual void makeConcrete(NamespaceStack& ns_stack) {}
+
 	bool findType();
 	void printSignature();
 };

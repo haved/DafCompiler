@@ -2,6 +2,7 @@
 
 #include "parsing/ast/TextRange.hpp"
 #include "parsing/ast/Definition.hpp"
+#include "parsing/semantic/NamespaceStack.hpp"
 #include <vector>
 #include <memory>
 #include <string>
@@ -12,12 +13,13 @@ using std::vector;
 using std::unique_ptr;
 using boost::optional;
 
+//NameScopeExpression extends Namespace, requiring tryGetDefinitionFromName()
 //To avoid recursive including, the NameScopeExpression class is in Definition.hpp
 
 class NameScope : public NameScopeExpression {
 private:
 	vector<unique_ptr<Definition>> m_definitions;
-    NamedDefinitionMap m_definitionMap;
+    NamedDefinitionMap m_definitionMap; //Top of Definition.hpp
 	void makeDefinitionMap();
 public:
 	NameScope(vector<unique_ptr<Definition>>&& definitions, const TextRange& range);
@@ -26,7 +28,7 @@ public:
 	NameScope& operator =(const NameScope& other) = delete;
 	NameScope& operator =(NameScope&& other);
 	void printSignature() override;
-	void makeEverythingConcrete();
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	virtual Definition* tryGetDefinitionFromName(const std::string& name) override;
 };
 
@@ -36,5 +38,7 @@ private:
 public:
 	NameScopeReference(std::string&& name, const TextRange& range);
 	void printSignature() override;
+
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
     virtual Definition* tryGetDefinitionFromName(const std::string& name) override { return nullptr; } //TODO: Make this concrete and stuff
 };

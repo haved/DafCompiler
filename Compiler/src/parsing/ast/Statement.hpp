@@ -15,8 +15,13 @@ protected:
 	TextRange m_range;
 public:
 	Statement(const TextRange& range);
-	virtual void printSignature()=0;
 	virtual ~Statement();
+
+	//TODO: Huge amounts of dynamic dispatch as only definitions can be added to maps
+	virtual void addToMap(NamedDefinitionMap& map) {};
+	virtual void makeConcrete(NamespaceStack& ns_stack) {};
+
+	virtual void printSignature()=0;
 	const TextRange& getRange();
 };
 
@@ -25,6 +30,11 @@ private:
 	unique_ptr<Definition> m_definition;
 public:
 	DefinitionStatement(unique_ptr<Definition>&& definition, const TextRange& range);
+
+	//TODO: This is the only addToMap we actually care about in statements ;(
+	virtual void addToMap(NamedDefinitionMap& map) override;
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+
 	void printSignature();
 };
 
@@ -33,6 +43,9 @@ private:
 	unique_ptr<Expression> m_expression;
 public:
 	ExpressionStatement(unique_ptr<Expression>&& expression, const TextRange& range);
+
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+
 	void printSignature();
 };
 

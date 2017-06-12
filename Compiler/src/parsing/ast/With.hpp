@@ -30,7 +30,7 @@ public:
 	inline bool isStatement() override { return true; }
 
 	virtual void addToMap(NamedDefinitionMap& map) override {(void)map;}; //We don't add this to the map
-	virtual bool makeConcrete(NamespaceStack& ns_stack) override { return true; } //TODO
+	virtual void makeConcrete(NamespaceStack& ns_stack) override {} //TODO
 };
 
 class WithExpression : public Expression {

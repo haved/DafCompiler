@@ -20,9 +20,17 @@ void Let::addToMap(NamedDefinitionMap& map) {
 	tryAddNamedDefinitionToMap(map, m_name, this);
 }
 
-bool Def::makeConcrete(NamespaceStack& ns_stack) {
+void Def::makeConcrete(NamespaceStack& ns_stack) {
+	//assert(m_expression); in ctor
 	m_expression->makeConcrete(ns_stack);
-	return true;
+	if(m_type)
+		m_type.makeConcrete(ns_stack);
+}
+
+void Let::makeConcrete(NamespaceStack& ns_stack) {
+	m_expression->makeConcrete(ns_stack);
+	if(m_type)
+		m_type.makeConcrete(ns_stack);
 }
 
 void Def::printSignature() {
@@ -77,6 +85,10 @@ void TypedefDefinition::addToMap(NamedDefinitionMap& map) {
 	tryAddNamedDefinitionToMap(map, m_name, this);
 }
 
+void TypedefDefinition::makeConcrete(NamespaceStack& ns_stack) {
+	m_type.makeConcrete(ns_stack);
+}
+
 void TypedefDefinition::printSignature() {
 	if(m_pub)
 		std::cout << "pub ";
@@ -94,6 +106,11 @@ NamedefDefinition::NamedefDefinition(bool pub, std::string&& name, unique_ptr<Na
 
 void NamedefDefinition::addToMap(NamedDefinitionMap& map) {
 	tryAddNamedDefinitionToMap(map, m_name, this);
+}
+
+void NamedefDefinition::makeConcrete(NamespaceStack& ns_stack) {
+	assert(m_value);
+	m_value->makeConcrete(ns_stack);
 }
 
 void NamedefDefinition::printSignature() {

@@ -2,6 +2,7 @@
 
 #include "parsing/ast/TextRange.hpp"
 #include "parsing/lexing/Token.hpp"
+#include "parsing/semantic/NamespaceStack.hpp"
 
 #include <string>
 #include <memory>
@@ -29,6 +30,8 @@ private:
 public:
 	TypeReference();
 	TypeReference(unique_ptr<Type>&& type);
+
+	void makeConcrete(NamespaceStack& ns_stack);
 	Type* getConcreteType();
 	inline bool hasType() const { return bool(m_type); }
 	inline operator bool() const { return hasType(); }

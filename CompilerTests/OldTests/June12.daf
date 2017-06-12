@@ -1,0 +1,86 @@
+// -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
+
+def a := 5;
+
+def a:int {6};
+def b:int= 5;
+def mut c:= {7};
+def d:= 7;
+def mut e:= a; //following colon, either a type or =, or both
+def let f:={noe++}; //cant have let on void type
+def g{noe++;};
+
+//ERROR: def a:={};
+//WARNING: def a {5};
+
+def a := def(a:int):let={a};
+
+namedef h := test;
+//typedef h := i32;
+def x := 5;
+//def x := 7;
+def x:=3;
+
+def let a := {a++};
+
+pub def main(a:int) {
+	let a := 5;
+};
+
+def a := 5;
+def a {};
+def a() := 50;
+def a(a:int):int {6};
+
+def a : (a:int):int = func;
+
+def a :let=b;
+def mut c := b;
+
+def get():mut=b;
+
+def block{
+a();
+a();
+a();
+a();
+a();
+a();
+a();
+a();
+a();
+a();
+a();
+a();
+a();
+};
+
+def a := {
+	a
+};
+
+def b {
+};
+
+def test : def(a:int):int = func;
+
+def test():mut int {
+	a
+}; //How are we?
+
+def a := def mut(a:int):int =5;
+def b := def ():mut int {a(6)};
+
+def c(mut a:int, def c:(a:int), move a:()) {};
+
+def a(a:$T):T {a};
+
+def x(mut a:int) {};
+def y(dtor a:$T) {};
+def z(def a:int) {};
+
+def mut a : def mut():int = def mut():int = a;
+def mut a : def ():mut int = def ():mut int {a};
+
+//def c:(T) {a};
+

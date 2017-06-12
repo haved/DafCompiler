@@ -16,6 +16,10 @@ TypeReference::TypeReference() : m_type() {}
 
 TypeReference::TypeReference(unique_ptr<Type>&& type) : m_type(std::move(type)) {}
 
+void TypeReference::makeConcrete(NamespaceStack& ns_stack) {
+	std::cout << "Types yet to be made concrete" << std::endl;
+}
+
 Type* TypeReference::getConcreteType() {
 	if(m_type)
 		return m_type->getConcreteType();

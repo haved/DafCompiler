@@ -26,22 +26,18 @@ void NameScope::makeDefinitionMap() {
 	}
 }
 
-void NameScope::makeEverythingConcrete() {
-	NamespaceStack ns_stack;
+void NameScope::makeConcrete(NamespaceStack& ns_stack) {
 	ns_stack.push(this);
+
+	if(m_definitionMap.empty() && !m_definitions.empty())
+		makeDefinitionMap();
+
 	for(auto it = m_definitions.begin(); it != m_definitions.end(); ++it) {
-		(*it)->makeConcrete(ns_stack); //we ignore the returned bool
+		(*it)->makeConcrete(ns_stack); //we ignore the returned bool //TODO: Does it need to return a bool?
 	}
 }
 
 Definition* NameScope::tryGetDefinitionFromName(const std::string& name) {
-	if(m_definitionMap.empty()) {
-		if(m_definitions.empty())
-			return nullptr;
-		else
-			makeDefinitionMap();
-	}
-
 	auto it = m_definitionMap.find(name);
 	if(it!=m_definitionMap.end())
 		return (*it).second;
@@ -52,4 +48,8 @@ NameScopeReference::NameScopeReference(std::string&& name, const TextRange& rang
 
 void NameScopeReference::printSignature() {
 	std::cout << m_name << " /*name-scope reference*/";
+}
+
+void NameScopeReference::makeConcrete(NamespaceStack& ns_stack) {
+	//TODO: Add all NameScopeReference-stuff
 }

@@ -31,7 +31,7 @@ public:
 
 	virtual void addToMap(NamedDefinitionMap& map)=0;
 	//TODO: Find out what the return value even means
-	virtual bool makeConcrete(NamespaceStack& ns_stack)=0; //TODO: We need to keep a list of pseudo-concrete types
+	virtual void makeConcrete(NamespaceStack& ns_stack)=0;
 };
 
 class Def : public Definition {
@@ -46,7 +46,7 @@ public:
 	inline bool isStatement() override { return true; }
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
-	virtual bool makeConcrete(NamespaceStack& ns_stack) override;
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 };
 
 class Let : public Definition {
@@ -61,7 +61,7 @@ public:
 	inline bool isStatement() override { return true; }
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
-	virtual bool makeConcrete(NamespaceStack& ns_stack) override { return true; } //TODO
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 };
 
 //WithDefinition is in With.hpp
@@ -75,10 +75,10 @@ public:
 	inline bool isStatement() override { return true; }
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
-	virtual bool makeConcrete(NamespaceStack& ns_stack) override { return true; } //TODO
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 };
 
-//The NameScopeExpression is a list of on-ordered definitions, i.e. a name-scope or an imported file
+//The NameScopeExpression is a list of non-ordered definitions, i.e. a name-scope or an imported file
 //It's here because it's used by NamedefDefinition
 class NameScopeExpression : public Namespace {
 private:
@@ -88,6 +88,7 @@ public:
 	virtual ~NameScopeExpression();
 	virtual void printSignature()=0;
 	inline const TextRange& getRange() { return m_range; }
+	virtual void makeConcrete(NamespaceStack& ns_stack)=0; //Makes all the definitions inside concrete
 	virtual Definition* tryGetDefinitionFromName(const std::string& name) override =0;
 };
 
@@ -101,7 +102,7 @@ public:
 	inline bool isStatement() { return true; }
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
-	virtual bool makeConcrete(NamespaceStack& ns_stack) override { return true; } //TODO
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 };
 
 void tryAddNamedDefinitionToMap(NamedDefinitionMap& map, std::string& name, Definition* definition);

@@ -18,6 +18,14 @@ DefinitionStatement::DefinitionStatement(unique_ptr<Definition>&& definition, co
 	assert(m_definition && m_definition->isStatement() && !m_definition->isPublic());
 }
 
+void DefinitionStatement::addToMap(NamedDefinitionMap& map) {
+	m_definition->addToMap(map);
+}
+
+void DefinitionStatement::makeConcrete(NamespaceStack& ns_stack) {
+	m_definition->makeConcrete(ns_stack);
+}
+
 void DefinitionStatement::printSignature() {
 	m_definition->printSignature();
 }
@@ -25,6 +33,10 @@ void DefinitionStatement::printSignature() {
 ExpressionStatement::ExpressionStatement(unique_ptr<Expression>&& expression, const TextRange& range)
 	: Statement(range), m_expression(std::move(expression)) {
 	assert(m_expression && m_expression->isStatement());
+}
+
+void ExpressionStatement::makeConcrete(NamespaceStack& ns_stack) {
+	m_expression->makeConcrete(ns_stack);
 }
 
 void ExpressionStatement::printSignature() {
