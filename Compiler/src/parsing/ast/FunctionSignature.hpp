@@ -85,9 +85,5 @@ private:
 public:
 	FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range);
 
-	bool findType() override { assert(false); return true; }
-	bool isTypeKnown() override { return true; }
-	Type& getType() override { return *m_type; }
-
-	void printSignature();
+	void printSignature() override;
 };

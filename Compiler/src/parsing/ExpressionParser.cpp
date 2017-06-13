@@ -125,7 +125,7 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
 unique_ptr<Expression> mergeExpressionsWithOp(unique_ptr<Expression>&& LHS, const InfixOperator& infixOp, unique_ptr<Expression>&& RHS) {
 	if(!LHS || !RHS)
 		return none_exp();
-	return unique_ptr<Expression>(new InfixOperatorExpression(std::move(LHS), infixOp, std::move(RHS)));
+	return unique_ptr<Expression>(new InfixOperatorExpression(std::move(LHS), infixOp, std::move(RHS))); //TODO: Remove all 'new'
 }
 
 unique_ptr<Expression> mergeOpWithExpression(const PrefixOperator& prefixOp, int opLine, int opCol, unique_ptr<Expression>&& RHS) {
@@ -134,15 +134,20 @@ unique_ptr<Expression> mergeOpWithExpression(const PrefixOperator& prefixOp, int
 	return unique_ptr<Expression>(new PrefixOperatorExpression(prefixOp, opLine, opCol, std::move(RHS)));
 }
 
-FunctionCallArgument parseFunctionCallArgument(Lexer& lexer) {
-	//TODO: Perhaps take a text range for the argument. Not too big of an issue, but hey
+bool parseFunctionCallArgument(Lexer& lexer, vector<FunctionCallArgument>& args) {
+	//NOTE: Perhaps take a text range for the argument. Not too big of an issue, but hey
 	bool mut = false;
 	if(lexer.currType() == MUT) {
 		lexer.advance(); //Eat 'mut'
 		mut = true;
 	}
 
-	return FunctionCallArgument(mut, parseExpression(lexer));
+	auto argument = parseExpression(lexer);
+	if(argument) {
+		args.emplace_back(mut, std::move(argument));
+		return true;
+	}
+	return false;
 }
 
 unique_ptr<Expression> parseFunctionCallExpression(Lexer& lexer, unique_ptr<Expression>&& function) {
@@ -151,12 +156,11 @@ unique_ptr<Expression> parseFunctionCallExpression(Lexer& lexer, unique_ptr<Expr
 	vector<FunctionCallArgument> args;
 	if(lexer.currType()!=RIGHT_PAREN) {
 		while(true) {
-		    FunctionCallArgument arg = parseFunctionCallArgument(lexer);
-			if(!arg) {
+			if(!parseFunctionCallArgument(lexer, args)) {
 				skipUntil(lexer, RIGHT_PAREN); //Skip rest of arguments
 				break;
 			}
-			args.push_back(std::move(arg));
+
 			if(lexer.currType()==COMMA)
 				lexer.advance(); //Eat ','
 			else if(lexer.currType()==RIGHT_PAREN)

@@ -26,12 +26,8 @@ public:
 	virtual bool evaluatesToValue() const; //This expression can't be returned unless this is true
 
 	//TODO =0
-	virtual void makeConcrete(NamespaceStack& ns_stack) {}
-
-	virtual const Type& getType();
-	virtual bool isTypeKnown();
-	//returns true if it has a type after the call
-	virtual bool findType() = 0;
+	virtual void makeConcrete(NamespaceStack& ns_stack) { std::cout << "TODO concrete expression" << std::endl;}
+    virtual Type* tryGetConcreteType() { std::cout << "TODO get concrete type from expression" << std::endl; return nullptr;}
 
 	virtual void printSignature() = 0;
 	const TextRange& getRange();
@@ -41,14 +37,16 @@ public:
 class VariableExpression : public Expression {
 private:
 	std::string m_name;
+	Definition* m_target;
 public:
 	VariableExpression(const std::string& name, const TextRange& range);
+	VariableExpression(VariableExpression& other) = delete;
+	VariableExpression& operator =(VariableExpression& other) = delete;
 
-	//TODO: Make concrete
-	virtual void makeConcrete(NamespaceStack& ns_stack) {}
+	virtual void makeConcrete(NamespaceStack& ns_stack);
+	virtual Type* tryGetConcreteType() override;
 
-	bool findType();
-	void printSignature();
+	void printSignature() override;
 };
 
 class IntegerConstantExpression: public Expression {
@@ -57,8 +55,7 @@ private:
 	NumberLiteralConstants::ConstantIntegerType m_integerType;
 public:
 	IntegerConstantExpression(daf_largest_uint integer, NumberLiteralConstants::ConstantIntegerType integerType, const TextRange& range);
-	void printSignature();
-	bool findType() {return false;}
+	void printSignature() override;
 };
 
 class RealConstantExpression : public Expression {
@@ -67,53 +64,48 @@ private:
 	NumberLiteralConstants::ConstantRealType m_realType;
 public:
 	RealConstantExpression(daf_largest_float real, NumberLiteralConstants::ConstantRealType realType, const TextRange& range);
-	void printSignature();
-	bool findType() {return false;}
+	void printSignature() override;
 };
 
 class ConstantStringExpression : public Expression {
-public:
-	ConstantStringExpression(const std::string& text);
 private:
 	std::string m_text;
+public:
+	ConstantStringExpression(const std::string& text);
 };
 
-//TODO: Use m_ prefix for private fields
 class InfixOperatorExpression : public Expression {
 private:
-	unique_ptr<Expression> LHS;
-	const InfixOperator& op;
-	unique_ptr<Expression> RHS;
+	unique_ptr<Expression> m_LHS;
+	const InfixOperator& m_op;
+	unique_ptr<Expression> m_RHS;
 public:
-	InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, const InfixOperator& op,
-							std::unique_ptr<Expression>&& RHS);
-	bool findType() {return false;}
-	bool isStatement() {return op.statement;}
-	void printSignature();
+	InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, const InfixOperator& op,	std::unique_ptr<Expression>&& RHS);
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	virtual bool isStatement() override {return m_op.statement;}
+	virtual void printSignature() override;
 };
 
-//TODO: Use m_ prefix for private fields
 class PrefixOperatorExpression : public Expression {
 private:
-	const PrefixOperator& op;
-	unique_ptr<Expression> RHS;
+	const PrefixOperator& m_op;
+	unique_ptr<Expression> m_RHS;
 public:
 	PrefixOperatorExpression(const PrefixOperator& op, int opLine, int opCol, std::unique_ptr<Expression>&& RHS);
-	bool findType() {return false;}
-	bool isStatement() {return op.statement;}
-	void printSignature();
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	bool isStatement() override {return m_op.statement;}
+	void printSignature() override;
 };
 
-//TODO: Use m_ prefix for private fields here too
 class PostfixCrementExpression : public Expression {
 private:
-	bool decrement;
-	unique_ptr<Expression> LHS;
+	bool m_decrement;
+	unique_ptr<Expression> m_LHS;
 public:
 	PostfixCrementExpression(std::unique_ptr<Expression>&& LHS, bool decrement, int opLine, int opEndCol);
-	bool findType() {return false;}
-	bool isStatement() {return true;}
-	void printSignature();
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	bool isStatement() override {return true;}
+	void printSignature() override;
 };
 
 class FunctionCallArgument {
@@ -122,25 +114,22 @@ private:
 	unique_ptr<Expression> m_expression;
 public:
 	FunctionCallArgument(bool mut, unique_ptr<Expression>&& expression);
-	FunctionCallArgument(const FunctionCallArgument& other) = delete;
-	FunctionCallArgument(FunctionCallArgument&& other);
-	FunctionCallArgument& operator =(const FunctionCallArgument& RHS) = delete;
-	FunctionCallArgument& operator =(FunctionCallArgument&& RHS);
 	inline bool isMut() { return m_mutableReference; }
 	inline Expression& getExpression() { return *m_expression; }
+
+    inline void makeConcrete(NamespaceStack& ns_stack) { m_expression->makeConcrete(ns_stack); }
 	void printSignature();
-	inline operator bool() { return !!m_expression; }
 };
 
 class FunctionCallExpression : public Expression {
 private:
 	unique_ptr<Expression> m_function;
-	std::vector<FunctionCallArgument> m_params;
+	std::vector<FunctionCallArgument> m_args;
 public:
-	FunctionCallExpression(unique_ptr<Expression>&& function, std::vector<FunctionCallArgument>&& parameters, int lastLine, int lastCol);
-	bool findType() {return false;}
-	bool isStatement() {return true;}
-	void printSignature();
+	FunctionCallExpression(unique_ptr<Expression>&& function, std::vector<FunctionCallArgument>&& arguments, int lastLine, int lastCol);
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	bool isStatement() override {return true;}
+	void printSignature() override;
 };
 
 class ArrayAccessExpression : public Expression {
@@ -149,7 +138,7 @@ private:
 	unique_ptr<Expression> m_index;
 public:
 	ArrayAccessExpression(unique_ptr<Expression>&& array, unique_ptr<Expression>&& index, int lastLine, int lastCol);
-	bool findType() {return false;}
-	bool isStatement() {return false;}
-	void printSignature();
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	bool isStatement() override {return false;}
+	void printSignature() override;
 };

@@ -58,8 +58,3 @@ void WithExpression::printSignature() {
 		m_else_body->printSignature();
 	}
 }
-
-bool WithExpression::findType() {
-	assert(false);
-  return false;
-}

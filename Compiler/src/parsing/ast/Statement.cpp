@@ -12,17 +12,24 @@ const TextRange& Statement::getRange() {
 	return m_range;
 }
 
+void Statement::addToMap(NamedDefinitionMap& map) {
+	/*
+	if(m_isDefinition)
+	(static_cast<DefinitionStatement*>(this))->addToMap(map);*/
+}
+
 DefinitionStatement::DefinitionStatement(unique_ptr<Definition>&& definition, const TextRange& range)
 	: Statement(range), m_definition(std::move(definition))
 {
+	//m_isDefinition = true;
 	assert(m_definition && m_definition->isStatement() && !m_definition->isPublic());
 }
 
-void DefinitionStatement::addToMap(NamedDefinitionMap& map) {
+void DefinitionStatement::addToMap(NamedDefinitionMap& map) { //overridden
 	m_definition->addToMap(map);
 }
 
-void DefinitionStatement::makeConcrete(NamespaceStack& ns_stack) {
+void DefinitionStatement::makeConcrete(NamespaceStack& ns_stack) { //override
 	m_definition->makeConcrete(ns_stack);
 }
 

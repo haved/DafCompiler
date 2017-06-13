@@ -17,9 +17,9 @@ public:
 	Statement(const TextRange& range);
 	virtual ~Statement();
 
-	//TODO: Huge amounts of dynamic dispatch as only definitions can be added to maps
-	virtual void addToMap(NamedDefinitionMap& map) {};
-	virtual void makeConcrete(NamespaceStack& ns_stack) {};
+	//Optimize: a lot of virtual calls that never do anything
+    virtual void addToMap(NamedDefinitionMap& map);
+	virtual void makeConcrete(NamespaceStack& ns_stack) { std::cout << "statement concrete code TODO;" << std::endl;}; //TODO: Have this say =0
 
 	virtual void printSignature()=0;
 	const TextRange& getRange();
@@ -31,8 +31,7 @@ private:
 public:
 	DefinitionStatement(unique_ptr<Definition>&& definition, const TextRange& range);
 
-	//TODO: This is the only addToMap we actually care about in statements ;(
-	virtual void addToMap(NamedDefinitionMap& map) override;
+	void addToMap(NamedDefinitionMap& map) override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 
 	void printSignature();

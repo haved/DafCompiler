@@ -5,10 +5,15 @@ def main {
 };
 
 def other := {
-	a();
+	let a := 6;
+	a++;
+	main();
+	++(third+4);
 	let b:=4;
 	//def b:=6;
 	b
 };
+
+def third := 6;
 
 //def main := 6;

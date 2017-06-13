@@ -29,7 +29,6 @@ bool Scope::needsSemicolonAfterStatement() { //override
 	return false;
 }
 
-
 void Scope::makeConcrete(NamespaceStack& ns_stack) {
 	ScopeNamespace scopeNs;
 	ns_stack.push(&scopeNs);
@@ -39,9 +38,8 @@ void Scope::makeConcrete(NamespaceStack& ns_stack) {
 	}
 }
 
-bool Scope::findType() { //override
-    //TODO
-	return false;
+Type* Scope::tryGetConcreteType() { //override
+    return nullptr;
 }
 
 void Scope::printSignature() { //override
@@ -60,10 +58,9 @@ void Scope::printSignature() { //override
 ScopeNamespace::ScopeNamespace() : m_definitionMap() {}
 
 void ScopeNamespace::addStatement(Statement& statement) {
-	statement.addToMap(m_definitionMap);
+	statement.addToMap(m_definitionMap); //TODO Most statements won't add anything, meaning we have a lot of virtual overhead
 }
 
-//TODO: This is repeated from NameScope. Do something about that, maybe make Namespace a proper class
 Definition* ScopeNamespace::tryGetDefinitionFromName(const std::string& name) {
     auto it = m_definitionMap.find(name);
 	if(it != m_definitionMap.end())
