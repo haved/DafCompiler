@@ -13,11 +13,11 @@ Def::Def(bool pub, ReturnKind defType, std::string&& name, TypeReference&& type,
 Let::Let(bool pub, bool mut, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_type(std::move(type)), m_expression(std::move(expression)) {}
 
 void Def::addToMap(NamedDefinitionMap& map) {
-	tryAddNamedDefinitionToMap(map, m_name, this);
+	map.tryAddNamedDefinition(m_name, *this);
 }
 
 void Let::addToMap(NamedDefinitionMap& map) {
-	tryAddNamedDefinitionToMap(map, m_name, this);
+	map.tryAddNamedDefinition(m_name, *this);
 }
 
 void Def::makeConcrete(NamespaceStack& ns_stack) {
@@ -82,7 +82,7 @@ TypedefDefinition::TypedefDefinition(bool pub, std::string&& name, TypeReference
 }
 
 void TypedefDefinition::addToMap(NamedDefinitionMap& map) {
-	tryAddNamedDefinitionToMap(map, m_name, this);
+	map.tryAddNamedDefinition(m_name, *this);
 }
 
 void TypedefDefinition::makeConcrete(NamespaceStack& ns_stack) {
@@ -105,7 +105,7 @@ NamedefDefinition::NamedefDefinition(bool pub, std::string&& name, unique_ptr<Na
 }
 
 void NamedefDefinition::addToMap(NamedDefinitionMap& map) {
-	tryAddNamedDefinitionToMap(map, m_name, this);
+	map.tryAddNamedDefinition(m_name, *this);
 }
 
 void NamedefDefinition::makeConcrete(NamespaceStack& ns_stack) {
@@ -122,13 +122,3 @@ void NamedefDefinition::printSignature() {
 	std::cout << ";" << std::endl;
 }
 
-void tryAddNamedDefinitionToMap(NamedDefinitionMap& map, std::string& name, Definition* definition) {
-	auto it = map.find(name);
-	if(it != map.end()) {
-		auto& out = logDaf(definition->getRange(), ERROR) << "name '" << name << "' already defined at ";
-		it->second->getRange().printStartTo(out);
-		out << std::endl;
-	} else {
-		map.insert({name, definition});
-	}
-}

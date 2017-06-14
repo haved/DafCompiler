@@ -13,7 +13,7 @@ void NamespaceStack::pop() {
 
 Definition* NamespaceStack::tryGetDefinitionFromName(const std::string& name) {
 	for(auto it = m_namespaces.rbegin(); it != m_namespaces.rend(); ++it) { //We go from the top of the stack
-		Definition* x = (*it)->tryGetDefinitionFromName(name);
+		Definition* x = (*it)->getDefinitionFromName(name);
 		if(x)
 			return x;
 	}

@@ -33,7 +33,7 @@ void Scope::makeConcrete(NamespaceStack& ns_stack) {
 	ScopeNamespace scopeNs;
 	ns_stack.push(&scopeNs);
 	for(auto it = m_statements.begin(); it != m_statements.end(); ++it) {
-		scopeNs.addStatement(**it);
+	    scopeNs.addStatement(**it);
 		(*it)->makeConcrete(ns_stack);
 	}
 }
@@ -58,12 +58,9 @@ void Scope::printSignature() { //override
 ScopeNamespace::ScopeNamespace() : m_definitionMap() {}
 
 void ScopeNamespace::addStatement(Statement& statement) {
-	statement.addToMap(m_definitionMap); //TODO Most statements won't add anything, meaning we have a lot of virtual overhead
+	statement.addToMap(m_definitionMap);
 }
 
-Definition* ScopeNamespace::tryGetDefinitionFromName(const std::string& name) {
-    auto it = m_definitionMap.find(name);
-	if(it != m_definitionMap.end())
-		return it->second;
-	return nullptr;
+Definition* ScopeNamespace::getDefinitionFromName(const std::string& name) {
+    return m_definitionMap.getDefinitionFromName(name);
 }

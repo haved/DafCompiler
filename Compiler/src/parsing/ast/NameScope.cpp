@@ -20,28 +20,21 @@ void NameScope::printSignature() {
 	std::cout << "} /*name-scope*/"; //The namedef printSignature adds a newline
 }
 
-void NameScope::makeDefinitionMap() {
-	for(auto it = m_definitions.begin(); it != m_definitions.end(); ++it) {
-		(*it)->addToMap(m_definitionMap);
-	}
-}
-
 void NameScope::makeConcrete(NamespaceStack& ns_stack) {
 	ns_stack.push(this);
 
-	if(m_definitionMap.empty() && !m_definitions.empty())
-		makeDefinitionMap();
+	//Add everything to the map first, as NameScopes are not ordered
+	for(auto it = m_definitions.begin(); it != m_definitions.end(); ++it) {
+		(*it)->addToMap(m_definitionMap);
+	}
 
 	for(auto it = m_definitions.begin(); it != m_definitions.end(); ++it) {
 		(*it)->makeConcrete(ns_stack); //we ignore the returned bool //TODO: Does it need to return a bool?
 	}
 }
 
-Definition* NameScope::tryGetDefinitionFromName(const std::string& name) {
-	auto it = m_definitionMap.find(name);
-	if(it!=m_definitionMap.end())
-		return (*it).second;
-	return nullptr;
+Definition* NameScope::getDefinitionFromName(const std::string& name) {
+    return m_definitionMap.getDefinitionFromName(name);
 }
 
 NameScopeReference::NameScopeReference(std::string&& name, const TextRange& range) : NameScopeExpression(range), m_name(std::move(name)) {}

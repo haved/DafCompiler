@@ -6,6 +6,7 @@
 #include "parsing/ast/FunctionSignature.hpp"
 #include "parsing/semantic/NamespaceStack.hpp"
 #include "parsing/semantic/Namespace.hpp"
+#include "parsing/semantic/NamedDefinitionMap.hpp"
 #include <memory>
 #include <vector>
 #include <string>
@@ -14,8 +15,6 @@
 
 using std::unique_ptr;
 using boost::optional;
-
-using NamedDefinitionMap = std::map<std::string, Definition*>;
 
 class Definition {
 protected:
@@ -30,8 +29,7 @@ public:
 	virtual bool isStatement()=0;
 
 	virtual void addToMap(NamedDefinitionMap& map)=0;
-	//TODO: Find out what the return value even means
-	virtual void makeConcrete(NamespaceStack& ns_stack)=0;
+	virtual void makeConcrete(NamespaceStack& ns_stack) { std::cout << "TODO make definition concrete" << std::endl; }
 };
 
 class Def : public Definition {
@@ -89,7 +87,7 @@ public:
 	virtual void printSignature()=0;
 	inline const TextRange& getRange() { return m_range; }
 	virtual void makeConcrete(NamespaceStack& ns_stack)=0; //Makes all the definitions inside concrete
-	virtual Definition* tryGetDefinitionFromName(const std::string& name) override =0;
+	virtual Definition* getDefinitionFromName(const std::string& name) override =0; //Doesn't give warnings
 };
 
 class NamedefDefinition : public Definition {
@@ -104,5 +102,3 @@ public:
 	virtual void addToMap(NamedDefinitionMap& map) override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 };
-
-void tryAddNamedDefinitionToMap(NamedDefinitionMap& map, std::string& name, Definition* definition);

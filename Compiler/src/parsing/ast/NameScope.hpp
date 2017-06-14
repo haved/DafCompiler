@@ -29,7 +29,7 @@ public:
 	NameScope& operator =(NameScope&& other);
 	void printSignature() override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual Definition* tryGetDefinitionFromName(const std::string& name) override;
+	virtual Definition* getDefinitionFromName(const std::string& name) override;
 };
 
 class NameScopeReference : public NameScopeExpression {
@@ -40,5 +40,5 @@ public:
 	void printSignature() override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-    virtual Definition* tryGetDefinitionFromName(const std::string& name) override { return nullptr; } //TODO: Make this concrete and stuff
+    virtual Definition* getDefinitionFromName(const std::string& name) override { return nullptr; } //TODO: Make this concrete and stuff
 };

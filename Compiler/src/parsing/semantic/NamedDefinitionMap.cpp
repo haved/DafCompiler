@@ -1,0 +1,23 @@
+#include "parsing/semantic/NamedDefinitionMap.hpp"
+#include "parsing/ast/Definition.hpp"
+#include "DafLogger.hpp"
+
+NamedDefinitionMap::NamedDefinitionMap() : m_map() {}
+
+void NamedDefinitionMap::tryAddNamedDefinition(const std::string& name, Definition& definition) {
+    auto it = m_map.find(name);
+	if(it != m_map.end()) {
+		auto& out = logDaf(definition.getRange(), ERROR) << "name '" << name << "' already defined at ";
+		it->second->getRange().printStartTo(out);
+		out << std::endl;
+	} else {
+		m_map.insert({name, &definition});
+	}
+}
+
+Definition* NamedDefinitionMap::getDefinitionFromName(const std::string& name) {
+	auto it = m_map.find(name);
+	if(it == m_map.end())
+		return nullptr;
+	return it->second;
+}
