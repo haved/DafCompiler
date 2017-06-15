@@ -40,5 +40,5 @@ public:
 	void printSignature() override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-    virtual Definition* getDefinitionFromName(const std::string& name) override { return nullptr; } //TODO: Make this concrete and stuff
+	virtual Definition* getDefinitionFromName(const std::string& name) override { (void)name; std::cout << "TODO: NameScopeReference" << std::endl; return nullptr; }
 };

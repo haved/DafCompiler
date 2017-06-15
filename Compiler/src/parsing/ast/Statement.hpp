@@ -19,7 +19,7 @@ public:
 
 	//Optimize: a lot of virtual calls that never do anything
     virtual void addToMap(NamedDefinitionMap& map);
-	virtual void makeConcrete(NamespaceStack& ns_stack) { std::cout << "statement concrete code TODO;" << std::endl;}; //TODO: Have this say =0
+	virtual void makeConcrete(NamespaceStack& ns_stack) { (void) ns_stack; std::cout << "statement concrete code TODO;" << std::endl;} //TODO: Have this say =0
 
 	virtual void printSignature()=0;
 	const TextRange& getRange();

@@ -19,7 +19,7 @@ const TextRange& Expression::getRange() {
 VariableExpression::VariableExpression(const std::string& name, const TextRange& range) : Expression(range), m_name(name), m_target(nullptr) {}
 
 void VariableExpression::makeConcrete(NamespaceStack& ns_stack) {
-	m_target = ns_stack.tryGetDefinitionFromName(m_name);
+	m_target = ns_stack.getDefinitionFromName(m_name);
 	//TODO: empty identifiers. //TODO: Gotta disallow them in a lot of cases
 	if(!m_target)
 		logDaf(getRange(), ERROR) << "unrecognized identifier: " << m_name << std::endl;

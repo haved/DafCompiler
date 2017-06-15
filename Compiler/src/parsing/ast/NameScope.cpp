@@ -23,17 +23,25 @@ void NameScope::printSignature() {
 void NameScope::makeConcrete(NamespaceStack& ns_stack) {
 	ns_stack.push(this);
 
-	//Add everything to the map first, as NameScopes are not ordered
-	for(auto it = m_definitions.begin(); it != m_definitions.end(); ++it) {
-		(*it)->addToMap(m_definitionMap);
-	}
-
 	for(auto it = m_definitions.begin(); it != m_definitions.end(); ++it) {
 		(*it)->makeConcrete(ns_stack); //we ignore the returned bool //TODO: Does it need to return a bool?
 	}
+
+	ns_stack.pop();
 }
 
+//Two NameScopes exist in an enclosing NameScope
+//First, both names are added to the enclosing NameScope 's map
+//In the first one, the name of the second is referenced, which works
+//Then a dot follows, with something in the other.
+//Thankfully, asking for a definition will fill its map.
 Definition* NameScope::getDefinitionFromName(const std::string& name) {
+	if(m_definitionMap.empty() && !m_definitions.empty()) {
+		//Add everything to the map first, as NameScopes are not ordered
+		for(auto it = m_definitions.begin(); it != m_definitions.end(); ++it) {
+			(*it)->addToMap(m_definitionMap);
+		}
+	}
     return m_definitionMap.getDefinitionFromName(name);
 }
 

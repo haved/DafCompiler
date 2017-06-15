@@ -1,19 +1,27 @@
 // -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
+namedef IO := {
+	pub def print() {
+	
+	};
+};
+
 def main {
 	typedef int:=i;
 };
 
-def other := {
+def other {
 	let a := 6;
 	a++;
 	main();
 	++(third+4);
 	let b:=4;
 	//def b:=6;
-	b
+	b++;
+//	IO.print(); //Problem
 };
 
 def third := 6;
 
 //def main := 6;
+

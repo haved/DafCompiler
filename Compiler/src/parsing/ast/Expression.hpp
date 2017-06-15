@@ -26,7 +26,7 @@ public:
 	virtual bool evaluatesToValue() const; //This expression can't be returned unless this is true
 
 	//TODO =0
-	virtual void makeConcrete(NamespaceStack& ns_stack) { std::cout << "TODO concrete expression" << std::endl;}
+	virtual void makeConcrete(NamespaceStack& ns_stack) { (void) ns_stack; std::cout << "TODO concrete expression" << std::endl;}
     virtual Type* tryGetConcreteType() { std::cout << "TODO get concrete type from expression" << std::endl; return nullptr;}
 
 	virtual void printSignature() = 0;

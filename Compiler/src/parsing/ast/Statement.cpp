@@ -13,9 +13,7 @@ const TextRange& Statement::getRange() {
 }
 
 void Statement::addToMap(NamedDefinitionMap& map) {
-	/*
-	if(m_isDefinition)
-	(static_cast<DefinitionStatement*>(this))->addToMap(map);*/
+	(void) map; //Definition overrides this, the others don't do nothing
 }
 
 DefinitionStatement::DefinitionStatement(unique_ptr<Definition>&& definition, const TextRange& range)

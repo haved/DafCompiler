@@ -21,3 +21,7 @@ Definition* NamedDefinitionMap::getDefinitionFromName(const std::string& name) {
 		return nullptr;
 	return it->second;
 }
+
+bool NamedDefinitionMap::empty() {
+	return m_map.empty();
+}

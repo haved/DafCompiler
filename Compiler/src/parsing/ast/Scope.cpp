@@ -36,6 +36,7 @@ void Scope::makeConcrete(NamespaceStack& ns_stack) {
 	    scopeNs.addStatement(**it);
 		(*it)->makeConcrete(ns_stack);
 	}
+	ns_stack.pop();
 }
 
 Type* Scope::tryGetConcreteType() { //override

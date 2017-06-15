@@ -29,7 +29,7 @@ public:
 	virtual bool isStatement()=0;
 
 	virtual void addToMap(NamedDefinitionMap& map)=0;
-	virtual void makeConcrete(NamespaceStack& ns_stack) { std::cout << "TODO make definition concrete" << std::endl; }
+	virtual void makeConcrete(NamespaceStack& ns_stack) { (void)ns_stack; std::cout << "TODO make definition concrete" << std::endl; }
 };
 
 class Def : public Definition {
