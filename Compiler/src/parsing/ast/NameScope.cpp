@@ -1,4 +1,4 @@
-#include  "parsing/ast/NameScope.hpp"
+#include "parsing/ast/NameScope.hpp"
 #include <iostream>
 
 NameScope::NameScope(vector<unique_ptr<Definition>>&& definitions, const TextRange& range) : NameScopeExpression(range), m_definitions(std::move(definitions)), m_definitionMap() {}
@@ -53,4 +53,5 @@ void NameScopeReference::printSignature() {
 
 void NameScopeReference::makeConcrete(NamespaceStack& ns_stack) {
 	//TODO: Add all NameScopeReference-stuff
+	(void) ns_stack;
 }

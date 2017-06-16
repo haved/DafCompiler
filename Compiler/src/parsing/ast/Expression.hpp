@@ -22,8 +22,8 @@ public:
 
 	// === Used by Statement parser ===
 	virtual bool isStatement();
-	virtual bool needsSemicolonAfterStatement(); //A scope doesn't, unless it returns something
 	virtual bool evaluatesToValue() const; //This expression can't be returned unless this is true
+	//Also this expression will require a trailing semicolon if used as a statement
 
 	//TODO =0
 	virtual void makeConcrete(NamespaceStack& ns_stack) { (void) ns_stack; std::cout << "TODO concrete expression" << std::endl;}

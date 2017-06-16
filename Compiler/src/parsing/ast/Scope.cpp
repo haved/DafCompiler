@@ -19,16 +19,6 @@ bool Scope::evaluatesToValue() const { //override
 	return !!m_outExpression; //We know outExpression evaluatesToValue
 }
 
-//NOTE: This isn't exactly a pure function, a bit ugly relying on it only being called once
-bool Scope::needsSemicolonAfterStatement() { //override
-	if(m_outExpression) {
-		logDaf(m_outExpression->getRange(), WARNING) << "this output expression forces the enclosing scope to have a trailing semicolon" << std::endl;
-		return true;
-	}
-
-	return false;
-}
-
 void Scope::makeConcrete(NamespaceStack& ns_stack) {
 	ScopeNamespace scopeNs;
 	ns_stack.push(&scopeNs);

@@ -10,7 +10,7 @@ def main {
 	typedef int:=i;
 };
 
-def other {
+def other() {
 	let a := 6;
 	a++;
 	main();
@@ -18,7 +18,14 @@ def other {
 	let b:=4;
 	//def b:=6;
 	b++;
-//	IO.print(); //Problem
+	//IO.print(); //Problem
+
+	{
+		a++;
+		a
+	};
+
+	a++;
 };
 
 def third := 6;

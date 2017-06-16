@@ -15,7 +15,6 @@ public:
 	Scope(const TextRange& range, std::vector<std::unique_ptr<Statement>>&& statements, std::unique_ptr<Expression> finalOutExpression);
 	virtual bool isStatement() override; //true
 	virtual bool evaluatesToValue() const override; //We can only be a finalOutExpression if we ourselves have one
-	virtual bool needsSemicolonAfterStatement() override; //if we have a finalOutExpression
 
 	virtual Type* tryGetConcreteType() override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;

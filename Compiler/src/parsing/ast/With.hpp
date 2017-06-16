@@ -41,5 +41,5 @@ public:
 	void printSignature() override;
     //virtual Type* tryGetConcreteType() override { return nullptr; } //TODO
 	inline bool isStatement() override { return m_expression->isStatement(); }
-	inline bool needsSemicolonAfterStatement() override { return false; } //TODO: Shouldn't this depend on expression?
+	virtual bool evaluatesToValue() const override { return m_expression->evaluatesToValue(); }
 };

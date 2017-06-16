@@ -200,7 +200,7 @@ unique_ptr<Statement> handleExpressionToStatement(unique_ptr<Expression> express
 	if(lexer.currType() == STATEMENT_END) {
 		range = TextRange(range, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol);
 		lexer.advance(); //Eat ';'
-	} else if(expression->needsSemicolonAfterStatement())
+	} else if(expression->evaluatesToValue())
 		lexer.expectTokenAfterPrev(STATEMENT_END);
 
 	return unique_ptr<Statement>(new ExpressionStatement(std::move(expression), range));

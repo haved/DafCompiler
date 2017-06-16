@@ -9,7 +9,6 @@ Expression::Expression(const TextRange& range) : m_range(range) {}
 Expression::~Expression() {}
 
 bool Expression::isStatement() { return false; }
-bool Expression::needsSemicolonAfterStatement() { return true; }
 bool Expression::evaluatesToValue() const { return true; }
 
 const TextRange& Expression::getRange() {
@@ -21,6 +20,7 @@ VariableExpression::VariableExpression(const std::string& name, const TextRange&
 void VariableExpression::makeConcrete(NamespaceStack& ns_stack) {
 	m_target = ns_stack.getDefinitionFromName(m_name);
 	//TODO: empty identifiers. //TODO: Gotta disallow them in a lot of cases
+	//TODO: Can be after a dot, in which case it shouldn't look for a definition in the namespace stack
 	if(!m_target)
 		logDaf(getRange(), ERROR) << "unrecognized identifier: " << m_name << std::endl;
 }
