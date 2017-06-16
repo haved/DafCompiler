@@ -122,7 +122,7 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
 	return none_exp();
 }
 
-unique_ptr<Expression> mergeExpressionsWithOp(unique_ptr<Expression>&& LHS, const InfixOperator& infixOp, unique_ptr<Expression>&& RHS) {
+unique_ptr<Expression> mergeExpressionsWithOp(unique_ptr<Expression>&& LHS, InfixOperator infixOp, unique_ptr<Expression>&& RHS) {
 	if(!LHS || !RHS)
 		return none_exp();
 	return unique_ptr<Expression>(new InfixOperatorExpression(std::move(LHS), infixOp, std::move(RHS))); //TODO: Remove all 'new'
@@ -233,11 +233,11 @@ unique_ptr<Expression> parseSide(Lexer& lexer, int minimumPrecedence) {
 			else
 				side = mergeExpressionWithOp(lexer, std::move(side), *postfixOp); //Skips tokens for us, this one
 		}
-		optional<const InfixOperator&> infixOp = parseInfixOperator(lexer);
-		if(!infixOp || infixOp->precedence<minimumPrecedence)
+		optional<InfixOperator> infixOp = parseInfixOperator(lexer);
+		if(!infixOp || getInfixOp(*infixOp).precedence<minimumPrecedence)
 			return side;
 		lexer.advance(); //Eat the infix operator
-		side = mergeExpressionsWithOp(std::move(side), *infixOp, parseSide(lexer, infixOp->precedence+1));
+		side = mergeExpressionsWithOp(std::move(side), *infixOp, parseSide(lexer, getInfixOp(*infixOp).precedence+1));
 	}
 }
 

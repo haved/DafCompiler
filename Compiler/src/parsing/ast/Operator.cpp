@@ -1,7 +1,7 @@
 #include "parsing/ast/Operator.hpp"
 #include "parsing/lexing/Lexer.hpp"
 
-InfixOperator::InfixOperator(TokenType tokenType, int precedence, bool statement) :
+InfixOperatorStruct::InfixOperatorStruct(TokenType tokenType, int precedence, bool statement) :
 	tokenType(tokenType), precedence(precedence), statement(statement) {}
 
 PrefixOperator::PrefixOperator(TokenType tokenType, int precedence, bool statement) :
@@ -10,17 +10,10 @@ PrefixOperator::PrefixOperator(TokenType tokenType, int precedence, bool stateme
 PostfixOperator::PostfixOperator(TokenType tokenType, int precedence) :
 	tokenType(tokenType), precedence(precedence) {}
 
-InfixOperator INFIX_OPERATOR_INSTANCES[] = {
-	InfixOperator(CLASS_ACCESS, 110),
-	InfixOperator(MULT, 90), InfixOperator(DIVIDE, 90), InfixOperator(MODULO, 90),
-	InfixOperator(PLUS, 80), InfixOperator(MINUS, 80),
-	InfixOperator(LSL, 70), InfixOperator(ASR, 70),
-	InfixOperator(GREATER, 60), InfixOperator(GREATER_OR_EQUAL, 60),
-	InfixOperator(LOWER, 60), InfixOperator(LOWER_OR_EQUAL, 60),
-	InfixOperator(EQUALS, 50), InfixOperator(NOT_EQUALS, 50),
-	InfixOperator(REF, 40), InfixOperator(BITWISE_OR, 40),
-	InfixOperator(LOGICAL_AND, 30), InfixOperator(LOGICAL_OR, 30),
-	InfixOperator(ASSIGN, 20, true) //Means 4+a=5 is borked, like in C++
+InfixOperatorStruct INFIX_OPERATOR_INSTANCES[] = {
+#define InfixOperator(TOKEN, PREC, STATEMENT) InfixOperatorStruct(TOKEN, PREC, STATEMENT)
+#include "parsing/ast/mappings/InfixOperatorMapping.hpp"
+#undef InfixOperator
 };
 
 PrefixOperator PREFIX_OPERATOR_INSTANCES[] = {
@@ -40,12 +33,12 @@ PostfixOperator POSTFIX_OPERATOR_INSTANCES[] = {
 };
 
 //TODO: Call these something else than parse, as they don't eat anything
-boost::optional<const InfixOperator&> parseInfixOperator(Lexer& lexer) {
+boost::optional<InfixOperator> parseInfixOperator(Lexer& lexer) {
 	TokenType curr = lexer.currType();
 	for(unsigned int i = 0; i < sizeof(INFIX_OPERATOR_INSTANCES)/sizeof(*INFIX_OPERATOR_INSTANCES); i++) {
 		if(curr == INFIX_OPERATOR_INSTANCES[i].tokenType) {
-			//lexer.advance(); DONT Eat operator
-			return INFIX_OPERATOR_INSTANCES[i];
+			//lexer.advance(); DONT Eat operator!
+			return static_cast<InfixOperator>(i);
 		}
 	}
 	return boost::none;
@@ -55,7 +48,7 @@ boost::optional<const PrefixOperator&> parsePrefixOperator(Lexer& lexer) {
 	TokenType curr = lexer.currType();
 	for(unsigned int i = 0; i < sizeof(PREFIX_OPERATOR_INSTANCES)/sizeof(*PREFIX_OPERATOR_INSTANCES); i++) {
 		if(curr == PREFIX_OPERATOR_INSTANCES[i].tokenType) {
-			//lexer.advance(); DONT Eat operator
+			//lexer.advance(); DONT Eat operator!
 			return PREFIX_OPERATOR_INSTANCES[i];
 		}
 	}
@@ -71,6 +64,10 @@ boost::optional<const PostfixOperator&> parsePostfixOperator(Lexer& lexer) {
 		}
 	}
 	return boost::none;
+}
+
+const InfixOperatorStruct& getInfixOp(InfixOperator op) {
+	return INFIX_OPERATOR_INSTANCES[static_cast<int>(op)];
 }
 
 bool isPostfixOpEqual(const PostfixOperator& op, PostfixOp op_enum) {

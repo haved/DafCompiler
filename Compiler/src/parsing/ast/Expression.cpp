@@ -19,10 +19,29 @@ VariableExpression::VariableExpression(const std::string& name, const TextRange&
 
 void VariableExpression::makeConcrete(NamespaceStack& ns_stack) {
 	m_target = ns_stack.getDefinitionFromName(m_name);
-	//TODO: empty identifiers. //TODO: Gotta disallow them in a lot of cases
-	//TODO: Can be after a dot, in which case it shouldn't look for a definition in the namespace stack
 	if(!m_target)
 		logDaf(getRange(), ERROR) << "unrecognized identifier: " << m_name << std::endl;
+	auto kind = m_target->getDefinitionKind();
+	switch(kind) {
+	case DefinitionKind::LET:
+	case DefinitionKind::DEF:
+		return;
+	default:
+	    break;
+	}
+	auto& out = logDaf(getRange(), ERROR) << "'" <<m_name << "' is not a reference to an expression, rather a ";
+	switch(kind) {
+	case DefinitionKind::TYPEDEF:
+		out << "type";
+		break;
+	case DefinitionKind::NAMEDEF:
+		out << "namespace";
+		break;
+	default:
+		assert(false); //A with doesn't even have a name, why is it here?
+		break;
+	}
+	out << std::endl;
 }
 
 Type* VariableExpression::tryGetConcreteType() {
@@ -67,7 +86,7 @@ void RealConstantExpression::printSignature() {
 	std::cout << m_real;
 }
 
-InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, const InfixOperator& op, std::unique_ptr<Expression>&& RHS) : Expression(TextRange(LHS->getRange(), RHS->getRange())), m_LHS(std::move(LHS)), m_op(op), m_RHS(std::move(RHS)) {
+InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS) : Expression(TextRange(LHS->getRange(), RHS->getRange())), m_LHS(std::move(LHS)), m_op(op), m_RHS(std::move(RHS)) {
 	assert(m_LHS && m_RHS);
 }
 
@@ -79,7 +98,7 @@ void InfixOperatorExpression::makeConcrete(NamespaceStack& ns_stack) {
 void InfixOperatorExpression::printSignature() {
 	std::cout << " ";
 	m_LHS->printSignature();
-	std::cout << getTokenTypeText(m_op.tokenType);
+	std::cout << getTokenTypeText(getInfixOp(m_op).tokenType);
 	m_RHS->printSignature();
 	std::cout << " ";
 }

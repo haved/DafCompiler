@@ -20,7 +20,7 @@ DefinitionStatement::DefinitionStatement(unique_ptr<Definition>&& definition, co
 	: Statement(range), m_definition(std::move(definition))
 {
 	//m_isDefinition = true;
-	assert(m_definition && m_definition->isStatement() && !m_definition->isPublic());
+	assert(m_definition && !m_definition->isPublic());
 }
 
 void DefinitionStatement::addToMap(NamedDefinitionMap& map) { //overridden

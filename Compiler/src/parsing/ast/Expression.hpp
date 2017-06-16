@@ -13,6 +13,20 @@ using std::unique_ptr;
 
 class Lexer;
 
+enum class ExpressionKind {
+	VARIABLE, //Just a piece of text
+	INT_LITERAL,
+	REAL_LITERAL,
+	STRING_LITERAL,
+	INFIX_OP,
+	PREFIX_OP,
+	POSTFIX_CREMENT,
+	FUNCTION_CALL,
+	ARRAY_ACCESS,
+	SCOPE,
+	WITH //TODO: Any more?
+};
+
 class Expression {
 protected:
 	TextRange m_range;
@@ -31,6 +45,7 @@ public:
 
 	virtual void printSignature() = 0;
 	const TextRange& getRange();
+	virtual ExpressionKind getExpressionKind() const { std::cout << "TODO: Expression Type undefined" << std::endl; return ExpressionKind::INT_LITERAL;};
 };
 
 
@@ -46,7 +61,8 @@ public:
 	virtual void makeConcrete(NamespaceStack& ns_stack);
 	virtual Type* tryGetConcreteType() override;
 
-	void printSignature() override;
+	virtual void printSignature() override;
+	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::VARIABLE; }
 };
 
 class IntegerConstantExpression: public Expression {
@@ -77,12 +93,12 @@ public:
 class InfixOperatorExpression : public Expression {
 private:
 	unique_ptr<Expression> m_LHS;
-	const InfixOperator& m_op;
+	InfixOperator m_op;
 	unique_ptr<Expression> m_RHS;
 public:
-	InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, const InfixOperator& op,	std::unique_ptr<Expression>&& RHS);
+	InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS);
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual bool isStatement() override {return m_op.statement;}
+	virtual bool isStatement() override {return getInfixOp(m_op).statement;}
 	virtual void printSignature() override;
 };
 

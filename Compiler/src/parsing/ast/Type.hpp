@@ -61,7 +61,7 @@ public:
 //We don't count pointers or arrays here
 #define TOKEN_PRIMITVE_BIND(TOKEN, PRIMITIVE) PRIMITIVE,
 enum class Primitives {
-#include "parsing/ast/TokenPrimitiveMapping.hpp"
+#include "parsing/ast/mappings/TokenPrimitiveMapping.hpp"
 };
 #undef TOKEN_PRIMITVE_BIND
 

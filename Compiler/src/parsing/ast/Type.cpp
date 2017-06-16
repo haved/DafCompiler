@@ -60,13 +60,13 @@ Type* AliasForType::getConcreteType() {
 
 #define TOKEN_PRIMITVE_BIND(TOKEN, PRIMITIVE) {TOKEN, Primitives::PRIMITIVE},
 std::map<TokenType, Primitives> tokenTypeToPrimitiveMap {
-#include "parsing/ast/TokenPrimitiveMapping.hpp"
+#include "parsing/ast/mappings/TokenPrimitiveMapping.hpp"
 };
 
 #undef TOKEN_PRIMITVE_BIND
 #define TOKEN_PRIMITVE_BIND(TOKEN, PRIMITIVE) {Primitives::PRIMITIVE, TOKEN},
 std::map<Primitives, TokenType> primitiveToTokenTypeMap {
-#include "parsing/ast/TokenPrimitiveMapping.hpp"
+#include "parsing/ast/mappings/TokenPrimitiveMapping.hpp"
 };
 #undef TOKEN_PRIMITVE_BIND
 
