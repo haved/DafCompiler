@@ -1,0 +1,11 @@
+
+typedef Operator := sum {
+	
+};
+
+def main() {
+	
+	let mut operator := Operator.PLUS;
+	operator = Operator.MINUS;
+};
+

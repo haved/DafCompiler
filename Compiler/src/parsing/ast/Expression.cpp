@@ -20,7 +20,7 @@ VariableExpression::VariableExpression(const std::string& name, const TextRange&
 void VariableExpression::makeConcrete(NamespaceStack& ns_stack) {
 	m_target = ns_stack.getDefinitionFromName(m_name);
 	if(!m_target)
-		logDaf(getRange(), ERROR) << "unrecognized identifier: " << m_name << std::endl;
+		logDaf(getRange(), ERROR) << "unrecognized identifier: " << m_name << std::endl; //Anti-DRY
 	auto kind = m_target->getDefinitionKind();
 	switch(kind) {
 	case DefinitionKind::LET:
@@ -42,6 +42,10 @@ void VariableExpression::makeConcrete(NamespaceStack& ns_stack) {
 		break;
 	}
 	out << std::endl;
+}
+
+std::string&& VariableExpression::reapIdentifier() && {
+	return std::move(m_name);
 }
 
 Type* VariableExpression::tryGetConcreteType() {
@@ -87,7 +91,7 @@ void RealConstantExpression::printSignature() {
 }
 
 InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS) : Expression(TextRange(LHS->getRange(), RHS->getRange())), m_LHS(std::move(LHS)), m_op(op), m_RHS(std::move(RHS)) {
-	assert(m_LHS && m_RHS);
+	assert(m_LHS && m_RHS && m_op != InfixOperator::CLASS_ACCESS);
 }
 
 void InfixOperatorExpression::makeConcrete(NamespaceStack& ns_stack) {
@@ -101,6 +105,20 @@ void InfixOperatorExpression::printSignature() {
 	std::cout << getTokenTypeText(getInfixOp(m_op).tokenType);
 	m_RHS->printSignature();
 	std::cout << " ";
+}
+
+DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range) : Expression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)) {
+	assert(m_LHS);
+	assert(m_RHS.size() > 0); //We don't allow empty identifiers
+}
+
+void DotOperatorExpression::makeConcrete(NamespaceStack& ns_stack) {
+	//if(m_LHS->getExpressionKind() == ExpressionKind::VARIABLE)
+}
+
+void DotOperatorExpression::printSignature() {
+	m_LHS->printSignature();
+	std::cout << "." << m_RHS;
 }
 
 PrefixOperatorExpression::PrefixOperatorExpression(const PrefixOperator& op, int opLine, int opCol, std::unique_ptr<Expression>&& RHS) : Expression(TextRange(opLine, opCol, RHS->getRange())), m_op(op), m_RHS(std::move(RHS)) {

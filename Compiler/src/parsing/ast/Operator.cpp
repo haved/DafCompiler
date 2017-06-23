@@ -26,6 +26,7 @@ PrefixOperator PREFIX_OPERATOR_INSTANCES[] = {
 	PrefixOperator(SIZE_OF, 100)
 };
 
+//Must be aligned with the PostfixOp enum
 PostfixOperator POSTFIX_OPERATOR_INSTANCES[] = {
 	//All postfix 110
 	PostfixOperator(PLUS_PLUS, 110),  PostfixOperator(MINUS_MINUS, 110),

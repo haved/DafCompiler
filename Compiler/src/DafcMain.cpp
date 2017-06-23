@@ -24,19 +24,6 @@ int main(int argc, const char** argv) {
 	}
 	terminateIfErrors();
 
-	//TODO: Reference evaluation and type inferring
-
-	/*
-	//We start with the first file
-	//NOTE: This can be done while adding the definitions
-	for(int i = 0; i < files.getFileCount(); i++) {
-		NameScope& scope = *files.getFileAt(i)->m_nameScope;
-		scope.makeDefinitionMap(); //Recursive
-	}
-	terminateIfErrors(); //Definitions given the same name
-	//We must make all name scopes' maps before we make stuff concrete
-	*/
-
 	NamespaceStack ns_stack;
 	//This is where we make files importable though the namespace stack
 	for(int i = 0; i < files.getFileCount(); i++) {
@@ -44,6 +31,8 @@ int main(int argc, const char** argv) {
 		scope.makeConcrete(ns_stack); //Recursive
 	}
 	terminateIfErrors(); //This step could definitely log errors
+
+	//TODO: Type stuff & final checks
 
 	//TODO: Code gen
 

@@ -19,12 +19,13 @@ enum class ExpressionKind {
 	REAL_LITERAL,
 	STRING_LITERAL,
 	INFIX_OP,
+	DOT_OP, //God help us
 	PREFIX_OP,
 	POSTFIX_CREMENT,
 	FUNCTION_CALL,
 	ARRAY_ACCESS,
 	SCOPE,
-	WITH //TODO: Any more?
+	WITH
 };
 
 class Expression {
@@ -48,7 +49,6 @@ public:
 	virtual ExpressionKind getExpressionKind() const { std::cout << "TODO: Expression Type undefined" << std::endl; return ExpressionKind::INT_LITERAL;};
 };
 
-
 class VariableExpression : public Expression {
 private:
 	std::string m_name;
@@ -60,6 +60,8 @@ public:
 
 	virtual void makeConcrete(NamespaceStack& ns_stack);
 	virtual Type* tryGetConcreteType() override;
+
+	std::string&& reapIdentifier() &&;
 
 	virtual void printSignature() override;
 	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::VARIABLE; }
@@ -99,6 +101,17 @@ public:
 	InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS);
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	virtual bool isStatement() override {return getInfixOp(m_op).statement;}
+	virtual void printSignature() override;
+};
+
+class DotOperatorExpression : public Expression {
+private:
+	unique_ptr<Expression> m_LHS;
+	std::string m_RHS;
+public:
+	DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range);
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+    //The dot operator is not a statement
 	virtual void printSignature() override;
 };
 

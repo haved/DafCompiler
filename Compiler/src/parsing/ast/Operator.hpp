@@ -12,7 +12,7 @@ enum class InfixOperator:int {
 #undef InfixOperator
 };
 
-//IMPORTANT: Must be aligned with POSTFIX_OPERATOR_INSTANCES
+//IMPORTANT: Must be aligned with POSTFIX_OPERATOR_INSTANCES //TODO: Something better, e.g. naming
 enum class PostfixOp:int {
 	INCREMENT=0, DECREMEMT, FUNCTION_CALL, ARRAY_ACCESS
 };

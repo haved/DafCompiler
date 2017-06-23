@@ -1,0 +1,18 @@
+
+namedef IO := {
+	pub def print(a:string) {
+		//Does something to a
+	};
+};
+
+//namedef IO2 := import<"daf.io">;
+
+def main() {
+	{
+		let a : int = 5;
+		IO3.print();
+		
+	}
+};
+
+namedef IO3 := IO;//+IO2;
