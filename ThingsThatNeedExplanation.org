@@ -53,4 +53,15 @@ Namedefs are definitions to NameScopeExpressions, a NameScope being one of such,
 The namedef assigns a name to the NameScopeExpression, allowing you to put them withing each other and reference one another.
 The NamespaceStack is used when resolving references in the language. It is pushed and popped when entering NameScopes and normal Scopes,
 with the difference being not all identifiers in the Scope being added at once, but rather as you go.
+** "Concreteness" OR The dot operator and its troubles
+An expression, definition or type being concrete means it and all its children in the AST have resolved all identifier to the corresponding definitions.
+With a concrete object, you can find its final target, and e.g. ask for its type in the case of an expression.
+Before we try to make things concrete, we add the namespaces to a stack we can search, used to map identifiers to definitions.
+You also have the function in Expressions, =tryGetConcreteType()=. It will, once the expression is concrete, give you the type of the expression. Not to an identifier type, but to the actual, canonical(?) type.
+The problems occur with the dot operator. When making it concrete, we will always find the left hand side as a definition, but unless this definition is concrete as well, we can't scan the definition for sub-names.
+In the case of def, let and typedef, we need to know the type as a concrete type.
+** The =try= prefix in function names
+It means we won't print an error message upon a failed attempt at doing whatever it is the function tries to do. Instead you'll get a null pointer or something similar
+Note that this rule isn't always followed
 * The Language
+
