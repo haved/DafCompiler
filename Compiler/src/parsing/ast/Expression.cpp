@@ -18,7 +18,7 @@ const TextRange& Expression::getRange() {
 VariableExpression::VariableExpression(const std::string& name, const TextRange& range) : Expression(range), m_name(name), m_target(nullptr) {}
 
 void VariableExpression::makeConcrete(NamespaceStack& ns_stack) {
-	m_target = ns_stack.getDefinitionFromName(m_name);
+	m_target = ns_stack.tryGetDefinitionFromName(m_name);
 	if(!m_target)
 		logDaf(getRange(), ERROR) << "unrecognized identifier: " << m_name << std::endl; //Anti-DRY
 	auto kind = m_target->getDefinitionKind();
@@ -113,7 +113,10 @@ DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::
 }
 
 void DotOperatorExpression::makeConcrete(NamespaceStack& ns_stack) {
-	//if(m_LHS->getExpressionKind() == ExpressionKind::VARIABLE)
+	/*auto LHS_kind = m_LHS->getExpressionKind();
+	if(LHS_kind == ExpressionKind::VARIABLE) {
+
+	}*/
 }
 
 void DotOperatorExpression::printSignature() {

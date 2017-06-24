@@ -13,11 +13,11 @@ Def::Def(bool pub, ReturnKind defType, std::string&& name, TypeReference&& type,
 Let::Let(bool pub, bool mut, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_type(std::move(type)), m_expression(std::move(expression)) {}
 
 void Def::addToMap(NamedDefinitionMap& map) {
-	map.tryAddNamedDefinition(m_name, *this);
+	map.addNamedDefinition(m_name, *this);
 }
 
 void Let::addToMap(NamedDefinitionMap& map) {
-	map.tryAddNamedDefinition(m_name, *this);
+	map.addNamedDefinition(m_name, *this);
 }
 
 void Def::makeConcrete(NamespaceStack& ns_stack) {
@@ -82,7 +82,7 @@ TypedefDefinition::TypedefDefinition(bool pub, std::string&& name, TypeReference
 }
 
 void TypedefDefinition::addToMap(NamedDefinitionMap& map) {
-	map.tryAddNamedDefinition(m_name, *this);
+	map.addNamedDefinition(m_name, *this);
 }
 
 void TypedefDefinition::makeConcrete(NamespaceStack& ns_stack) {
@@ -105,7 +105,7 @@ NamedefDefinition::NamedefDefinition(bool pub, std::string&& name, unique_ptr<Na
 }
 
 void NamedefDefinition::addToMap(NamedDefinitionMap& map) {
-	map.tryAddNamedDefinition(m_name, *this);
+	map.addNamedDefinition(m_name, *this);
 }
 
 void NamedefDefinition::makeConcrete(NamespaceStack& ns_stack) {

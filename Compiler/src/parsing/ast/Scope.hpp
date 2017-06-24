@@ -30,5 +30,5 @@ private:
 public:
 	ScopeNamespace();
 	void addStatement(Statement& statement);
-	Definition* getDefinitionFromName(const std::string& name);
+	Definition* tryGetDefinitionFromName(const std::string& name);
 };

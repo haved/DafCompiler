@@ -38,13 +38,16 @@ unique_ptr<Expression> parseRealNumberExpression(Lexer& lexer) {
 	return unique_ptr<Expression>(new RealConstantExpression(token.real, token.realType, TextRange(lexer.getFile(), token)));
 }
 
+bool shouldParseFunction(Lexer& lexer) {
+	return false;
+}
+
 unique_ptr<Expression> parseParenthesies(Lexer& lexer) {
 	lexer.advance(); //Eat '('
-	//TokenType type = lexer.getCurrentToken().type;
 
-	/*if(type != LEFT_PAREN && (type == RIGHT_PAREN || type == TYPE_SEPARATOR || lexer.getLookahead().type == TYPE_SEPARATOR || (lexer.getSuperLookahead().type == TYPE_SEPARATOR && lexer.getLookahead().type != RIGHT_PAREN)))
+	if(shouldParseFunction(lexer))
 		return parseFunctionExpression(lexer);
-*/
+
 	unique_ptr<Expression> expr = parseExpression(lexer);
 	if(!expr || !lexer.expectToken(RIGHT_PAREN)) {
 		skipUntil(lexer, RIGHT_PAREN);
@@ -118,7 +121,8 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
 	default: break;
 	}
 	logDafExpectedToken("a primary expression", lexer);
-	advanceSaveForScopeTokens(lexer); //We don't want to eat (,{,[,],},) etc.
+	advanceSaveForScopeTokens(
+							  lexer); //We don't want to eat (,{,[,],},) etc.
 	return none_exp();
 }
 

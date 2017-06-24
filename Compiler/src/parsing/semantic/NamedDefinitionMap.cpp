@@ -4,7 +4,7 @@
 
 NamedDefinitionMap::NamedDefinitionMap() : m_map() {}
 
-void NamedDefinitionMap::tryAddNamedDefinition(const std::string& name, Definition& definition) {
+void NamedDefinitionMap::addNamedDefinition(const std::string& name, Definition& definition) {
     auto it = m_map.find(name);
 	if(it != m_map.end()) {
 		auto& out = logDaf(definition.getRange(), ERROR) << "name '" << name << "' already defined at ";
@@ -15,7 +15,7 @@ void NamedDefinitionMap::tryAddNamedDefinition(const std::string& name, Definiti
 	}
 }
 
-Definition* NamedDefinitionMap::getDefinitionFromName(const std::string& name) {
+Definition* NamedDefinitionMap::tryGetDefinitionFromName(const std::string& name) {
 	auto it = m_map.find(name);
 	if(it == m_map.end())
 		return nullptr;

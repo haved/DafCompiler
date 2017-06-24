@@ -99,7 +99,7 @@ public:
 	virtual void printSignature()=0;
 	inline const TextRange& getRange() { return m_range; }
 	virtual void makeConcrete(NamespaceStack& ns_stack)=0; //Makes all the definitions inside concrete
-	virtual Definition* getDefinitionFromName(const std::string& name) override =0; //Doesn't give warnings
+	virtual Definition* tryGetDefinitionFromName(const std::string& name) override =0; //Doesn't give warnings
 };
 
 class NamedefDefinition : public Definition {

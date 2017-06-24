@@ -52,6 +52,6 @@ void ScopeNamespace::addStatement(Statement& statement) {
 	statement.addToMap(m_definitionMap);
 }
 
-Definition* ScopeNamespace::getDefinitionFromName(const std::string& name) {
-    return m_definitionMap.getDefinitionFromName(name);
+Definition* ScopeNamespace::tryGetDefinitionFromName(const std::string& name) {
+    return m_definitionMap.tryGetDefinitionFromName(name);
 }

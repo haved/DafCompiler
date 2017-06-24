@@ -46,7 +46,7 @@ public:
 
 	virtual void printSignature() = 0;
 	const TextRange& getRange();
-	virtual ExpressionKind getExpressionKind() const { std::cout << "TODO: Expression Type undefined" << std::endl; return ExpressionKind::INT_LITERAL;};
+	virtual ExpressionKind getExpressionKind() const { std::cout << "TODO: Expression Type undefined" << std::endl; return ExpressionKind::INT_LITERAL;}
 };
 
 class VariableExpression : public Expression {

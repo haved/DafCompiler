@@ -15,6 +15,6 @@ class Definition;
 
 class Namespace {
 public:
-	virtual Definition* getDefinitionFromName(const std::string& name)=0;
+	virtual Definition* tryGetDefinitionFromName(const std::string& name)=0;
 	virtual ~Namespace() {}; //We have to do this
 };

@@ -35,14 +35,14 @@ void NameScope::makeConcrete(NamespaceStack& ns_stack) {
 //In the first one, the name of the second is referenced, which works
 //Then a dot follows, with something in the other.
 //Thankfully, asking for a definition will fill its map.
-Definition* NameScope::getDefinitionFromName(const std::string& name) {
+Definition* NameScope::tryGetDefinitionFromName(const std::string& name) {
 	if(m_definitionMap.empty() && !m_definitions.empty()) {
 		//Add everything to the map first, as NameScopes are not ordered
 		for(auto it = m_definitions.begin(); it != m_definitions.end(); ++it) {
 			(*it)->addToMap(m_definitionMap);
 		}
 	}
-    return m_definitionMap.getDefinitionFromName(name);
+    return m_definitionMap.tryGetDefinitionFromName(name);
 }
 
 NameScopeReference::NameScopeReference(std::string&& name, const TextRange& range) : NameScopeExpression(range), m_name(std::move(name)) {}
