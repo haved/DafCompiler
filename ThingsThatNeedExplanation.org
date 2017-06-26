@@ -63,5 +63,10 @@ In the case of def, let and typedef, we need to know the type as a concrete type
 ** The =try= prefix in function names
 It means we won't print an error message upon a failed attempt at doing whatever it is the function tries to do. Instead you'll get a null pointer or something similar
 Note that this rule isn't always followed
+* Optimizations
+** Strings as integers
+In the future we should definitely turn identifiers to indecies in a map, saving strings from moving about.
+** Binary search for tokens
+We don't want to compare every word with all reserved words.
 * The Language
 
