@@ -4,6 +4,15 @@
 #include "DafLogger.hpp"
 #include <iostream>
 
+void complainIfDefinitionNotExpression(Definition* definition, std::string& name, const TextRange& range) {
+	DefinitionKind kind = definition->getDefinitionKind();
+	if(kind != DefinitionKind::DEF && kind != DefinitionKind::LET) {
+		auto& out = logDaf(range, ERROR) << "expected an expression, but '" << name << "' is a ";
+		printDefinitionKindName(kind, out);
+		out << std::endl;
+	}
+}
+
 Expression::Expression(const TextRange& range) : m_range(range) {}
 
 Expression::~Expression() {}
@@ -18,30 +27,20 @@ const TextRange& Expression::getRange() {
 VariableExpression::VariableExpression(const std::string& name, const TextRange& range) : Expression(range), m_name(name), m_target(nullptr) {}
 
 void VariableExpression::makeConcrete(NamespaceStack& ns_stack) {
+	makeConcreteAnyDefinition(ns_stack);
+	if(m_target) {
+		complainIfDefinitionNotExpression(m_target, m_name, getRange());
+	}
+}
+
+void VariableExpression::makeConcreteAnyDefinition(NamespaceStack& ns_stack) {
 	m_target = ns_stack.tryGetDefinitionFromName(m_name);
 	if(!m_target)
-		logDaf(getRange(), ERROR) << "unrecognized identifier: " << m_name << std::endl; //Anti-DRY
-	auto kind = m_target->getDefinitionKind();
-	switch(kind) {
-	case DefinitionKind::LET:
-	case DefinitionKind::DEF:
-		return;
-	default:
-	    break;
-	}
-	auto& out = logDaf(getRange(), ERROR) << "'" <<m_name << "' is not a reference to an expression, rather a ";
-	switch(kind) {
-	case DefinitionKind::TYPEDEF:
-		out << "type";
-		break;
-	case DefinitionKind::NAMEDEF:
-		out << "namespace";
-		break;
-	default:
-		assert(false); //A with doesn't even have a name, why is it here?
-		break;
-	}
-	out << std::endl;
+		logDaf(getRange(), ERROR) << "unrecognized identifier: " << m_name << std::endl;
+}
+
+Definition* VariableExpression::getDefinition() {
+	return m_target;
 }
 
 std::string&& VariableExpression::reapIdentifier() && {
@@ -107,16 +106,77 @@ void InfixOperatorExpression::printSignature() {
 	std::cout << " ";
 }
 
-DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range) : Expression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)) {
+DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range) : Expression(range), m_LHS(std::move(LHS)), m_LHS_dot(nullptr), m_LHS_def(nullptr), m_RHS(std::move(RHS)), m_forceExpressionResult(false), m_target(nullptr) {
 	assert(m_LHS);
 	assert(m_RHS.size() > 0); //We don't allow empty identifiers
 }
 
 void DotOperatorExpression::makeConcrete(NamespaceStack& ns_stack) {
-	/*auto LHS_kind = m_LHS->getExpressionKind();
-	if(LHS_kind == ExpressionKind::VARIABLE) {
+	m_forceExpressionResult = true;
+	if(!makeConcreteAnyDefinition(ns_stack))
+		ns_stack.addUnresolvedDotOperator(this);
+}
 
-	}*/
+//Only called once per instance
+bool DotOperatorExpression::makeConcreteAnyDefinition(NamespaceStack& ns_stack) {
+	ExpressionKind LHS_kind = m_LHS->getExpressionKind();
+	if(LHS_kind == ExpressionKind::VARIABLE) {
+		auto variableExpr = static_cast<VariableExpression*>(m_LHS.get());
+		variableExpr->makeConcreteAnyDefinition(ns_stack);
+		m_LHS_def = variableExpr->getDefinition();
+		if(!m_LHS_def) //ERROR finding the definition
+			return true;
+	    return tryResolve();
+	} else if(LHS_kind == ExpressionKind::DOT_OP) {
+		m_LHS_dot = static_cast<DotOperatorExpression*>(m_LHS.get());
+		if(m_LHS_dot->makeConcreteAnyDefinition(ns_stack))
+			return tryResolve();
+		return false;
+	} else { //We still need the type of the thing
+	    return tryResolve();
+	}
+}
+
+bool DotOperatorExpression::tryResolve() {
+    assert(!m_target);
+    if(m_LHS_def) {
+		DefinitionKind variableDefKind = m_LHS_def->getDefinitionKind();
+		if(variableDefKind == DefinitionKind::NAMEDEF) {
+			auto namedef = static_cast<NamedefDefinition*>(m_LHS_def);
+			NameScopeExpression* namescopeExpr = namedef->tryGetConcreteNameScope();
+			if(!namescopeExpr)
+				return false;
+
+			m_target = namescopeExpr->tryGetDefinitionFromName(m_RHS);
+			if(!m_target)
+				logDaf(getRange(), ERROR) << "unresolved identifier: ." << m_RHS << std::endl;
+		    else if(m_forceExpressionResult)
+			    complainIfDefinitionNotExpression(m_target, m_RHS, getRange());
+
+			return true;
+		} else if(variableDefKind == DefinitionKind::LET || variableDefKind == DefinitionKind::DEF ) {
+		    m_LHS_def = nullptr; //We use the m_LHS as a normal expression
+			return tryResolve();
+		}
+		std::cout << "TODO: All definition dot as expression" << std::endl;
+		return true;
+	} if(m_LHS_dot) {
+		if(m_LHS_dot->m_target || m_LHS_dot->tryResolve()) {
+			m_LHS_def = m_LHS_dot->m_target;
+			m_LHS_dot = nullptr;
+			return tryResolve(); //Recursion :)
+		}
+		return false;
+	}
+
+	Type* type = m_LHS->tryGetConcreteType();
+	if(type != nullptr) {
+		std::cout << "TODO: Do something about the type we now know" << std::endl;
+		//Also check if we need the given target to be an expression definition
+		return true;
+	}
+
+	return false;
 }
 
 void DotOperatorExpression::printSignature() {

@@ -58,8 +58,11 @@ public:
 	VariableExpression(VariableExpression& other) = delete;
 	VariableExpression& operator =(VariableExpression& other) = delete;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack);
+	virtual void makeConcrete(NamespaceStack& ns_stack); //Only allows expressions
+	void makeConcreteAnyDefinition(NamespaceStack& ns_stack); //Allows all
 	virtual Type* tryGetConcreteType() override;
+
+	Definition* getDefinition();
 
 	std::string&& reapIdentifier() &&;
 
@@ -107,12 +110,23 @@ public:
 class DotOperatorExpression : public Expression {
 private:
 	unique_ptr<Expression> m_LHS;
+	DotOperatorExpression* m_LHS_dot;
+	Definition* m_LHS_def;
 	std::string m_RHS;
+	bool m_forceExpressionResult;
+	Definition* m_target;
 public:
 	DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range);
+	DotOperatorExpression(const DotOperatorExpression& other) = delete;
+	DotOperatorExpression& operator=(const DotOperatorExpression& other) = delete;
+	~DotOperatorExpression() {}
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	bool makeConcreteAnyDefinition(NamespaceStack& ns_stack); //Doesn't add to the unresolved dots
+	bool tryResolve();
+
     //The dot operator is not a statement
 	virtual void printSignature() override;
+	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::DOT_OP; }
 };
 
 class PrefixOperatorExpression : public Expression {

@@ -1,34 +1,26 @@
 // -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
 namedef IO := {
-	pub def print() {
-	
+	def a := 5;
+	namedef IO2 := {
+		def b := 5;
+		typedef x := int;
 	};
+	namedef IO3:=IO;
 };
 
-def main {
-	typedef int:=i;
+def main() {
+	print(IO3.IO5.IO2.b);
+	print(IO.IO2.b);
+	print(IO.IO3.IO3.IO3.IO3.IO3.IO3.IO3.IO3.IO3.IO3.IO3.IO3.IO3.IO3.IO3.IO3.IO2.b);
 };
 
-def other() {
-	let a := 6;
-	a++;
-	main();
-	++(third+4);
-	let b:=4;
-	//def b:=6;
-	b++;
-	//IO.print(); //Problem
-
-	{
-		a++;
-		a
-	};
-
-	a++;
+namedef IO3 := {
+	namedef IO5:=IO2;
 };
 
-def third := 6;
+namedef IO2 := IO;
 
-//def main := 6;
+def print(a:int) {
 
+};

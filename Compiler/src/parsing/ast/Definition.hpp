@@ -99,6 +99,7 @@ public:
 	virtual void printSignature()=0;
 	inline const TextRange& getRange() { return m_range; }
 	virtual void makeConcrete(NamespaceStack& ns_stack)=0; //Makes all the definitions inside concrete
+	virtual NameScopeExpression* tryGetConcreteNameScope()=0;
 	virtual Definition* tryGetDefinitionFromName(const std::string& name) override =0; //Doesn't give warnings
 };
 
@@ -112,6 +113,10 @@ public:
 	virtual void addToMap(NamedDefinitionMap& map) override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 
+	NameScopeExpression* tryGetConcreteNameScope();
+
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::NAMEDEF; }
 };
+
+void printDefinitionKindName(DefinitionKind kind, std::ostream& out);

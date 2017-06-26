@@ -30,7 +30,11 @@ int main(int argc, const char** argv) {
 		NameScope& scope = *files.getFileAt(i)->m_nameScope; //An optional
 		scope.makeConcrete(ns_stack); //Recursive
 	}
-	terminateIfErrors(); //This step could definitely log errors
+	terminateIfErrors();
+
+	ns_stack.resolveDotOperators();
+
+	terminateIfErrors();
 
 	//TODO: Type stuff & final checks
 

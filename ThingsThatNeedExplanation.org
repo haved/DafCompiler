@@ -68,5 +68,7 @@ Note that this rule isn't always followed
 In the future we should definitely turn identifiers to indecies in a map, saving strings from moving about.
 ** Binary search for tokens
 We don't want to compare every word with all reserved words.
+** The dot operator resolver
+Maybe find something better than n^2
 * The Language
 

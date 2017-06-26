@@ -1,4 +1,5 @@
 #include "parsing/ast/NameScope.hpp"
+#include "DafLogger.hpp"
 #include <iostream>
 
 NameScope::NameScope(vector<unique_ptr<Definition>>&& definitions, const TextRange& range) : NameScopeExpression(range), m_definitions(std::move(definitions)), m_definitionMap() {}
@@ -30,6 +31,10 @@ void NameScope::makeConcrete(NamespaceStack& ns_stack) {
 	ns_stack.pop();
 }
 
+NameScopeExpression* NameScope::tryGetConcreteNameScope() {
+	return this; //Aw yes, we there
+}
+
 //Two NameScopes exist in an enclosing NameScope
 //First, both names are added to the enclosing NameScope 's map
 //In the first one, the name of the second is referenced, which works
@@ -45,13 +50,22 @@ Definition* NameScope::tryGetDefinitionFromName(const std::string& name) {
     return m_definitionMap.tryGetDefinitionFromName(name);
 }
 
-NameScopeReference::NameScopeReference(std::string&& name, const TextRange& range) : NameScopeExpression(range), m_name(std::move(name)) {}
+NameScopeReference::NameScopeReference(std::string&& name, const TextRange& range) : NameScopeExpression(range), m_name(std::move(name)), m_target(nullptr) {}
 
 void NameScopeReference::printSignature() {
 	std::cout << m_name << " /*name-scope reference*/";
 }
 
 void NameScopeReference::makeConcrete(NamespaceStack& ns_stack) {
-	//TODO: Add all NameScopeReference-stuff
-	(void) ns_stack;
+	Definition* namedef = ns_stack.tryGetDefinitionFromName(m_name);
+	if(!namedef)
+		logDaf(getRange(), ERROR) << "unresolved identifier: " << m_name << std::endl;
+	else if(namedef->getDefinitionKind() != DefinitionKind::NAMEDEF)
+		logDaf(getRange(), ERROR) << "expected namedef, not " << m_name << std::endl; //Add printing of what type we got
+	else
+		m_target = static_cast<NamedefDefinition*>(namedef);
+}
+
+NameScopeExpression* NameScopeReference::tryGetConcreteNameScope() {
+    return m_target ? m_target->tryGetConcreteNameScope() : nullptr;
 }

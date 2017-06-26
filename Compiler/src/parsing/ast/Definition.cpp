@@ -113,6 +113,11 @@ void NamedefDefinition::makeConcrete(NamespaceStack& ns_stack) {
 	m_value->makeConcrete(ns_stack);
 }
 
+NameScopeExpression* NamedefDefinition::tryGetConcreteNameScope() {
+	assert(m_value);
+	return m_value->tryGetConcreteNameScope();
+}
+
 void NamedefDefinition::printSignature() {
 	if(m_pub)
 		std::cout << "pub ";
@@ -122,3 +127,19 @@ void NamedefDefinition::printSignature() {
 	std::cout << ";" << std::endl;
 }
 
+void printDefinitionKindName(DefinitionKind kind, std::ostream& out) {
+	switch(kind) {
+	case DefinitionKind::LET:
+		out << "let"; break;
+	case DefinitionKind::DEF:
+		out << "def"; break;
+	case DefinitionKind::TYPEDEF:
+		out << "typedef"; break;
+	case DefinitionKind::NAMEDEF:
+		out << "namedef"; break;
+	case DefinitionKind::WITH:
+		out << "with"; break;
+	default:
+		assert(false); break;
+	}
+}

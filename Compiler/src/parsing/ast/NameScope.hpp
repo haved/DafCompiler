@@ -29,16 +29,22 @@ public:
 	NameScope& operator =(NameScope&& other);
 	void printSignature() override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	virtual NameScopeExpression* tryGetConcreteNameScope() override;
 	virtual Definition* tryGetDefinitionFromName(const std::string& name) override;
 };
 
 class NameScopeReference : public NameScopeExpression {
 private:
 	std::string m_name;
+	NamedefDefinition* m_target;
 public:
 	NameScopeReference(std::string&& name, const TextRange& range);
+	NameScopeReference(const NameScopeReference& other) = delete;
+	NameScopeReference& operator=(const NameScopeReference& other) = delete;
+	~NameScopeReference() {}
 	void printSignature() override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual Definition* tryGetDefinitionFromName(const std::string& name) override { (void)name; std::cout << "TODO: NameScopeReference" << std::endl; return nullptr; }
+	virtual NameScopeExpression* tryGetConcreteNameScope() override;
+	virtual Definition* tryGetDefinitionFromName(const std::string& name) override { (void)name; assert(false); return nullptr; }
 };
