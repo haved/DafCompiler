@@ -258,7 +258,7 @@ unique_ptr<Expression> parseSide(Lexer& lexer, int minimumPrecedence) {
 		if(!infixOp || getInfixOp(*infixOp).precedence<minimumPrecedence)
 			return side;
 		lexer.advance(); //Eat the infix operator
-		side = mergeExpressionsWithOp(std::move(side), *infixOp, parseSide(lexer, getInfixOp(*infixOp).precedence+1));
+		side = mergeExpressionsWithOp(std::move(side), *infixOp, parseSide(lexer, getInfixOp(*infixOp).precedence+1)); //TODO: 1 means ((a+b)+c), 0 means (a=(b=c))
 	}
 }
 

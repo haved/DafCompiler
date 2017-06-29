@@ -88,9 +88,9 @@ public:
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::TYPEDEF; }
 };
 
-//The NameScopeExpression is a list of non-ordered definitions, i.e. a name-scope or an imported file
-//It's here because it's used by NamedefDefinition
-class NameScopeExpression : public Namespace {
+class ConcreteNameScope;
+
+class NameScopeExpression {
 private:
 	TextRange m_range;
 public:
@@ -99,8 +99,7 @@ public:
 	virtual void printSignature()=0;
 	inline const TextRange& getRange() { return m_range; }
 	virtual void makeConcrete(NamespaceStack& ns_stack)=0; //Makes all the definitions inside concrete
-	virtual NameScopeExpression* tryGetConcreteNameScope()=0;
-	virtual Definition* tryGetDefinitionFromName(const std::string& name) override =0; //Doesn't give warnings
+	virtual ConcreteNameScope* tryGetConcreteNameScope()=0;
 };
 
 class NamedefDefinition : public Definition {
@@ -113,10 +112,10 @@ public:
 	virtual void addToMap(NamedDefinitionMap& map) override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 
-	NameScopeExpression* tryGetConcreteNameScope();
+	ConcreteNameScope* tryGetConcreteNameScope();
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::NAMEDEF; }
 };
 
-void printDefinitionKindName(DefinitionKind kind, std::ostream& out);
+std::ostream& printDefinitionKindName(DefinitionKind kind, std::ostream& out);

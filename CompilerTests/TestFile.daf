@@ -2,11 +2,11 @@
 
 namedef IO := {
 	def a := 5;
-	namedef IO2 := {
-		def b := 5;
+	pub namedef IO2 := {
+		pub def b := 5;
 		typedef x := int;
 	};
-	namedef IO3:=IO;
+	pub namedef IO3:=IO;
 };
 
 def main() {
@@ -16,7 +16,7 @@ def main() {
 };
 
 namedef IO3 := {
-	namedef IO5:=IO2;
+	pub namedef IO5:=IO2;
 };
 
 namedef IO2 := IO;

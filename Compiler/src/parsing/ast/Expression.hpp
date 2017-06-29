@@ -110,10 +110,11 @@ public:
 class DotOperatorExpression : public Expression {
 private:
 	unique_ptr<Expression> m_LHS;
-	DotOperatorExpression* m_LHS_dot;
-	Definition* m_LHS_def;
 	std::string m_RHS;
 	bool m_forceExpressionResult;
+	DotOperatorExpression* m_LHS_dot;
+	Definition* m_LHS_def;
+	bool m_broken;
 	Definition* m_target;
 public:
 	DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range);
