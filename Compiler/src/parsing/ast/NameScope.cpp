@@ -134,9 +134,8 @@ bool NameScopeDotOperator::makeConcreteDotOp(NamespaceStack& ns_stack) {
 	} else if(LHS_kind == NameScopeExpressionKind::DOT_OP) {
 		m_LHS_dot = static_cast<NameScopeDotOperator*>(m_LHS.get());
 		if(m_LHS_dot->makeConcreteDotOp(ns_stack))
-		   return tryResolve();
-		else
-			return false;
+			return tryResolve();
+		return false;
 	} else
 		return tryResolve();
 }

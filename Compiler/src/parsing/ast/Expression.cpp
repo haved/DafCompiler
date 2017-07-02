@@ -105,7 +105,7 @@ void InfixOperatorExpression::printSignature() {
 	std::cout << " ";
 }
 
-DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range) : Expression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_forceExpressionResult(false), m_LHS_dot(nullptr), m_LHS_def(nullptr), m_broken(false), m_target(nullptr) {
+DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range) : Expression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_forceExpressionResult(false), m_LHS_dot(nullptr), m_LHS_target(nullptr), m_target(nullptr) {
 	assert(m_LHS);
 	assert(m_RHS.size() > 0); //We don't allow empty identifiers
 }
@@ -122,9 +122,9 @@ bool DotOperatorExpression::makeConcreteAnyDefinition(NamespaceStack& ns_stack) 
 	if(LHS_kind == ExpressionKind::VARIABLE) {
 		auto variableExpr = static_cast<VariableExpression*>(m_LHS.get());
 		variableExpr->makeConcreteAnyDefinition(ns_stack);
-		m_LHS_def = variableExpr->getDefinition();
-		if(!m_LHS_def) //ERROR finding the definition
-			return true;
+		m_LHS_target = variableExpr->getDefinition();
+		if(!m_LHS_target) //ERROR finding the definition
+			return true; //No point in trying again later. Pretend we are resolved
 	    return tryResolve();
 	} else if(LHS_kind == ExpressionKind::DOT_OP) {
 		m_LHS_dot = static_cast<DotOperatorExpression*>(m_LHS.get());
@@ -138,12 +138,10 @@ bool DotOperatorExpression::makeConcreteAnyDefinition(NamespaceStack& ns_stack) 
 
 bool DotOperatorExpression::tryResolve() {
     assert(!m_target);
-	if(m_broken)
-		return true;
-    if(m_LHS_def) {
-		DefinitionKind variableDefKind = m_LHS_def->getDefinitionKind();
+    if(m_LHS_target) {
+		DefinitionKind variableDefKind = m_LHS_target->getDefinitionKind();
 		if(variableDefKind == DefinitionKind::NAMEDEF) {
-			auto namedef = static_cast<NamedefDefinition*>(m_LHS_def);
+			auto namedef = static_cast<NamedefDefinition*>(m_LHS_target);
 			ConcreteNameScope* namescopeExpr = namedef->tryGetConcreteNameScope();
 			if(!namescopeExpr)
 				return false;
@@ -151,28 +149,27 @@ bool DotOperatorExpression::tryResolve() {
 		    //TODO: Make this only get called once
 			m_target = namescopeExpr->getPubDefinitionFromName(m_RHS, getRange());
 			if(!m_target)
-				m_broken = true;
+			    return true; //Pretend we are resolved
 			else if(m_forceExpressionResult)
 			    complainIfDefinitionNotToExpression(m_target, m_RHS, getRange());
 
 			return true;
 		} else if(variableDefKind == DefinitionKind::LET || variableDefKind == DefinitionKind::DEF ) {
-		    m_LHS_def = nullptr; //We use the m_LHS as a normal expression
+		    m_LHS_target = nullptr; //We use the m_LHS as a normal expression
 			return tryResolve();
 		}
 		std::cout << "TODO: All definition dot as expression" << std::endl;
 		return true;
 	} if(m_LHS_dot) {
-		if(m_LHS_dot->m_target || m_LHS_dot->tryResolve()) {
-			if(m_LHS_dot->m_broken) {
-				m_broken = true;
+		if(!m_LHS_dot->m_target) {
+			if(!m_LHS_dot->tryResolve())
+				return false;
+			if(!m_LHS_dot->m_target)
 				return true;
-			}
-			m_LHS_def = m_LHS_dot->m_target;
-			m_LHS_dot = nullptr;
-			return tryResolve(); //Recursion
 		}
-		return false;
+		m_LHS_target = m_LHS_dot->m_target;
+		m_LHS_dot = nullptr;
+		return tryResolve(); //Recursion
 	}
 
 	Type* type = m_LHS->tryGetConcreteType();

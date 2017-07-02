@@ -52,6 +52,7 @@ public:
 class VariableExpression : public Expression {
 private:
 	std::string m_name;
+	//NOTE: We might want to do makeConcreteOrOtherDefinition later, and have m_target always be a Let or Def
 	Definition* m_target;
 public:
 	VariableExpression(const std::string& name, const TextRange& range);
@@ -113,8 +114,7 @@ private:
 	std::string m_RHS;
 	bool m_forceExpressionResult;
 	DotOperatorExpression* m_LHS_dot;
-	Definition* m_LHS_def;
-	bool m_broken;
+	Definition* m_LHS_target;
 	Definition* m_target;
 public:
 	DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range);
