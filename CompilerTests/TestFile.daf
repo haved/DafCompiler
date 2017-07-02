@@ -21,7 +21,7 @@ namedef IO3 := {
 
 namedef IO2 := IO;
 
-def print() {
+def print(x:int) {
 	namedef a2:= {pub namedef b := IO; pub namedef a:=a2;};
 	namedef a3 := a2.a.b;
 	print(a2.b.IO2.b);

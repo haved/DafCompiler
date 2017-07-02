@@ -20,6 +20,7 @@ public:
 	virtual ~Type()=0;
 	virtual void printSignature()=0;
     virtual Type* getConcreteType(); //You'll never have ownership of what is returned
+	virtual void makeConcrete(NamespaceStack& ns_stack);
 	//getSize eventually
 	inline const TextRange& getRange() const { return m_range; }
 };

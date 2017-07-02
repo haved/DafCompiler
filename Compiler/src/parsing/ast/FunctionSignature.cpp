@@ -141,6 +141,7 @@ void FunctionType::mergeInDefReturnKind(ReturnKind defKind) {
 }
 
 FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range) : Expression(range), m_type(std::move(type)), m_body(std::move(body)) {
+	assert(m_type);
 	assert(m_body);
 }
 
@@ -153,4 +154,9 @@ void FunctionExpression::printSignature() {
 	} else {
 		std::cout << "{...}";
 	}
+}
+
+void FunctionExpression::makeConcrete(NamespaceStack& ns_stack) {
+	m_type->makeConcrete(ns_stack);
+	m_body->makeConcrete(ns_stack);
 }

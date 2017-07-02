@@ -4,6 +4,7 @@
 #include <memory>
 #include "parsing/ast/Type.hpp"
 #include "parsing/ast/Expression.hpp"
+#include "parsing/semantic/NamespaceStack.hpp"
 
 using std::unique_ptr;
 
@@ -84,6 +85,7 @@ private:
 	unique_ptr<Expression> m_body;
 public:
 	FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range);
+	virtual void printSignature() override;
 
-	void printSignature() override;
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 };

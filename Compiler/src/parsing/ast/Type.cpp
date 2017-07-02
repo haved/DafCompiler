@@ -8,8 +8,13 @@ Type::Type(const TextRange& range) : m_range(range) {}
 
 Type::~Type() {}
 
+void Type::makeConcrete(NamespaceStack& ns_stack) {
+	std::cout << "Types yet to be made concrete" << std::endl;
+}
+
 Type* Type::getConcreteType() {
-	return this;
+	std::cout << "TODO: Type::getConcreteType() for some subclass" << std::endl;
+	return nullptr;
 }
 
 TypeReference::TypeReference() : m_type() {}
@@ -17,7 +22,8 @@ TypeReference::TypeReference() : m_type() {}
 TypeReference::TypeReference(unique_ptr<Type>&& type) : m_type(std::move(type)) {}
 
 void TypeReference::makeConcrete(NamespaceStack& ns_stack) {
-	std::cout << "Types yet to be made concrete" << std::endl;
+	if(m_type)
+		m_type->makeConcrete(ns_stack);
 }
 
 Type* TypeReference::getConcreteType() {
