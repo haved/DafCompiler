@@ -34,7 +34,7 @@ Type* TypeReference::getConcreteType() {
 
 void TypeReference::printSignature() const {
 	if(m_type) {
-		m_type -> printSignature();
+		m_type->printSignature();
 	} else {
 		std::cout << "NULL_TYPE";
 	}

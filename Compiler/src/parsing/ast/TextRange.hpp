@@ -3,7 +3,7 @@
 
 #include "RegisteredFile.hpp"
 
-class Token;
+struct Token;
 
 class TextRange {
 private:

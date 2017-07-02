@@ -18,8 +18,6 @@ public:
 	virtual bool isCompileTimeOnly()=0;
 };
 
-//TODO: def mut a(b:int):int should be automatically be converted to def a : def(b:int):mut int just like in the definition and expression-parser.
-//We should therefore move the parsing code to a common function, and maybe add a function to FunctionType to incorporate another ReturnKind
 enum class ParameterModifier {
 	NONE, DEF, MUT, MOVE, UNCRT, DTOR
 };
@@ -35,7 +33,7 @@ public:
 	bool isCompileTimeOnly() override;
 };
 
-// move a:$T //TODO: Add some restrictions perhaps
+// move a:$T
 class ValueParameterTypeInferred : public FunctionParameter {
 private:
 	ParameterModifier m_modif;
@@ -70,11 +68,9 @@ public:
 	FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range);
 	void printSignature() override; //With list
 	void printSignatureMaybeList(); //Only list if parameters
-	//TODO: Does putting the definitions in the header make compilation slower?
 	inline std::vector<unique_ptr<FunctionParameter>>& getParams() { return m_parameters; }
 	void mergeInDefReturnKind(ReturnKind def);
 	inline ReturnKind getReturnKind() { return m_returnKind; }
-	//inline void setReturnKind(ReturnKind newKind) { m_returnKind = newKind; }
 	inline bool ateEqualsSign() { return m_ateEquals; }
 	inline TypeReference&& reapReturnType() { return std::move(m_returnType); }
 };

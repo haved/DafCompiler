@@ -86,9 +86,9 @@ void NameScopeReference::makeConcrete(NamespaceStack& ns_stack) {
 }
 
 Definition* NameScopeReference::makeConcreteOrOtherDefinition(NamespaceStack& ns_stack, bool requireNamedef) {
-	Definition* target = ns_stack.tryGetDefinitionFromName(m_name);
+	Definition* target = ns_stack.getDefinitionFromName(m_name, getRange());
 	if(!target)
-		logDaf(getRange(), ERROR) << "unresolved identifier: " << m_name << std::endl;
+	    return target;
 	if(target->getDefinitionKind() == DefinitionKind::NAMEDEF)
 		m_target = static_cast<NamedefDefinition*>(target);
 	else if(requireNamedef) {

@@ -1,4 +1,5 @@
 #pragma once
+#include "parsing/ast/TextRange.hpp"
 
 #include <string>
 
@@ -15,6 +16,6 @@ class Definition;
 
 class Namespace {
 public:
+	virtual ~Namespace() {}
 	virtual Definition* tryGetDefinitionFromName(const std::string& name)=0;
-	virtual ~Namespace() {}; //We have to do this
 };

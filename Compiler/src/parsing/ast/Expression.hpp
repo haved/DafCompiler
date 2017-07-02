@@ -59,7 +59,7 @@ public:
 	VariableExpression(VariableExpression& other) = delete;
 	VariableExpression& operator =(VariableExpression& other) = delete;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack); //Only allows expressions
+	virtual void makeConcrete(NamespaceStack& ns_stack) override; //Only allows expressions
 	void makeConcreteAnyDefinition(NamespaceStack& ns_stack); //Allows all
 	virtual Type* tryGetConcreteType() override;
 

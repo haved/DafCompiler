@@ -45,6 +45,13 @@ Definition* NamespaceStack::tryGetDefinitionFromName(const std::string& name) {
 	return nullptr;
 }
 
+Definition* NamespaceStack::getDefinitionFromName(const std::string& name, const TextRange& range) {
+	Definition* target = tryGetDefinitionFromName(name);
+	if(!target)
+		logDaf(range, ERROR) << "unresolved identifier: " << name << std::endl;
+	return target;
+}
+
 void NamespaceStack::addUnresolvedDotOperator(DotOp dotOp) {
 	m_unresolvedDots.insert({m_unresolvedCounter, dotOp}); //No need to move or anything
 	m_unresolvedCounter++;

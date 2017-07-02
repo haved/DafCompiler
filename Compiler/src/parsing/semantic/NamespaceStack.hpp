@@ -6,6 +6,7 @@
 #include <string>
 
 #include "parsing/semantic/Namespace.hpp"
+#include "parsing/ast/TextRange.hpp"
 
 /* SEE Namespace.hpp for an EXPLANATION */
 
@@ -44,6 +45,7 @@ public:
 	void push(Namespace* name_space);
 	void pop();
 	Definition* tryGetDefinitionFromName(const std::string& name); //Never complains, just returns null
+	Definition* getDefinitionFromName(const std::string& name, const TextRange& range);
 	void addUnresolvedDotOperator(DotOp dotOp);
 	bool resolveDotOperators();
 };

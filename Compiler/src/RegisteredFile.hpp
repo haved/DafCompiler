@@ -2,7 +2,7 @@
 
 class FileRegistry;
 
-class RegisteredFileInternal;
+struct RegisteredFileInternal;
 
 class RegisteredFile {
 private:

@@ -33,9 +33,7 @@ void VariableExpression::makeConcrete(NamespaceStack& ns_stack) {
 }
 
 void VariableExpression::makeConcreteAnyDefinition(NamespaceStack& ns_stack) {
-	m_target = ns_stack.tryGetDefinitionFromName(m_name);
-	if(!m_target)
-		logDaf(getRange(), ERROR) << "unrecognized identifier: " << m_name << std::endl;
+	m_target = ns_stack.getDefinitionFromName(m_name, getRange());
 }
 
 Definition* VariableExpression::getDefinition() {
