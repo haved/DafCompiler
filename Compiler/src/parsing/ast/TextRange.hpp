@@ -20,6 +20,8 @@ public:
 	TextRange(RegisteredFile file, const Token& token);
 	TextRange(RegisteredFile file, const Token& startToken, int endLine, int endCol);
 	TextRange(RegisteredFile file, int startLine, int startCol, const Token& endToken);
+	TextRange(const TextRange& rangeStart, const Token& endToken);
+	TextRange(const Token& startToken, const TextRange& rangeEnd);
 	inline const RegisteredFile& getFile() const { return m_file; }
 	inline int getLine() const {return m_lineStart;}
 	inline int getCol() const {return m_colStart;}

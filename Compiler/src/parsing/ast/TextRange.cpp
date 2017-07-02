@@ -21,6 +21,10 @@ TextRange::TextRange(RegisteredFile file, const Token& startToken, int endLine, 
 
 TextRange::TextRange(RegisteredFile file, int line, int col, const Token& endToken) : TextRange(file, line, col, endToken.line, endToken.endCol) {}
 
+TextRange::TextRange(const TextRange& rangeStart, const Token& endToken) : TextRange(rangeStart, endToken.line, endToken.endCol) {}
+
+TextRange::TextRange(const Token& startToken, const TextRange& rangeEnd) : TextRange(startToken.line, startToken.col, rangeEnd) {}
+
 void TextRange::printRangeTo(std::ostream& stream) const {
 	stream << m_file.get().m_inputName << ": " << m_lineStart << ":" << m_colStart << "-" << m_lineEnd << ":" << m_colEnd;
 }

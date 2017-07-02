@@ -11,17 +11,39 @@
 
 class Definition;
 class DotOperatorExpression;
+class NameScopeDotOperator;
 
+enum class DotOpKind {
+	EXPRESSION, NAME_SCOPE
+};
+
+class DotOp {
+private:
+	DotOpKind m_kind;
+	void* m_dotOp;
+public:
+	DotOp(DotOperatorExpression* expr);
+	DotOp(NameScopeDotOperator* namescope);
+	DotOp(const DotOp& other) = default;
+	DotOp(DotOp&& other) = default;
+	~DotOp() = default;
+	DotOp& operator =(const DotOp& other) = default;
+	DotOp& operator =(DotOp&& other) = default;
+	void printSignature();
+	bool tryResolve();
+};
+
+//TODO: Rename as it serves two purposes
 class NamespaceStack {
 private:
 	std::deque<Namespace*> m_namespaces;
-	std::map<int,DotOperatorExpression*> m_unresolvedDots;
+	std::map<int,DotOp> m_unresolvedDots;
 	int m_unresolvedCounter;
 public:
 	NamespaceStack();
 	void push(Namespace* name_space);
 	void pop();
 	Definition* tryGetDefinitionFromName(const std::string& name); //Never complains, just returns null
-	void addUnresolvedDotOperator(DotOperatorExpression* dotOp);
+	void addUnresolvedDotOperator(DotOp dotOp);
 	bool resolveDotOperators();
 };

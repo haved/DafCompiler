@@ -75,7 +75,7 @@ unique_ptr<NameScopeExpression> parseNameScopeReference(Lexer& lexer) {
 	return unique_ptr<NameScopeExpression>(   new NameScopeReference(std::string(lexer.getPreviousToken().text), TextRange(lexer.getFile(), lexer.getPreviousToken()))   );
 }
 
-unique_ptr<NameScopeExpression> parseNameScopeExpression(Lexer& lexer) {
+unique_ptr<NameScopeExpression> parseNameScopeExpressionSide(Lexer& lexer) {
 	switch(lexer.currType()) {
 		case IDENTIFIER: return parseNameScopeReference(lexer);
 		case SCOPE_START: return parseNameScope(lexer);
@@ -84,4 +84,19 @@ unique_ptr<NameScopeExpression> parseNameScopeExpression(Lexer& lexer) {
 
     logDafExpectedToken("a name-scope expression", lexer);
 	return null_nse();
+}
+
+unique_ptr<NameScopeExpression> parseNameScopeExpression(Lexer& lexer) {
+	unique_ptr<NameScopeExpression> side = parseNameScopeExpressionSide(lexer);
+	if(!side)
+		return side;
+
+	while(lexer.currType() == CLASS_ACCESS) {
+	    lexer.advance(); //Eat '.'
+		if(!lexer.expectProperIdentifier())
+			return null_nse();
+		side = std::make_unique<NameScopeDotOperator>(std::move(side), std::string(lexer.getCurrentToken().text), TextRange(side->getRange(), lexer.getCurrentToken()));
+		lexer.advance(); //Eat identifier
+	}
+	return side;
 }

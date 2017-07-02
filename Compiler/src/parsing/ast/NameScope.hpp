@@ -14,8 +14,11 @@ using std::vector;
 using std::unique_ptr;
 using boost::optional;
 
-//NameScopeExpression extends Namespace, requiring tryGetDefinitionFromName()
 //To avoid recursive including, the NameScopeExpression class is in Definition.hpp
+
+enum class NameScopeExpressionKind {
+	NAME_SCOPE, IDENTIFIER, DOT_OP
+};
 
 class ConcreteNameScope : public Namespace {
 public:
@@ -36,7 +39,8 @@ public:
 	NameScope(NameScope&& other);
 	NameScope& operator =(const NameScope& other) = delete;
 	NameScope& operator =(NameScope&& other);
-	void printSignature() override;
+	virtual void printSignature() override;
+	virtual NameScopeExpressionKind getNameScopeExpressionKind() override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	virtual ConcreteNameScope* tryGetConcreteNameScope() override;
@@ -54,9 +58,33 @@ public:
 	NameScopeReference(std::string&& name, const TextRange& range);
 	NameScopeReference(const NameScopeReference& other) = delete;
 	NameScopeReference& operator=(const NameScopeReference& other) = delete;
-	~NameScopeReference() {}
-	void printSignature() override;
+	~NameScopeReference();
+	virtual void printSignature() override;
+	virtual NameScopeExpressionKind getNameScopeExpressionKind() override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	Definition* makeConcreteOrOtherDefinition(NamespaceStack& ns_stack, bool requireNamedef = false);
+	inline Definition* getTargetDefinition() { return m_target; }
+	virtual ConcreteNameScope* tryGetConcreteNameScope() override;
+};
+
+class NameScopeDotOperator : public NameScopeExpression {
+	unique_ptr<NameScopeExpression> m_LHS;
+	std::string m_RHS;
+	bool m_requireNameScopeResult;
+	Definition* m_LHS_target;
+	NameScopeDotOperator* m_LHS_dot;
+	Definition* m_target;
+public:
+	NameScopeDotOperator(unique_ptr<NameScopeExpression>&& LHS, std::string&& RHS, const TextRange& range);
+	NameScopeDotOperator(const NameScopeDotOperator& other)=delete;
+	NameScopeDotOperator& operator=(const NameScopeDotOperator& other)=delete;
+	~NameScopeDotOperator() = default;
+	virtual void printSignature() override;
+	virtual NameScopeExpressionKind getNameScopeExpressionKind() override;
+
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	bool makeConcreteDotOp(NamespaceStack& ns_stack);
+	bool tryResolve();
 	virtual ConcreteNameScope* tryGetConcreteNameScope() override;
 };

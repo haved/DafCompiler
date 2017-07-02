@@ -89,6 +89,7 @@ public:
 };
 
 class ConcreteNameScope;
+enum class NameScopeExpressionKind;
 
 class NameScopeExpression {
 private:
@@ -100,6 +101,7 @@ public:
 	inline const TextRange& getRange() { return m_range; }
 	virtual void makeConcrete(NamespaceStack& ns_stack)=0; //Makes all the definitions inside concrete
 	virtual ConcreteNameScope* tryGetConcreteNameScope()=0;
+	virtual NameScopeExpressionKind getNameScopeExpressionKind()=0;
 };
 
 class NamedefDefinition : public Definition {
