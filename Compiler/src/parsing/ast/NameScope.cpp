@@ -103,7 +103,7 @@ ConcreteNameScope* NameScopeReference::tryGetConcreteNameScope() {
 }
 
 
-NameScopeDotOperator::NameScopeDotOperator(unique_ptr<NameScopeExpression>&& LHS, std::string&& RHS, const TextRange& range) : NameScopeExpression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_requireNameScopeResult(false), m_LHS_target(nullptr), m_LHS_dot(nullptr), m_target(nullptr) {
+NameScopeDotOperator::NameScopeDotOperator(unique_ptr<NameScopeExpression>&& LHS, std::string&& RHS, const TextRange& range) : NameScopeExpression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_requireNameScopeResult(false), m_LHS_target(nullptr), m_LHS_dot(nullptr), m_target(nullptr), m_forcedResolved(false) {
 	assert(m_LHS);
 	assert(m_RHS.size() > 0);
 }
@@ -143,6 +143,8 @@ bool NameScopeDotOperator::makeConcreteDotOp(NamespaceStack& ns_stack) {
 //True means we should no longer attempt to resolve it
 //NOTE that it's not necessarily because we succeeded
 bool NameScopeDotOperator::tryResolve() {
+	if(m_forcedResolved)
+		return true;
 	assert(!m_target);
 	assert(!(m_LHS_target && m_LHS_dot));
 	if(m_LHS_target) {
@@ -179,6 +181,16 @@ bool NameScopeDotOperator::tryResolve() {
 		}
 	}
 	return true;
+}
+
+void NameScopeDotOperator::forceResolve() {
+	m_forcedResolved = true;
+}
+
+std::ostream& NameScopeDotOperator::printDotOpAndLocation(std::ostream& out) {
+	getRange().printRangeTo(out);
+	out << ": ";
+	return out << "." << m_RHS;
 }
 
 ConcreteNameScope* NameScopeDotOperator::tryGetConcreteNameScope() {

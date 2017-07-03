@@ -26,3 +26,6 @@ def print(x:int) {
 	namedef a3 := a2.a.b;
 	print(a2.b.IO2.b);
 };
+/*
+def a := b.d;
+def b := a.c;*/

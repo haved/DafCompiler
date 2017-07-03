@@ -23,6 +23,25 @@ bool DotOp::tryResolve() {
 	return static_cast<NameScopeDotOperator*>(m_dotOp)->tryResolve();
 }
 
+void DotOp::forceResolve() {
+	if(m_kind == DotOpKind::EXPRESSION)
+		static_cast<DotOperatorExpression*>(m_dotOp)->forceResolve();
+	else if(m_kind == DotOpKind::NAME_SCOPE)
+		static_cast<NameScopeDotOperator*>(m_dotOp)->forceResolve();
+	else
+		assert(false);
+}
+
+std::ostream& DotOp::printDotOpAndLocation(std::ostream& out) {
+	if(m_kind == DotOpKind::EXPRESSION)
+		static_cast<DotOperatorExpression*>(m_dotOp)->printDotOpAndLocation(out);
+	else if(m_kind == DotOpKind::NAME_SCOPE)
+		static_cast<NameScopeDotOperator*>(m_dotOp)->printDotOpAndLocation(out);
+	else
+		assert(false);
+	return out;
+}
+
 
 NamespaceStack::NamespaceStack() : m_namespaces(), m_unresolvedDots(), m_unresolvedCounter(0) {}
 
@@ -57,6 +76,35 @@ void NamespaceStack::addUnresolvedDotOperator(DotOp dotOp) {
 	m_unresolvedCounter++;
 }
 
+//Optimize: The whole dot operator resolving stuff has a lot of potential
+void NamespaceStack::complainAboutDotOpLoop(std::set<int>& resolved) {
+	auto& out = logDaf(ERROR) << "Detected unresolvable loops in dot-operators:" << std::endl;
+	while(!m_unresolvedDots.empty()) {
+		auto start = m_unresolvedDots.begin();
+		start->second.forceResolve();
+		out << "\t";
+		start->second.printDotOpAndLocation(out) << " must be resolved to resolve: " << std::endl;
+		resolved.insert(start->first);
+
+		while(true) {
+			if(resolved.empty())
+				break;
+			for(auto it = resolved.begin(); it != resolved.end(); ++it) {
+			    auto find = m_unresolvedDots.find(*it);
+				m_unresolvedDots.erase(find);
+			}
+			resolved.clear();
+			for(auto it = m_unresolvedDots.begin(); it != m_unresolvedDots.end(); ++it) {
+				if(it->second.tryResolve()) {
+					out << "\t\t";
+					it->second.printDotOpAndLocation(out) << std::endl;
+					resolved.insert(it->first);
+				}
+			}
+		}
+	}
+}
+
 bool NamespaceStack::resolveDotOperators() {
 	std::set<int> resolved;
 	while(true) {
@@ -68,9 +116,7 @@ bool NamespaceStack::resolveDotOperators() {
 				resolved.insert(it->first);
 		}
 		if(resolved.empty()) {
-			auto& out = logDaf(ERROR) << "failed to resolve identifiers in dot operations. First:" << std::endl;
-			m_unresolvedDots.begin()->second.printSignature();
-			out << std::endl;
+			complainAboutDotOpLoop(resolved);
 		    return false;
 		}
 		for(auto it = resolved.begin(); it != resolved.end(); ++it) {

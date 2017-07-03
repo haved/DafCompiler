@@ -32,6 +32,8 @@ public:
 	DotOp& operator =(DotOp&& other) = default;
 	void printSignature();
 	bool tryResolve();
+	void forceResolve();
+	std::ostream& printDotOpAndLocation(std::ostream& out);
 };
 
 //TODO: Rename as it serves two purposes
@@ -47,5 +49,6 @@ public:
 	Definition* tryGetDefinitionFromName(const std::string& name); //Never complains, just returns null
 	Definition* getDefinitionFromName(const std::string& name, const TextRange& range);
 	void addUnresolvedDotOperator(DotOp dotOp);
+	void complainAboutDotOpLoop(std::set<int>& resolved);
 	bool resolveDotOperators();
 };

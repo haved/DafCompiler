@@ -46,7 +46,7 @@ public:
 
 	virtual void printSignature() = 0;
 	const TextRange& getRange();
-	virtual ExpressionKind getExpressionKind() const { std::cout << "TODO: Expression Type undefined" << std::endl; return ExpressionKind::INT_LITERAL;}
+	virtual ExpressionKind getExpressionKind() const { std::cout << "TODO: Expression kind undefined" << std::endl; return ExpressionKind::INT_LITERAL;}
 };
 
 class VariableExpression : public Expression {
@@ -116,6 +116,7 @@ private:
 	DotOperatorExpression* m_LHS_dot;
 	Definition* m_LHS_target;
 	Definition* m_target;
+	bool m_forcedResolved;
 public:
 	DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range);
 	DotOperatorExpression(const DotOperatorExpression& other) = delete;
@@ -124,6 +125,8 @@ public:
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	bool makeConcreteAnyDefinition(NamespaceStack& ns_stack); //Doesn't add to the unresolved dots
 	bool tryResolve();
+	void forceResolve();
+	std::ostream& printDotOpAndLocation(std::ostream& out);
 
     //The dot operator is not a statement
 	virtual void printSignature() override;

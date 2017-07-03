@@ -83,6 +83,7 @@ RealConstantExpression::RealConstantExpression(daf_largest_float real, NumberLit
 	: Expression(range), m_real(real), m_realType(realType) {}
 
 void RealConstantExpression::printSignature() {
+	(void)m_realType;
 	std::cout << m_real;
 }
 
@@ -103,7 +104,7 @@ void InfixOperatorExpression::printSignature() {
 	std::cout << " ";
 }
 
-DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range) : Expression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_forceExpressionResult(false), m_LHS_dot(nullptr), m_LHS_target(nullptr), m_target(nullptr) {
+DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range) : Expression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_forceExpressionResult(false), m_LHS_dot(nullptr), m_LHS_target(nullptr), m_target(nullptr), m_forcedResolved(false) {
 	assert(m_LHS);
 	assert(m_RHS.size() > 0); //We don't allow empty identifiers
 }
@@ -135,10 +136,13 @@ bool DotOperatorExpression::makeConcreteAnyDefinition(NamespaceStack& ns_stack) 
 }
 
 bool DotOperatorExpression::tryResolve() {
+	if(m_forcedResolved)
+		return true;
     assert(!m_target);
+	assert(!(m_LHS_target && m_LHS_dot));
     if(m_LHS_target) {
-		DefinitionKind variableDefKind = m_LHS_target->getDefinitionKind();
-		if(variableDefKind == DefinitionKind::NAMEDEF) {
+		DefinitionKind LHS_def_kind = m_LHS_target->getDefinitionKind();
+		if(LHS_def_kind == DefinitionKind::NAMEDEF) {
 			auto namedef = static_cast<NamedefDefinition*>(m_LHS_target);
 			ConcreteNameScope* namescopeExpr = namedef->tryGetConcreteNameScope();
 			if(!namescopeExpr)
@@ -152,7 +156,7 @@ bool DotOperatorExpression::tryResolve() {
 			    complainIfDefinitionNotToExpression(m_target, m_RHS, getRange());
 
 			return true;
-		} else if(variableDefKind == DefinitionKind::LET || variableDefKind == DefinitionKind::DEF ) {
+		} else if(LHS_def_kind == DefinitionKind::LET || LHS_def_kind == DefinitionKind::DEF ) {
 		    m_LHS_target = nullptr; //We use the m_LHS as a normal expression
 			return tryResolve();
 		}
@@ -178,6 +182,16 @@ bool DotOperatorExpression::tryResolve() {
 	}
 
 	return false;
+}
+
+void DotOperatorExpression::forceResolve() {
+	m_forcedResolved = true;
+}
+
+std::ostream& DotOperatorExpression::printDotOpAndLocation(std::ostream& out) {
+	getRange().printRangeTo(out);
+	out << ": ";
+	return out << "." << m_RHS;
 }
 
 void DotOperatorExpression::printSignature() {

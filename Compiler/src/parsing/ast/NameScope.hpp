@@ -75,6 +75,7 @@ class NameScopeDotOperator : public NameScopeExpression {
 	Definition* m_LHS_target;
 	NameScopeDotOperator* m_LHS_dot;
 	Definition* m_target;
+	bool m_forcedResolved;
 public:
 	NameScopeDotOperator(unique_ptr<NameScopeExpression>&& LHS, std::string&& RHS, const TextRange& range);
 	NameScopeDotOperator(const NameScopeDotOperator& other)=delete;
@@ -86,5 +87,8 @@ public:
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	bool makeConcreteDotOp(NamespaceStack& ns_stack);
 	bool tryResolve();
+	void forceResolve();
+	std::ostream& printDotOpAndLocation(std::ostream& out);
+
 	virtual ConcreteNameScope* tryGetConcreteNameScope() override;
 };
