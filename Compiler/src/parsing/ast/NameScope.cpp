@@ -14,12 +14,12 @@ NameScope& NameScope::operator =(NameScope&& other) {
 }
 
 void NameScope::printSignature() {
-	std::cout << "{ /*name-scope*/" << std::endl;
+	std::cout << "{"<< std::endl;
 	for(auto it = m_definitions.begin(); it != m_definitions.end(); ++it) {
 		assert(*it); //We assert we haven't got a null definition
 		(*it)->printSignature();
 	}
-	std::cout << "} /*name-scope*/"; //The namedef printSignature adds a newline
+	std::cout << "}"; //The namedef printSignature adds a newline
 }
 
 NameScopeExpressionKind NameScope::getNameScopeExpressionKind() {
@@ -36,7 +36,8 @@ void NameScope::makeConcrete(NamespaceStack& ns_stack) {
 	ns_stack.pop();
 }
 
-ConcreteNameScope* NameScope::tryGetConcreteNameScope() {
+ConcreteNameScope* NameScope::tryGetConcreteNameScope(DotOpDependencyList& depList) {
+	(void) depList;
 	return this; //Aw yes, we there
 }
 
@@ -74,7 +75,7 @@ NameScopeReference::NameScopeReference(std::string&& name, const TextRange& rang
 NameScopeReference::~NameScopeReference() {}
 
 void NameScopeReference::printSignature() {
-	std::cout << m_name << " /*name-scope reference*/";
+	std::cout << m_name;
 }
 
 NameScopeExpressionKind NameScopeReference::getNameScopeExpressionKind() {
@@ -98,12 +99,13 @@ Definition* NameScopeReference::makeConcreteOrOtherDefinition(NamespaceStack& ns
 	return target;
 }
 
-ConcreteNameScope* NameScopeReference::tryGetConcreteNameScope() {
-    return m_target ? m_target->tryGetConcreteNameScope() : nullptr;
+//Optimize: store the ConcreteNameScope you get, for later calls
+ConcreteNameScope* NameScopeReference::tryGetConcreteNameScope(DotOpDependencyList& depList) {
+    return m_target ? m_target->tryGetConcreteNameScope(depList) : nullptr;
 }
 
 
-NameScopeDotOperator::NameScopeDotOperator(unique_ptr<NameScopeExpression>&& LHS, std::string&& RHS, const TextRange& range) : NameScopeExpression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_requireNameScopeResult(false), m_LHS_target(nullptr), m_LHS_dot(nullptr), m_target(nullptr), m_forcedResolved(false) {
+NameScopeDotOperator::NameScopeDotOperator(unique_ptr<NameScopeExpression>&& LHS, std::string&& RHS, const TextRange& range) : NameScopeExpression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_requireNameScopeResult(false), m_LHS_target(nullptr), m_LHS_dot(nullptr), m_target(nullptr) {
 	assert(m_LHS);
 	assert(m_RHS.size() > 0);
 }
@@ -119,54 +121,53 @@ NameScopeExpressionKind NameScopeDotOperator::getNameScopeExpressionKind() {
 
 void NameScopeDotOperator::makeConcrete(NamespaceStack& ns_stack) {
 	m_requireNameScopeResult = true;
-	if(!makeConcreteDotOp(ns_stack))
-		ns_stack.addUnresolvedDotOperator(this);
+	DotOpDependencyList depList(this);
+	if(!makeConcreteDotOp(ns_stack, depList))
+		ns_stack.addUnresolvedDotOperator(std::move(depList));
 }
 
-bool NameScopeDotOperator::makeConcreteDotOp(NamespaceStack& ns_stack) {
+bool NameScopeDotOperator::makeConcreteDotOp(NamespaceStack& ns_stack, DotOpDependencyList& depList) {
 	NameScopeExpressionKind LHS_kind = m_LHS->getNameScopeExpressionKind();
 	if(LHS_kind == NameScopeExpressionKind::IDENTIFIER) {
 		NameScopeReference* LHS_ref = static_cast<NameScopeReference*>(m_LHS.get());
 		m_LHS_target = LHS_ref->makeConcreteOrOtherDefinition(ns_stack);
 		if(!m_LHS_target)
 			return true; //Trying to resolve us is just going to be bad, so pretend we're already resolved
-		return tryResolve();
+		return tryResolve(depList);
 	} else if(LHS_kind == NameScopeExpressionKind::DOT_OP) {
 		m_LHS_dot = static_cast<NameScopeDotOperator*>(m_LHS.get());
-		if(m_LHS_dot->makeConcreteDotOp(ns_stack))
-			return tryResolve();
+		if(m_LHS_dot->makeConcreteDotOp(ns_stack, depList))
+			return tryResolve(depList);
 		return false;
 	} else
-		return tryResolve();
+		return tryResolve(depList);
 }
 
-//True means we should no longer attempt to resolve it
+//True means we should no longer attempt to resolve it,
 //NOTE that it's not necessarily because we succeeded
-bool NameScopeDotOperator::tryResolve() {
-	if(m_forcedResolved)
-		return true;
+bool NameScopeDotOperator::tryResolve(DotOpDependencyList& depList) {
 	assert(!m_target);
 	assert(!(m_LHS_target && m_LHS_dot));
 	if(m_LHS_target) {
 		DefinitionKind LHS_def_kind = m_LHS_target->getDefinitionKind();
 		if(LHS_def_kind == DefinitionKind::NAMEDEF) {
 			m_LHS_target = nullptr;
-			return tryResolve();
+			return tryResolve(depList);
 		} else {
 			std::cout << "TODO: Don't know what to do with an expression or type in NameScopeDotOperator LHS" << std::endl;
 		}
 	} else if(m_LHS_dot) {
 	    if(!m_LHS_dot->m_target) {
-			if(!m_LHS_dot->tryResolve())
+			if(!m_LHS_dot->tryResolve(depList))
 				return false;
 			if(!m_LHS_dot->m_target)
 				return true; //Broken
 		}
 		m_LHS_target = m_LHS_dot->m_target;
 		m_LHS_dot = nullptr;
-		return tryResolve();
+		return tryResolve(depList);
 	}
-	ConcreteNameScope* concrete = m_LHS->tryGetConcreteNameScope();
+	ConcreteNameScope* concrete = m_LHS->tryGetConcreteNameScope(depList);
 	if(!concrete)
 		return false;
     m_target = concrete->getPubDefinitionFromName(m_RHS, getRange());
@@ -183,18 +184,19 @@ bool NameScopeDotOperator::tryResolve() {
 	return true;
 }
 
-void NameScopeDotOperator::forceResolve() {
-	m_forcedResolved = true;
+void NameScopeDotOperator::printLocationAndText() {
+	getRange().printRangeTo(std::cout);
+	std::cout << ": ";
+	printSignature();
 }
 
-std::ostream& NameScopeDotOperator::printDotOpAndLocation(std::ostream& out) {
-	getRange().printRangeTo(out);
-	out << ": ";
-	return out << "." << m_RHS;
-}
+ConcreteNameScope* NameScopeDotOperator::tryGetConcreteNameScope(DotOpDependencyList& depList) {
+	if(m_target) {
+		assert(m_target->getDefinitionKind() == DefinitionKind::NAMEDEF);
+		return static_cast<NamedefDefinition*>(m_target)->tryGetConcreteNameScope(depList);
+	}
 
-ConcreteNameScope* NameScopeDotOperator::tryGetConcreteNameScope() {
-	if(m_target && m_target->getDefinitionKind() == DefinitionKind::NAMEDEF)
-		return static_cast<NamedefDefinition*>(m_target)->tryGetConcreteNameScope();
+	depList.addUnresolvedDotOperator(DotOp(this));
 	return nullptr;
 }
+

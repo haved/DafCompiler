@@ -1,31 +1,14 @@
 // -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
-namedef IO := {
-	def a := 5;
-	pub namedef IO2 := {
-		pub def b := 5;
-		typedef x := int;
-	};
-	pub namedef IO3:=IO;
+namedef source := {
+	pub namedef IO2 := IO3;
 };
 
-def main() {
-	print(IO3.IO5.b);
-	print(IO.IO2.b);
-	print(IO.IO3.IO3.IO3.IO2.b);
-};
+namedef IO3 := IO.IO2;
+namedef IO := source;
 
-namedef IO3 := {
-	pub namedef IO5:=IO2.IO2;
-};
+//namedef IO3 := IO3.a;
 
-namedef IO2 := IO;
-
-def print(x:int) {
-	namedef a2:= {pub namedef b := IO; pub namedef a:=a2;};
-	namedef a3 := a2.a.b;
-	print(a2.b.IO2.b);
-};
-/*
-def a := b.d;
-def b := a.c;*/
+namedef x := f.a;
+namedef y := x.y.a;
+namedef f := {pub namedef a:={pub namedef y:=f;};};

@@ -4,6 +4,7 @@
 #include "parsing/ast/Definition.hpp"
 #include "parsing/semantic/Namespace.hpp"
 #include "parsing/semantic/NamespaceStack.hpp"
+#include "parsing/semantic/DotOpDependencyList.hpp"
 #include <vector>
 #include <memory>
 #include <string>
@@ -33,6 +34,7 @@ private:
 	vector<unique_ptr<Definition>> m_definitions;
     NamedDefinitionMap m_definitionMap; //Top of Definition.hpp
 	bool m_filled;
+	void assureNameMapFilled();
 public:
 	NameScope(vector<unique_ptr<Definition>>&& definitions, const TextRange& range);
 	NameScope(const NameScope& other) = delete;
@@ -43,9 +45,8 @@ public:
 	virtual NameScopeExpressionKind getNameScopeExpressionKind() override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual ConcreteNameScope* tryGetConcreteNameScope() override;
+	virtual ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList) override;
 
-	void assureNameMapFilled();
 	virtual Definition* tryGetDefinitionFromName(const std::string& name) override;
 	virtual Definition* getPubDefinitionFromName(const std::string& name, const TextRange& range) override;
 };
@@ -65,7 +66,7 @@ public:
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	Definition* makeConcreteOrOtherDefinition(NamespaceStack& ns_stack, bool requireNamedef = false);
 	inline Definition* getTargetDefinition() { return m_target; }
-	virtual ConcreteNameScope* tryGetConcreteNameScope() override;
+	virtual ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList) override;
 };
 
 class NameScopeDotOperator : public NameScopeExpression {
@@ -75,7 +76,6 @@ class NameScopeDotOperator : public NameScopeExpression {
 	Definition* m_LHS_target;
 	NameScopeDotOperator* m_LHS_dot;
 	Definition* m_target;
-	bool m_forcedResolved;
 public:
 	NameScopeDotOperator(unique_ptr<NameScopeExpression>&& LHS, std::string&& RHS, const TextRange& range);
 	NameScopeDotOperator(const NameScopeDotOperator& other)=delete;
@@ -85,10 +85,10 @@ public:
 	virtual NameScopeExpressionKind getNameScopeExpressionKind() override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	bool makeConcreteDotOp(NamespaceStack& ns_stack);
-	bool tryResolve();
-	void forceResolve();
-	std::ostream& printDotOpAndLocation(std::ostream& out);
+	bool makeConcreteDotOp(NamespaceStack& ns_stack, DotOpDependencyList& depList);
+	bool tryResolve(DotOpDependencyList& depList);
+	void printLocationAndText();
 
-	virtual ConcreteNameScope* tryGetConcreteNameScope() override;
+	virtual ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList) override;
 };
+

@@ -90,6 +90,7 @@ public:
 
 class ConcreteNameScope;
 enum class NameScopeExpressionKind;
+class DotOpDependencyList;
 
 class NameScopeExpression {
 private:
@@ -100,7 +101,7 @@ public:
 	virtual void printSignature()=0;
 	inline const TextRange& getRange() { return m_range; }
 	virtual void makeConcrete(NamespaceStack& ns_stack)=0; //Makes all the definitions inside concrete
-	virtual ConcreteNameScope* tryGetConcreteNameScope()=0;
+	virtual ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList)=0;
 	virtual NameScopeExpressionKind getNameScopeExpressionKind()=0;
 };
 
@@ -114,7 +115,7 @@ public:
 	virtual void addToMap(NamedDefinitionMap& map) override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 
-	ConcreteNameScope* tryGetConcreteNameScope();
+	ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList);
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::NAMEDEF; }

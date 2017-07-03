@@ -113,9 +113,9 @@ void NamedefDefinition::makeConcrete(NamespaceStack& ns_stack) {
 	m_value->makeConcrete(ns_stack);
 }
 
-ConcreteNameScope* NamedefDefinition::tryGetConcreteNameScope() {
+ConcreteNameScope* NamedefDefinition::tryGetConcreteNameScope(DotOpDependencyList& depList) {
 	assert(m_value);
-	return m_value->tryGetConcreteNameScope();
+	return m_value->tryGetConcreteNameScope(depList);
 }
 
 void NamedefDefinition::printSignature() {

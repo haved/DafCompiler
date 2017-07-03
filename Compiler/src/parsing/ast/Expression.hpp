@@ -116,7 +116,6 @@ private:
 	DotOperatorExpression* m_LHS_dot;
 	Definition* m_LHS_target;
 	Definition* m_target;
-	bool m_forcedResolved;
 public:
 	DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range);
 	DotOperatorExpression(const DotOperatorExpression& other) = delete;
@@ -125,10 +124,8 @@ public:
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	bool makeConcreteAnyDefinition(NamespaceStack& ns_stack); //Doesn't add to the unresolved dots
 	bool tryResolve();
-	void forceResolve();
-	std::ostream& printDotOpAndLocation(std::ostream& out);
+	void printLocationAndText();
 
-    //The dot operator is not a statement
 	virtual void printSignature() override;
 	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::DOT_OP; }
 };

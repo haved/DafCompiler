@@ -104,7 +104,7 @@ void InfixOperatorExpression::printSignature() {
 	std::cout << " ";
 }
 
-DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range) : Expression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_forceExpressionResult(false), m_LHS_dot(nullptr), m_LHS_target(nullptr), m_target(nullptr), m_forcedResolved(false) {
+DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range) : Expression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_forceExpressionResult(false), m_LHS_dot(nullptr), m_LHS_target(nullptr), m_target(nullptr) {
 	assert(m_LHS);
 	assert(m_RHS.size() > 0); //We don't allow empty identifiers
 }
@@ -112,7 +112,7 @@ DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::
 void DotOperatorExpression::makeConcrete(NamespaceStack& ns_stack) {
 	m_forceExpressionResult = true;
 	if(!makeConcreteAnyDefinition(ns_stack))
-		ns_stack.addUnresolvedDotOperator(this);
+		;//ns_stack.addUnresolvedDotOperator(this);
 }
 
 //Only called once per instance
@@ -136,8 +136,7 @@ bool DotOperatorExpression::makeConcreteAnyDefinition(NamespaceStack& ns_stack) 
 }
 
 bool DotOperatorExpression::tryResolve() {
-	if(m_forcedResolved)
-		return true;
+	/*
     assert(!m_target);
 	assert(!(m_LHS_target && m_LHS_dot));
     if(m_LHS_target) {
@@ -180,18 +179,15 @@ bool DotOperatorExpression::tryResolve() {
 		//Also check if we need the given target to be an expression definition
 		return true;
 	}
-
+	*/
 	return false;
 }
 
-void DotOperatorExpression::forceResolve() {
-	m_forcedResolved = true;
-}
-
-std::ostream& DotOperatorExpression::printDotOpAndLocation(std::ostream& out) {
-	getRange().printRangeTo(out);
-	out << ": ";
-	return out << "." << m_RHS;
+//TODO: DRY yourself off with NameScopeDotOperator::printLocationAndText
+void DotOperatorExpression::printLocationAndText() {
+	getRange().printRangeTo(std::cout);
+	std::cout << ": ";
+	printSignature();
 }
 
 void DotOperatorExpression::printSignature() {
