@@ -57,3 +57,7 @@ bool DotOpDependencyList::tryResolve(std::map<DotOp, DotOpDependencyList>& unres
 DotOp& DotOpDependencyList::getMain() {
 	return m_main;
 }
+
+std::set<DotOp>& DotOpDependencyList::getDependencies() {
+	return m_dependencies;
+}

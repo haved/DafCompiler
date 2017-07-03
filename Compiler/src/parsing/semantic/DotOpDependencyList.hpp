@@ -41,4 +41,5 @@ public:
 	bool tryResolve(std::map<DotOp, DotOpDependencyList>& unresolved);
 
 	DotOp& getMain();
+	std::set<DotOp>& getDependencies();
 };

@@ -3,6 +3,9 @@
 #include "parsing/ast/Definition.hpp"
 #include "parsing/ast/Expression.hpp"
 #include "parsing/ast/NameScope.hpp"
+#include <boost/optional.hpp>
+
+using boost::optional;
 
 NamespaceStack::NamespaceStack() : m_namespaces(), m_unresolvedDots() {}
 
@@ -36,7 +39,47 @@ void NamespaceStack::addUnresolvedDotOperator(DotOpDependencyList&& dotOp) {
 	m_unresolvedDots.insert({dotOp.getMain(), std::move(dotOp)});
 }
 
+void NamespaceStack::complainAboutLoops() {
+	assert(!m_unresolvedDots.empty());
+	logDaf(ERROR) << "Looping in dot-operator referencing" << std::endl;
+	std::set<DotOp> found;
+	std::deque<DotOp> newly;
+	size_t batchSize = 0;
+    optional<DotOp> lastPrint;
 
+	for(size_t i = 0; true; i++) {
+		if(i == batchSize) {
+			newly.erase(newly.begin(), newly.begin()+batchSize);
+			i = -1;
+			if(newly.empty()) {
+				auto it = find_if(m_unresolvedDots.begin(), m_unresolvedDots.end(), [&](auto& dot) {return found.find(dot.first) == found.end();});
+				if(it == m_unresolvedDots.end())
+					break;
+				newly.push_back(it->first);
+				found.insert(it->first);
+			}
+			batchSize = newly.size();
+			continue;
+		}
+
+		auto curr = m_unresolvedDots.find(newly[i]);
+		if(lastPrint && *lastPrint == curr->first)
+			std::cout << "which ";
+		else
+			curr->first.printLocationAndText();
+		std::cout << "can't be resolved before: " << std::endl;
+		for(auto& dependency : curr->second.getDependencies()) {
+			dependency.printLocationAndText();
+			lastPrint = dependency;
+			if(found.find(dependency) == found.end()) {
+				newly.push_back(dependency);
+				found.insert(dependency);
+			}
+		}
+		std::cout << std::endl;
+	}
+	std::cout << std::endl;
+}
 
 //Optimize: Something graph problem something
 bool NamespaceStack::resolveDotOperators() {
@@ -47,7 +90,7 @@ bool NamespaceStack::resolveDotOperators() {
 				resolved.push_back(it->first);
 		}
 		if(resolved.empty()) {
-			std::cout << "TODO: Loop in dot operations" << std::endl;
+		    complainAboutLoops();
 			return false; //Loop
 		}
 		for(auto it = resolved.begin(); it != resolved.end(); ++it) {

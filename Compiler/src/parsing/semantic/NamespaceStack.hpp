@@ -22,5 +22,6 @@ public:
 	Definition* tryGetDefinitionFromName(const std::string& name); //Never complains, just returns null
 	Definition* getDefinitionFromName(const std::string& name, const TextRange& range);
 	void addUnresolvedDotOperator(DotOpDependencyList&& dotOp);
+	void complainAboutLoops();
 	bool resolveDotOperators();
 };

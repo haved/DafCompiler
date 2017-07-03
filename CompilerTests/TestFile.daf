@@ -12,3 +12,12 @@ namedef IO := source;
 namedef x := f.a;
 namedef y := x.y.a;
 namedef f := {pub namedef a:={pub namedef y:=f;};};
+
+/*
+namedef foo := bar.x;
+namedef bar := foo.x;
+
+namedef a1 := a2.x;
+namedef a2 := a3.x;
+namedef a3 := a1.x;
+namedef a4 := a2.x;*/
