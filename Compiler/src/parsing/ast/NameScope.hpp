@@ -76,6 +76,8 @@ class NameScopeDotOperator : public NameScopeExpression {
 	Definition* m_LHS_target;
 	NameScopeDotOperator* m_LHS_dot;
 	Definition* m_target;
+	bool m_resolved;
+	bool tryResolveInternal(DotOpDependencyList& depList);
 public:
 	NameScopeDotOperator(unique_ptr<NameScopeExpression>&& LHS, std::string&& RHS, const TextRange& range);
 	NameScopeDotOperator(const NameScopeDotOperator& other)=delete;

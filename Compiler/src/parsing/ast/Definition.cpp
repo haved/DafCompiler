@@ -33,6 +33,14 @@ void Let::makeConcrete(NamespaceStack& ns_stack) {
 		m_type.makeConcrete(ns_stack);
 }
 
+Type* Def::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+	return m_expression->tryGetConcreteType(depList);
+}
+
+Type* Let::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+	return m_expression->tryGetConcreteType(depList);
+}
+
 void Def::printSignature() {
 	if(m_pub)
 		std::cout << "pub ";

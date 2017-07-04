@@ -19,7 +19,7 @@ void DotOp::printLocationAndText() const {
 
 bool DotOp::tryResolve(DotOpDependencyList& depList) const {
 	if(m_kind == DotOpKind::EXPRESSION)
-		return static_cast<DotOperatorExpression*>(m_dotOp)->tryResolve();
+		return static_cast<DotOperatorExpression*>(m_dotOp)->tryResolve(depList);
 	assert(m_kind == DotOpKind::NAME_SCOPE);
 	return static_cast<NameScopeDotOperator*>(m_dotOp)->tryResolve(depList);
 }

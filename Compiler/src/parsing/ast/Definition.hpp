@@ -52,6 +52,7 @@ public:
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	Type* tryGetConcreteType(optional<DotOpDependencyList&> depList);
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::DEF; }
@@ -68,6 +69,7 @@ public:
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	Type* tryGetConcreteType(optional<DotOpDependencyList&> depList);
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::LET; }

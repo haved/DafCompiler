@@ -29,7 +29,9 @@ void Scope::makeConcrete(NamespaceStack& ns_stack) {
 	ns_stack.pop();
 }
 
-Type* Scope::tryGetConcreteType() { //override
+Type* Scope::tryGetConcreteType(optional<DotOpDependencyList&> depList) { //override
+	if(m_outExpression)
+		return m_outExpression->tryGetConcreteType(depList);
     return nullptr;
 }
 

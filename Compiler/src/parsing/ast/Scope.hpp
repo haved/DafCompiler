@@ -3,6 +3,9 @@
 #include "parsing/semantic/Namespace.hpp"
 #include <vector>
 #include <memory>
+#include <boost/optional.hpp>
+
+using boost::optional;
 
 //Scope is not in Expression.hpp because it must include Statement, which in turn includes Expression.hpp
 //TODO: Make some kind of Namespace implementation that can be filled and used while resolving references in the scope
@@ -16,7 +19,7 @@ public:
 	virtual bool isStatement() override; //true
 	virtual bool evaluatesToValue() const override; //We can only be a finalOutExpression if we ourselves have one
 
-	virtual Type* tryGetConcreteType() override;
+	virtual Type* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 
 	virtual void printSignature() override;

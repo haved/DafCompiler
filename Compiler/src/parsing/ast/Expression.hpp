@@ -5,11 +5,14 @@
 #include "info/PrimitiveSizes.hpp"
 #include "parsing/ast/Operator.hpp"
 #include "parsing/semantic/NamespaceStack.hpp"
+#include "parsing/semantic/DotOpDependencyList.hpp"
 #include <string>
 #include <vector>
 #include <memory>
+#include <boost/optional.hpp>
 
 using std::unique_ptr;
+using boost::optional;
 
 class Lexer;
 
@@ -42,7 +45,7 @@ public:
 
 	//TODO =0
 	virtual void makeConcrete(NamespaceStack& ns_stack) { (void) ns_stack; std::cout << "TODO concrete expression" << std::endl;}
-    virtual Type* tryGetConcreteType() { std::cout << "TODO get concrete type from expression" << std::endl; return nullptr;}
+    virtual Type* tryGetConcreteType(optional<DotOpDependencyList&> depList) { std::cout << "TODO get concrete type from expression" << std::endl; return nullptr;}
 
 	virtual void printSignature() = 0;
 	const TextRange& getRange();
@@ -52,16 +55,15 @@ public:
 class VariableExpression : public Expression {
 private:
 	std::string m_name;
-	//NOTE: We might want to do makeConcreteOrOtherDefinition later, and have m_target always be a Let or Def
-	Definition* m_target;
+	Definition* m_target; //Has to be Let* or Def*
 public:
 	VariableExpression(const std::string& name, const TextRange& range);
 	VariableExpression(VariableExpression& other) = delete;
 	VariableExpression& operator =(VariableExpression& other) = delete;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack) override; //Only allows expressions
-	void makeConcreteAnyDefinition(NamespaceStack& ns_stack); //Allows all
-	virtual Type* tryGetConcreteType() override;
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	Definition* makeConcreteOrOtherDefinition(NamespaceStack& ns_stack, bool requireLetOrDef = false);
+	virtual Type* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
 
 	Definition* getDefinition();
 
@@ -116,14 +118,18 @@ private:
 	DotOperatorExpression* m_LHS_dot;
 	Definition* m_LHS_target;
 	Definition* m_target;
+	bool m_resolved;
+	//Rule: if m_resolved and m_forceExpressionResult are true, and m_target != null, then m_target is Let*|Def*
+	bool tryResolveInternal(DotOpDependencyList& depList);
 public:
 	DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range);
 	DotOperatorExpression(const DotOperatorExpression& other) = delete;
 	DotOperatorExpression& operator=(const DotOperatorExpression& other) = delete;
 	~DotOperatorExpression() {}
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	bool makeConcreteAnyDefinition(NamespaceStack& ns_stack); //Doesn't add to the unresolved dots
-	bool tryResolve();
+	bool makeConcreteAnyDefinition(NamespaceStack& ns_stack, DotOpDependencyList& depList); //Doesn't add to the unresolved dots
+	bool tryResolve(DotOpDependencyList& depList);
+	virtual Type* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
 	void printLocationAndText();
 
 	virtual void printSignature() override;

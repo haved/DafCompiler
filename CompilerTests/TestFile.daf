@@ -21,3 +21,8 @@ namedef a1 := a2.x;
 namedef a2 := a3.x;
 namedef a3 := a1.x;
 namedef a4 := a2.x;*/
+
+/*
+def g := 6;
+def a := b.y;
+def b := g;*/
