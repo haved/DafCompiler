@@ -87,9 +87,9 @@ public:
 	virtual ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList) override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	bool prepareForResolving(NamespaceStack& ns_stack);
 	bool tryResolve(DotOpDependencyList& depList);
 private:
+	bool prepareForResolving(NamespaceStack& ns_stack);
 	optional<Definition*> tryResolveOrOtherDefinition(DotOpDependencyList& depList);
 	optional<Definition*> tryGetTargetDefinition(DotOpDependencyList& depList);
 };

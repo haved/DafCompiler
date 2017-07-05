@@ -4,6 +4,7 @@
 #include "parsing/ast/Type.hpp"
 #include "info/PrimitiveSizes.hpp"
 #include "parsing/ast/Operator.hpp"
+#include "parsing/ast/DefOrLet.hpp"
 #include "parsing/semantic/NamespaceStack.hpp"
 #include "parsing/semantic/DotOpDependencyList.hpp"
 #include <string>
@@ -45,7 +46,7 @@ public:
 
 	//TODO =0
 	virtual void makeConcrete(NamespaceStack& ns_stack) { (void) ns_stack; std::cout << "TODO concrete expression" << std::endl;}
-    virtual Type* tryGetConcreteType(optional<DotOpDependencyList&> depList) { std::cout << "TODO get concrete type from expression" << std::endl; return nullptr;}
+    virtual Type* tryGetConcreteType(optional<DotOpDependencyList&> depList) { (void) depList; std::cout << "TODO get concrete type from expression" << std::endl; return nullptr;}
 
 	virtual void printSignature() = 0;
 	const TextRange& getRange();
@@ -55,17 +56,15 @@ public:
 class VariableExpression : public Expression {
 private:
 	std::string m_name;
-	Definition* m_target; //Has to be Let* or Def*
+	DefOrLet m_target;
 public:
 	VariableExpression(const std::string& name, const TextRange& range);
 	VariableExpression(VariableExpression& other) = delete;
 	VariableExpression& operator =(VariableExpression& other) = delete;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	Definition* makeConcreteOrOtherDefinition(NamespaceStack& ns_stack, bool requireLetOrDef = false);
+	Definition* makeConcreteOrOtherDefinition(NamespaceStack& ns_stack);
 	virtual Type* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
-
-	Definition* getDefinition();
 
 	std::string&& reapIdentifier() &&;
 
@@ -114,26 +113,26 @@ class DotOperatorExpression : public Expression {
 private:
 	unique_ptr<Expression> m_LHS;
 	std::string m_RHS;
-	bool m_forceExpressionResult;
 	DotOperatorExpression* m_LHS_dot;
 	Definition* m_LHS_target;
-	Definition* m_target;
+	DefOrLet m_target;
 	bool m_resolved;
-	//Rule: if m_resolved and m_forceExpressionResult are true, and m_target != null, then m_target is Let*|Def*
-	bool tryResolveInternal(DotOpDependencyList& depList);
 public:
 	DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range);
 	DotOperatorExpression(const DotOperatorExpression& other) = delete;
 	DotOperatorExpression& operator=(const DotOperatorExpression& other) = delete;
-	~DotOperatorExpression() {}
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	bool makeConcreteAnyDefinition(NamespaceStack& ns_stack, DotOpDependencyList& depList); //Doesn't add to the unresolved dots
-	bool tryResolve(DotOpDependencyList& depList);
-	virtual Type* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
-	void printLocationAndText();
-
+	~DotOperatorExpression()=default;
 	virtual void printSignature() override;
-	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::DOT_OP; }
+	void printLocationAndText();
+	virtual ExpressionKind getExpressionKind() const override;
+	virtual Type* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	bool tryResolve(DotOpDependencyList& depList);
+private:
+	bool prepareForResolving(NamespaceStack& ns_stack);
+	optional<Definition*> tryResolveOrOtherDefinition(DotOpDependencyList& depList);
+	optional<Definition*> tryGetTargetDefinition(DotOpDependencyList& depList);
 };
 
 class PrefixOperatorExpression : public Expression {

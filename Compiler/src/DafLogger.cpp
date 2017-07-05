@@ -72,9 +72,15 @@ void logDafExpectedProperIdentifier(Lexer& lexer) {
 }
 
 void terminateIfErrors() {
-  if(errorsOccured == NO_ERROR)
-    return;
-  if(errorsOccured == ERROR)
-    logDaf(ERROR) << "terminating due to previous errors" << std::endl;
-  std::exit(1);
+	switch(errorsOccured) {
+	case NO_ERROR:
+		return;
+	case ERROR_OCCURED:
+	    logDaf(FATAL_ERROR) << "terminating due to previous errors" << std::endl;
+		//fallthrough
+	case FATAL_OCCURED:
+		std::exit(1);
+	default:
+		assert(false);
+	}
 }
