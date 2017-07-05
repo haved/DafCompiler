@@ -2,6 +2,11 @@
 #include "DafLogger.hpp"
 #include <iostream>
 
+void complainDefinitionIsNotNamedef(Definition* definition, std::string& name, const TextRange& range) {
+	auto& out = logDaf(range, ERROR) << "expected namedef; '" << name << "' is a ";
+	printDefinitionKindName(definition->getDefinitionKind(), out) << std::endl;
+}
+
 NameScope::NameScope(vector<unique_ptr<Definition>>&& definitions, const TextRange& range) : NameScopeExpression(range), m_definitions(std::move(definitions)), m_definitionMap(), m_filled(false) {}
 
 NameScope::NameScope(NameScope&& other) : NameScopeExpression(other.getRange()), m_definitions(std::move(other.m_definitions)), m_definitionMap(std::move(other.m_definitionMap)), m_filled(false) {}
@@ -83,19 +88,17 @@ NameScopeExpressionKind NameScopeReference::getNameScopeExpressionKind() {
 }
 
 void NameScopeReference::makeConcrete(NamespaceStack& ns_stack) {
-	makeConcreteOrOtherDefinition(ns_stack, true /*require namedef target*/);
+	Definition* target = makeConcreteOrOtherDefinition(ns_stack);
+	if(target && !m_target)
+		complainDefinitionIsNotNamedef(target, m_name, getRange());
 }
 
-Definition* NameScopeReference::makeConcreteOrOtherDefinition(NamespaceStack& ns_stack, bool requireNamedef) {
+Definition* NameScopeReference::makeConcreteOrOtherDefinition(NamespaceStack& ns_stack) {
 	Definition* target = ns_stack.getDefinitionFromName(m_name, getRange());
 	if(!target)
-	    return target;
+	    return nullptr;
 	if(target->getDefinitionKind() == DefinitionKind::NAMEDEF)
 		m_target = static_cast<NamedefDefinition*>(target);
-	else if(requireNamedef) {
-		auto& out = logDaf(getRange(), ERROR) << "expected namedef; '" << m_name << "' is a ";
-		printDefinitionKindName(target->getDefinitionKind(), out) << std::endl;
-	}
 	return target;
 }
 
@@ -105,7 +108,7 @@ ConcreteNameScope* NameScopeReference::tryGetConcreteNameScope(DotOpDependencyLi
 }
 
 
-NameScopeDotOperator::NameScopeDotOperator(unique_ptr<NameScopeExpression>&& LHS, std::string&& RHS, const TextRange& range) : NameScopeExpression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_requireNameScopeResult(false), m_LHS_target(nullptr), m_LHS_dot(nullptr), m_target(nullptr), m_resolved(false) {
+NameScopeDotOperator::NameScopeDotOperator(unique_ptr<NameScopeExpression>&& LHS, std::string&& RHS, const TextRange& range) : NameScopeExpression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_LHS_target(nullptr), m_LHS_dot(nullptr), m_target(nullptr), m_resolved(false) {
 	assert(m_LHS);
 	assert(m_RHS.size() > 0);
 }
@@ -115,93 +118,98 @@ void NameScopeDotOperator::printSignature() {
 	std::cout << "." << m_RHS;
 }
 
-NameScopeExpressionKind NameScopeDotOperator::getNameScopeExpressionKind() {
-	return NameScopeExpressionKind::DOT_OP;
-}
-
-void NameScopeDotOperator::makeConcrete(NamespaceStack& ns_stack) {
-	m_requireNameScopeResult = true;
-	DotOpDependencyList depList(this);
-	if(!makeConcreteDotOp(ns_stack, depList))
-		ns_stack.addUnresolvedDotOperator(std::move(depList));
-}
-
-bool NameScopeDotOperator::makeConcreteDotOp(NamespaceStack& ns_stack, DotOpDependencyList& depList) {
-	NameScopeExpressionKind LHS_kind = m_LHS->getNameScopeExpressionKind();
-	if(LHS_kind == NameScopeExpressionKind::IDENTIFIER) {
-		NameScopeReference* LHS_ref = static_cast<NameScopeReference*>(m_LHS.get());
-		m_LHS_target = LHS_ref->makeConcreteOrOtherDefinition(ns_stack);
-		if(!m_LHS_target)
-			return true; //Trying to resolve us is just going to be bad, so pretend we're already resolved
-		return tryResolve(depList);
-	} else if(LHS_kind == NameScopeExpressionKind::DOT_OP) {
-		m_LHS_dot = static_cast<NameScopeDotOperator*>(m_LHS.get());
-		if(m_LHS_dot->makeConcreteDotOp(ns_stack, depList))
-			return tryResolve(depList);
-		return false;
-	} else
-		return tryResolve(depList);
-}
-
-bool NameScopeDotOperator::tryResolve(DotOpDependencyList& depList) {
-	if(m_resolved)
-		return true;
-	return m_resolved = tryResolveInternal(depList);
-};
-
-bool NameScopeDotOperator::tryResolveInternal(DotOpDependencyList& depList) {
-	assert(!m_target);
-	assert(!(m_LHS_target && m_LHS_dot));
-	if(m_LHS_target) {
-		DefinitionKind LHS_def_kind = m_LHS_target->getDefinitionKind();
-		if(LHS_def_kind == DefinitionKind::NAMEDEF) {
-			m_LHS_target = nullptr;
-			return tryResolve(depList);
-		} else {
-			std::cout << "TODO: Don't know what to do with an expression or type in NameScopeDotOperator LHS" << std::endl;
-		}
-	} else if(m_LHS_dot) {
-	    if(!m_LHS_dot->m_target) {
-			if(!m_LHS_dot->tryResolve(depList))
-				return false;
-			if(!m_LHS_dot->m_target)
-				return true; //Broken
-		}
-		m_LHS_target = m_LHS_dot->m_target;
-		m_LHS_dot = nullptr;
-		return tryResolve(depList);
-	}
-	ConcreteNameScope* concrete = m_LHS->tryGetConcreteNameScope(depList);
-	if(!concrete)
-		return false;
-    m_target = concrete->getPubDefinitionFromName(m_RHS, getRange());
-	if(!m_target)
-		return true; //We broken
-	if(m_requireNameScopeResult) {
-		DefinitionKind targetKind = m_target->getDefinitionKind();
-		if(targetKind != DefinitionKind::NAMEDEF) {
-			auto& out = logDaf(getRange(), ERROR) << "expected namedef, not the ";
-			printDefinitionKindName(targetKind, out) << " '" << m_RHS << "'" << std::endl;
-			m_target = nullptr; //Broken
-		}
-	}
-	return true;
-}
-
 void NameScopeDotOperator::printLocationAndText() {
 	getRange().printRangeTo(std::cout);
 	std::cout << ": ";
 	printSignature();
 }
 
-ConcreteNameScope* NameScopeDotOperator::tryGetConcreteNameScope(DotOpDependencyList& depList) {
-	if(m_target) {
-		assert(m_target->getDefinitionKind() == DefinitionKind::NAMEDEF);
-		return static_cast<NamedefDefinition*>(m_target)->tryGetConcreteNameScope(depList);
-	}
+NameScopeExpressionKind NameScopeDotOperator::getNameScopeExpressionKind() {
+	return NameScopeExpressionKind::DOT_OP;
+}
 
+
+ConcreteNameScope* NameScopeDotOperator::tryGetConcreteNameScope(DotOpDependencyList& depList) {
+	if(m_target)
+		return m_target->tryGetConcreteNameScope(depList);
 	if(!m_resolved)
 		depList.addUnresolvedDotOperator(DotOp(this));
 	return nullptr;
 }
 
+void NameScopeDotOperator::makeConcrete(NamespaceStack& ns_stack) {
+	DotOpDependencyList depList(this);
+	if(!prepareForResolving(ns_stack)) { //Something went sour already
+		m_resolved = true; //No point in trying to resolve us
+		return;
+	}
+	if(!tryResolve(depList))
+		ns_stack.addUnresolvedDotOperator(std::move(depList));
+}
+
+bool NameScopeDotOperator::prepareForResolving(NamespaceStack& ns_stack) {
+	NameScopeExpressionKind kind = m_LHS->getNameScopeExpressionKind();
+	if(kind == NameScopeExpressionKind::IDENTIFIER) {
+		m_LHS_target = static_cast<NameScopeReference*>(m_LHS.get())->makeConcreteOrOtherDefinition(ns_stack);
+		return bool(m_LHS_target);
+	} else if(kind == NameScopeExpressionKind::DOT_OP) {
+		m_LHS_dot = static_cast<NameScopeDotOperator*>(m_LHS.get());
+		return m_LHS_dot->prepareForResolving(ns_stack);
+	} else {
+		m_LHS->makeConcrete(ns_stack);
+		return true;
+	}
+};
+
+bool NameScopeDotOperator::tryResolve(DotOpDependencyList& depList) {
+	if(m_resolved)
+		return true;
+	optional<Definition*> result = tryResolveOrOtherDefinition(depList);
+	if(!result) //none means we couldn't be resolved right now
+		return false;
+	Definition* resultDef = *result;
+	if(resultDef && !m_target) //We mad cuz' m_target would be set if resultDef was a NamedefDefinition*
+	    complainDefinitionIsNotNamedef(resultDef, m_RHS, getRange());
+	return true;
+}
+
+//None means try again later, null means error and a definition means we got something
+optional<Definition*> NameScopeDotOperator::tryResolveOrOtherDefinition(DotOpDependencyList& depList) {
+	assert(!m_resolved);
+	optional<Definition*> result = tryGetTargetDefinition(depList);
+	if(result) { //Not none! Either error or a definition
+		m_resolved = true;
+		if(*result && (*result)->getDefinitionKind() == DefinitionKind::NAMEDEF)
+			m_target = static_cast<NamedefDefinition*>(*result);
+	}
+	return result;
+}
+
+//NOTE: This function never adds any sub-dot-expressions to the DependencyList
+optional<Definition*> NameScopeDotOperator::tryGetTargetDefinition(DotOpDependencyList& depList) {
+	assert(!m_resolved && !m_target && !(m_LHS_target && m_LHS_dot));
+	if(m_LHS_target) {
+		DefinitionKind LHS_target_kind = m_LHS_target->getDefinitionKind();
+		if(LHS_target_kind == DefinitionKind::NAMEDEF) {
+			m_LHS_target = nullptr; //We handle the LHS like any other NameScopeExpression
+			return tryGetTargetDefinition(depList);
+		}
+
+		std::cerr << "TODO: Handle expression or type LHS in NameScopeDotOperator" << std::endl;
+		return nullptr;
+	} else if(m_LHS_dot) {
+		optional<Definition*> LHS_dot_target = m_LHS_dot->tryResolveOrOtherDefinition(depList);
+		if(LHS_dot_target && *LHS_dot_target) {
+			m_LHS_dot = nullptr;
+			m_LHS_target = *LHS_dot_target;
+			return tryGetTargetDefinition(depList);
+		}
+		else //Either none or null, pass it on
+			return LHS_dot_target;
+	} else {
+		ConcreteNameScope* namescope = m_LHS->tryGetConcreteNameScope(depList);
+		if(!namescope)
+			return boost::none; //Try again later, por favor
+		return namescope->getPubDefinitionFromName(m_RHS, getRange()); //Might error on us, but our caller handles that ;)
+	}
+}

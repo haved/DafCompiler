@@ -13,16 +13,31 @@ namedef x := f.a;
 namedef y := x.y.a;
 namedef f := {pub namedef a:={pub namedef y:=f;};};
 
-/*
+
 namedef foo := bar.x;
 namedef bar := foo.x;
 
 namedef a1 := a2.x;
 namedef a2 := a3.x;
 namedef a3 := a1.x;
-namedef a4 := a2.x;*/
+namedef a4 := a2.x;
 
 /*
 def g := 6;
 def a := b.y;
 def b := g;*/
+
+namedef MyScope := {
+	pub def b := c+5;
+	def c := 4;
+	pub namedef ey := bey;
+	namedef bey := MyScope;
+};
+
+/*
+namedef test1 := MyScope.b;
+namedef test2 := MyScope.c;
+namedef test3 := MyScope.ey;
+namedef test4 := MyScope.bey;
+namedef test5 := MyScope;
+*/

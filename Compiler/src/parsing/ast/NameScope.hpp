@@ -64,33 +64,33 @@ public:
 	virtual NameScopeExpressionKind getNameScopeExpressionKind() override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	Definition* makeConcreteOrOtherDefinition(NamespaceStack& ns_stack, bool requireNamedef = false);
-	inline Definition* getTargetDefinition() { return m_target; }
+	Definition* makeConcreteOrOtherDefinition(NamespaceStack& ns_stack);
+	//inline Definition* getTargetDefinition() { return m_target; }
 	virtual ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList) override;
 };
 
 class NameScopeDotOperator : public NameScopeExpression {
 	unique_ptr<NameScopeExpression> m_LHS;
 	std::string m_RHS;
-	bool m_requireNameScopeResult;
 	Definition* m_LHS_target;
 	NameScopeDotOperator* m_LHS_dot;
-	Definition* m_target;
+    NamedefDefinition* m_target;
 	bool m_resolved;
-	bool tryResolveInternal(DotOpDependencyList& depList);
 public:
 	NameScopeDotOperator(unique_ptr<NameScopeExpression>&& LHS, std::string&& RHS, const TextRange& range);
 	NameScopeDotOperator(const NameScopeDotOperator& other)=delete;
 	NameScopeDotOperator& operator=(const NameScopeDotOperator& other)=delete;
 	~NameScopeDotOperator() = default;
 	virtual void printSignature() override;
+	void printLocationAndText();
 	virtual NameScopeExpressionKind getNameScopeExpressionKind() override;
+	virtual ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList) override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	bool makeConcreteDotOp(NamespaceStack& ns_stack, DotOpDependencyList& depList);
+	bool prepareForResolving(NamespaceStack& ns_stack);
 	bool tryResolve(DotOpDependencyList& depList);
-	void printLocationAndText();
-
-	virtual ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList) override;
+private:
+	optional<Definition*> tryResolveOrOtherDefinition(DotOpDependencyList& depList);
+	optional<Definition*> tryGetTargetDefinition(DotOpDependencyList& depList);
 };
 
