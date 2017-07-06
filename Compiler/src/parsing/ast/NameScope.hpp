@@ -11,6 +11,8 @@
 #include <boost/optional.hpp>
 #include <map>
 
+class CodegenLLVM;
+
 using std::vector;
 using std::unique_ptr;
 using boost::optional;
@@ -49,6 +51,8 @@ public:
 
 	virtual Definition* tryGetDefinitionFromName(const std::string& name) override;
 	virtual Definition* getPubDefinitionFromName(const std::string& name, const TextRange& range) override;
+
+	virtual void codegen(CodegenLLVM& codegen) override;
 };
 
 class NameScopeReference : public NameScopeExpression {

@@ -31,6 +31,12 @@ WithDefinition::WithDefinition(bool pub, With_As_Construct&& withConstruct, cons
 	//Nothing to assert
 }
 
+void WithDefinition::addToMap(NamedDefinitionMap& map) {(void) map;}
+
+void WithDefinition::codegen(CodegenLLVM& codegen) {(void) codegen;}
+
+DefinitionKind WithDefinition::getDefinitionKind() const { return DefinitionKind::WITH; }
+
 void WithDefinition::printSignature() {
 	if(m_pub)
 		std::cout << "pub ";

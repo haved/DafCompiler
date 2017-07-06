@@ -1,7 +1,8 @@
 #include "DafLogger.hpp"
 #include "FileController.hpp"
-#include "parsing/NameScopeParser.hpp"
 #include "parsing/lexing/Lexer.hpp"
+#include "parsing/NameScopeParser.hpp"
+#include "CodegenLLVM.hpp"
 
 #define DEBUG
 
@@ -36,9 +37,9 @@ int main(int argc, const char** argv) {
 
 	terminateIfErrors();
 
-	//TODO: Type stuff & final checks
+    doCodegen(files);
 
-	//TODO: Code gen
+	terminateIfErrors();
 
 	return 0;
 }

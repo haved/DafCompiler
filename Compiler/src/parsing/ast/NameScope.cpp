@@ -1,4 +1,5 @@
 #include "parsing/ast/NameScope.hpp"
+#include "CodegenLLVM.hpp"
 #include "DafLogger.hpp"
 #include <iostream>
 
@@ -74,6 +75,12 @@ Definition* NameScope::getPubDefinitionFromName(const std::string& name, const T
 	}
 	return defin;
 }
+
+void NameScope::codegen(CodegenLLVM& codegen) {
+	(void) codegen;
+
+};
+
 
 NameScopeReference::NameScopeReference(std::string&& name, const TextRange& range) : NameScopeExpression(range), m_name(std::move(name)), m_target(nullptr) {}
 

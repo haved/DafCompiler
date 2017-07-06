@@ -1,0 +1,86 @@
+
+typedef stuff := {
+	def func() {
+		doSomething();
+	};
+};
+
+typedef something := trait {
+	prot mut a:i32; //Find out what prot even means
+	def call(mut :This):i32; //Using This is very odd in a trait
+	virt clone(:Impl):Impl;
+}
+
+typedef SomethingClass := class with something {
+
+	def _(a:i32):= SomethingClass{a=a};
+
+	def override call(mut it:something):i32 {
+		//it.call(it); Illegal, as call is not defined in the trait
+		it.a++;
+		a++;
+		it.clone().a++;
+	};
+
+	def override clone(this:This):This {
+		return SomethingClass(a);
+	};
+};
+
+def main() {
+	let inst := SomethingClass(10);
+	let inst2 := SomethingClass(20);
+	inst.call(inst2);
+	let inst3 := inst2.clone();
+	
+};
+
+//I lied this is from here on out June 7th
+
+typedef Iterator(T) := trait {
+	def next(mut:Impl):T;
+	def hasMore(:Impl):bool;
+};
+
+typedef TwoWayIterator(T) := trait with Iterator(T) {
+	def prev(mut:Impl):T;
+};
+
+def printIterator(mut a:Impl(Iterator)) { //Has it's own v-table for whatever type you make it with
+	for(a) {
+		
+	};
+};
+
+typedef Widget := trait {
+	prot mut x:i32, y:i32, width:i32, height:i32;
+	prot def _(x:i32, y:i32, width:i32, height:i32):= This{x, y, width, height};
+	pub def setBounds(mut this:This, x:i32, y:i32, width:i32, height:i32) {
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
+		onUpdate();
+	};
+	virt render(:This, mut:Graphics);
+	virt onUpdate(mut:This);
+	virt onEvent(mut:This, e:Event);
+};
+
+typedef ButtonWidget := class with parent:Widget {
+	mut text:string;
+	pub def _(text:string):= ButtonWidget{parent.=};
+};
+
+def test() {
+	
+};
+
+//Ok, so when you take This as a parameter, it is a reference to some instance of This, which may or may not be inside another instance.
+//If This has a vtable, calling the virtual functions on the This reference will use it to do dynamic dispatch.
+//If you on the other hand have a variable of type X. Calling virtual functions on it won't use the vtable, as you have a concrete instance you know isn't overridden.
+//If you have a class implementing some trait, and then you want to get a pointer to that trait, that is easy. If you then want to call functions, they have to be virtual or defined in the trait and not be overridden.
+//If you don't want your trait to involve a vtable, but would still like to do dynamic dispatch on a pointer to it, use the built-in Impl(trait) class to get a type that holds a pointer to the trait as well as a custom vtable
+//and this-offset information. This Impl(trait) of course implements the trait, allowing you to call all functions that don't have compile time parameters. Even then you could make wrapper functions.
+//Enum dynamic dispatch is yet another way of doing things.
+

@@ -13,6 +13,8 @@
 #include <boost/optional.hpp>
 #include <map>
 
+class CodegenLLVM;
+
 using std::unique_ptr;
 using boost::optional;
 
@@ -37,6 +39,8 @@ public:
 	virtual void addToMap(NamedDefinitionMap& map)=0;
 	virtual void makeConcrete(NamespaceStack& ns_stack) { (void)ns_stack; std::cout << "TODO make definition concrete" << std::endl; }
 
+	virtual void codegen(CodegenLLVM& codegen)=0;
+
 	virtual void printSignature()=0; //Children print 'pub ' if needed
 	virtual DefinitionKind getDefinitionKind() const =0;
 };
@@ -53,6 +57,8 @@ public:
 	virtual void addToMap(NamedDefinitionMap& map) override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	Type* tryGetConcreteType(optional<DotOpDependencyList&> depList);
+
+	virtual void codegen(CodegenLLVM& codegen) override;
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::DEF; }
@@ -71,6 +77,8 @@ public:
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	Type* tryGetConcreteType(optional<DotOpDependencyList&> depList);
 
+	virtual void codegen(CodegenLLVM& codegen) override;
+
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::LET; }
 };
@@ -86,6 +94,8 @@ public:
 	virtual void addToMap(NamedDefinitionMap& map) override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 
+	virtual void codegen(CodegenLLVM& codegen) override;
+
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::TYPEDEF; }
 };
@@ -100,10 +110,14 @@ private:
 public:
 	NameScopeExpression(const TextRange& range);
 	virtual ~NameScopeExpression();
-	virtual void printSignature()=0;
 	inline const TextRange& getRange() { return m_range; }
+
 	virtual void makeConcrete(NamespaceStack& ns_stack)=0; //Makes all the definitions inside concrete
 	virtual ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList)=0;
+
+	virtual void codegen(CodegenLLVM& codegen) {(void) codegen; std::cout << "TODO: NameScopeExpression codegen" << std::endl; }
+
+	virtual void printSignature()=0;
 	virtual NameScopeExpressionKind getNameScopeExpressionKind()=0;
 };
 
@@ -116,8 +130,9 @@ public:
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-
 	ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList);
+
+	virtual void codegen(CodegenLLVM& codegen) override;
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::NAMEDEF; }

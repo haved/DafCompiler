@@ -1,5 +1,6 @@
 #include "parsing/ast/Definition.hpp"
 #include "DafLogger.hpp"
+#include "CodegenLLVM.hpp"
 #include <iostream>
 
 Definition::Definition(bool pub, const TextRange &range) : m_pub(pub), m_range(range) {}
@@ -39,6 +40,16 @@ Type* Def::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
 
 Type* Let::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
 	return m_expression->tryGetConcreteType(depList);
+}
+
+void Def::codegen(CodegenLLVM& codegen) {
+	(void) codegen;
+	//TODO: Do some function stuff. Do we need separate codegen functions for global and internal definitions?
+}
+
+void Let::codegen(CodegenLLVM& codegen) {
+	(void) codegen;
+	//TODO: We do need separate codegen for global and local contexts. I'm sure of it!
 }
 
 void Def::printSignature() {
@@ -97,6 +108,8 @@ void TypedefDefinition::makeConcrete(NamespaceStack& ns_stack) {
 	m_type.makeConcrete(ns_stack);
 }
 
+void TypedefDefinition::codegen(CodegenLLVM& codegen) {(void) codegen;}; //Typedefs don't really do codegen
+
 void TypedefDefinition::printSignature() {
 	if(m_pub)
 		std::cout << "pub ";
@@ -125,6 +138,8 @@ ConcreteNameScope* NamedefDefinition::tryGetConcreteNameScope(DotOpDependencyLis
 	assert(m_value);
 	return m_value->tryGetConcreteNameScope(depList);
 }
+
+void NamedefDefinition::codegen(CodegenLLVM& codegen) {(void) codegen;} //What would a namedef even do?
 
 void NamedefDefinition::printSignature() {
 	if(m_pub)

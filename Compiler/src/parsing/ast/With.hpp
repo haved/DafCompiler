@@ -27,10 +27,12 @@ private:
 public:
 	WithDefinition(bool pub, With_As_Construct&& withConstruct, const TextRange& range);
 
-	virtual void addToMap(NamedDefinitionMap& map) override {(void)map;}; //We don't add this to the map
+	virtual void addToMap(NamedDefinitionMap& map) override;
+
+	virtual void codegen(CodegenLLVM& codegen) override;
 
 	virtual void printSignature() override;
-	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::WITH; }
+	virtual DefinitionKind getDefinitionKind() const override;
 };
 
 class WithExpression : public Expression {
