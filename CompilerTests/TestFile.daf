@@ -3,5 +3,7 @@
 def main(a:int):=5;
 
 namedef Ey := {
+	typedef int := i32;
 	def main(b:int) := 7;
+	let a:int=5;
 };
