@@ -10,8 +10,8 @@ namespace NumberLiteralConstants {
     F32, F64
   };
 
-  enum ConstantIntegerType {
-    U8, I8, U16, I16, U32, I32, U64, I64
+	enum ConstantIntegerType:int {
+    U8=8, I8=-8, U16=16, I16=-16, U32=32, I32=-32, U64=64, I64=-64
   };
 }
 

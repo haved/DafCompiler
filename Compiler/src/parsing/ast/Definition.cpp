@@ -42,12 +42,25 @@ Type* Let::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
 	return m_expression->tryGetConcreteType(depList);
 }
 
-void Def::codegen(CodegenLLVM& codegen) {
-	(void) codegen;
-	//TODO: Do some function stuff. Do we need separate codegen functions for global and internal definitions?
+void Def::globalCodegen(CodegenLLVM& codegen) {
+	ExpressionKind kind = m_expression->getExpressionKind();
+	if(kind == ExpressionKind::FUNCTION) {
+		FunctionExpression* function = static_cast<FunctionExpression*>(m_expression.get());
+		if(!function->getPrototype()) {
+			if(!function->makePrototype(codegen, m_name))
+				return;
+		}
+	    if(!function->isFilled()) {
+			function->fillFunctionBody(codegen);
+		} else {
+			std::cerr << "WHAT: Why was a function expression in a def filled already?" << std::endl;
+		}
+	} else {
+		std::cout << "TODO: What to do when a def isn't a function, just an expression?" << std::endl;
+	}
 }
 
-void Let::codegen(CodegenLLVM& codegen) {
+void Let::globalCodegen(CodegenLLVM& codegen) {
 	(void) codegen;
 	//TODO: We do need separate codegen for global and local contexts. I'm sure of it!
 }
@@ -108,7 +121,7 @@ void TypedefDefinition::makeConcrete(NamespaceStack& ns_stack) {
 	m_type.makeConcrete(ns_stack);
 }
 
-void TypedefDefinition::codegen(CodegenLLVM& codegen) {(void) codegen;}; //Typedefs don't really do codegen
+void TypedefDefinition::globalCodegen(CodegenLLVM& codegen) {(void) codegen;}; //Typedefs don't really do codegen
 
 void TypedefDefinition::printSignature() {
 	if(m_pub)
@@ -139,7 +152,7 @@ ConcreteNameScope* NamedefDefinition::tryGetConcreteNameScope(DotOpDependencyLis
 	return m_value->tryGetConcreteNameScope(depList);
 }
 
-void NamedefDefinition::codegen(CodegenLLVM& codegen) {(void) codegen;} //What would a namedef even do?
+void NamedefDefinition::globalCodegen(CodegenLLVM& codegen) {(void) codegen;} //What would a namedef even do?
 
 void NamedefDefinition::printSignature() {
 	if(m_pub)

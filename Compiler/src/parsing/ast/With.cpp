@@ -1,4 +1,5 @@
 #include "parsing/ast/With.hpp"
+#include "CodegenLLVM.hpp"
 
 #include <iostream>
 
@@ -33,7 +34,7 @@ WithDefinition::WithDefinition(bool pub, With_As_Construct&& withConstruct, cons
 
 void WithDefinition::addToMap(NamedDefinitionMap& map) {(void) map;}
 
-void WithDefinition::codegen(CodegenLLVM& codegen) {(void) codegen;}
+void WithDefinition::globalCodegen(CodegenLLVM& codegen) {(void) codegen;}
 
 DefinitionKind WithDefinition::getDefinitionKind() const { return DefinitionKind::WITH; }
 

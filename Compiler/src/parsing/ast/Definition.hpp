@@ -7,13 +7,12 @@
 #include "parsing/semantic/NamespaceStack.hpp"
 #include "parsing/semantic/Namespace.hpp"
 #include "parsing/semantic/NamedDefinitionMap.hpp"
+#include "CodegenLLVMForward.hpp"
 #include <memory>
 #include <vector>
 #include <string>
 #include <boost/optional.hpp>
 #include <map>
-
-class CodegenLLVM;
 
 using std::unique_ptr;
 using boost::optional;
@@ -39,7 +38,7 @@ public:
 	virtual void addToMap(NamedDefinitionMap& map)=0;
 	virtual void makeConcrete(NamespaceStack& ns_stack) { (void)ns_stack; std::cout << "TODO make definition concrete" << std::endl; }
 
-	virtual void codegen(CodegenLLVM& codegen)=0;
+	virtual void globalCodegen(CodegenLLVM& codegen)=0;
 
 	virtual void printSignature()=0; //Children print 'pub ' if needed
 	virtual DefinitionKind getDefinitionKind() const =0;
@@ -58,7 +57,7 @@ public:
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	Type* tryGetConcreteType(optional<DotOpDependencyList&> depList);
 
-	virtual void codegen(CodegenLLVM& codegen) override;
+	virtual void globalCodegen(CodegenLLVM& codegen) override;
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::DEF; }
@@ -77,7 +76,7 @@ public:
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	Type* tryGetConcreteType(optional<DotOpDependencyList&> depList);
 
-	virtual void codegen(CodegenLLVM& codegen) override;
+	virtual void globalCodegen(CodegenLLVM& codegen) override;
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::LET; }
@@ -94,7 +93,7 @@ public:
 	virtual void addToMap(NamedDefinitionMap& map) override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 
-	virtual void codegen(CodegenLLVM& codegen) override;
+	virtual void globalCodegen(CodegenLLVM& codegen) override;
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::TYPEDEF; }
@@ -132,7 +131,7 @@ public:
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList);
 
-	virtual void codegen(CodegenLLVM& codegen) override;
+	virtual void globalCodegen(CodegenLLVM& codegen) override;
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::NAMEDEF; }

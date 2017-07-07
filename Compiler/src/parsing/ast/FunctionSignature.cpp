@@ -1,5 +1,6 @@
 #include "parsing/ast/FunctionSignature.hpp"
 #include "DafLogger.hpp"
+#include "CodegenLLVM.hpp"
 #include "info/DafSettings.hpp"
 
 FunctionParameter::FunctionParameter(std::string&& name) : m_name(std::move(name)) {} //An empty name is allowed
@@ -140,7 +141,7 @@ void FunctionType::mergeInDefReturnKind(ReturnKind defKind) {
 	}
 }
 
-FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range) : Expression(range), m_type(std::move(type)), m_body(std::move(body)) {
+FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range) : Expression(range), m_type(std::move(type)), m_body(std::move(body)), m_function(nullptr), m_filled(false), m_broken(false) {
 	assert(m_type);
 	assert(m_body);
 }
@@ -159,4 +160,57 @@ void FunctionExpression::printSignature() {
 void FunctionExpression::makeConcrete(NamespaceStack& ns_stack) {
 	m_type->makeConcrete(ns_stack);
 	m_body->makeConcrete(ns_stack);
+}
+
+ExpressionKind FunctionExpression::getExpressionKind() const {
+	return ExpressionKind::FUNCTION;
+}
+
+llvm::Function* FunctionExpression::getPrototype() {
+	return m_function;
+}
+
+llvm::Function* FunctionExpression::makePrototype(CodegenLLVM& codegen, const std::string& name) {
+	if(m_function)
+		return m_function;
+
+	std::vector<llvm::Type*> argumentTypes; //TODO
+	llvm::FunctionType* FT = llvm::FunctionType::get(llvm::Type::getVoidTy(codegen.Context()), argumentTypes, false);
+
+	m_function = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, name, &codegen.Module());
+	assert(m_function);
+	return m_function;
+}
+
+bool FunctionExpression::isFilled() {
+	return m_filled;
+}
+
+void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
+	assert(m_function && !m_filled);
+
+	if(m_broken)
+		return;
+
+	llvm::BasicBlock* BB = llvm::BasicBlock::Create(codegen.Context(), "entry", m_function);
+	codegen.Builder().SetInsertPoint(BB);
+	//TODO: Function parameter stuff
+
+	llvm::Value* bodyValue = m_body->codegenExpression(codegen);
+	if(!bodyValue) {
+		m_function->eraseFromParent();
+		m_broken = true;
+		return;
+	}
+
+	codegen.Builder().CreateRet(bodyValue);
+
+	llvm::verifyFunction(*m_function);
+
+	m_filled = true;
+}
+
+llvm::Value* FunctionExpression::codegenExpression(CodegenLLVM& codegen) {
+    assert(false && "Tried to get a Value* from a FunctionExpression. TODO");
+	(void) codegen;
 }

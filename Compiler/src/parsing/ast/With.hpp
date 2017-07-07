@@ -29,7 +29,7 @@ public:
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
 
-	virtual void codegen(CodegenLLVM& codegen) override;
+	virtual void globalCodegen(CodegenLLVM& codegen) override;
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override;

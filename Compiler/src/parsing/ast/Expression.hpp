@@ -7,6 +7,7 @@
 #include "parsing/ast/DefOrLet.hpp"
 #include "parsing/semantic/NamespaceStack.hpp"
 #include "parsing/semantic/DotOpDependencyList.hpp"
+#include "CodegenLLVMForward.hpp"
 #include <string>
 #include <vector>
 #include <memory>
@@ -18,18 +19,19 @@ using boost::optional;
 class Lexer;
 
 enum class ExpressionKind {
-	VARIABLE, //Just a piece of text
+	VARIABLE,
 	INT_LITERAL,
 	REAL_LITERAL,
 	STRING_LITERAL,
 	INFIX_OP,
-	DOT_OP, //God help us
+	DOT_OP,
 	PREFIX_OP,
 	POSTFIX_CREMENT,
 	FUNCTION_CALL,
 	ARRAY_ACCESS,
 	SCOPE,
-	WITH
+	WITH,
+	FUNCTION
 };
 
 class Expression {
@@ -38,6 +40,7 @@ protected:
 public:
 	Expression(const TextRange& range);
 	virtual ~Expression();
+	const TextRange& getRange();
 
 	// === Used by Statement parser ===
 	virtual bool isStatement();
@@ -49,8 +52,9 @@ public:
     virtual Type* tryGetConcreteType(optional<DotOpDependencyList&> depList) { (void) depList; std::cout << "TODO get concrete type from expression" << std::endl; return nullptr;}
 
 	virtual void printSignature() = 0;
-	const TextRange& getRange();
 	virtual ExpressionKind getExpressionKind() const { std::cout << "TODO: Expression kind undefined" << std::endl; return ExpressionKind::INT_LITERAL;}
+
+	virtual llvm::Value* codegenExpression(CodegenLLVM& codegen) {(void)codegen; std::cout << "TODO: Expression codegen" << std::endl; return nullptr; }
 };
 
 class VariableExpression : public Expression {
@@ -79,6 +83,8 @@ private:
 public:
 	IntegerConstantExpression(daf_largest_uint integer, NumberLiteralConstants::ConstantIntegerType integerType, const TextRange& range);
 	void printSignature() override;
+
+	virtual llvm::Value* codegenExpression(CodegenLLVM& codegen) override;
 };
 
 class RealConstantExpression : public Expression {

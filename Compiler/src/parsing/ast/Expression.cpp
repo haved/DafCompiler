@@ -2,6 +2,7 @@
 #include "info/DafSettings.hpp"
 #include "parsing/lexing/Lexer.hpp"
 #include "DafLogger.hpp"
+#include "CodegenLLVM.hpp"
 #include <iostream>
 
 void complainIfDefinitionNotLetOrDef(DefinitionKind kind, std::string& name, const TextRange& range) {
@@ -61,22 +62,18 @@ void IntegerConstantExpression::printSignature() {
 	case U8:
 	case U16:
 	case U32:
-	case U64:
-		std::cout << m_integer;
-		break;
-	case I8:
-		std::cout << +(int8_t)m_integer;
-		break;
-	case I16:
-		std::cout << +(int16_t)m_integer;
-		break;
-	case I32:
-		std::cout << +(int32_t)m_integer;
-		break;
-	case I64:
-		std::cout << (int64_t)m_integer;
-		break;
+	case U64: std::cout << m_integer;         	break;
+	case I8:  std::cout << +(int8_t)m_integer;  break;
+	case I16: std::cout << +(int16_t)m_integer;	break;
+	case I32: std::cout << +(int32_t)m_integer;	break;
+	case I64: std::cout << (int64_t)m_integer;  break;
 	}
+}
+
+llvm::Value* IntegerConstantExpression::codegenExpression(CodegenLLVM& codegen) {
+    int isSigned = m_integerType < 0;
+	int bitWidth = isSigned ? -m_integerType : m_integerType;
+	return llvm::ConstantInt::get(llvm::IntegerType::get(codegen.Context(), bitWidth), m_integer, isSigned);
 }
 
 RealConstantExpression::RealConstantExpression(daf_largest_float real, NumberLiteralConstants::ConstantRealType realType, const TextRange& range)

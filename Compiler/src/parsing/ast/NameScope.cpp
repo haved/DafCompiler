@@ -77,8 +77,9 @@ Definition* NameScope::getPubDefinitionFromName(const std::string& name, const T
 }
 
 void NameScope::codegen(CodegenLLVM& codegen) {
-	(void) codegen;
-
+    for(auto& definition:m_definitions) {
+		definition->globalCodegen(codegen);
+	}
 };
 
 

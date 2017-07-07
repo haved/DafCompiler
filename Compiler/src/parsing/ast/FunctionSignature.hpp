@@ -5,6 +5,7 @@
 #include "parsing/ast/Type.hpp"
 #include "parsing/ast/Expression.hpp"
 #include "parsing/semantic/NamespaceStack.hpp"
+#include "CodegenLLVMForward.hpp"
 
 using std::unique_ptr;
 
@@ -79,9 +80,23 @@ class FunctionExpression : public Expression {
 private:
 	unique_ptr<FunctionType> m_type;
 	unique_ptr<Expression> m_body;
+	llvm::Function* m_function;
+	bool m_filled;
+	bool m_broken;
 public:
 	FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range);
+	FunctionExpression(const FunctionExpression& other) = delete;
+	~FunctionExpression() = default;
+	FunctionExpression& operator =(const FunctionExpression& other) = delete;
 	virtual void printSignature() override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	virtual ExpressionKind getExpressionKind() const override;
+
+	llvm::Function* getPrototype();
+	llvm::Function* makePrototype(CodegenLLVM& codegen, const std::string& name);
+	bool isFilled();
+    void fillFunctionBody(CodegenLLVM& codegen);
+
+	virtual llvm::Value* codegenExpression(CodegenLLVM& codegen) override;
 };
