@@ -10,8 +10,10 @@
 
 #include "parsing/ErrorRecovery.hpp"
 
+#include <vector>
 #include <boost/optional.hpp>
 
+using std::vector;
 using boost::optional;
 using boost::none;
 
@@ -29,16 +31,17 @@ unique_ptr<Expression> parseVariableExpression(Lexer& lexer) {
 unique_ptr<Expression> parseIntegerExpression(Lexer& lexer) {
 	lexer.advance();
 	Token& token = lexer.getPreviousToken();
-	return unique_ptr<Expression>(new IntegerConstantExpression(token.integer, token.integerType, TextRange(lexer.getFile(), token)));
+	return unique_ptr<Expression>(new IntegerConstantExpression(token.integer, token.literalKind, TextRange(lexer.getFile(), token)));
 }
 
 unique_ptr<Expression> parseRealNumberExpression(Lexer& lexer) {
 	lexer.advance();
 	Token& token = lexer.getPreviousToken();
-	return unique_ptr<Expression>(new RealConstantExpression(token.real, token.realType, TextRange(lexer.getFile(), token)));
+	return unique_ptr<Expression>(new RealConstantExpression(token.real, token.literalKind, TextRange(lexer.getFile(), token)));
 }
 
 bool shouldParseFunction(Lexer& lexer) {
+	(void) lexer;
 	return false;
 }
 

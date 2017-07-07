@@ -1,4 +1,5 @@
 #include "DafLogger.hpp"
+#include "FileController.hpp"
 #include "parsing/lexing/Lexer.hpp"
 #include "parsing/ast/TextRange.hpp"
 #include <cstdlib>

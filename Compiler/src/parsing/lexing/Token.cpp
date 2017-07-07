@@ -22,6 +22,7 @@ const char* TOKEN_TEXT[] = {
 	"true", "false", "null"
 };
 
+//This could be packed together so nicely
 const char* ONE_CHAR_TOKEN_TEXTS[] = {
 	"=", ":", ";",
 	"(", ",", ")",
@@ -96,7 +97,7 @@ const char* getTokenText(const Token& token) {
 	return getTokenTypeText(token.type);
 }
 
-Token::Token() : type(NEVER_SET_TOKEN), text(), integerType(NumberLiteralConstants::I32), integer(0), realType(NumberLiteralConstants::F32), real(0.0), line(0), col(0), endCol(0) {}
+Token::Token() : type(NEVER_SET_TOKEN), text(), literalKind(LiteralKind::I8), integer(0), real(0.0), line(0), col(0), endCol(0) {}
 
 void resetTokenSetText(Token& token, const std::string& text) {
 	token.text = text;
@@ -105,7 +106,7 @@ void resetTokenSetText(Token& token, const std::string& text) {
 }
 
 void resetTokenSpecialValues(Token& token) {
-	token.text.clear(); //TODO: Find out if this is bad for performance
+	//token.text.clear(); //Optimize: Find out if this is bad for performance
 	token.real = 0.0;
 	token.integer = 0;
 }
@@ -114,7 +115,7 @@ bool setTokenFromOwnWord(Token& token, int line, int startCol, int endCol) {
 	token.line = line;
 	token.col = startCol;
 	token.endCol = endCol;
-	//TODO: This atrocity
+	//Optimize: This atrocity
 	for(unsigned int tokenType = 0; tokenType < sizeof(TOKEN_TEXT)/sizeof(char*); tokenType++) {
 		if(token.text==TOKEN_TEXT[tokenType]) {
 			token.type = static_cast<TokenType>(tokenType);
@@ -131,6 +132,7 @@ bool setTokenFromOwnWord(Token& token, int line, int startCol, int endCol) {
 }
 
 bool setTokenFromSpecialChar(Token& token, char c, int line, int col) {
+
 	for(unsigned int i = 0; i < (sizeof(ONE_CHAR_TOKEN_TEXTS)/sizeof(char*)); i++) {
 		if(ONE_CHAR_TOKEN_TEXTS[i][0]==c) {
 			token.type = static_cast<TokenType>(i+FIRST_ONE_CHAR_TOKEN);
@@ -144,10 +146,10 @@ bool setTokenFromSpecialChar(Token& token, char c, int line, int col) {
 	return false;
 }
 
-void setTokenFromRealNumber(Token& token, NumberLiteralConstants::ConstantRealType realType, daf_largest_float real, int line, int col, int endCol, const std::string& text) {
+void setTokenFromRealNumber(Token& token, LiteralKind realType, daf_largest_float real, int line, int col, int endCol, const std::string& text) {
 	token.type = REAL_LITERAL;
 	token.real = real;
-	token.realType = realType;
+	token.literalKind = realType;
 	token.integer = 0;
 	token.line = line;
 	token.col = col;
@@ -155,11 +157,10 @@ void setTokenFromRealNumber(Token& token, NumberLiteralConstants::ConstantRealTy
 	token.text = text;
 }
 
-void setTokenFromInteger(Token& token, NumberLiteralConstants::ConstantIntegerType intType, daf_largest_uint integer, int line, int col, int endCol, const std::string& text) {
+void setTokenFromInteger(Token& token, LiteralKind intType, daf_largest_uint integer, int line, int col, int endCol, const std::string& text) {
 	token.type = INTEGER_LITERAL;
-	//We don't reset the RealType to anything
 	token.integer = integer;
-	token.integerType = intType;
+	token.literalKind = intType;
 	token.real = 0.0;
 	token.line = line;
 	token.col = col;
@@ -187,4 +188,8 @@ void setProperEOFToken(Token& token, int line, char col) {
 	token.line = line;
 	token.col = col;
 	token.endCol = col;
+}
+
+bool isTokenPrimitive(TokenType type) {
+	return type >= FIRST_PRIMITVE_TOKEN && type <= LAST_PRIMITIVE_TOKEN;
 }

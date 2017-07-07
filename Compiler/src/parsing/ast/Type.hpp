@@ -12,17 +12,27 @@
 using boost::optional;
 using std::unique_ptr;
 
+class DotOpDependencyList;
+class ConcreteType;
+
 class Type {
 private:
 	TextRange m_range;
 public:
 	Type(const TextRange& range);
-	virtual ~Type()=0;
+	virtual ~Type()=default;
+	const TextRange& getRange();
 	virtual void printSignature()=0;
-    virtual Type* getConcreteType(); //You'll never have ownership of what is returned
+
 	virtual void makeConcrete(NamespaceStack& ns_stack);
-	//getSize eventually
-	inline const TextRange& getRange() const { return m_range; }
+	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList);
+};
+
+class ConcreteType {
+public:
+	ConcreteType()=default;
+	virtual ~ConcreteType()=default;
+	virtual void printSignature()=0;
 };
 
 class TypeReference {
@@ -32,51 +42,71 @@ public:
 	TypeReference();
 	TypeReference(unique_ptr<Type>&& type);
 
-	void makeConcrete(NamespaceStack& ns_stack);
-	Type* getConcreteType();
 	inline bool hasType() const { return bool(m_type); }
 	inline operator bool() const { return hasType(); }
+	inline const TextRange& getRange() const { assert(m_type); return m_type->getRange(); }
 	void printSignature() const;
 
-	inline bool hasRange() const { return hasType(); }
-	inline const TextRange& getRange() const { assert(m_type); return m_type->getRange(); }
+	void makeConcrete(NamespaceStack& ns_stack);
+	ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList);
 };
 
-//Might in the future forget this type once you get a concrete type
+class TypedefDefinition;
+
 class AliasForType : public Type {
 private:
-	std::string* m_name;
-	bool m_name_owner;
-	Type* m_type;
+	std::string m_name;
+	TypedefDefinition* m_target;
 public:
 	AliasForType(std::string&& text, const TextRange& range);
 	AliasForType(const AliasForType& other)=delete;
 	AliasForType& operator=(const AliasForType& other)=delete;
-	AliasForType(AliasForType&& other);
+	AliasForType(AliasForType&& other)=default;
 	AliasForType& operator=(AliasForType&& other)=delete;
-	~AliasForType();
+	~AliasForType()=default;
 	void printSignature() override;
-	Type* getConcreteType() override;
+
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
 };
 
-//We don't count pointers or arrays here
-#define TOKEN_PRIMITVE_BIND(TOKEN, PRIMITIVE) PRIMITIVE,
-enum class Primitives {
-#include "parsing/ast/mappings/TokenPrimitiveMapping.hpp"
+enum class Signed {
+	Yes, No, NA
 };
-#undef TOKEN_PRIMITVE_BIND
 
-bool isTokenPrimitive(TokenType type);
-//asserts a proper primitive token
-Primitives tokenTypeToPrimitive(TokenType type);
-TokenType primitiveToTokenType(Primitives primitive);
-
-class PrimitiveType : public Type {
+class PrimitiveType : public ConcreteType {
 private:
-	Primitives m_primitive;
+	LiteralKind m_literalKind;
+	TokenType m_token;
+	bool m_floatingPoint;
+	bool m_signed;
+	int m_bitCount;
 public:
-	PrimitiveType(Primitives primitive, const TextRange& range);
-	void printSignature() override;
+	PrimitiveType(LiteralKind literalKind, TokenType token, bool floatingPoint, Signed isSigned, int bitCount);
+	virtual void printSignature() override;
+
+	LiteralKind getLiteralKind();
+	TokenType getTokenType();
+	bool isFloatingPoint();
+	bool isSigned();
+	int getBitCount();
 };
+
+PrimitiveType* tokenTypeToPrimitiveType(TokenType type);
+PrimitiveType* literalKindToPrimitiveType(LiteralKind kind);
+
+class ConcreteTypeUse : public Type {
+private:
+	ConcreteType* m_type;
+public:
+	ConcreteTypeUse(ConcreteType* type, const TextRange& range);
+	ConcreteTypeUse(const ConcreteTypeUse& other) = delete;
+	ConcreteTypeUse& operator = (const ConcreteTypeUse& other) = delete;
+	~ConcreteTypeUse() = default;
+	virtual void printSignature() override;
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+};
+
 
 //Function type defined in FunctionSignature.hpp

@@ -319,8 +319,7 @@ void parseIntegerToToken(Token& token, int base, std::string& text, char type, i
       type = 'u';
   }
   assert(type == 'u' || type == 'i');
-  using namespace NumberLiteralConstants;
-  setTokenFromInteger(token, type=='u'? (typeSize==8?U8:typeSize==16?U16:typeSize==32?U32:U64) : (typeSize==8?I8:typeSize==16?I16:typeSize==32?I32:I64), integer, line, col, endCol, text);
+  setTokenFromInteger(token, getIntegerLiteralKind(type=='i', typeSize), integer, line, col, endCol, text);
 }
 
 bool Lexer::parseNumberLiteral(Token& token) {
@@ -349,7 +348,7 @@ bool Lexer::parseNumberLiteral(Token& token) {
       f = std::stof(text); //Text does not include 'f32', but may include '0x', 'e3', 'p2', etc.
     else
       f = std::stod(text);
-    setTokenFromRealNumber(token, typeSize == 32 ? NumberLiteralConstants::F32 : NumberLiteralConstants::F64, f, startLine, startCol, col, text);
+    setTokenFromRealNumber(token, typeSize == 32 ? LiteralKind::F32 : LiteralKind::F64, f, startLine, startCol, col, text);
   } else {
     parseIntegerToToken(token, base, text, type, typeSize, getFile(), startLine, startCol, col);
   }

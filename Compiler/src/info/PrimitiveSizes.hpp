@@ -5,13 +5,13 @@
 typedef uint64_t daf_largest_uint;
 typedef double daf_largest_float;
 
-namespace NumberLiteralConstants {
-  enum ConstantRealType {
-    F32, F64
-  };
+//TODO: Magic
+#define USIZE_BIT_COUNT 64
+#define ISIZE_BIT_COUNT 64
+#define CHAR_BIT_COUNT 8
 
-	enum ConstantIntegerType:int {
-    U8=8, I8=-8, U16=16, I16=-16, U32=32, I32=-32, U64=64, I64=-64
-  };
-}
+enum class LiteralKind:int {
+	U8=1, I8=-1, U16=2, I16=-2, U32=4, I32=-4, U64=8, I64=-8, BOOL=100, USIZE, ISIZE, CHAR, F32=200, F64
+};
 
+LiteralKind getIntegerLiteralKind(bool isSigned, int bitSize);

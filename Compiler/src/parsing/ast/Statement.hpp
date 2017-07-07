@@ -34,7 +34,7 @@ public:
 	void addToMap(NamedDefinitionMap& map) override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 
-	void printSignature();
+	virtual void printSignature() override;
 };
 
 class ExpressionStatement : public Statement {
@@ -45,7 +45,7 @@ public:
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 
-	void printSignature();
+	virtual void printSignature() override;
 };
 
 class IfStatement : public Statement {
@@ -64,7 +64,7 @@ private:
 	unique_ptr<Statement> m_body;
 public:
 	WhileStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body, const TextRange& range);
-	void printSignature();
+	virtual void printSignature() override;
 };
 
 class ForStatement : public Statement {
@@ -73,7 +73,7 @@ private:
 	unique_ptr<Statement> m_body;
 public:
 	ForStatement(unique_ptr<Expression>&& iterator, unique_ptr<Statement>&& body, const TextRange& range);
-	void printSignature();
+	virtual void printSignature() override;
 };
 
 class ReturnStatement : public Statement {
@@ -81,7 +81,7 @@ private:
 	unique_ptr<Expression> m_returnValue; //Optional
 public:
 	ReturnStatement(unique_ptr<Expression>&& value, const TextRange& range);
-	void printSignature();
+	virtual void printSignature() override;
 };
 
 enum class LoopStatementType {
@@ -95,5 +95,5 @@ private:
     LoopStatementType m_type;
 public:
 	LoopStatement(LoopStatementType type, const TextRange& range);
-	void printSignature();
+	virtual void printSignature() override;
 };

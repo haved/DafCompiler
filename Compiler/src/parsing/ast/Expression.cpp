@@ -2,8 +2,11 @@
 #include "info/DafSettings.hpp"
 #include "parsing/lexing/Lexer.hpp"
 #include "DafLogger.hpp"
+#include "parsing/ast/Definition.hpp"
+#include "parsing/ast/NameScope.hpp"
 #include "CodegenLLVM.hpp"
 #include <iostream>
+
 
 void complainIfDefinitionNotLetOrDef(DefinitionKind kind, std::string& name, const TextRange& range) {
 	auto& out = logDaf(range, ERROR) << "expected a let or def, but '" << name << "' is a ";
@@ -53,31 +56,20 @@ void VariableExpression::printSignature() {
 	std::cout << m_name;
 }
 
-IntegerConstantExpression::IntegerConstantExpression(daf_largest_uint integer, NumberLiteralConstants::ConstantIntegerType integerType, const TextRange& range)
-	: Expression(range), m_integer(integer), m_integerType(integerType) {}
+IntegerConstantExpression::IntegerConstantExpression(daf_largest_uint integer, LiteralKind integerType, const TextRange& range) : Expression(range), m_integer(integer), m_integerType(integerType) {}
 
 void IntegerConstantExpression::printSignature() {
-	using namespace NumberLiteralConstants;
-	switch(m_integerType) {
-	case U8:
-	case U16:
-	case U32:
-	case U64: std::cout << m_integer;         	break;
-	case I8:  std::cout << +(int8_t)m_integer;  break;
-	case I16: std::cout << +(int16_t)m_integer;	break;
-	case I32: std::cout << +(int32_t)m_integer;	break;
-	case I64: std::cout << (int64_t)m_integer;  break;
-	}
+	std::cout << m_integer;
 }
 
 llvm::Value* IntegerConstantExpression::codegenExpression(CodegenLLVM& codegen) {
-    int isSigned = m_integerType < 0;
-	int bitWidth = isSigned ? -m_integerType : m_integerType;
+	int kind = static_cast<int>(m_integerType);
+    int isSigned = kind < 0;
+	int bitWidth = isSigned ? -kind : kind;
 	return llvm::ConstantInt::get(llvm::IntegerType::get(codegen.Context(), bitWidth), m_integer, isSigned);
 }
 
-RealConstantExpression::RealConstantExpression(daf_largest_float real, NumberLiteralConstants::ConstantRealType realType, const TextRange& range)
-	: Expression(range), m_real(real), m_realType(realType) {}
+RealConstantExpression::RealConstantExpression(daf_largest_float real, LiteralKind realType, const TextRange& range) : Expression(range), m_real(real), m_realType(realType) {}
 
 void RealConstantExpression::printSignature() {
 	(void)m_realType;

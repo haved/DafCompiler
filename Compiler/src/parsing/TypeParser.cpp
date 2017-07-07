@@ -23,10 +23,12 @@ TypeReference parseFunctionType(Lexer& lexer) {
 	return TypeReference(std::move(functionType));
 }
 
+
+
 TypeReference parsePrimitive(Lexer& lexer) {
 	//assert(isTokenPrimitive(lexer.currType())) //Already done
 	lexer.advance(); //Eat primitive
-	return TypeReference(std::make_unique<PrimitiveType>(tokenTypeToPrimitive(lexer.getPreviousToken().type), TextRange(lexer.getFile(), lexer.getPreviousToken())));
+	return TypeReference();
 }
 
 TypeReference parseType(Lexer& lexer) {

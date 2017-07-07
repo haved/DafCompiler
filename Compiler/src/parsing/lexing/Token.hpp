@@ -52,10 +52,8 @@ enum TokenType {
 struct Token {
 	TokenType type;
 	std::string text;
-	//Really wished I had an 'either' type. Can't wait for daf :)
-	NumberLiteralConstants::ConstantIntegerType integerType;
+	LiteralKind literalKind;
 	daf_largest_uint integer;
-	NumberLiteralConstants::ConstantRealType realType;
 	daf_largest_float real;
 	int line;
 	int col;
@@ -71,10 +69,12 @@ bool setTokenFromOwnWord(Token& token, int line, int startCol, int endCol);
 
 bool setTokenFromSpecialChar(Token& token, char c, int line, int col);
 
-void setTokenFromRealNumber(Token& token, NumberLiteralConstants::ConstantRealType realType, daf_largest_float real, int line, int col, int endCol, const std::string& text);
+void setTokenFromRealNumber(Token& token, LiteralKind realType, daf_largest_float real, int line, int col, int endCol, const std::string& text);
 
-void setTokenFromInteger(Token& token, NumberLiteralConstants::ConstantIntegerType intType, daf_largest_uint integer, int line, int col, int endCol, const std::string& text);
+void setTokenFromInteger(Token& token, LiteralKind intType, daf_largest_uint integer, int line, int col, int endCol, const std::string& text);
 
 bool mergeTokens(Token& first, const Token& second);
 
 void setProperEOFToken(Token& token, int line, char col);
+
+bool isTokenPrimitive(TokenType type);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "FileController.hpp"
+#include "RegisteredFile.hpp"
 
 #include <iostream>
 #include <string>
@@ -14,6 +14,7 @@ namespace fs = boost::filesystem;
 #define MESSAGE 4
 
 class Lexer;
+struct Token;
 class TextRange; //Could be included
 
 //void logDaf(int logLevel, const std::string& text);

@@ -17,6 +17,13 @@ using std::unique_ptr;
 using boost::optional;
 
 class Lexer;
+class Definition;
+enum class DefinitionKind;
+
+struct EvaluatedExpression {
+	llvm::Value* value;
+	ConcreteType* type;
+};
 
 enum class ExpressionKind {
 	VARIABLE,
@@ -79,9 +86,9 @@ public:
 class IntegerConstantExpression: public Expression {
 private:
 	daf_largest_uint m_integer;
-	NumberLiteralConstants::ConstantIntegerType m_integerType;
+    LiteralKind m_integerType;
 public:
-	IntegerConstantExpression(daf_largest_uint integer, NumberLiteralConstants::ConstantIntegerType integerType, const TextRange& range);
+	IntegerConstantExpression(daf_largest_uint integer, LiteralKind integerType, const TextRange& range);
 	void printSignature() override;
 
 	virtual llvm::Value* codegenExpression(CodegenLLVM& codegen) override;
@@ -90,9 +97,9 @@ public:
 class RealConstantExpression : public Expression {
 private:
 	daf_largest_float m_real;
-	NumberLiteralConstants::ConstantRealType m_realType;
+	LiteralKind m_realType;
 public:
-	RealConstantExpression(daf_largest_float real, NumberLiteralConstants::ConstantRealType realType, const TextRange& range);
+	RealConstantExpression(daf_largest_float real, LiteralKind realType, const TextRange& range);
 	void printSignature() override;
 };
 

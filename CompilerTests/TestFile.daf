@@ -2,3 +2,6 @@
 
 def main(a:int):=5;
 
+namedef Ey := {
+	def main(b:int) := 7;
+};

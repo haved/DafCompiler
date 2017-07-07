@@ -1,18 +1,26 @@
 #include "parsing/ast/Type.hpp"
 #include "parsing/ast/FunctionSignature.hpp" //To get FunctionType
+#include "parsing/lexing/Token.hpp"
+#include "parsing/semantic/DotOpDependencyList.hpp"
+#include "parsing/semantic/NamespaceStack.hpp"
+#include "parsing/ast/Definition.hpp"
+#include "DafLogger.hpp"
 #include <iostream>
 #include <map>
-#include "parsing/lexing/Token.hpp"
 
 Type::Type(const TextRange& range) : m_range(range) {}
 
-Type::~Type() {}
-
-void Type::makeConcrete(NamespaceStack& ns_stack) {
-	std::cout << "Types yet to be made concrete" << std::endl;
+const TextRange& Type::getRange() {
+	return m_range;
 }
 
-Type* Type::getConcreteType() {
+void Type::makeConcrete(NamespaceStack& ns_stack) {
+	(void) ns_stack;
+	std::cout << "TODO: Type yet to be made concrete" << std::endl;
+}
+
+ConcreteType* Type::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+	(void) depList;
 	std::cout << "TODO: Type::getConcreteType() for some subclass" << std::endl;
 	return nullptr;
 }
@@ -26,9 +34,9 @@ void TypeReference::makeConcrete(NamespaceStack& ns_stack) {
 		m_type->makeConcrete(ns_stack);
 }
 
-Type* TypeReference::getConcreteType() {
+ConcreteType* TypeReference::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
 	if(m_type)
-		return m_type->getConcreteType();
+		return m_type->tryGetConcreteType(depList);
 	return nullptr;
 }
 
@@ -40,66 +48,109 @@ void TypeReference::printSignature() const {
 	}
 }
 
-AliasForType::AliasForType(std::string&& name, const TextRange& range) : Type(range), m_name(new std::string(std::move(name))), m_name_owner(true), m_type(nullptr) {}
-
-AliasForType::AliasForType(AliasForType&& other) : Type(other.getRange()), m_name(other.m_name), m_name_owner(other.m_name_owner), m_type(other.m_type) {
-	other.m_name_owner = false;
-}
-
-AliasForType::~AliasForType() {
-	if(m_name_owner)
-		delete m_name;
-}
+AliasForType::AliasForType(std::string&& name, const TextRange& range) : Type(range), m_name(std::move(name)), m_target(nullptr) {}
 
 void AliasForType::printSignature() {
-	if(m_type) {
-		m_type ->printSignature();
+	std::cout << "type{\"" << m_name << "\"}";
+}
+
+void AliasForType::makeConcrete(NamespaceStack& ns_stack) {
+    Definition* definition = ns_stack.getDefinitionFromName(m_name, getRange());
+	if(!definition)
+		return;
+	DefinitionKind kind = definition->getDefinitionKind();
+	if(kind == DefinitionKind::TYPEDEF) {
+		m_target = static_cast<TypedefDefinition*>(definition);
 	} else {
-		std::cout << "type{\"" << *m_name << "\"}";
+		auto& out = logDaf(getRange(), ERROR) << "expected typedef; " << m_name << " is a ";
+		printDefinitionKindName(kind, out) << std::endl;
 	}
 }
 
-Type* AliasForType::getConcreteType() {
-	assert(m_type);
-	return m_type;
+ConcreteType* AliasForType::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+    if(m_target)
+		return m_target->tryGetConcreteType(depList);
+	return nullptr;
 }
 
-#define TOKEN_PRIMITVE_BIND(TOKEN, PRIMITIVE) {TOKEN, Primitives::PRIMITIVE},
-std::map<TokenType, Primitives> tokenTypeToPrimitiveMap {
-#include "parsing/ast/mappings/TokenPrimitiveMapping.hpp"
-};
 
-#undef TOKEN_PRIMITVE_BIND
-#define TOKEN_PRIMITVE_BIND(TOKEN, PRIMITIVE) {Primitives::PRIMITIVE, TOKEN},
-std::map<Primitives, TokenType> primitiveToTokenTypeMap {
-#include "parsing/ast/mappings/TokenPrimitiveMapping.hpp"
-};
-#undef TOKEN_PRIMITVE_BIND
-
-bool isTokenPrimitive(TokenType type) {
-	return type >= FIRST_PRIMITVE_TOKEN && type <= LAST_PRIMITIVE_TOKEN;
-}
-
-Primitives tokenTypeToPrimitive(TokenType type) {
-	auto it = tokenTypeToPrimitiveMap.find(type);
-	if(it == tokenTypeToPrimitiveMap.end()) {
-		assert(false);
-		return Primitives::I8; //Gotta return something
-	}
-	return it->second;
-}
-
-TokenType primitiveToTokenType(Primitives primitive) {
-	auto it = primitiveToTokenTypeMap.find(primitive);
-	if(it == primitiveToTokenTypeMap.end()) {
-		assert(false);
-		return ERROR_TOKEN; //Gotta return something
-	}
-	return it->second;
-}
-
-PrimitiveType::PrimitiveType(Primitives primitive, const TextRange& range) : Type(range), m_primitive(primitive) {}
+PrimitiveType::PrimitiveType(LiteralKind literalKind, TokenType token, bool floatingPoint, Signed isSigned, int bitCount) : m_literalKind(literalKind), m_token(token), m_floatingPoint(floatingPoint), m_signed(isSigned == Signed::Yes), m_bitCount(bitCount) {}
 
 void PrimitiveType::printSignature() {
-	std::cout << getTokenTypeText(primitiveToTokenType(m_primitive));
+	std::cout << getTokenTypeText(m_token);
+}
+
+LiteralKind PrimitiveType::getLiteralKind() {
+	return m_literalKind;
+}
+
+TokenType PrimitiveType::getTokenType() {
+	return m_token;
+}
+
+bool PrimitiveType::isFloatingPoint() {
+	return m_floatingPoint;
+}
+
+bool PrimitiveType::isSigned() {
+	return m_signed;
+}
+
+int PrimitiveType::getBitCount() {
+	return m_bitCount;
+}
+
+
+PrimitiveType primitiveTypes[] = {
+	PrimitiveType(LiteralKind::U8, U8_TOKEN, false, Signed::No, 8),
+	PrimitiveType(LiteralKind::I8, U8_TOKEN, false, Signed::Yes, 8),
+	PrimitiveType(LiteralKind::U16, U16_TOKEN, false, Signed::No, 16),
+	PrimitiveType(LiteralKind::I16, I16_TOKEN, false, Signed::Yes, 16),
+	PrimitiveType(LiteralKind::U32, U32_TOKEN, false, Signed::No, 32),
+	PrimitiveType(LiteralKind::I32, I32_TOKEN, false, Signed::Yes, 32),
+	PrimitiveType(LiteralKind::U64, U64_TOKEN, false, Signed::No, 64),
+	PrimitiveType(LiteralKind::I64, I64_TOKEN, false, Signed::Yes, 64),
+	PrimitiveType(LiteralKind::F32, F32_TOKEN, true, Signed::NA, 32),
+	PrimitiveType(LiteralKind::F64, F64_TOKEN, true, Signed::NA, 64),
+	PrimitiveType(LiteralKind::BOOL, BOOLEAN, false, Signed::No, 1),
+	PrimitiveType(LiteralKind::USIZE, USIZE, false, Signed::No, USIZE_BIT_COUNT),
+	PrimitiveType(LiteralKind::ISIZE, ISIZE, false, Signed::Yes, ISIZE_BIT_COUNT),
+	PrimitiveType(LiteralKind::CHAR, CHAR, false, Signed::No, CHAR_BIT_COUNT),
+};
+
+int PrimitiveTypeCount = sizeof(primitiveTypes)/sizeof(*primitiveTypes);
+
+//Optimize: use a map
+PrimitiveType* tokenTypeToPrimitiveType(TokenType type) {
+	for(int i = 0; i < PrimitiveTypeCount; i++) {
+		if(primitiveTypes[i].getTokenType() == type)
+			return &primitiveTypes[i];
+	}
+	return nullptr;
+}
+
+//Optimize: Use a map
+PrimitiveType* literalKindToPrimitiveType(LiteralKind kind) {
+	for(int i = 0; i < PrimitiveTypeCount; i++) {
+		if(primitiveTypes[i].getLiteralKind() == kind)
+			return &primitiveTypes[i];
+	}
+	return nullptr;
+}
+
+ConcreteTypeUse::ConcreteTypeUse(ConcreteType* type, const TextRange& range) : Type(range), m_type(type) {
+	assert(m_type);
+}
+
+void ConcreteTypeUse::printSignature() {
+	m_type->printSignature();
+}
+
+void ConcreteTypeUse::makeConcrete(NamespaceStack& ns_stack) {
+	(void) ns_stack;
+}
+
+ConcreteType* ConcreteTypeUse::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+	(void) depList;
+	return m_type;
 }

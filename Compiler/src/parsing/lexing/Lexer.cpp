@@ -1,8 +1,10 @@
 #include "parsing/lexing/Lexer.hpp"
+#include "FileController.hpp"
 #include "DafLogger.hpp"
-#include <string>
 #include "info/Constants.hpp"
 #include "DafLogger.hpp"
+
+#include <string>
 
 #define FIRST_CHAR_COL 0 //The column the first char on a line is
 //TAB_WIDTH is defined in Constants.hpp

@@ -35,10 +35,12 @@ void Let::makeConcrete(NamespaceStack& ns_stack) {
 }
 
 Type* Def::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+	//TODO: Here there can be an infinite loop
 	return m_expression->tryGetConcreteType(depList);
 }
 
 Type* Let::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+	//TODO: Infinite loop potential
 	return m_expression->tryGetConcreteType(depList);
 }
 
@@ -121,6 +123,10 @@ void TypedefDefinition::makeConcrete(NamespaceStack& ns_stack) {
 	m_type.makeConcrete(ns_stack);
 }
 
+ConcreteType* TypedefDefinition::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+	return m_type.tryGetConcreteType(depList);
+}
+
 void TypedefDefinition::globalCodegen(CodegenLLVM& codegen) {(void) codegen;}; //Typedefs don't really do codegen
 
 void TypedefDefinition::printSignature() {
@@ -152,7 +158,9 @@ ConcreteNameScope* NamedefDefinition::tryGetConcreteNameScope(DotOpDependencyLis
 	return m_value->tryGetConcreteNameScope(depList);
 }
 
-void NamedefDefinition::globalCodegen(CodegenLLVM& codegen) {(void) codegen;} //What would a namedef even do?
+void NamedefDefinition::globalCodegen(CodegenLLVM& codegen) {
+	m_value->codegen(codegen);
+}
 
 void NamedefDefinition::printSignature() {
 	if(m_pub)
