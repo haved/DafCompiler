@@ -12,32 +12,32 @@ if(EXTRA_WARNINGS)
 endif()
 
 file(GLOB MySources
-	src/*.hpp
+    #src/*.hpp
 	src/*.cpp
 )
 
 file(GLOB MySourcesParsing
-	src/parsing/*.hpp
+    #src/parsing/*.hpp
 	src/parsing/*.cpp
 )
 
 file(GLOB MySourcesParsingLexing
-	src/parsing/lexing/*.hpp
+    #src/parsing/lexing/*.hpp
 	src/parsing/lexing/*.cpp
 )
 
 file(GLOB MySourcesParsingAst
-	src/parsing/ast/*.hpp
+    #src/parsing/ast/*.hpp
 	src/parsing/ast/*.cpp
 )
 
 file(GLOB MySourcesParsingSemantic
-	src/parsing/semantic/*.hpp
+    #src/parsing/semantic/*.hpp
 	src/parsing/semantic/*.cpp
 )
 
 file(GLOB MySourcesInfo
-  src/info/*.hpp
+  #src/info/*.hpp
   src/info/*.cpp
 )
 
@@ -46,7 +46,7 @@ FIND_PACKAGE( Boost 1.40 COMPONENTS system filesystem REQUIRED )
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 
 #Find LLVM
-FIND_PACKAGE(LLVM REQUIRED CONFIG)
+FIND_PACKAGE(LLVM 3.9.0 REQUIRED CONFIG)
 MESSAGE(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 MESSAGE(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
@@ -58,5 +58,5 @@ target_include_directories(DafCompiler PUBLIC "${CMAKE_SOURCE_DIR}/src")
 
 # Find the libraries that correspond to the LLVM components
 # that we wish to use
-LLVM_MAP_COMPONENTS_TO_LIBNAMES(llvm_libs support core irreader)
+LLVM_MAP_COMPONENTS_TO_LIBNAMES(llvm_libs core irreader)
 TARGET_LINK_LIBRARIES(DafCompiler ${Boost_LIBRARIES} ${llvm_libs})

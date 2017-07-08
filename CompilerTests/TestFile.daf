@@ -1,9 +1,11 @@
 // -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
-def main(a:int):=5;
+def main(a:i32):=5;
 
 namedef Ey := {
 	typedef int := i32;
-	def main(b:int) := 7;
+	def main(b:int) := 7u8;
 	let a:int=5;
+	def float(c:int):= 0.5e2;
+	def double(c:int):= 0.6f64;
 };

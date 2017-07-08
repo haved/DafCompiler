@@ -8,7 +8,7 @@ using boost::optional;
 class Definition;
 class Def;
 class Let;
-class Type;
+class ConcreteType;
 
 class DefOrLet {
 	Definition* m_target;
@@ -30,7 +30,7 @@ public:
 	Def* getDef();
 	Let* getLet();
 	Definition* getDefinition();
-	Type* tryGetConcreteType(optional<DotOpDependencyList&> depList);
+	ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList);
 	operator bool() const;
 };
 

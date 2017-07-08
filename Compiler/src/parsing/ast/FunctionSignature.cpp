@@ -45,6 +45,10 @@ bool ValueParameter::isCompileTimeOnly() {
 	return m_modif == ParameterModifier::DEF;
 }
 
+void ValueParameter::makeConcrete(NamespaceStack& ns_stack) {
+    m_type.makeConcrete(ns_stack);
+}
+
 ValueParameterTypeInferred::ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName) : FunctionParameter(std::move(name)), m_modif(modif), m_typeName(std::move(typeName)) {
     assert(m_typeName.size() > 0); //TODO: do this for all identifiers that can't be underscore
 }
@@ -60,6 +64,8 @@ bool ValueParameterTypeInferred::isCompileTimeOnly() {
 	return true;
 }
 
+void ValueParameterTypeInferred::makeConcrete(NamespaceStack& ns_stack) { (void) ns_stack; }
+
 TypedefParameter::TypedefParameter(std::string&& name) : FunctionParameter(std::move(name)) {
 	assert(m_name.size() > 0); //We can't have empty type parameters. That gets too insane
 }
@@ -71,6 +77,8 @@ void TypedefParameter::printSignature() {
 bool TypedefParameter::isCompileTimeOnly() {
 	return true;
 }
+
+void TypedefParameter::makeConcrete(NamespaceStack& ns_stack) { (void) ns_stack; }
 
 
 FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_returnType(std::move(returnType)), m_ateEquals(ateEqualsSign), m_cmpTimeOnly(false) {
@@ -141,6 +149,21 @@ void FunctionType::mergeInDefReturnKind(ReturnKind defKind) {
 	}
 }
 
+
+void FunctionType::makeConcrete(NamespaceStack& ns_stack) {
+	if(m_returnType)
+		m_returnType.makeConcrete(ns_stack);
+    for(auto& param : m_parameters) {
+		param->makeConcrete(ns_stack);
+	}
+}
+
+ConcreteType* FunctionType::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+	(void) depList;
+	return this;
+}
+
+
 FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range) : Expression(range), m_type(std::move(type)), m_body(std::move(body)), m_function(nullptr), m_filled(false), m_broken(false) {
 	assert(m_type);
 	assert(m_body);
@@ -162,10 +185,17 @@ void FunctionExpression::makeConcrete(NamespaceStack& ns_stack) {
 	m_body->makeConcrete(ns_stack);
 }
 
+ConcreteType* FunctionExpression::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+	(void) depList;
+	return m_type.get();
+}
+
+
 ExpressionKind FunctionExpression::getExpressionKind() const {
 	return ExpressionKind::FUNCTION;
 }
 
+// ==== Codegen stuff ====
 llvm::Function* FunctionExpression::getPrototype() {
 	return m_function;
 }
@@ -196,21 +226,23 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 	codegen.Builder().SetInsertPoint(BB);
 	//TODO: Function parameter stuff
 
-	llvm::Value* bodyValue = m_body->codegenExpression(codegen);
+	EvaluatedExpression bodyValue = m_body->codegenExpression(codegen);
 	if(!bodyValue) {
 		m_function->eraseFromParent();
 		m_broken = true;
 		return;
 	}
 
-	codegen.Builder().CreateRet(bodyValue);
+	//TODO: Check if bodyValue's type matches the return type
+
+	codegen.Builder().CreateRet(bodyValue.value);
 
 	llvm::verifyFunction(*m_function);
 
 	m_filled = true;
 }
 
-llvm::Value* FunctionExpression::codegenExpression(CodegenLLVM& codegen) {
+EvaluatedExpression FunctionExpression::codegenExpression(CodegenLLVM& codegen) {
     assert(false && "Tried to get a Value* from a FunctionExpression. TODO");
 	(void) codegen;
 }

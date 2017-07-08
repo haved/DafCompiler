@@ -16,7 +16,6 @@ llvm::Module& CodegenLLVM::Module() {
 	return m_module;
 }
 
-
 void doCodegen(FileRegistry& files) {
     CodegenLLVM codegen("The global daf LLVM module");
 

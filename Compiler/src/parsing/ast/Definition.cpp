@@ -34,12 +34,12 @@ void Let::makeConcrete(NamespaceStack& ns_stack) {
 		m_type.makeConcrete(ns_stack);
 }
 
-Type* Def::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+ConcreteType* Def::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
 	//TODO: Here there can be an infinite loop
 	return m_expression->tryGetConcreteType(depList);
 }
 
-Type* Let::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+ConcreteType* Let::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
 	//TODO: Infinite loop potential
 	return m_expression->tryGetConcreteType(depList);
 }

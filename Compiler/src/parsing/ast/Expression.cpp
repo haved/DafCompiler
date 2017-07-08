@@ -7,7 +7,6 @@
 #include "CodegenLLVM.hpp"
 #include <iostream>
 
-
 void complainIfDefinitionNotLetOrDef(DefinitionKind kind, std::string& name, const TextRange& range) {
 	auto& out = logDaf(range, ERROR) << "expected a let or def, but '" << name << "' is a ";
 	printDefinitionKindName(kind, out) << std::endl;
@@ -46,7 +45,7 @@ std::string&& VariableExpression::reapIdentifier() && {
 	return std::move(m_name);
 }
 
-Type* VariableExpression::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+ConcreteType* VariableExpression::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
 	if(m_target)
 		return m_target.tryGetConcreteType(depList);
 	return nullptr;
@@ -56,25 +55,46 @@ void VariableExpression::printSignature() {
 	std::cout << m_name;
 }
 
-IntegerConstantExpression::IntegerConstantExpression(daf_largest_uint integer, LiteralKind integerType, const TextRange& range) : Expression(range), m_integer(integer), m_integerType(integerType) {}
+IntegerConstantExpression::IntegerConstantExpression(daf_largest_uint integer, LiteralKind integerType, const TextRange& range) : Expression(range), m_integer(integer), m_type(literalKindToPrimitiveType(integerType)) {
+	assert(m_type);
+}
 
 void IntegerConstantExpression::printSignature() {
 	std::cout << m_integer;
 }
 
-llvm::Value* IntegerConstantExpression::codegenExpression(CodegenLLVM& codegen) {
-	int kind = static_cast<int>(m_integerType);
-    int isSigned = kind < 0;
-	int bitWidth = isSigned ? -kind : kind;
-	return llvm::ConstantInt::get(llvm::IntegerType::get(codegen.Context(), bitWidth), m_integer, isSigned);
+ConcreteType* IntegerConstantExpression::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+	(void) depList;
+	return m_type;
 }
 
-RealConstantExpression::RealConstantExpression(daf_largest_float real, LiteralKind realType, const TextRange& range) : Expression(range), m_real(real), m_realType(realType) {}
+EvaluatedExpression IntegerConstantExpression::codegenExpression(CodegenLLVM& codegen) {
+	llvm::Value* value = llvm::ConstantInt::get(llvm::IntegerType::get(codegen.Context(), m_type->getBitCount()), m_integer, m_type->isSigned());
+	return EvaluatedExpression(value, m_type);
+}
+
+RealConstantExpression::RealConstantExpression(daf_largest_float real, LiteralKind realType, const TextRange& range) : Expression(range), m_real(real), m_type(literalKindToPrimitiveType(realType)) {
+	assert(m_type);
+}
 
 void RealConstantExpression::printSignature() {
-	(void)m_realType;
 	std::cout << m_real;
 }
+
+ConcreteType* RealConstantExpression::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+	(void) depList;
+	return m_type;
+}
+
+EvaluatedExpression RealConstantExpression::codegenExpression(CodegenLLVM& codegen) {
+	llvm::APFloat real(m_real);
+	if(m_type->getBitCount() == 32)
+		real = llvm::APFloat(float(m_real));
+
+	llvm::Value* value = llvm::ConstantFP::get(codegen.Context(), real);
+	return EvaluatedExpression(value, m_type);
+}
+
 
 InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS) : Expression(TextRange(LHS->getRange(), RHS->getRange())), m_LHS(std::move(LHS)), m_op(op), m_RHS(std::move(RHS)) {
 	assert(m_LHS && m_RHS && m_op != InfixOperator::CLASS_ACCESS);
@@ -114,7 +134,7 @@ ExpressionKind DotOperatorExpression::getExpressionKind() const {
 }
 
 
-Type* DotOperatorExpression::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+ConcreteType* DotOperatorExpression::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
 	if(m_target)
 		return m_target.tryGetConcreteType(depList);
 	if(depList && !m_resolved)
@@ -195,7 +215,7 @@ optional<Definition*> DotOperatorExpression::tryGetTargetDefinition(DotOpDepende
 		}
 		return LHS_dot_target; //Pass both none and null on
 	} else {
-		Type* LHS_type = m_LHS->tryGetConcreteType(depList);
+		ConcreteType* LHS_type = m_LHS->tryGetConcreteType(depList);
 		if(!LHS_type)
 			return boost::none;
 		std::cerr << "TODO: DotOperatorExpression doesn't know what to do with a type LHS" << std::endl;

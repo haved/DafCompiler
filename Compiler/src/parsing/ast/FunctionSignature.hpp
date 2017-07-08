@@ -17,6 +17,8 @@ public:
 	virtual ~FunctionParameter() {}
 	virtual void printSignature()=0;
 	virtual bool isCompileTimeOnly()=0;
+
+	virtual void makeConcrete(NamespaceStack& ns_stack)=0;
 };
 
 enum class ParameterModifier {
@@ -32,6 +34,8 @@ public:
 	ValueParameter(ParameterModifier modif, std::string&& name, TypeReference&& type);
 	void printSignature() override;
 	bool isCompileTimeOnly() override;
+
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 };
 
 // move a:$T
@@ -43,6 +47,8 @@ public:
 	ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName);
 	void printSignature() override;
 	bool isCompileTimeOnly() override;
+
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 };
 
 //TODO: Add restrictions here too
@@ -51,13 +57,15 @@ public:
 	TypedefParameter(std::string&& name);
 	void printSignature() override;
 	bool isCompileTimeOnly() override;
+
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 };
 
 enum class ReturnKind {
 	NO_RETURN, VALUE_RETURN, REF_RETURN, MUT_REF_RETURN
 };
 
-class FunctionType : public Type {
+class FunctionType : public Type, public ConcreteType {
 private:
 	std::vector<unique_ptr<FunctionParameter>> m_parameters;
 	ReturnKind m_returnKind;
@@ -67,13 +75,16 @@ private:
 	void printSignatureMustHaveList(bool withList);
 public:
 	FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range);
-	void printSignature() override; //With list
+	virtual void printSignature() override; //With list
 	void printSignatureMaybeList(); //Only list if parameters
 	inline std::vector<unique_ptr<FunctionParameter>>& getParams() { return m_parameters; }
 	void mergeInDefReturnKind(ReturnKind def);
 	inline ReturnKind getReturnKind() { return m_returnKind; }
 	inline bool ateEqualsSign() { return m_ateEquals; }
 	inline TypeReference&& reapReturnType() { return std::move(m_returnType); }
+
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
 };
 
 class FunctionExpression : public Expression {
@@ -91,6 +102,8 @@ public:
 	virtual void printSignature() override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+
 	virtual ExpressionKind getExpressionKind() const override;
 
 	llvm::Function* getPrototype();
@@ -98,5 +111,5 @@ public:
 	bool isFilled();
     void fillFunctionBody(CodegenLLVM& codegen);
 
-	virtual llvm::Value* codegenExpression(CodegenLLVM& codegen) override;
+	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };

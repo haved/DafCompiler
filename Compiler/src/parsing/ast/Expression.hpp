@@ -23,6 +23,9 @@ enum class DefinitionKind;
 struct EvaluatedExpression {
 	llvm::Value* value;
 	ConcreteType* type;
+	EvaluatedExpression() : value(nullptr), type(nullptr) {}
+	EvaluatedExpression(llvm::Value* value, ConcreteType* type) : value(value), type(type) {}
+	operator bool() const { return value && type; }
 };
 
 enum class ExpressionKind {
@@ -56,12 +59,12 @@ public:
 
 	//TODO =0
 	virtual void makeConcrete(NamespaceStack& ns_stack) { (void) ns_stack; std::cout << "TODO concrete expression" << std::endl;}
-    virtual Type* tryGetConcreteType(optional<DotOpDependencyList&> depList) { (void) depList; std::cout << "TODO get concrete type from expression" << std::endl; return nullptr;}
+    virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) { (void) depList; std::cout << "TODO get concrete type from expression" << std::endl; return nullptr;}
 
 	virtual void printSignature() = 0;
 	virtual ExpressionKind getExpressionKind() const { std::cout << "TODO: Expression kind undefined" << std::endl; return ExpressionKind::INT_LITERAL;}
 
-	virtual llvm::Value* codegenExpression(CodegenLLVM& codegen) {(void)codegen; std::cout << "TODO: Expression codegen" << std::endl; return nullptr; }
+	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) {(void)codegen; std::cout << "TODO: Expression codegen" << std::endl; return EvaluatedExpression(); }
 };
 
 class VariableExpression : public Expression {
@@ -75,7 +78,7 @@ public:
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	Definition* makeConcreteOrOtherDefinition(NamespaceStack& ns_stack);
-	virtual Type* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
 
 	std::string&& reapIdentifier() &&;
 
@@ -86,21 +89,31 @@ public:
 class IntegerConstantExpression: public Expression {
 private:
 	daf_largest_uint m_integer;
-    LiteralKind m_integerType;
+    PrimitiveType* m_type;
 public:
 	IntegerConstantExpression(daf_largest_uint integer, LiteralKind integerType, const TextRange& range);
+	IntegerConstantExpression(const IntegerConstantExpression& other) = delete;
+	~IntegerConstantExpression() = default;
+	IntegerConstantExpression& operator =(const IntegerConstantExpression& other) = delete;
 	void printSignature() override;
 
-	virtual llvm::Value* codegenExpression(CodegenLLVM& codegen) override;
+	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
 class RealConstantExpression : public Expression {
 private:
 	daf_largest_float m_real;
-	LiteralKind m_realType;
+	PrimitiveType* m_type;
 public:
 	RealConstantExpression(daf_largest_float real, LiteralKind realType, const TextRange& range);
+	RealConstantExpression(const RealConstantExpression& other) = delete;
+	~RealConstantExpression() = default;
+	RealConstantExpression& operator =(const RealConstantExpression& other) = delete;
 	void printSignature() override;
+
+	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
 class ConstantStringExpression : public Expression {
@@ -138,7 +151,7 @@ public:
 	virtual void printSignature() override;
 	void printLocationAndText();
 	virtual ExpressionKind getExpressionKind() const override;
-	virtual Type* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	bool tryResolve(DotOpDependencyList& depList);

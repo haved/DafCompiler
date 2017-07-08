@@ -36,9 +36,13 @@ int main(int argc, const char** argv) {
 
 	terminateIfErrors();
 
-    doCodegen(files);
+	doCodegen(files);
 
 	terminateIfErrors();
+
+	llvm::llvm_shutdown(); //There will still be objects on the heap after this ;(
+
+	puts("Shutdown gracefully");
 
 	return 0;
 }
