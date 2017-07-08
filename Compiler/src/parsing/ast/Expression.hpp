@@ -133,6 +133,8 @@ public:
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	virtual bool isStatement() override {return getInfixOp(m_op).statement;}
 	virtual void printSignature() override;
+
+	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
 class DotOperatorExpression : public Expression {

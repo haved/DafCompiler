@@ -9,3 +9,5 @@ namedef Ey := {
 	def float(c:int):= 0.5e2;
 	def double(c:int):= 0.6f64;
 };
+
+def main(a:i32) := 5+6;

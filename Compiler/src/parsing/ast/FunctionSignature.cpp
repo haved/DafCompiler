@@ -235,6 +235,7 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 
 	//TODO: Check if bodyValue's type matches the return type
 
+
 	codegen.Builder().CreateRet(bodyValue.value);
 
 	llvm::verifyFunction(*m_function);

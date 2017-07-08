@@ -7,6 +7,8 @@
 #include "CodegenLLVM.hpp"
 #include <iostream>
 
+using boost::none;
+
 void complainIfDefinitionNotLetOrDef(DefinitionKind kind, std::string& name, const TextRange& range) {
 	auto& out = logDaf(range, ERROR) << "expected a let or def, but '" << name << "' is a ";
 	printDefinitionKindName(kind, out) << std::endl;
@@ -111,6 +113,62 @@ void InfixOperatorExpression::printSignature() {
 	std::cout << getTokenTypeText(getInfixOp(m_op).tokenType);
 	m_RHS->printSignature();
 	std::cout << " ";
+}
+
+EvaluatedExpression InfixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
+	if(m_op != InfixOperator::PLUS && m_op != InfixOperator::MINUS
+	   && m_op != InfixOperator::MULT && m_op != InfixOperator::DIVIDE) {
+		logDaf(getRange(), ERROR) << "Unsupported infix operator as of yet: " << getTokenTypeText(getInfixOp(m_op).tokenType) << std::endl;
+		return EvaluatedExpression();
+	}
+
+	EvaluatedExpression LHS = m_LHS->codegenExpression(codegen);
+	EvaluatedExpression RHS = m_RHS->codegenExpression(codegen);
+	if(!LHS || !RHS)
+		return EvaluatedExpression();
+
+	{
+		bool rightTypes = true;
+		if(LHS.type->getConcreteTypeKind() != ConcreteTypeKind::PRIMITIVE) {
+			auto& out = logDaf(m_LHS->getRange(), ERROR) << "expected a number as LHS of " << getTokenTypeText(getInfixOp(m_op).tokenType) << "operator; not ";
+			LHS.type->printSignature();
+			out << std::endl;
+			rightTypes = false;
+		}
+		if(RHS.type->getConcreteTypeKind() != ConcreteTypeKind::PRIMITIVE) {
+			auto& out = logDaf(m_RHS->getRange(), ERROR) << "expected a number as RHS of " << getTokenTypeText(getInfixOp(m_op).tokenType) << "operator; not ";
+			RHS.type->printSignature();
+			out << std::endl;
+			rightTypes = false;
+		}
+		if(!rightTypes)
+			return EvaluatedExpression();
+	}
+
+	PrimitiveType* LHS_prim = static_cast<PrimitiveType*>(LHS.type);
+	PrimitiveType* RHS_prim = static_cast<PrimitiveType*>(RHS.type);
+
+	if(LHS_prim != RHS_prim) {
+		logDaf(getRange(), ERROR) << "As of yet I don't support binary operators on different types :(" << std::endl;
+		return EvaluatedExpression();
+	}
+
+	switch(m_op) {
+	case InfixOperator::PLUS:
+		return EvaluatedExpression(codegen.Builder().CreateAdd(LHS.value, RHS.value, "addtmp"), LHS_prim);
+	case InfixOperator::MINUS:
+		return EvaluatedExpression(codegen.Builder().CreateSub(LHS.value, RHS.value, "minustmp"), LHS_prim);
+	case InfixOperator::MULT:
+		return EvaluatedExpression(codegen.Builder().CreateMul(LHS.value, RHS.value, "multmp"), LHS_prim);
+	case InfixOperator::DIVIDE:
+		if(LHS_prim->isSigned())
+			return EvaluatedExpression(codegen.Builder().CreateSDiv(LHS.value, RHS.value, "divtmp"), LHS_prim);
+		else
+			return EvaluatedExpression(codegen.Builder().CreateUDiv(LHS.value, RHS.value, "divtmp"), LHS_prim);
+    default:
+		assert(false);
+		return EvaluatedExpression();
+	}
 }
 
 DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range) : Expression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_LHS_dot(nullptr), m_LHS_target(nullptr), m_target(), m_resolved(false) {

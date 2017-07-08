@@ -28,11 +28,18 @@ public:
 	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList);
 };
 
+enum class ConcreteTypeKind {
+	FUNCTION,
+	PRIMITIVE,
+	OTHER
+};
+
 class ConcreteType {
 public:
 	ConcreteType()=default;
 	virtual ~ConcreteType()=default;
 	virtual void printSignature()=0;
+	virtual ConcreteTypeKind getConcreteTypeKind()=0;
 };
 
 class TypeReference {
@@ -84,6 +91,7 @@ private:
 public:
 	PrimitiveType(LiteralKind literalKind, TokenType token, bool floatingPoint, Signed isSigned, int bitCount);
 	virtual void printSignature() override;
+	virtual ConcreteTypeKind getConcreteTypeKind() override { return ConcreteTypeKind::PRIMITIVE; }
 
 	LiteralKind getLiteralKind();
 	TokenType getTokenType();

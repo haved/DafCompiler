@@ -85,6 +85,7 @@ public:
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual ConcreteTypeKind getConcreteTypeKind() override { return ConcreteTypeKind::FUNCTION; }
 };
 
 class FunctionExpression : public Expression {
