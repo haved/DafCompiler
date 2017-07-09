@@ -128,12 +128,16 @@ private:
 	unique_ptr<Expression> m_LHS;
 	InfixOperator m_op;
 	unique_ptr<Expression> m_RHS;
+	ConcreteType *m_LHS_type, *m_RHS_type;
+	PrimitiveType *m_result_type;
+	bool m_broken;
 public:
 	InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS);
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	virtual bool isStatement() override {return getInfixOp(m_op).statement;}
 	virtual void printSignature() override;
 
+	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
