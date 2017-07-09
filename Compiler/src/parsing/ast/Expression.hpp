@@ -59,7 +59,8 @@ public:
 
 	//TODO =0
 	virtual void makeConcrete(NamespaceStack& ns_stack) { (void) ns_stack; std::cout << "TODO concrete expression" << std::endl;}
-    virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) { (void) depList; std::cout << "TODO get concrete type from expression" << std::endl; return nullptr;}
+	//Returning nullptr means there is no point in trying again later, but some might try
+    virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) { (void) depList; std::cout << "TODO get concrete type from expression" << std::endl; return nullptr;}
 
 	virtual void printSignature() = 0;
 	virtual ExpressionKind getExpressionKind() const { std::cout << "TODO: Expression kind undefined" << std::endl; return ExpressionKind::INT_LITERAL;}
@@ -71,6 +72,7 @@ class VariableExpression : public Expression {
 private:
 	std::string m_name;
 	DefOrLet m_target;
+	bool m_makeConcreteCalled;
 public:
 	VariableExpression(const std::string& name, const TextRange& range);
 	VariableExpression(VariableExpression& other) = delete;
@@ -78,7 +80,7 @@ public:
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	Definition* makeConcreteOrOtherDefinition(NamespaceStack& ns_stack);
-	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
 
 	std::string&& reapIdentifier() &&;
 
@@ -97,7 +99,8 @@ public:
 	IntegerConstantExpression& operator =(const IntegerConstantExpression& other) = delete;
 	void printSignature() override;
 
-	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
@@ -112,7 +115,8 @@ public:
 	RealConstantExpression& operator =(const RealConstantExpression& other) = delete;
 	void printSignature() override;
 
-	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
@@ -130,7 +134,7 @@ private:
 	unique_ptr<Expression> m_RHS;
 	ConcreteType *m_LHS_type, *m_RHS_type;
 	PrimitiveType *m_result_type;
-	bool m_broken;
+	bool m_triedOurBest;
 public:
 	InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS);
 	InfixOperatorExpression(const InfixOperatorExpression& other) = delete;
@@ -140,7 +144,7 @@ public:
 	virtual bool isStatement() override {return getInfixOp(m_op).statement;}
 	virtual void printSignature() override;
 
-	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
@@ -160,7 +164,7 @@ public:
 	virtual void printSignature() override;
 	void printLocationAndText();
 	virtual ExpressionKind getExpressionKind() const override;
-	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	bool tryResolve(DotOpDependencyList& depList);

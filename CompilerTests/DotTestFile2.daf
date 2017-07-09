@@ -1,4 +1,4 @@
-// -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
+// -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f DotTestFile2.daf" -*-
 
 namedef source := {
 	pub namedef IO2 := IO3;

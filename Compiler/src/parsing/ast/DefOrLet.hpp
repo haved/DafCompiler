@@ -30,7 +30,7 @@ public:
 	Def* getDef();
 	Let* getLet();
 	Definition* getDefinition();
-	ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList);
+	optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList);
 	operator bool() const;
 };
 

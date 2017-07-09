@@ -55,7 +55,7 @@ public:
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList);
+	optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList);
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 
@@ -74,7 +74,7 @@ public:
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList);
+	optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList);
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 
@@ -92,7 +92,7 @@ public:
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList);
+	optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList);
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 

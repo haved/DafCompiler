@@ -25,7 +25,7 @@ public:
 	virtual void printSignature()=0;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack);
-	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList);
+	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList);
 };
 
 enum class ConcreteTypeKind {
@@ -55,7 +55,7 @@ public:
 	void printSignature() const;
 
 	void makeConcrete(NamespaceStack& ns_stack);
-	ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList);
+	optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList);
 };
 
 class TypedefDefinition;
@@ -74,7 +74,7 @@ public:
 	void printSignature() override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
 };
 
 enum class Signed {
@@ -113,7 +113,7 @@ public:
 	~ConcreteTypeUse() = default;
 	virtual void printSignature() override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
 };
 
 

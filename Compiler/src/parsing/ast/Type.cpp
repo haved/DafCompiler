@@ -19,7 +19,7 @@ void Type::makeConcrete(NamespaceStack& ns_stack) {
 	std::cout << "TODO: Type yet to be made concrete" << std::endl;
 }
 
-ConcreteType* Type::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+optional<ConcreteType*> Type::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
 	(void) depList;
 	std::cout << "TODO: Type::getConcreteType() for some subclass" << std::endl;
 	return nullptr;
@@ -34,7 +34,7 @@ void TypeReference::makeConcrete(NamespaceStack& ns_stack) {
 		m_type->makeConcrete(ns_stack);
 }
 
-ConcreteType* TypeReference::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+optional<ConcreteType*> TypeReference::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
 	if(m_type)
 		return m_type->tryGetConcreteType(depList);
 	return nullptr;
@@ -67,7 +67,7 @@ void AliasForType::makeConcrete(NamespaceStack& ns_stack) {
 	}
 }
 
-ConcreteType* AliasForType::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+optional<ConcreteType*> AliasForType::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
     if(m_target)
 		return m_target->tryGetConcreteType(depList);
 	return nullptr;
@@ -150,7 +150,7 @@ void ConcreteTypeUse::makeConcrete(NamespaceStack& ns_stack) {
 	(void) ns_stack;
 }
 
-ConcreteType* ConcreteTypeUse::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+optional<ConcreteType*> ConcreteTypeUse::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
 	(void) depList;
 	return m_type;
 }

@@ -84,7 +84,7 @@ public:
 	inline TypeReference&& reapReturnType() { return std::move(m_returnType); }
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
 	virtual ConcreteTypeKind getConcreteTypeKind() override { return ConcreteTypeKind::FUNCTION; }
 };
 
@@ -103,7 +103,7 @@ public:
 	virtual void printSignature() override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual ConcreteType* tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
 
 	virtual ExpressionKind getExpressionKind() const override;
 

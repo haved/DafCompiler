@@ -34,12 +34,12 @@ void Let::makeConcrete(NamespaceStack& ns_stack) {
 		m_type.makeConcrete(ns_stack);
 }
 
-ConcreteType* Def::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+optional<ConcreteType*> Def::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
 	//TODO: Here there can be an infinite loop
 	return m_expression->tryGetConcreteType(depList);
 }
 
-ConcreteType* Let::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+optional<ConcreteType*> Let::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
 	//TODO: Infinite loop potential
 	return m_expression->tryGetConcreteType(depList);
 }
@@ -123,7 +123,7 @@ void TypedefDefinition::makeConcrete(NamespaceStack& ns_stack) {
 	m_type.makeConcrete(ns_stack);
 }
 
-ConcreteType* TypedefDefinition::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+optional<ConcreteType*> TypedefDefinition::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
 	return m_type.tryGetConcreteType(depList);
 }
 

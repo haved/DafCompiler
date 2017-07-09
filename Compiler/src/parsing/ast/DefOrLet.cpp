@@ -55,7 +55,7 @@ Definition* DefOrLet::getDefinition() {
 	return m_target;
 }
 
-ConcreteType* DefOrLet::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+optional<ConcreteType*> DefOrLet::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
 	if(isLet())
 		return static_cast<Let*>(m_target)->tryGetConcreteType(depList);
 	assert(isDef());

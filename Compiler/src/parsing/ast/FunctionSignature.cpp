@@ -158,7 +158,7 @@ void FunctionType::makeConcrete(NamespaceStack& ns_stack) {
 	}
 }
 
-ConcreteType* FunctionType::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+optional<ConcreteType*> FunctionType::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
 	(void) depList;
 	return this;
 }
@@ -185,7 +185,7 @@ void FunctionExpression::makeConcrete(NamespaceStack& ns_stack) {
 	m_body->makeConcrete(ns_stack);
 }
 
-ConcreteType* FunctionExpression::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+optional<ConcreteType*> FunctionExpression::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
 	(void) depList;
 	return m_type.get();
 }
