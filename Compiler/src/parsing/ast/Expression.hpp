@@ -133,6 +133,9 @@ private:
 	bool m_broken;
 public:
 	InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS);
+	InfixOperatorExpression(const InfixOperatorExpression& other) = delete;
+	~InfixOperatorExpression() = default;
+	InfixOperatorExpression& operator=(const InfixOperatorExpression& other) = delete;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	virtual bool isStatement() override {return getInfixOp(m_op).statement;}
 	virtual void printSignature() override;
