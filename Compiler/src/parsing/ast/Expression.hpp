@@ -20,6 +20,21 @@ class Lexer;
 class Definition;
 enum class DefinitionKind;
 
+class ConcreteTypeAttempt {
+private:
+	bool m_broken;
+	ConcreteType* m_typeptr;
+	inline ConcreteTypeAttempt(ConcreteType* typeptr) : m_broken(false), m_typeptr(typeptr) {}
+	inline ConcreteTypeAttempt() : m_broken(true), m_typeptr(nullptr) {}
+public:
+	static ConcreteTypeAttempt here(ConcreteType* typeptr) { return ConcreteTypeAttempt(typeptr); }
+	static ConcreteTypeAttempt tryLater() { return ConcreteTypeAttempt(nullptr); }
+	static ConcreteTypeAttempt failed() { return ConcreteTypeAttempt(); } //TODO: Rename to lostCause
+	inline bool hasType() { return m_typeptr; }
+	inline ConcreteType* getType() { return m_typeptr; }
+	inline bool isLostCause() { return m_broken; }
+};
+
 struct EvaluatedExpression {
 	llvm::Value* value;
 	ConcreteType* type;
@@ -55,15 +70,12 @@ public:
 	// === Used by Statement parser ===
 	virtual bool isStatement();
 	virtual bool evaluatesToValue() const; //This expression can't be returned unless this is true
-	//Also this expression will require a trailing semicolon if used as a statement
+	virtual void printSignature() = 0;
+	virtual ExpressionKind getExpressionKind() const { std::cout << "TODO: Expression kind undefined" << std::endl; return ExpressionKind::INT_LITERAL;}
 
 	//TODO =0
 	virtual void makeConcrete(NamespaceStack& ns_stack) { (void) ns_stack; std::cout << "TODO concrete expression" << std::endl;}
-	//Returning nullptr means there is no point in trying again later, but some might try
-    virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) { (void) depList; std::cout << "TODO get concrete type from expression" << std::endl; return nullptr;}
-
-	virtual void printSignature() = 0;
-	virtual ExpressionKind getExpressionKind() const { std::cout << "TODO: Expression kind undefined" << std::endl; return ExpressionKind::INT_LITERAL;}
+    virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList)=0;
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) {(void)codegen; std::cout << "TODO: Expression codegen" << std::endl; return EvaluatedExpression(); }
 };
@@ -72,20 +84,19 @@ class VariableExpression : public Expression {
 private:
 	std::string m_name;
 	DefOrLet m_target;
-	bool m_makeConcreteCalled;
+	bool m_triedMadeConcrete;
 public:
 	VariableExpression(const std::string& name, const TextRange& range);
 	VariableExpression(VariableExpression& other) = delete;
 	VariableExpression& operator =(VariableExpression& other) = delete;
-
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	Definition* makeConcreteOrOtherDefinition(NamespaceStack& ns_stack);
-	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
-
 	std::string&& reapIdentifier() &&;
 
 	virtual void printSignature() override;
 	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::VARIABLE; }
+
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	Definition* makeConcreteOrOtherDefinition(NamespaceStack& ns_stack);
+	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
 };
 
 class IntegerConstantExpression: public Expression {
@@ -100,7 +111,7 @@ public:
 	void printSignature() override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
@@ -116,7 +127,7 @@ public:
 	void printSignature() override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
@@ -132,9 +143,8 @@ private:
 	unique_ptr<Expression> m_LHS;
 	InfixOperator m_op;
 	unique_ptr<Expression> m_RHS;
-	ConcreteType *m_LHS_type, *m_RHS_type;
-	PrimitiveType *m_result_type;
-	bool m_triedOurBest;
+	PrimitiveType* m_result_type;
+	bool m_broken;
 public:
 	InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS);
 	InfixOperatorExpression(const InfixOperatorExpression& other) = delete;
@@ -144,8 +154,11 @@ public:
 	virtual bool isStatement() override {return getInfixOp(m_op).statement;}
 	virtual void printSignature() override;
 
-	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
+
+private:
+	void findResultTypeOrBroken(ConcreteType* LHS_type, ConcreteType* RHS_type);
 };
 
 class DotOperatorExpression : public Expression {
@@ -155,7 +168,7 @@ private:
 	DotOperatorExpression* m_LHS_dot;
 	Definition* m_LHS_target;
 	DefOrLet m_target;
-	bool m_resolved;
+	bool m_done;
 public:
 	DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range);
 	DotOperatorExpression(const DotOperatorExpression& other) = delete;
@@ -164,7 +177,7 @@ public:
 	virtual void printSignature() override;
 	void printLocationAndText();
 	virtual ExpressionKind getExpressionKind() const override;
-	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	bool tryResolve(DotOpDependencyList& depList);
@@ -180,9 +193,11 @@ private:
 	unique_ptr<Expression> m_RHS;
 public:
 	PrefixOperatorExpression(const PrefixOperator& op, int opLine, int opCol, std::unique_ptr<Expression>&& RHS);
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	bool isStatement() override {return m_op.statement;}
 	void printSignature() override;
+
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
 };
 
 class PostfixCrementExpression : public Expression {
@@ -191,9 +206,11 @@ private:
 	unique_ptr<Expression> m_LHS;
 public:
 	PostfixCrementExpression(std::unique_ptr<Expression>&& LHS, bool decrement, int opLine, int opEndCol);
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	bool isStatement() override {return true;}
 	void printSignature() override;
+
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
 };
 
 class FunctionCallArgument {
@@ -227,7 +244,7 @@ public:
 	void printSignature() override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
