@@ -34,6 +34,7 @@ NameScopeExpressionKind NameScope::getNameScopeExpressionKind() {
 
 void NameScope::makeConcrete(NamespaceStack& ns_stack) {
 	ns_stack.push(this);
+	assureNameMapFilled();
 
 	for(auto it = m_definitions.begin(); it != m_definitions.end(); ++it) {
 		(*it)->makeConcrete(ns_stack); //we ignore the returned bool //TODO: Does it need to return a bool?

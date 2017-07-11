@@ -154,3 +154,13 @@ optional<ConcreteType*> ConcreteTypeUse::tryGetConcreteType(optional<DotOpDepend
 	(void) depList;
 	return m_type;
 }
+
+VoidType voidType;
+
+void VoidType::printSignature() {
+	std::cout << "void";
+}
+
+VoidType* getVoidType() {
+	return &voidType;
+}

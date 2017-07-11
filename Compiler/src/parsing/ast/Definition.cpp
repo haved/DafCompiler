@@ -35,12 +35,10 @@ void Let::makeConcrete(NamespaceStack& ns_stack) {
 }
 
 optional<ConcreteType*> Def::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
-	//TODO: Here there can be an infinite loop
 	return m_expression->tryGetConcreteType(depList);
 }
 
 optional<ConcreteType*> Let::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
-	//TODO: Infinite loop potential
 	return m_expression->tryGetConcreteType(depList);
 }
 
@@ -48,15 +46,7 @@ void Def::globalCodegen(CodegenLLVM& codegen) {
 	ExpressionKind kind = m_expression->getExpressionKind();
 	if(kind == ExpressionKind::FUNCTION) {
 		FunctionExpression* function = static_cast<FunctionExpression*>(m_expression.get());
-		if(!function->getPrototype()) {
-			if(!function->makePrototype(codegen, m_name))
-				return;
-		}
-	    if(!function->isFilled()) {
-			function->fillFunctionBody(codegen);
-		} else {
-			std::cerr << "WHAT: Why was a function expression in a def filled already?" << std::endl;
-		}
+		function->codegenFunction(codegen, m_name);
 	} else {
 		std::cout << "TODO: What to do when a def isn't a function, just an expression?" << std::endl;
 	}

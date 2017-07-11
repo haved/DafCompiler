@@ -163,6 +163,14 @@ optional<ConcreteType*> FunctionType::tryGetConcreteType(optional<DotOpDependenc
 	return this;
 }
 
+ConcreteType* FunctionType::getConcreteReturnKind() {
+	if(!m_returnType)
+		return getVoidType();
+	optional<ConcreteType*> concreteReturnType = m_returnType.tryGetConcreteType(boost::none);
+	assert(concreteReturnType);
+	return *concreteReturnType;
+}
+
 
 FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range) : Expression(range), m_type(std::move(type)), m_body(std::move(body)), m_function(nullptr), m_filled(false), m_broken(false) {
 	assert(m_type);
@@ -190,6 +198,15 @@ optional<ConcreteType*> FunctionExpression::tryGetConcreteType(optional<DotOpDep
 	return m_type.get();
 }
 
+EvaluatedExpression FunctionExpression::codegenExpression(CodegenLLVM& codegen) {
+	if(!m_function)
+		makePrototype(codegen, "anon_function");
+	if(!m_filled)
+		fillFunctionBody(codegen);
+	if(!m_filled) //broken
+		return EvaluatedExpression();
+	return EvaluatedExpression(m_function, m_type.get());
+}
 
 ExpressionKind FunctionExpression::getExpressionKind() const {
 	return ExpressionKind::FUNCTION;
@@ -204,7 +221,7 @@ llvm::Function* FunctionExpression::makePrototype(CodegenLLVM& codegen, const st
 	if(m_function)
 		return m_function;
 
-	std::vector<llvm::Type*> argumentTypes; //TODO
+	std::vector<llvm::Type*> argumentTypes; //TODO, also return type
 	llvm::FunctionType* FT = llvm::FunctionType::get(llvm::Type::getVoidTy(codegen.Context()), argumentTypes, false);
 
 	m_function = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, name, &codegen.Module());
@@ -222,28 +239,36 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 	if(m_broken)
 		return;
 
+	llvm::BasicBlock* oldInsertBlock = codegen.Builder().GetInsertBlock();
+
 	llvm::BasicBlock* BB = llvm::BasicBlock::Create(codegen.Context(), "entry", m_function);
 	codegen.Builder().SetInsertPoint(BB);
 	//TODO: Function parameter stuff
 
+	m_filled = true;
+
 	EvaluatedExpression bodyValue = m_body->codegenExpression(codegen);
-	if(!bodyValue) {
+	ConcreteType* return_type = m_type->getConcreteReturnKind();
+	if(!bodyValue || !return_type) {
 		m_function->eraseFromParent();
 		m_broken = true;
 		return;
 	}
 
-	//TODO: Check if bodyValue's type matches the return type
+	if(bodyValue.type != return_type) {
+		auto& out = logDaf(getRange(), ERROR) << "wrong return type in function. Expected ";
+		return_type->printSignature();
 
+	}
 
-	codegen.Builder().CreateRet(bodyValue.value);
+	if(bodyValue.type == getVoidType())
+		codegen.Builder().CreateRetVoid();
+	else
+		codegen.Builder().CreateRet(bodyValue.value);
 
 	llvm::verifyFunction(*m_function);
 
-	m_filled = true;
+	if(oldInsertBlock)
+		codegen.Builder().SetInsertPoint(oldInsertBlock);
 }
 
-EvaluatedExpression FunctionExpression::codegenExpression(CodegenLLVM& codegen) {
-    assert(false && "Tried to get a Value* from a FunctionExpression. TODO");
-	(void) codegen;
-}

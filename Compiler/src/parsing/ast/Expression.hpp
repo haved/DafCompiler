@@ -209,15 +209,26 @@ public:
 	void printSignature();
 };
 
+class FunctionType;
+
 class FunctionCallExpression : public Expression {
 private:
 	unique_ptr<Expression> m_function;
 	std::vector<FunctionCallArgument> m_args;
+	bool m_broken;
+	FunctionType* m_function_type;
+	ConcreteType* m_function_return_type;
 public:
 	FunctionCallExpression(unique_ptr<Expression>&& function, std::vector<FunctionCallArgument>&& arguments, int lastLine, int lastCol);
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	FunctionCallExpression(const FunctionCallExpression& other) = delete;
+	~FunctionCallExpression() = default;
+	FunctionCallExpression& operator =(const FunctionCallExpression& other) = delete;
 	bool isStatement() override {return true;}
 	void printSignature() override;
+
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
 class ArrayAccessExpression : public Expression {

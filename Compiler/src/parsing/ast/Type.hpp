@@ -31,7 +31,7 @@ public:
 enum class ConcreteTypeKind {
 	FUNCTION,
 	PRIMITIVE,
-	OTHER
+	VOID
 };
 
 class ConcreteType {
@@ -116,5 +116,12 @@ public:
 	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
 };
 
+class VoidType : public ConcreteType {
+public:
+	virtual void printSignature() override;
+    virtual ConcreteTypeKind getConcreteTypeKind() override { return ConcreteTypeKind::VOID; }
+};
+
+VoidType* getVoidType();
 
 //Function type defined in FunctionSignature.hpp

@@ -4,6 +4,7 @@
 #include "DafLogger.hpp"
 #include "parsing/ast/Definition.hpp"
 #include "parsing/ast/NameScope.hpp"
+#include "parsing/ast/FunctionSignature.hpp"
 #include "CodegenLLVM.hpp"
 #include "parsing/semantic/OperatorCodegen.hpp"
 #include <iostream>
@@ -319,14 +320,8 @@ void FunctionCallArgument::printSignature() {
 }
 
 FunctionCallExpression::FunctionCallExpression(unique_ptr<Expression>&& function, std::vector<FunctionCallArgument>&& arguments, int lastLine, int lastCol)
-	: Expression(TextRange(function->getRange(), lastLine, lastCol)), m_function(std::move(function)), m_args(std::move(arguments)) {
+	: Expression(TextRange(function->getRange(), lastLine, lastCol)), m_function(std::move(function)), m_args(std::move(arguments)), m_broken(false), m_function_type(nullptr), m_function_return_type(nullptr) {
 	assert(m_function); //You can't call none
-}
-
-void FunctionCallExpression::makeConcrete(NamespaceStack& ns_stack) {
-    m_function->makeConcrete(ns_stack);
-	for(auto it = m_args.begin(); it != m_args.end(); ++it)
-		it->makeConcrete(ns_stack);
 }
 
 void FunctionCallExpression::printSignature() {
@@ -339,6 +334,82 @@ void FunctionCallExpression::printSignature() {
 		it->printSignature();
 	}
 	std::cout << ")";
+}
+
+void FunctionCallExpression::makeConcrete(NamespaceStack& ns_stack) {
+    m_function->makeConcrete(ns_stack);
+	for(auto it = m_args.begin(); it != m_args.end(); ++it)
+		it->makeConcrete(ns_stack);
+}
+
+optional<ConcreteType*> FunctionCallExpression::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+	if(m_function_return_type)
+		return m_function_return_type;
+	if(m_broken)
+		return nullptr;
+	optional<ConcreteType*> LHS_type_opt = m_function->tryGetConcreteType(depList);
+	if(!LHS_type_opt)
+		return none;
+	ConcreteType* LHS_type = *LHS_type_opt;
+	if(!LHS_type) {
+		m_broken = true;
+		return nullptr;
+	}
+
+	//TODO: Allow function pointer as well
+    if(LHS_type->getConcreteTypeKind() != ConcreteTypeKind::FUNCTION) {
+		auto& out = logDaf(getRange(), ERROR) << "expected function call to call, you know, a function; not a ";
+		LHS_type->printSignature();
+		out << std::endl;
+		m_broken = true;
+		return nullptr;
+	}
+
+	m_function_type = static_cast<FunctionType*>(LHS_type);
+	optional<ConcreteType*> result =  m_function_type->getReturnType().tryGetConcreteType(depList);
+	if(!result)
+		return none;
+	if(*result == nullptr)
+		m_broken = true;
+	m_function_return_type = *result;
+	return m_function_return_type;
+}
+
+EvaluatedExpression FunctionCallExpression::codegenExpression(CodegenLLVM& codegen) {
+	if(m_broken)
+		return EvaluatedExpression();
+	if(!m_function_type) {
+		tryGetConcreteType(none);
+		if(!m_function_type)
+			return EvaluatedExpression();
+	}
+
+	EvaluatedExpression function = m_function->codegenExpression(codegen);
+	if(!function)
+		return EvaluatedExpression();
+	//TODO: Check m_function_type matches what we got from m_function
+
+	std::vector<llvm::Value*> ArgsV;
+	for(auto it = m_args.begin(); it != m_args.end(); ++it) {
+		//TODO: Mut references as what not. We're supposed to pass references remember
+		EvaluatedExpression arg = it->getExpression().codegenExpression(codegen);
+		if(!arg)
+			return EvaluatedExpression();
+		ArgsV.push_back(arg.value);
+	}
+
+	if(function.type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION) {
+		FunctionType* function_type = static_cast<FunctionType*>(function.type);
+		optional<ConcreteType*> return_type = function_type->getReturnType().tryGetConcreteType(none);
+		if(!return_type || !*return_type)
+			return EvaluatedExpression();
+		llvm::Function* function_value = static_cast<llvm::Function*>(function.value);
+		llvm::Value* call = codegen.Builder().CreateCall(function_value, ArgsV);
+		return EvaluatedExpression(call, *return_type);
+	} else {
+		std::cerr << "TODO: handle function calls on something other than Function*" << std::endl;
+		return EvaluatedExpression();
+	}
 }
 
 ArrayAccessExpression::ArrayAccessExpression(unique_ptr<Expression>&& array, unique_ptr<Expression>&& index, int lastLine, int lastCol) : Expression(TextRange(array->getRange(), lastLine, lastCol)), m_array(std::move(array)), m_index(std::move(index)) {

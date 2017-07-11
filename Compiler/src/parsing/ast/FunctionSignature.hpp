@@ -69,7 +69,7 @@ class FunctionType : public Type, public ConcreteType {
 private:
 	std::vector<unique_ptr<FunctionParameter>> m_parameters;
 	ReturnKind m_returnKind;
-	TypeReference m_returnType;
+	TypeReference m_returnType; //null means void
 	bool m_ateEquals;
 	bool m_cmpTimeOnly;
 	void printSignatureMustHaveList(bool withList);
@@ -81,7 +81,9 @@ public:
 	void mergeInDefReturnKind(ReturnKind def);
 	inline ReturnKind getReturnKind() { return m_returnKind; }
 	inline bool ateEqualsSign() { return m_ateEquals; }
+	inline TypeReference& getReturnType() { return m_returnType; } //TODO: Add support for void return
 	inline TypeReference&& reapReturnType() { return std::move(m_returnType); }
+	ConcreteType* getConcreteReturnKind();
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
@@ -95,22 +97,20 @@ private:
 	llvm::Function* m_function;
 	bool m_filled;
 	bool m_broken;
+
+	llvm::Function* getPrototype();
+	llvm::Function* makePrototype(CodegenLLVM& codegen, const std::string& name);
+	bool isFilled();
+    void fillFunctionBody(CodegenLLVM& codegen);
 public:
 	FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range);
 	FunctionExpression(const FunctionExpression& other) = delete;
 	~FunctionExpression() = default;
 	FunctionExpression& operator =(const FunctionExpression& other) = delete;
 	virtual void printSignature() override;
+	virtual ExpressionKind getExpressionKind() const override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
-
-	virtual ExpressionKind getExpressionKind() const override;
-
-	llvm::Function* getPrototype();
-	llvm::Function* makePrototype(CodegenLLVM& codegen, const std::string& name);
-	bool isFilled();
-    void fillFunctionBody(CodegenLLVM& codegen);
-
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
