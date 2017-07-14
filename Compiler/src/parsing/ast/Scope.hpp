@@ -19,7 +19,7 @@ public:
 	virtual bool isStatement() override; //true
 	virtual bool evaluatesToValue() const override; //We can only be a finalOutExpression if we ourselves have one
 
-	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 
 	virtual void printSignature() override;

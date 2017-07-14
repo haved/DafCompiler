@@ -7,6 +7,7 @@ DotOp::DotOp(DotOperatorExpression* expr) : m_kind(DotOpKind::EXPRESSION), m_dot
 DotOp::DotOp(NameScopeDotOperator* namescope) : m_kind(DotOpKind::NAME_SCOPE), m_dotOp(namescope) {}
 
 void DotOp::printLocationAndText() const {
+	assert(isReal());
 	if(m_kind == DotOpKind::EXPRESSION)
 		static_cast<DotOperatorExpression*>(m_dotOp)->printLocationAndText();
 	else if(m_kind == DotOpKind::NAME_SCOPE)
@@ -18,6 +19,7 @@ void DotOp::printLocationAndText() const {
 }
 
 bool DotOp::tryResolve(DotOpDependencyList& depList) const {
+	assert(isReal());
 	if(m_kind == DotOpKind::EXPRESSION)
 		return static_cast<DotOperatorExpression*>(m_dotOp)->tryResolve(depList);
 	assert(m_kind == DotOpKind::NAME_SCOPE);
@@ -32,9 +34,18 @@ bool DotOp::operator ==(const DotOp& other) const {
 	return m_dotOp == other.m_dotOp ? ({ assert(m_kind == other.m_kind); true; }) : false;
 }
 
+bool DotOp::isReal() const {
+	return m_dotOp;
+}
+
+DotOp DotOp::none() {
+	return DotOp((DotOperatorExpression*)nullptr);
+}
+
 DotOpDependencyList::DotOpDependencyList(DotOp main) : m_main(main), m_dependencies() {}
 
 void DotOpDependencyList::addUnresolvedDotOperator(DotOp dependency) {
+	assert(dependency.isReal());
 	m_dependencies.insert(dependency);
 }
 
@@ -45,7 +56,7 @@ bool DotOpDependencyList::tryResolve(std::map<DotOp, DotOpDependencyList>& unres
 			m_main.printLocationAndText();
 			return true;
 		}
-		if(unresolved.find(*dependency) != unresolved.end())
+		if(unresolved.find(*dependency) != unresolved.end()) //TODO: Check is_resolved and not this O(log n) shit
 			return false; //We can't be resolved
 	}
 

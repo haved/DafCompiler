@@ -65,3 +65,20 @@ void WithExpression::printSignature() {
 		m_else_body->printSignature();
 	}
 }
+
+void WithExpression::makeConcrete(NamespaceStack& ns_stack) {
+	(void) ns_stack;
+	std::cerr << "with expression make concrete is yet to be implemented" << std::endl;
+}
+
+ConcreteTypeAttempt WithExpression::tryGetConcreteType(DotOpDependencyList& depList) {
+	(void) depList;
+	std::cerr << "With expression tryGetConcreteType isn't implemented" << std::endl;
+	return ConcreteTypeAttempt::failed();
+}
+
+EvaluatedExpression WithExpression::codegenExpression(CodegenLLVM& codegen) {
+	(void) codegen;
+	std::cerr << "with expression codegenExpression isn't implemented" << std::endl;
+	return EvaluatedExpression();
+}

@@ -42,7 +42,10 @@ class WithExpression : public Expression {
 public:
 	WithExpression(With_As_Construct&& withConstruct, int startLine, int startCol, unique_ptr<Expression>&& expression, unique_ptr<Expression>&& m_else_body);
 	void printSignature() override;
-    //virtual Type* tryGetConcreteType() override { return nullptr; } //TODO
 	inline bool isStatement() override { return m_expression->isStatement(); }
 	virtual bool evaluatesToValue() const override { return m_expression->evaluatesToValue(); }
+
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
+	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };

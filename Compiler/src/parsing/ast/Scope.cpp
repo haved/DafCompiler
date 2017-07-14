@@ -29,10 +29,10 @@ void Scope::makeConcrete(NamespaceStack& ns_stack) {
 	ns_stack.pop();
 }
 
-optional<ConcreteType*> Scope::tryGetConcreteType(optional<DotOpDependencyList&> depList) { //override
+ConcreteTypeAttempt Scope::tryGetConcreteType(DotOpDependencyList& depList) { //override
 	if(m_outExpression)
 		return m_outExpression->tryGetConcreteType(depList);
-    return nullptr; //TODO: Return void type
+    return ConcreteTypeAttempt::here(getVoidType());
 }
 
 void Scope::printSignature() { //override

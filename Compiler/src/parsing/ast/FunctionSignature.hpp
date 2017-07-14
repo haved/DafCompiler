@@ -6,7 +6,9 @@
 #include "parsing/ast/Expression.hpp"
 #include "parsing/semantic/NamespaceStack.hpp"
 #include "CodegenLLVMForward.hpp"
+#include <boost/optional.hpp>
 
+using boost::optional;
 using std::unique_ptr;
 
 class FunctionParameter {
@@ -70,6 +72,7 @@ private:
 	std::vector<unique_ptr<FunctionParameter>> m_parameters;
 	ReturnKind m_returnKind;
 	TypeReference m_returnType; //null means void
+	optional<ConcreteType*> m_concreteReturnType;
 	bool m_ateEquals;
 	bool m_cmpTimeOnly;
 	void printSignatureMustHaveList(bool withList);
@@ -81,12 +84,12 @@ public:
 	void mergeInDefReturnKind(ReturnKind def);
 	inline ReturnKind getReturnKind() { return m_returnKind; }
 	inline bool ateEqualsSign() { return m_ateEquals; }
-	inline TypeReference& getReturnType() { return m_returnType; } //TODO: Add support for void return
+	inline TypeReference& getReturnType() { return m_returnType; }
 	inline TypeReference&& reapReturnType() { return std::move(m_returnType); }
-	ConcreteType* getConcreteReturnKind();
+	ConcreteType* getConcreteReturnType();
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
 	virtual ConcreteTypeKind getConcreteTypeKind() override { return ConcreteTypeKind::FUNCTION; }
 };
 
@@ -98,10 +101,8 @@ private:
 	bool m_filled;
 	bool m_broken;
 
-	llvm::Function* getPrototype();
-	llvm::Function* makePrototype(CodegenLLVM& codegen, const std::string& name);
-	bool isFilled();
-    void fillFunctionBody(CodegenLLVM& codegen);
+	void makePrototype(CodegenLLVM& codegen, const std::string& name);
+	void fillFunctionBody(CodegenLLVM& codegen);
 public:
 	FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range);
 	FunctionExpression(const FunctionExpression& other) = delete;
@@ -111,6 +112,9 @@ public:
 	virtual ExpressionKind getExpressionKind() const override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
+	void codegenFunction(CodegenLLVM& codegen, const std::string& name);
+
+	llvm::Function* getPrototype();
 };

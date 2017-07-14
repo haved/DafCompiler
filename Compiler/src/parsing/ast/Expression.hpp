@@ -27,11 +27,11 @@ private:
 	inline ConcreteTypeAttempt(ConcreteType* typeptr) : m_broken(false), m_typeptr(typeptr) {}
 	inline ConcreteTypeAttempt() : m_broken(true), m_typeptr(nullptr) {}
 public:
-	static ConcreteTypeAttempt here(ConcreteType* typeptr) { return ConcreteTypeAttempt(typeptr); }
+	static ConcreteTypeAttempt here(ConcreteType* typeptr) { assert(typeptr); return ConcreteTypeAttempt(typeptr); }
 	static ConcreteTypeAttempt tryLater() { return ConcreteTypeAttempt(nullptr); }
 	static ConcreteTypeAttempt failed() { return ConcreteTypeAttempt(); } //TODO: Rename to lostCause
 	inline bool hasType() { return m_typeptr; }
-	inline ConcreteType* getType() { return m_typeptr; }
+	inline ConcreteType* getType() { assert(m_typeptr); return m_typeptr; }
 	inline bool isLostCause() { return m_broken; }
 };
 
@@ -254,7 +254,10 @@ private:
 	unique_ptr<Expression> m_index;
 public:
 	ArrayAccessExpression(unique_ptr<Expression>&& array, unique_ptr<Expression>&& index, int lastLine, int lastCol);
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	bool isStatement() override {return false;}
 	void printSignature() override;
+
+	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
+	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };

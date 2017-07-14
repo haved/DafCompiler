@@ -9,6 +9,7 @@ class Definition;
 class Def;
 class Let;
 class ConcreteType;
+class ConcreteTypeAttempt;
 
 class DefOrLet {
 	Definition* m_target;
@@ -30,7 +31,7 @@ public:
 	Def* getDef();
 	Let* getLet();
 	Definition* getDefinition();
-	optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList);
+	ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList);
 	operator bool() const;
 };
 

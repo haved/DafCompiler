@@ -81,7 +81,7 @@ bool TypedefParameter::isCompileTimeOnly() {
 void TypedefParameter::makeConcrete(NamespaceStack& ns_stack) { (void) ns_stack; }
 
 
-FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_returnType(std::move(returnType)), m_ateEquals(ateEqualsSign), m_cmpTimeOnly(false) {
+FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_returnType(std::move(returnType)), m_concreteReturnType(boost::none), m_ateEquals(ateEqualsSign), m_cmpTimeOnly(false) {
 
 	// If we are explicitly told we don't have a return type, we assert we weren't given one
 	if(m_returnKind == ReturnKind::NO_RETURN)
@@ -158,17 +158,36 @@ void FunctionType::makeConcrete(NamespaceStack& ns_stack) {
 	}
 }
 
-optional<ConcreteType*> FunctionType::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+ConcreteTypeAttempt FunctionType::tryGetConcreteType(DotOpDependencyList& depList) {
 	(void) depList;
-	return this;
+	return ConcreteTypeAttempt::here(this);
 }
 
-ConcreteType* FunctionType::getConcreteReturnKind() {
-	if(!m_returnType)
-		return getVoidType();
-	optional<ConcreteType*> concreteReturnType = m_returnType.tryGetConcreteType(boost::none);
-	assert(concreteReturnType);
-	return *concreteReturnType;
+//This is called after we have made everything concrete, so if it fails once, it fails forever
+ConcreteType* FunctionType::getConcreteReturnType() {
+	auto getConcreteReturnKindInternal = [&]()->ConcreteType* {
+		if(!m_returnType)
+			return getVoidType();
+		DotOpDependencyList list(DotOp::none());
+		ConcreteTypeAttempt concreteReturnType = m_returnType.tryGetConcreteType(list);
+		if(concreteReturnType.hasType())
+			return concreteReturnType.getType();
+		if(!concreteReturnType.isLostCause()) {
+			auto& out = logDaf(m_returnType.getRange(), ERROR) << "Function return type still not concrete after every identifier has been resolved" << std::endl;
+			if(!list.getDependencies().empty()) {
+				out << "Waiting for the following DotOperators:" << std::endl;
+				for(auto& dot : list.getDependencies()) {
+					dot.printLocationAndText();
+					out << std::endl;
+				}
+			}
+		}
+		return nullptr;
+	};
+
+	if(!m_concreteReturnType)
+		m_concreteReturnType = getConcreteReturnKindInternal();
+	return *m_concreteReturnType;
 }
 
 
@@ -188,28 +207,31 @@ void FunctionExpression::printSignature() {
 	}
 }
 
+ExpressionKind FunctionExpression::getExpressionKind() const {
+	return ExpressionKind::FUNCTION;
+}
+
 void FunctionExpression::makeConcrete(NamespaceStack& ns_stack) {
 	m_type->makeConcrete(ns_stack);
 	m_body->makeConcrete(ns_stack);
 }
 
-optional<ConcreteType*> FunctionExpression::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+ConcreteTypeAttempt FunctionExpression::tryGetConcreteType(DotOpDependencyList& depList) {
 	(void) depList;
-	return m_type.get();
+    assert(m_type);
+	return ConcreteTypeAttempt::here(m_type.get());
 }
 
 EvaluatedExpression FunctionExpression::codegenExpression(CodegenLLVM& codegen) {
-	if(!m_function)
-		makePrototype(codegen, "anon_function");
-	if(!m_filled)
-		fillFunctionBody(codegen);
+    fillFunctionBody(codegen);
 	if(!m_filled) //broken
 		return EvaluatedExpression();
 	return EvaluatedExpression(m_function, m_type.get());
 }
 
-ExpressionKind FunctionExpression::getExpressionKind() const {
-	return ExpressionKind::FUNCTION;
+void FunctionExpression::codegenFunction(CodegenLLVM& codegen, const std::string& name) {
+	makePrototype(codegen, name);
+	fillFunctionBody(codegen);
 }
 
 // ==== Codegen stuff ====
@@ -217,26 +239,22 @@ llvm::Function* FunctionExpression::getPrototype() {
 	return m_function;
 }
 
-llvm::Function* FunctionExpression::makePrototype(CodegenLLVM& codegen, const std::string& name) {
+void FunctionExpression::makePrototype(CodegenLLVM& codegen, const std::string& name) {
 	if(m_function)
-		return m_function;
+		return;
 
 	std::vector<llvm::Type*> argumentTypes; //TODO, also return type
 	llvm::FunctionType* FT = llvm::FunctionType::get(llvm::Type::getVoidTy(codegen.Context()), argumentTypes, false);
 
 	m_function = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, name, &codegen.Module());
 	assert(m_function);
-	return m_function;
-}
-
-bool FunctionExpression::isFilled() {
-	return m_filled;
 }
 
 void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
-	assert(m_function && !m_filled);
+	if(!m_function)
+		makePrototype(codegen, "anon_function");
 
-	if(m_broken)
+	if(m_broken || m_filled)
 		return;
 
 	llvm::BasicBlock* oldInsertBlock = codegen.Builder().GetInsertBlock();
@@ -248,7 +266,7 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 	m_filled = true;
 
 	EvaluatedExpression bodyValue = m_body->codegenExpression(codegen);
-	ConcreteType* return_type = m_type->getConcreteReturnKind();
+	ConcreteType* return_type = m_type->getConcreteReturnType();
 	if(!bodyValue || !return_type) {
 		m_function->eraseFromParent();
 		m_broken = true;
@@ -258,7 +276,9 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 	if(bodyValue.type != return_type) {
 		auto& out = logDaf(getRange(), ERROR) << "wrong return type in function. Expected ";
 		return_type->printSignature();
-
+		out << std::endl;
+		m_broken = true;
+		return;
 	}
 
 	if(bodyValue.type == getVoidType())

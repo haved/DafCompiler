@@ -4,6 +4,7 @@
 #include "parsing/semantic/DotOpDependencyList.hpp"
 #include "parsing/semantic/NamespaceStack.hpp"
 #include "parsing/ast/Definition.hpp"
+#include "parsing/ast/Expression.hpp"
 #include "DafLogger.hpp"
 #include <iostream>
 #include <map>
@@ -19,10 +20,10 @@ void Type::makeConcrete(NamespaceStack& ns_stack) {
 	std::cout << "TODO: Type yet to be made concrete" << std::endl;
 }
 
-optional<ConcreteType*> Type::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+ConcreteTypeAttempt Type::tryGetConcreteType(DotOpDependencyList& depList) {
 	(void) depList;
 	std::cout << "TODO: Type::getConcreteType() for some subclass" << std::endl;
-	return nullptr;
+	return ConcreteTypeAttempt::failed();
 }
 
 TypeReference::TypeReference() : m_type() {}
@@ -34,10 +35,11 @@ void TypeReference::makeConcrete(NamespaceStack& ns_stack) {
 		m_type->makeConcrete(ns_stack);
 }
 
-optional<ConcreteType*> TypeReference::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+ConcreteTypeAttempt TypeReference::tryGetConcreteType(DotOpDependencyList& depList) {
 	if(m_type)
 		return m_type->tryGetConcreteType(depList);
-	return nullptr;
+	std::cerr << "Asked null TypeReference for tryGetConcreteType" << std::endl;
+	return ConcreteTypeAttempt::failed();
 }
 
 void TypeReference::printSignature() const {
@@ -48,16 +50,19 @@ void TypeReference::printSignature() const {
 	}
 }
 
-AliasForType::AliasForType(std::string&& name, const TextRange& range) : Type(range), m_name(std::move(name)), m_target(nullptr) {}
+AliasForType::AliasForType(std::string&& name, const TextRange& range) : Type(range), m_name(std::move(name)), m_target(nullptr), m_makeConcreteCalled(false) {}
 
 void AliasForType::printSignature() {
 	std::cout << "type{\"" << m_name << "\"}";
 }
 
 void AliasForType::makeConcrete(NamespaceStack& ns_stack) {
+	assert(m_makeConcreteCalled = !m_makeConcreteCalled);
+
     Definition* definition = ns_stack.getDefinitionFromName(m_name, getRange());
 	if(!definition)
 		return;
+
 	DefinitionKind kind = definition->getDefinitionKind();
 	if(kind == DefinitionKind::TYPEDEF) {
 		m_target = static_cast<TypedefDefinition*>(definition);
@@ -67,10 +72,12 @@ void AliasForType::makeConcrete(NamespaceStack& ns_stack) {
 	}
 }
 
-optional<ConcreteType*> AliasForType::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+ConcreteTypeAttempt AliasForType::tryGetConcreteType(DotOpDependencyList& depList) {
     if(m_target)
 		return m_target->tryGetConcreteType(depList);
-	return nullptr;
+	if(m_makeConcreteCalled)
+		return ConcreteTypeAttempt::failed();
+	return ConcreteTypeAttempt::tryLater();
 }
 
 
@@ -150,9 +157,9 @@ void ConcreteTypeUse::makeConcrete(NamespaceStack& ns_stack) {
 	(void) ns_stack;
 }
 
-optional<ConcreteType*> ConcreteTypeUse::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+ConcreteTypeAttempt ConcreteTypeUse::tryGetConcreteType(DotOpDependencyList& depList) {
 	(void) depList;
-	return m_type;
+	return ConcreteTypeAttempt::here(m_type);
 }
 
 VoidType voidType;

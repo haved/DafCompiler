@@ -14,6 +14,7 @@ using std::unique_ptr;
 
 class DotOpDependencyList;
 class ConcreteType;
+class ConcreteTypeAttempt;
 
 class Type {
 private:
@@ -25,7 +26,7 @@ public:
 	virtual void printSignature()=0;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack);
-	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList);
+	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList);
 };
 
 enum class ConcreteTypeKind {
@@ -55,7 +56,7 @@ public:
 	void printSignature() const;
 
 	void makeConcrete(NamespaceStack& ns_stack);
-	optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList);
+	ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList);
 };
 
 class TypedefDefinition;
@@ -64,6 +65,7 @@ class AliasForType : public Type {
 private:
 	std::string m_name;
 	TypedefDefinition* m_target;
+	bool m_makeConcreteCalled;
 public:
 	AliasForType(std::string&& text, const TextRange& range);
 	AliasForType(const AliasForType& other)=delete;
@@ -74,7 +76,7 @@ public:
 	void printSignature() override;
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
 };
 
 enum class Signed {
@@ -113,7 +115,7 @@ public:
 	~ConcreteTypeUse() = default;
 	virtual void printSignature() override;
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual optional<ConcreteType*> tryGetConcreteType(optional<DotOpDependencyList&> depList) override;
+	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
 };
 
 class VoidType : public ConcreteType {

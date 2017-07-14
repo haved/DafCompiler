@@ -2,6 +2,7 @@
 #include "DafLogger.hpp"
 #include "CodegenLLVM.hpp"
 #include <iostream>
+#include <cassert>
 
 Definition::Definition(bool pub, const TextRange &range) : m_pub(pub), m_range(range) {}
 Definition::~Definition() {}
@@ -11,7 +12,9 @@ Def::Def(bool pub, ReturnKind defType, std::string&& name, TypeReference&& type,
 	assert(m_expression); //We assert a body
 }
 
-Let::Let(bool pub, bool mut, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_type(std::move(type)), m_expression(std::move(expression)) {}
+Let::Let(bool pub, bool mut, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_type(std::move(type)), m_expression(std::move(expression)) {
+	assert(m_expression || m_type);
+}
 
 void Def::addToMap(NamedDefinitionMap& map) {
 	map.addNamedDefinition(m_name, *this);
@@ -34,11 +37,13 @@ void Let::makeConcrete(NamespaceStack& ns_stack) {
 		m_type.makeConcrete(ns_stack);
 }
 
-optional<ConcreteType*> Def::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+ConcreteTypeAttempt Def::tryGetConcreteType(DotOpDependencyList& depList) {
 	return m_expression->tryGetConcreteType(depList);
 }
 
-optional<ConcreteType*> Let::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+ConcreteTypeAttempt Let::tryGetConcreteType(DotOpDependencyList& depList) {
+	if(m_type)
+		return m_type.tryGetConcreteType(depList);
 	return m_expression->tryGetConcreteType(depList);
 }
 
@@ -113,7 +118,7 @@ void TypedefDefinition::makeConcrete(NamespaceStack& ns_stack) {
 	m_type.makeConcrete(ns_stack);
 }
 
-optional<ConcreteType*> TypedefDefinition::tryGetConcreteType(optional<DotOpDependencyList&> depList) {
+ConcreteTypeAttempt TypedefDefinition::tryGetConcreteType(DotOpDependencyList& depList) {
 	return m_type.tryGetConcreteType(depList);
 }
 

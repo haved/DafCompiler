@@ -29,6 +29,11 @@ public:
 
 	bool operator  <(const DotOp& other) const;
 	bool operator ==(const DotOp& other) const;
+
+	bool isReal() const;
+
+	static DotOp none();
+
 };
 
 class DotOpDependencyList {
