@@ -20,8 +20,6 @@ def func(a:i32):i32= (def(a:i32):i32=5)();
 
 let a := 5;
 
-def main(a:i32) {
-	func(a);
-};
+def main(a:i32):i32 = func();
 
-def func(a:i32):= a+2;
+def func(a:i32):i32= 1+2;

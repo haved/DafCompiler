@@ -29,6 +29,14 @@ const TextRange& Expression::getRange() {
 
 VariableExpression::VariableExpression(const std::string& name, const TextRange& range) : Expression(range), m_name(name), m_target(), m_triedMadeConcrete(false) {}
 
+std::string&& VariableExpression::reapIdentifier() && {
+	return std::move(m_name);
+}
+
+void VariableExpression::printSignature() {
+	std::cout << m_name;
+}
+
 void VariableExpression::makeConcrete(NamespaceStack& ns_stack) {
     Definition* result = makeConcreteOrOtherDefinition(ns_stack);
 	if(result && !m_target)
@@ -46,10 +54,6 @@ Definition* VariableExpression::makeConcreteOrOtherDefinition(NamespaceStack& ns
 	return definition;
 }
 
-std::string&& VariableExpression::reapIdentifier() && {
-	return std::move(m_name);
-}
-
 ConcreteTypeAttempt VariableExpression::tryGetConcreteType(DotOpDependencyList& depList) {
 	if(!m_triedMadeConcrete)
 		return ConcreteTypeAttempt::tryLater();
@@ -59,9 +63,18 @@ ConcreteTypeAttempt VariableExpression::tryGetConcreteType(DotOpDependencyList& 
 		return ConcreteTypeAttempt::failed();
 }
 
-void VariableExpression::printSignature() {
-	std::cout << m_name;
+EvaluatedExpression VariableExpression::codegenExpression(CodegenLLVM& codegen) {
+	std::cout << "DEBUUG" << std::endl;
+	if(!m_target)
+		return EvaluatedExpression();
+	if(m_target.isDef()) {
+		Def* def = m_target.getDef();
+		return def->accessCodegen(codegen);
+	}
+	std::cerr << "TODO: How to handle VariableExpression referencing a let?" << std::endl;
+	return EvaluatedExpression();
 }
+
 
 IntegerConstantExpression::IntegerConstantExpression(daf_largest_uint integer, LiteralKind integerType, const TextRange& range) : Expression(range), m_integer(integer), m_type(literalKindToPrimitiveType(integerType)) {
 	assert(m_type);

@@ -62,6 +62,10 @@ void Let::globalCodegen(CodegenLLVM& codegen) {
 	//TODO: We do need separate codegen for global and local contexts. I'm sure of it!
 }
 
+EvaluatedExpression Def::accessCodegen(CodegenLLVM& codegen) {
+	return m_expression->codegenExpression(codegen);
+}
+
 void Def::printSignature() {
 	if(m_pub)
 		std::cout << "pub ";

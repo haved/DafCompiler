@@ -77,7 +77,7 @@ public:
 	virtual void makeConcrete(NamespaceStack& ns_stack) { (void) ns_stack; std::cout << "TODO concrete expression" << std::endl;}
     virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList)=0;
 
-	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) {(void)codegen; std::cout << "TODO: Expression codegen" << std::endl; return EvaluatedExpression(); }
+	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) {(void)codegen; getRange().printRangeTo(std::cout); std::cout << "TODO: Expression codegen" << std::endl; return EvaluatedExpression(); }
 };
 
 class VariableExpression : public Expression {
@@ -97,6 +97,7 @@ public:
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	Definition* makeConcreteOrOtherDefinition(NamespaceStack& ns_stack);
 	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
+	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
 class IntegerConstantExpression: public Expression {

@@ -58,6 +58,7 @@ public:
     ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList);
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
+	EvaluatedExpression accessCodegen(CodegenLLVM& codegen);
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::DEF; }
