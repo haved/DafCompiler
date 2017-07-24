@@ -67,6 +67,8 @@ enum class ReturnKind {
 	NO_RETURN, VALUE_RETURN, REF_RETURN, MUT_REF_RETURN
 };
 
+class FunctionExpression;
+
 class FunctionType : public Type, public ConcreteType {
 private:
 	std::vector<unique_ptr<FunctionParameter>> m_parameters;
@@ -75,22 +77,29 @@ private:
 	optional<ConcreteType*> m_concreteReturnType;
 	bool m_ateEquals;
 	bool m_cmpTimeOnly;
+	FunctionExpression* m_functionExpression;
 	void printSignatureMustHaveList(bool withList);
 public:
 	FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range);
+	FunctionType(const FunctionType& other) = delete;
+	FunctionType& operator=(const FunctionType& other) = delete;
 	virtual void printSignature() override; //With list
 	void printSignatureMaybeList(); //Only list if parameters
 	inline std::vector<unique_ptr<FunctionParameter>>& getParams() { return m_parameters; }
 	void mergeInDefReturnKind(ReturnKind def);
+	void setFunctionExpression(FunctionExpression* expression);
 	inline ReturnKind getReturnKind() { return m_returnKind; }
 	inline bool ateEqualsSign() { return m_ateEquals; }
 	inline TypeReference& getReturnType() { return m_returnType; }
 	inline TypeReference&& reapReturnType() { return std::move(m_returnType); }
-	ConcreteType* getConcreteReturnType();
 
 	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
 	virtual ConcreteTypeKind getConcreteTypeKind() override { return ConcreteTypeKind::FUNCTION; }
+
+	ConcreteTypeAttempt tryGetConcreteReturnType(DotOpDependencyList& depList);
+	bool setOrCheckConcreteReturnType(ConcreteType* type);
+	ConcreteType* getConcreteReturnType();
 };
 
 class FunctionExpression : public Expression {
@@ -117,4 +126,6 @@ public:
 	void codegenFunction(CodegenLLVM& codegen, const std::string& name);
 
 	llvm::Function* getPrototype();
+	ConcreteTypeAttempt tryInferConcreteReturnType(DotOpDependencyList& depList);
+	ConcreteType* getConcreteReturnType();
 };

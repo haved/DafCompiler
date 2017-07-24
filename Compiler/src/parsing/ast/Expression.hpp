@@ -30,9 +30,19 @@ public:
 	static ConcreteTypeAttempt here(ConcreteType* typeptr) { assert(typeptr); return ConcreteTypeAttempt(typeptr); }
 	static ConcreteTypeAttempt tryLater() { return ConcreteTypeAttempt(nullptr); }
 	static ConcreteTypeAttempt failed() { return ConcreteTypeAttempt(); } //TODO: Rename to lostCause
+	static ConcreteTypeAttempt fromOptionalWhereNullIsFail(const optional<ConcreteType*>& opt) {
+		return opt ? *opt ? here(*opt) : tryLater() : failed(); }
 	inline bool hasType() { return m_typeptr; }
 	inline ConcreteType* getType() { assert(m_typeptr); return m_typeptr; }
 	inline bool isLostCause() { return m_broken; }
+	inline void toOptionalWhereNullIsFail(optional<ConcreteType*>& opt) const {
+		if(m_broken)
+			opt = nullptr;
+		else if(m_typeptr)
+			opt = m_typeptr;
+		else
+			opt = boost::none;
+	}
 };
 
 struct EvaluatedExpression {

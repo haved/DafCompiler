@@ -328,6 +328,7 @@ void PrefixOperatorExpression::makeConcrete(NamespaceStack& ns_stack) {
 }
 
 ConcreteTypeAttempt PrefixOperatorExpression::tryGetConcreteType(DotOpDependencyList& depList) {
+	(void) depList;
     assert(false && "Don't know how to get the type of any prefix operators yet");
 	return ConcreteTypeAttempt::failed();
 }
@@ -415,7 +416,7 @@ ConcreteTypeAttempt FunctionCallExpression::tryGetConcreteType(DotOpDependencyLi
 	}
 
 	assert(m_function_type);
-	ConcreteTypeAttempt result =  m_function_type->getReturnType().tryGetConcreteType(depList);
+	ConcreteTypeAttempt result =  m_function_type->tryGetConcreteReturnType(depList);
     if(result.hasType()) {
 		m_function_return_type = result.getType();
 		return result;
@@ -442,6 +443,7 @@ EvaluatedExpression FunctionCallExpression::codegenExpression(CodegenLLVM& codeg
 		EvaluatedExpression arg = it->getExpression().codegenExpression(codegen);
 		if(!arg)
 			return EvaluatedExpression();
+		//TODO: Check type of argument
 		ArgsV.push_back(arg.value);
 	}
 
