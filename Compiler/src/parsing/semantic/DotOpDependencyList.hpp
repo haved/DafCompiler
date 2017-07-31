@@ -29,17 +29,14 @@ public:
 
 	bool operator  <(const DotOp& other) const;
 	bool operator ==(const DotOp& other) const;
-
-	bool isReal() const;
-
-	static DotOp none();
-
 };
 
 class DotOpDependencyList {
 private:
+	bool m_fake;
 	DotOp m_main;
 	std::set<DotOp> m_dependencies;
+	DotOpDependencyList();
 public:
 	DotOpDependencyList(DotOp main);
 	void addUnresolvedDotOperator(DotOp dependency);
@@ -47,4 +44,6 @@ public:
 
 	DotOp& getMain();
 	std::set<DotOp>& getDependencies();
+
+	static DotOpDependencyList fakeList();
 };

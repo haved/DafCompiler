@@ -167,8 +167,6 @@ ConcreteTypeAttempt FunctionType::tryGetConcreteType(DotOpDependencyList& depLis
 	return ConcreteTypeAttempt::here(this);
 }
 
-
-
 ConcreteTypeAttempt FunctionType::tryGetConcreteReturnType(DotOpDependencyList& depList) {
 	if(m_concreteReturnType)
 		return ConcreteTypeAttempt::fromOptionalWhereNullIsFail(m_concreteReturnType);
@@ -181,7 +179,7 @@ ConcreteTypeAttempt FunctionType::tryGetConcreteReturnType(DotOpDependencyList& 
 	else {
 		if(m_returnKind == ReturnKind::NO_RETURN)
 			return ConcreteTypeAttempt::here(*(m_concreteReturnType = getVoidType()));
-		assert(m_functionExpression);
+		assert(m_functionExpression); //If we infer return value, we must be part of a function expression
 		ConcreteTypeAttempt returnType = m_functionExpression->tryInferConcreteReturnType(depList);
 		returnType.toOptionalWhereNullIsFail(m_concreteReturnType);
 	    return returnType;
@@ -191,36 +189,37 @@ ConcreteTypeAttempt FunctionType::tryGetConcreteReturnType(DotOpDependencyList& 
 bool FunctionType::setOrCheckConcreteReturnType(ConcreteType* type) {
 	assert(type);
 
-	//If the concreteType isn't set based on the written type (or lack thereof)
-	if(!m_concreteReturnType && (m_returnType || m_returnKind == ReturnKind::NO_RETURN)) {
-		DotOpDependencyList fakeDepList(DotOp::none());
-		tryGetConcreteReturnType(fakeDepList);
-
-		if(!m_concreteReturnType) {
-			logDaf(m_returnType.getRange(), ERROR) << "Return type wasn't concrete in codegen pass" << std::endl;
-			return true; //It's OK, as we can use the type given to us. Still an error, though
-		}
+	if(m_returnKind == ReturnKind::NO_RETURN) {
+		m_concreteReturnType = getVoidType();
+		return true; //We ignore whatever type the body has
 	}
 
-	if(m_concreteReturnType) //We have a written target type already
+	//If we have an explicitly written return type, but haven't gotten the concrete value already
+	if(!m_concreteReturnType && m_returnType) {
+		auto fakeList = DotOpDependencyList::fakeList();
+		ConcreteTypeAttempt returnType = m_returnType.tryGetConcreteType(fakeList);
+		if(returnType.hasType())
+			m_concreteReturnType = returnType.getType(); //Can't fail if terminateIfErrors was called after resolveDotOperators
+	}
+
+	if(m_concreteReturnType) //We have a written target type
 	{
 		if(!*m_concreteReturnType)
 			return false; //Nullptr means broken
-		
 		//TODO: Check type equality properly
 		if(*m_concreteReturnType != type) {
 			auto& out = logDaf(getRange(), ERROR) << "The specified function return type ";
 			(*m_concreteReturnType)->printSignature();
-			out << "does not match the body's type: ";
+			out << " does not match the body's type: ";
 			type->printSignature();
 			out << std::endl;
 			return false;
 		}
+		return true;
 	} else {
-		m_concreteReturnType = type;
+		m_concreteReturnType = type; //Type inferred
+		return true;
 	}
-
-	return true;
 }
 
 //This is called after we have made everything concrete, so if it fails once, it fails forever

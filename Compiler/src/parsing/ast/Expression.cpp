@@ -64,7 +64,6 @@ ConcreteTypeAttempt VariableExpression::tryGetConcreteType(DotOpDependencyList& 
 }
 
 EvaluatedExpression VariableExpression::codegenExpression(CodegenLLVM& codegen) {
-	std::cout << "DEBUUG" << std::endl;
 	if(!m_target)
 		return EvaluatedExpression();
 	if(m_target.isDef()) {
@@ -182,20 +181,27 @@ EvaluatedExpression InfixOperatorExpression::codegenExpression(CodegenLLVM& code
 		return EvaluatedExpression();
 
 	if(m_result_type) {
-		PrimitiveType* old_result_type = m_result_type;
+#ifdef DEBUG
+		PrimitiveType* old_result_type = m_result_type; //Check that the type hasn't changed since last time
 		m_result_type = nullptr;
 		findResultTypeOrBroken(LHS_expr.type, RHS_expr.type);
 
 		//TODO: ConcreteTypes in the future might be the same without having the same address
-		assert(!old_result_type || m_result_type == old_result_type);
+		assert(m_result_type == old_result_type && !m_broken);
+#endif
 	}
-	else {
+	else
+	{
 		findResultTypeOrBroken(LHS_expr.type, RHS_expr.type);
 		if(m_broken)
 			return EvaluatedExpression();
 	}
 
 	assert(m_result_type);
+
+	std::cout << "Outputing binary op with LHS dump: " << std::endl;
+	LHS_expr.value->dump();
+
 	return codegenBinaryOperator(codegen, LHS_expr, m_op, RHS_expr, m_result_type, getRange());
 }
 
