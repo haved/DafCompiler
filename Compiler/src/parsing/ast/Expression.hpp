@@ -6,7 +6,7 @@
 #include "parsing/ast/Operator.hpp"
 #include "parsing/ast/DefOrLet.hpp"
 #include "parsing/semantic/NamespaceStack.hpp"
-#include "parsing/semantic/DotOpDependencyList.hpp"
+#include "parsing/semantic/ConcretenessDependenies.hpp"
 #include "CodegenLLVMForward.hpp"
 #include <string>
 #include <vector>
@@ -20,36 +20,26 @@ class Lexer;
 class Definition;
 enum class DefinitionKind;
 
-class ConcreteTypeAttempt {
-private:
-	bool m_broken;
-	ConcreteType* m_typeptr;
-	inline ConcreteTypeAttempt(ConcreteType* typeptr) : m_broken(false), m_typeptr(typeptr) {}
-	inline ConcreteTypeAttempt() : m_broken(true), m_typeptr(nullptr) {}
-public:
-	static ConcreteTypeAttempt here(ConcreteType* typeptr) { assert(typeptr); return ConcreteTypeAttempt(typeptr); }
-	static ConcreteTypeAttempt tryLater() { return ConcreteTypeAttempt(nullptr); }
-	static ConcreteTypeAttempt failed() { return ConcreteTypeAttempt(); } //TODO: Rename to lostCause
-	static ConcreteTypeAttempt fromOptionalWhereNullIsFail(const optional<ConcreteType*>& opt) {
-		return opt ? *opt ? here(*opt) : tryLater() : failed(); }
-	inline bool hasType() { return m_typeptr; }
-	inline ConcreteType* getType() { assert(m_typeptr); return m_typeptr; }
-	inline bool isLostCause() { return m_broken; }
-	inline void toOptionalWhereNullIsFail(optional<ConcreteType*>& opt) const {
-		if(m_broken)
-			opt = nullptr;
-		else if(m_typeptr)
-			opt = m_typeptr;
-		else
-			opt = boost::none;
-	}
+enum class ValueKind {
+	LVALUE,
+	ANONYMOUS
+};
+
+struct ExprTypeInfo {
+	ConcreteType* type;
+	ValueKind valueKind;
+
+	ExprTypeInfo(ConcreteType* type, ValueKind kind) : type(type), valueKind(kind) {}
+	ExprTypeInfo() : type(nullptr), valueKind(ValueKind::ANONYMOUS) {}
 };
 
 struct EvaluatedExpression {
 	llvm::Value* value;
-	ConcreteType* type;
+    ExprTypeInfo* typeInfo;
 	EvaluatedExpression() : value(nullptr), type(nullptr) {}
-	EvaluatedExpression(llvm::Value* value, ConcreteType* type) : value(value), type(type) {}
+	EvaluatedExpression(llvm::Value* value, ExprTypeInfo* type) : value(value), typeInfo(type) {
+		assert(typeInfo && typeInfo->type);
+	}
 	operator bool() const { return value && type; }
 };
 
@@ -69,9 +59,10 @@ enum class ExpressionKind {
 	FUNCTION
 };
 
-class Expression {
+class Expression : public Concretable {
 protected:
 	TextRange m_range;
+	ExprTypeInfo m_typeInfo;
 public:
 	Expression(const TextRange& range);
 	virtual ~Expression();
@@ -80,12 +71,13 @@ public:
 	// === Used by Statement parser ===
 	virtual bool isStatement();
 	virtual bool evaluatesToValue() const; //This expression can't be returned unless this is true
-	virtual void printSignature() = 0;
-	virtual ExpressionKind getExpressionKind() const { std::cout << "TODO: Expression kind undefined" << std::endl; return ExpressionKind::INT_LITERAL;}
+	virtual void printSignature() =0;
+	virtual ExpressionKind getExpressionKind() const =0;
 
 	//TODO =0
-	virtual void makeConcrete(NamespaceStack& ns_stack) { (void) ns_stack; std::cout << "TODO concrete expression" << std::endl;}
-    virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList)=0;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap);
+	virtual ConcretableState retryMakeConcreteInternal(ConcretableDependencies& depList);
+	const ExprTypeInfo& getTypeInfo() const;
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) {(void)codegen; getRange().printRangeTo(std::cout); std::cout << "TODO: Expression codegen" << std::endl; return EvaluatedExpression(); }
 };
@@ -94,26 +86,22 @@ class VariableExpression : public Expression {
 private:
 	std::string m_name;
 	DefOrLet m_target;
-	bool m_triedMadeConcrete;
 public:
 	VariableExpression(const std::string& name, const TextRange& range);
-	VariableExpression(VariableExpression& other) = delete;
-	VariableExpression& operator =(VariableExpression& other) = delete;
 	std::string&& reapIdentifier() &&;
 
 	virtual void printSignature() override;
 	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::VARIABLE; }
 
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	Definition* makeConcreteOrOtherDefinition(NamespaceStack& ns_stack);
-	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(ConcretableDependencies& depList) override;
+
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
 class IntegerConstantExpression: public Expression {
 private:
 	daf_largest_uint m_integer;
-    PrimitiveType* m_type;
 public:
 	IntegerConstantExpression(daf_largest_uint integer, LiteralKind integerType, const TextRange& range);
 	IntegerConstantExpression(const IntegerConstantExpression& other) = delete;
@@ -121,8 +109,9 @@ public:
 	IntegerConstantExpression& operator =(const IntegerConstantExpression& other) = delete;
 	void printSignature() override;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(ConcretableDependencies& depList) override;
+
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 

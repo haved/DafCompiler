@@ -1,6 +1,5 @@
 #pragma once
 
-#include "parsing/semantic/DotOpDependencyList.hpp"
 #include <boost/optional.hpp>
 
 using boost::optional;
@@ -31,7 +30,7 @@ public:
 	Def* getDef();
 	Let* getLet();
 	Definition* getDefinition();
-	ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList);
+	//ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList);
 	operator bool() const;
 };
 

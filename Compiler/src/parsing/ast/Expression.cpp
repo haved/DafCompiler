@@ -16,15 +16,15 @@ void complainDefinitionNotLetOrDef(DefinitionKind kind, std::string& name, const
 	printDefinitionKindName(kind, out) << std::endl;
 }
 
-Expression::Expression(const TextRange& range) : m_range(range) {}
-
+Expression::Expression(const TextRange& range) : Concretable(), m_range(range), m_typeInfo() {}
 Expression::~Expression() {}
-
+const TextRange& Expression::getRange() { return m_range; }
 bool Expression::isStatement() { return false; }
 bool Expression::evaluatesToValue() const { return true; }
 
-const TextRange& Expression::getRange() {
-	return m_range;
+const ExprTypeInfo& Expression::getTypeInfo() const {
+	assert(getConcretableState() == ConcretableState::CONCRETE && m_typeInfo.type);
+	return m_typeInfo;
 }
 
 VariableExpression::VariableExpression(const std::string& name, const TextRange& range) : Expression(range), m_name(name), m_target(), m_triedMadeConcrete(false) {}
@@ -37,6 +37,19 @@ void VariableExpression::printSignature() {
 	std::cout << m_name;
 }
 
+ConcretableState VariableExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	Definition* target = ns_stack.getDefinitionFromName(m_name, getRange());
+	if(target) {
+		DefinitionKind kind = target->getDefinitionKind();
+		if(kind == DefinitionKind::LET || kind == DefinitionKind::DEF) {
+			m_target = target;
+			ConcretableState targetState = m_target->getConcretableState();
+		}
+	}
+	return ConcretableState::LOST_CAUSE;
+}
+
+/*
 void VariableExpression::makeConcrete(NamespaceStack& ns_stack) {
     Definition* result = makeConcreteOrOtherDefinition(ns_stack);
 	if(result && !m_target)
@@ -62,7 +75,7 @@ ConcreteTypeAttempt VariableExpression::tryGetConcreteType(DotOpDependencyList& 
     else
 		return ConcreteTypeAttempt::failed();
 }
-
+*/
 EvaluatedExpression VariableExpression::codegenExpression(CodegenLLVM& codegen) {
 	if(!m_target)
 		return EvaluatedExpression();
