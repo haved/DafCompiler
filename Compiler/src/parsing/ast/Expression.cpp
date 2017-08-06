@@ -44,6 +44,13 @@ ConcretableState VariableExpression::makeConcreteInternal(NamespaceStack& ns_sta
 		if(kind == DefinitionKind::LET || kind == DefinitionKind::DEF) {
 			m_target = target;
 			ConcretableState targetState = m_target->getConcretableState();
+			if(targetState == ConcretableState::CONCRETE) {
+				m_typeInfo = target->getTypeInfo();
+				return ConcretableState::CONCRETE;
+			}
+			else if(targetState == ConcretableState::LOST_CAUSE)
+				return  ConcretableState::LOST_CAUSE;
+			Concrete
 		}
 	}
 	return ConcretableState::LOST_CAUSE;
