@@ -2,7 +2,7 @@
 ;; So far just syntax highlighting
 
 (setq daf-keywords '("pub" "prot" "let" "def" "mut" "typedef" "namedef" "with" "as" "linkfile" "move" "uncrt" "certain" "class" "trait" "enum" "virt" "ctor" "dtor" "#foreign" "#default" "#delete" "once" "inline"))
-(setq daf-control '("if" "else" "for" "while" "break" "continue" "retry" "return" "instof" "match" "case"))
+(setq daf-control '("if" "else" "for" "while" "break" "continue" "retry" "return" "instof" "match" "case" "to" "until"))
 (setq daf-literals '("null" "this" "true" "false"))
 (setq daf-types '("This" "Impl" "u8" "i8" "u16" "i16" "u32" "i32" "u64" "i64" "f32" "f64" "char" "usize" "isize" "bool"))
 
@@ -13,12 +13,13 @@
 
 (setq daf-font-lock-keywords
 	  `(
-		("\\(//\\) ?\\(TODO\\) \\(.*\\)$" 1 font-lock-type-face)
 		("//.*$" . font-lock-comment-face)
 		(,daf-types-regexp . font-lock-type-face)
         (,daf-literals-regexp . font-lock-constant-face)
         (,daf-control-regexp . font-lock-builtin-face)
         (,daf-keywords-regexp . font-lock-keyword-face)
+		(,"\\b[0-9]+\\.?[0-9]*" . font-lock-constant-face)
+		(,":=" . font-lock-function-name-face)
 				))
 
 ;;;###autoload

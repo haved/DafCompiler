@@ -1,34 +1,26 @@
 
 def main {
+	//Anonymous
+	5;
+	a+b;
+	func();
 
-	let a := 6;
-	mut b := 7;
+	//Lvalue (possibly mutable)
+	a
+	@x
+	x[7];
+	refFunc()
 
-	print(a); //a is an lvalue
-	print(b); //b is a mutable lvalue
-	print(5); //5 is an anonymous value without a memory location
+	def x := a+4;
+	let value := x; //Invokes x with value as output
 
-	def func(a:i32) := a*2;
-
-	print(func(6)); //func(6) returns an anonymous value without a memory location
-
-	let x := &mut b;
-	print(@x); //@x is a mutable lvalue
-
-	typedef struct := class {
-		a:i32;
-		b:i32;
+	def func(a:i32) {
+		mut tmp := a;
+		a++;
+		a>0?a:-a //Sets output to whatever the result of this is, using the move ctor if applicable
 	};
 
-	mut aStruct := struct{32, 56}; //initializes into the address of the let
-	def get := struct{12, 42}; //This is what you'd call an rvalue
-	aStruct = get; //destructs the old value and initializes the new one into the location
+	let y := func(x); //Invokes func with y as output
 
-	def get2 := {
-		let value := 6;
-		value
-	}; //This is an anonymous value, this time with a memory location
-
-	def getName := "Hi";
-	let a := str(getName);
+	
 };
