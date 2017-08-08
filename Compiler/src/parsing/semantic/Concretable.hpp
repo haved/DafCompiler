@@ -1,5 +1,6 @@
 #pragma once
-#include <set>
+#include <map>
+#include <vector>
 
 enum class ConcretableState {
 	NEVER_TRIED,
@@ -8,7 +9,6 @@ enum class ConcretableState {
 	LOST_CAUSE
 };
 
-class ConcretableDependencies;
 class NamespaceStack;
 class DependencyMap;
 
@@ -17,30 +17,33 @@ private:
 	ConcretableState m_concreteState=ConcretableState::NEVER_TRIED;
 protected:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap);
-	virtual ConcretableState retryMakeConcreteInternal(ConcretableDependencies& depList);
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap);
 public:
-	ConcretableState makeConcrete(NamespaceStack& ns_stack, DependencyMap& depList);
-	ConcretableState retryMakeConcrete(ConcretableDependencies& depList);
+	ConcretableState makeConcrete(NamespaceStack& ns_stack, DependencyMap& depMap);
+	ConcretableState retryMakeConcrete(DependencyMap& depMap);
 	ConcretableState getConcretableState() const;
+	void silentlyUpdateToLostCause();
 };
 
-class ConcretableDependencies {
-private:
-	Concretable* m_dependent;
-	std::set<Concretable*> m_dependencies;
-public:
-	ConcretableDependencies(Concretable* dependent);
-	void addDependency(Concretable* dependency);
-	std::set<Concretable*>& getDependencies();
-	Concretable* getDependent();
+struct ConcretableDepNode {
+	std::vector<Concretable*> dependentOnThis;
+	int dependentOnCount;
 
-	bool operator <(const ConcretableDependencies& other) const;
+	ConcretableDepNode();
 };
 
 class DependencyMap {
 private:
-	std::set<ConcretableDependencies> m_graph;
+	//TODO: @Optimize @Speed is hash map faster?
+	std::map<Concretable*, ConcretableDepNode> m_graph;
+	bool m_anyLostCauses;
 public:
-	void addDependencyNode(ConcretableDependencies&& depNode);
-	bool resolveDependencies();
+	DependencyMap();
+    void makeFirstDependentOnSecond(Concretable* A, Concretable* B);
+	void markAsSolved(Concretable* solved);
+	void markAsLostCause(Concretable* lostCause);
+	bool nodeHasDependencies(Concretable* c);
+
+	bool anyLostCauses();
+	bool complainAboutLoops();
 };

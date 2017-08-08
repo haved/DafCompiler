@@ -49,11 +49,21 @@ ConcretableState VariableExpression::makeConcreteInternal(NamespaceStack& ns_sta
 				return ConcretableState::CONCRETE;
 			}
 			else if(targetState == ConcretableState::LOST_CAUSE)
-				return  ConcretableState::LOST_CAUSE;
-			Concrete
+				return ConcretableState::LOST_CAUSE;
+			ConcretableDependencies depList(this);
+			depList.addDependency(m_target.getDefintion());
+			depMap.addDependencyNode(depList);
+		    return ConcretableState::TRY_LATER;
 		}
+	    complainDefinitionNotLetOrDef(kind, m_name, getRange());
 	}
 	return ConcretableState::LOST_CAUSE;
+}
+
+ConcretableState VariableExpression::retryMakeConcreteInternal(ConcretableDependencies& depNode) {
+    assert(m_target && m_target->getConcretableState() == ConcretableState::CONCRETE);
+	m_typeInfo = m_target->getTypeInfo();
+	return ConcretableState::CONCRETE;
 }
 
 /*

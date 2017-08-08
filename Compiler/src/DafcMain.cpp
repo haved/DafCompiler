@@ -24,17 +24,19 @@ int main(int argc, const char** argv) {
 	}
 	terminateIfErrors();
 
+	DependencyMap dependencyGraph;
 	NamespaceStack ns_stack;
 	//This is where we make files importable though the namespace stack
 	for(int i = 0; i < files.getFileCount(); i++) {
 		NameScope& scope = *files.getFileAt(i)->m_nameScope; //An optional
-		scope.makeConcrete(ns_stack); //Recursive
+		scope.makeConcrete(ns_stack, dependencyGraph); //Recursive
 	}
 	terminateIfErrors();
 
-	ns_stack.resolveDotOperators();
+	assert(!dependencyGraph.anyLostCauses());
 
-	terminateIfErrors();
+	if(dependencyGraph.complainAboutLoops())
+		terminateIfErrors(), assert(false);
 
 	doCodegen(files);
 
