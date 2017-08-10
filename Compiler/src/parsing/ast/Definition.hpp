@@ -1,5 +1,6 @@
 #pragma once
 
+#include "parsing/semantic/Concretable.hpp"
 #include "parsing/ast/Type.hpp"
 #include "parsing/ast/Expression.hpp"
 #include "parsing/ast/TextRange.hpp"
@@ -25,7 +26,7 @@ enum class DefinitionKind {
 	WITH
 };
 
-class Definition {
+class Definition : public Concretable {
 protected:
 	bool m_pub;
 	TextRange m_range;
@@ -36,7 +37,8 @@ public:
 	inline bool isPublic() {return m_pub;}
 
 	virtual void addToMap(NamedDefinitionMap& map)=0;
-	virtual void makeConcrete(NamespaceStack& ns_stack) { (void)ns_stack; std::cout << "TODO make definition concrete" << std::endl; }
+	virtual void makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual void retryMakeConcreteInternal(DependencyMap& depMap) override;
 
 	virtual void globalCodegen(CodegenLLVM& codegen)=0;
 
@@ -54,8 +56,8 @@ public:
 	Def(bool pub, ReturnKind defKind, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange& range);
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-    ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList);
+	virtual void makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual void retryMakeConcreteInternal(DependencyMap& depMap) override;
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 	EvaluatedExpression accessCodegen(CodegenLLVM& codegen);

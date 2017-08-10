@@ -43,16 +43,14 @@ ConcretableState VariableExpression::makeConcreteInternal(NamespaceStack& ns_sta
 		DefinitionKind kind = target->getDefinitionKind();
 		if(kind == DefinitionKind::LET || kind == DefinitionKind::DEF) {
 			m_target = target;
-			ConcretableState targetState = m_target->getConcretableState();
+			ConcretableState targetState = target->getConcretableState();
 			if(targetState == ConcretableState::CONCRETE) {
-				m_typeInfo = target->getTypeInfo();
+				m_typeInfo = m_target->getTypeInfo();
 				return ConcretableState::CONCRETE;
 			}
 			else if(targetState == ConcretableState::LOST_CAUSE)
 				return ConcretableState::LOST_CAUSE;
-			ConcretableDependencies depList(this);
-			depList.addDependency(m_target.getDefintion());
-			depMap.addDependencyNode(depList);
+		    depMap.makeFirstDependentOnSecond(this, m_target.getDefinition());
 		    return ConcretableState::TRY_LATER;
 		}
 	    complainDefinitionNotLetOrDef(kind, m_name, getRange());
@@ -60,8 +58,8 @@ ConcretableState VariableExpression::makeConcreteInternal(NamespaceStack& ns_sta
 	return ConcretableState::LOST_CAUSE;
 }
 
-ConcretableState VariableExpression::retryMakeConcreteInternal(ConcretableDependencies& depNode) {
-    assert(m_target && m_target->getConcretableState() == ConcretableState::CONCRETE);
+ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& depNode) {
+    assert(m_target && m_target->getDefinition()->getConcretableState() == ConcretableState::CONCRETE);
 	m_typeInfo = m_target->getTypeInfo();
 	return ConcretableState::CONCRETE;
 }

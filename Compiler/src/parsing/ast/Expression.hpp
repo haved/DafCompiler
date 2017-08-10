@@ -75,8 +75,8 @@ public:
 	virtual ExpressionKind getExpressionKind() const =0;
 
 	//TODO =0
-	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap);
-	virtual ConcretableState retryMakeConcreteInternal(ConcretableDependencies& depList);
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 	const ExprTypeInfo& getTypeInfo() const;
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) {(void)codegen; getRange().printRangeTo(std::cout); std::cout << "TODO: Expression codegen" << std::endl; return EvaluatedExpression(); }
@@ -94,7 +94,7 @@ public:
 	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::VARIABLE; }
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
-	virtual ConcretableState retryMakeConcreteInternal(ConcretableDependencies& depList) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
