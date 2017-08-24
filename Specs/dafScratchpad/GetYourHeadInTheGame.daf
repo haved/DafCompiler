@@ -1,0 +1,32 @@
+
+with($T) List(T) as {
+	def join(this:Impl, def func:(a:T, x:T):T):T {
+		if(size()==0)
+			panic("Can't join an empty array");
+		mut val := front();
+		for iterator().skip_front(1)
+			val = func(val, it);
+		val
+	};
+};
+
+def max(a:$T, b:T):T = a>b?a:b;
+
+def makeCurrySecond(def func(a:$T, b:T):T, b:T):def(a:T):T {
+	def(a:T):=func(a, b); //This makes a 
+};
+
+def main {
+	mut a := 6;
+
+	let numbers := {:i32, 2, 3, 5, 6, 1, 6, 8, 2};
+
+	let sum := numbers.join(def(a:i32, b:i32):=a+b);
+	let max := numbers.join(def:=max);
+
+	def biggerThan(a:i32, b:i32):bool = a > b;
+
+	let biggerThan5 = makeCurrySecond(def:=biggerThan, 5); //Here we turn a def into a let. hmm..
+
+	let numbersOver5 := numbers.map(def:=biggerThan5);
+};
