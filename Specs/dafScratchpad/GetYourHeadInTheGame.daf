@@ -26,7 +26,24 @@ def main {
 
 	def biggerThan(a:i32, b:i32):bool = a > b;
 
-	let biggerThan5 = makeCurrySecond(def:=biggerThan, 5); //Here we turn a def into a let. hmm..
+	let biggerThan5 := capture := makeCurrySecond(def:=biggerThan, 5); //Here we turn a def into a let. hmm..
 
 	let numbersOver5 := numbers.map(def:=biggerThan5);
+};
+
+def justAFunc(a:f32, b:f32):f32 {
+	sqrt(a*a+b*b);
+};
+
+def getThePtr {
+
+	let funcPtr : (a:f32, b:f32):f32 = capture := justAFunc; //We don't capture any closure stuff
+	//The type of justAFunc is def(a:f32, b:f32):f32, so by using capture, we make an instance of the type (a:f32, b:f32):f32;
+
+	mut a := 5;
+	let otherFuncPtr := capture(mut a) := a++;
+	otherFuncPtr();
+	//a is now 6
+
+	//Type of otherFuncPtr is 
 };
