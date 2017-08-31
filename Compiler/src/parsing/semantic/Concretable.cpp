@@ -19,6 +19,7 @@ ConcretableState Concretable::makeConcrete(NamespaceStack& ns_stack, DependencyM
 		depMap.markAsLostCause(this);
 		break;
     case ConcretableState::TRY_LATER:
+		//@Optimize @Speed a log(n) assert!
 		assert(depMap.nodeHasDependencies(this));
 		break;
 	}
@@ -39,6 +40,7 @@ ConcretableState Concretable::retryMakeConcrete(DependencyMap& depMap) {
 		depMap.markAsLostCause(this);
 		break;
     case ConcretableState::TRY_LATER:
+		//@Optimize @Speed this assert is log(n) :O
 		assert(depMap.nodeHasDependencies(this));
 		break;
 	}
@@ -79,7 +81,7 @@ void DependencyMap::markAsSolved(Concretable* solved) {
 	assert(solved && solved->getConcretableState() == ConcretableState::CONCRETE);
 
     auto it = m_graph.find(solved);
-	if(it == m_graph.end())
+	if(it == m_graph.end()) //No one was dependent on us, and as we are now Concrete, no one will ever wait for us
 		return;
 
 	assert(it->second.dependentOnCount == 0); //We don't depend on anyone
@@ -118,7 +120,7 @@ void DependencyMap::markAsLostCause(Concretable* lostCause) {
 				queue.push(dependent);
 			}
 		}
-		m_graph.erase(find); //We are allowed to remove lost causes from the graph
+		m_graph.erase(find); //We are allowed to remove lost causes from the graph, most compilations won't have 'em
 	}
 }
 
@@ -134,6 +136,6 @@ bool DependencyMap::complainAboutLoops() {
 	if(m_graph.empty())
 		return false;
 
-	logDaf(ERROR) << "Loops :(" << std::endl;
+	logDaf(ERROR) << "Loops in DependencyMap :(" << std::endl;
 	return true;
 }

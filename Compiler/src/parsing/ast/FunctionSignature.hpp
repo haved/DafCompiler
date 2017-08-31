@@ -120,11 +120,12 @@ public:
 	virtual void printSignature() override;
 	virtual ExpressionKind getExpressionKind() const override;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
-	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
-	void codegenFunction(CodegenLLVM& codegen, const std::string& name);
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
+	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
+
+	void codegenFunction(CodegenLLVM& codegen, const std::string& name);
 	llvm::Function* getPrototype();
 	ConcreteTypeAttempt tryInferConcreteReturnType(DotOpDependencyList& depList);
 	ConcreteType* getConcreteReturnType();

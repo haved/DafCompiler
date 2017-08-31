@@ -6,7 +6,7 @@
 #include "parsing/ast/Operator.hpp"
 #include "parsing/ast/DefOrLet.hpp"
 #include "parsing/semantic/NamespaceStack.hpp"
-#include "parsing/semantic/ConcretenessDependenies.hpp"
+#include "parsing/semantic/Concretable.hpp"
 #include "CodegenLLVMForward.hpp"
 #include <string>
 #include <vector>
@@ -21,6 +21,7 @@ class Definition;
 enum class DefinitionKind;
 
 enum class ValueKind {
+	MUT_LVALUE,
 	LVALUE,
 	ANONYMOUS
 };
@@ -36,11 +37,11 @@ struct ExprTypeInfo {
 struct EvaluatedExpression {
 	llvm::Value* value;
     ExprTypeInfo* typeInfo;
-	EvaluatedExpression() : value(nullptr), type(nullptr) {}
+	EvaluatedExpression() : value(nullptr), typeInfo(nullptr) {}
 	EvaluatedExpression(llvm::Value* value, ExprTypeInfo* type) : value(value), typeInfo(type) {
 		assert(typeInfo && typeInfo->type);
 	}
-	operator bool() const { return value && type; }
+	operator bool() const { return value && typeInfo; }
 };
 
 enum class ExpressionKind {
@@ -110,7 +111,7 @@ public:
 	void printSignature() override;
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
-	virtual ConcretableState retryMakeConcreteInternal(ConcretableDependencies& depList) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
@@ -126,8 +127,9 @@ public:
 	RealConstantExpression& operator =(const RealConstantExpression& other) = delete;
 	void printSignature() override;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
+
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
@@ -150,11 +152,12 @@ public:
 	InfixOperatorExpression(const InfixOperatorExpression& other) = delete;
 	~InfixOperatorExpression() = default;
 	InfixOperatorExpression& operator=(const InfixOperatorExpression& other) = delete;
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
 	virtual bool isStatement() override {return getInfixOp(m_op).statement;}
 	virtual void printSignature() override;
 
-	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
+
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 
 private:
@@ -177,14 +180,11 @@ public:
 	virtual void printSignature() override;
 	void printLocationAndText();
 	virtual ExpressionKind getExpressionKind() const override;
-	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	bool tryResolve(DotOpDependencyList& depList);
-private:
-	bool prepareForResolving(NamespaceStack& ns_stack);
-	optional<Definition*> tryResolveOrOtherDefinition(DotOpDependencyList& depList);
-	optional<Definition*> tryGetTargetDefinition(DotOpDependencyList& depList);
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
+
+	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
 class PrefixOperatorExpression : public Expression {
@@ -196,8 +196,10 @@ public:
 	bool isStatement() override {return m_op.statement;}
 	void printSignature() override;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
+
+	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
 class PostfixCrementExpression : public Expression {
@@ -209,8 +211,10 @@ public:
 	bool isStatement() override {return true;}
 	void printSignature() override;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
+
+	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
 class FunctionCallArgument {
@@ -221,8 +225,6 @@ public:
 	FunctionCallArgument(bool mut, unique_ptr<Expression>&& expression);
 	inline bool isMut() { return m_mutableReference; }
 	inline Expression& getExpression() { return *m_expression; }
-
-    inline void makeConcrete(NamespaceStack& ns_stack) { m_expression->makeConcrete(ns_stack); }
 	void printSignature();
 };
 
@@ -243,8 +245,9 @@ public:
 	bool isStatement() override {return true;}
 	void printSignature() override;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
+
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
@@ -257,7 +260,8 @@ public:
 	bool isStatement() override {return false;}
 	void printSignature() override;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
+
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };

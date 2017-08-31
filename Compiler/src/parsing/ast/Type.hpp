@@ -3,6 +3,7 @@
 #include "parsing/ast/TextRange.hpp"
 #include "parsing/lexing/Token.hpp"
 #include "parsing/semantic/NamespaceStack.hpp"
+#include "parsing/semantic/Concretable.hpp"
 
 #include <string>
 #include <memory>
@@ -12,11 +13,9 @@
 using boost::optional;
 using std::unique_ptr;
 
-class DotOpDependencyList;
 class ConcreteType;
-class ConcreteTypeAttempt;
 
-class Type {
+class Type : public Concretable {
 private:
 	TextRange m_range;
 public:
@@ -25,8 +24,9 @@ public:
 	const TextRange& getRange();
 	virtual void printSignature()=0;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack);
-	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList);
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override=0;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override=0;
+    virtual ConcreteType* getConcreteType()=0;
 };
 
 enum class ConcreteTypeKind {
@@ -51,12 +51,12 @@ public:
 	TypeReference(unique_ptr<Type>&& type);
 
 	inline bool hasType() const { return bool(m_type); }
+	inline Type* getType() const { return m_type.get(); }
 	inline operator bool() const { return hasType(); }
 	inline const TextRange& getRange() const { assert(m_type); return m_type->getRange(); }
 	void printSignature() const;
 
-	void makeConcrete(NamespaceStack& ns_stack);
-	ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList);
+	ConcreteType* getConcreteType();
 };
 
 class TypedefDefinition;
@@ -75,8 +75,9 @@ public:
 	~AliasForType()=default;
 	void printSignature() override;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
+	virtual ConcreteType* getConcreteType() override;
 };
 
 enum class Signed {
@@ -114,8 +115,9 @@ public:
 	ConcreteTypeUse& operator = (const ConcreteTypeUse& other) = delete;
 	~ConcreteTypeUse() = default;
 	virtual void printSignature() override;
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
+	virtual ConcreteType* getConcreteType() override;
 };
 
 class VoidType : public ConcreteType {

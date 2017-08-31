@@ -7,13 +7,13 @@
 Definition::Definition(bool pub, const TextRange &range) : m_pub(pub), m_range(range) {}
 Definition::~Definition() {}
 
-Def::Def(bool pub, ReturnKind defType, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_returnKind(defType), m_name(std::move(name)), m_type(std::move(type)), m_expression(std::move(expression)) {
-	assert( !(defType == ReturnKind::NO_RETURN && m_type)  ); //We can't have a return type when kind is NO_RETURN
+Def::Def(bool pub, ReturnKind defType, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_returnKind(defType), m_name(std::move(name)), m_givenType(std::move(givenType)), m_expression(std::move(expression)) {
+	assert( !(defType == ReturnKind::NO_RETURN && m_givenType)  );
 	assert(m_expression); //We assert a body
 }
 
-Let::Let(bool pub, bool mut, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_type(std::move(type)), m_expression(std::move(expression)) {
-	assert(m_expression || m_type);
+Let::Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_givenType(std::move(givenType)), m_expression(std::move(expression)) {
+	assert(m_expression || m_givenType);
 }
 
 void Def::addToMap(NamedDefinitionMap& map) {
@@ -24,11 +24,49 @@ void Let::addToMap(NamedDefinitionMap& map) {
 	map.addNamedDefinition(m_name, *this);
 }
 
-void Def::makeConcrete(NamespaceStack& ns_stack) {
-	//assert(m_expression); in ctor
-	m_expression->makeConcrete(ns_stack);
-	if(m_type)
-		m_type.makeConcrete(ns_stack);
+ConcretableState Def::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	ConcretableState exprState = m_expression->makeConcrete(ns_stack, depMap);
+	ConcretableState givenTypeState = ConcretableState::CONCRETE;
+	if(m_givenType)
+		givenTypeState = m_givenType.getType()->makeConcrete(ns_stack, depMap);
+
+	if(exprState == ConcretableState::LOST_CAUSE || givenTypeState == ConcretableState::LOST_CAUSE)
+		return ConcretableState::LOST_CAUSE;
+	ConcretableState result = ConcretableState::CONCRETE;
+	if(exprState != ConcretableState::CONCRETE) {
+		depMap.makeFirstDependentOnSecond(this, m_expression.get());
+		result = ConcretableState::TRY_LATER;
+	}
+	if(givenTypeState != ConcretableState::CONCRETE) {
+		depMap.makeFirstDependentOnSecond(this, m_givenType.getType());
+		result = ConcretableState::TRY_LATER;
+	}
+
+	if(result == ConcretableState::CONCRETE) {
+		m_typeInfo = m_expression->getTypeInfo();
+		if(m_givenType) {
+			ConcreteType* given = m_givenType.getConcreteType();
+			if(given != m_typeInfo.type)
+				getRange().printRangeTo(std::cerr), std::cerr << "Mismatch between the def's given type, and the expression's type" << std::endl;
+		}
+
+		if(m_returnKind == ReturnKind::NO_RETURN) {
+			m_typeInfo = ExprTypeInfo(); //Ignore whatever type we got
+		} else if(m_returnKind == ReturnKind::REF_RETURN) {
+			if(m_typeInfo.valueKind == ValueKind::MUT_LVALUE)
+				m_typeInfo.valueKind = ValueKind::LVALUE;
+			else if(m_typeInfo.valueKind == ValueKind::ANONYMOUS) {
+				logDaf(getRange(), ERROR) << "Can't 'def let' to an anonymous expression" << std::endl;
+				return ConcretableState::LOST_CAUSE;
+			}
+		} else if(m_returnKind == ReturnKind::MUT_REF_RETURN) {
+			if(m_typeInfo.valueKind != ValueKind::MUT_LVALUE) {
+				logDaf(getRange(), ERROR) << "Can only 'def mut' to mutable LValues" << std::endl;
+				return ConcretableState::LOST_CAUSE;
+			}
+		}
+	}
+	return result;
 }
 
 void Let::makeConcrete(NamespaceStack& ns_stack) {

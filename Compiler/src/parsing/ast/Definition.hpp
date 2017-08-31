@@ -37,8 +37,8 @@ public:
 	inline bool isPublic() {return m_pub;}
 
 	virtual void addToMap(NamedDefinitionMap& map)=0;
-	virtual void makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
-	virtual void retryMakeConcreteInternal(DependencyMap& depMap) override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override=0;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override=0;
 
 	virtual void globalCodegen(CodegenLLVM& codegen)=0;
 
@@ -50,14 +50,17 @@ class Def : public Definition {
 private:
 	ReturnKind m_returnKind;
 	std::string m_name;
-	TypeReference m_type;
+	TypeReference m_givenType;
 	unique_ptr<Expression> m_expression;
+
+	ExprTypeInfo m_typeInfo;
 public:
-	Def(bool pub, ReturnKind defKind, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange& range);
+	Def(bool pub, ReturnKind defKind, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange& range);
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
-	virtual void makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
-	virtual void retryMakeConcreteInternal(DependencyMap& depMap) override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
+    const ExprTypeInfo& getTypeInfo() const;
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 	EvaluatedExpression accessCodegen(CodegenLLVM& codegen);
@@ -70,14 +73,18 @@ class Let : public Definition {
 private:
 	bool m_mut;
 	std::string m_name;
-	TypeReference m_type;
+	TypeReference m_givenType;
 	unique_ptr<Expression> m_expression;
+
+	ExprTypeInfo m_typeInfo;
 public:
-	Let(bool pub, bool mut, std::string&& name, TypeReference&& type, unique_ptr<Expression>&& expression, const TextRange& range);
+	Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange& range);
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList);
+
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
+	const ExprTypeInfo& getTypeInfo() const;
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 
@@ -94,8 +101,9 @@ public:
 	TypedefDefinition(bool pub, std::string&& name, TypeReference&& type, const TextRange& range);
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList);
+   	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
+	ConcreteType* getConcreteType() const;
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 
@@ -107,7 +115,7 @@ class ConcreteNameScope;
 enum class NameScopeExpressionKind;
 class DotOpDependencyList;
 
-class NameScopeExpression {
+class NameScopeExpression : public Concretable{
 private:
 	TextRange m_range;
 public:
@@ -115,7 +123,9 @@ public:
 	virtual ~NameScopeExpression();
 	inline const TextRange& getRange() { return m_range; }
 
-	virtual void makeConcrete(NamespaceStack& ns_stack)=0; //Makes all the definitions inside concrete
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
+
 	virtual ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList)=0;
 
 	virtual void codegen(CodegenLLVM& codegen) {(void) codegen; std::cout << "TODO: NameScopeExpression codegen" << std::endl; }
@@ -130,9 +140,11 @@ private:
 	unique_ptr<NameScopeExpression> m_value;
 public:
 	NamedefDefinition(bool pub, std::string&& name, unique_ptr<NameScopeExpression>&& value, const TextRange& range);
-
 	virtual void addToMap(NamedDefinitionMap& map) override;
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
+
 	ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList);
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
