@@ -39,5 +39,5 @@ typedef VirtBox(T) := class {
 		free(m_ptr);
 	};
 
-	def stuff := 5;
+	def _ := forwardCalls(def:=m_vtable, );
 };
