@@ -24,12 +24,7 @@ void Let::addToMap(NamedDefinitionMap& map) {
 	map.addNamedDefinition(m_name, *this);
 }
 
-ConcretableState Def::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	ConcretableState exprState = m_expression->makeConcrete(ns_stack, depMap);
-	ConcretableState givenTypeState = ConcretableState::CONCRETE;
-	if(m_givenType)
-		givenTypeState = m_givenType.getType()->makeConcrete(ns_stack, depMap);
-
+ConcretableState Def::handleChildConcretableChanges(ConcretableState exprState, ConcretableState givenTypeState, DependencyMap& depMap) {
 	if(exprState == ConcretableState::LOST_CAUSE || givenTypeState == ConcretableState::LOST_CAUSE)
 		return ConcretableState::LOST_CAUSE;
 	ConcretableState result = ConcretableState::CONCRETE;
@@ -67,6 +62,18 @@ ConcretableState Def::makeConcreteInternal(NamespaceStack& ns_stack, DependencyM
 		}
 	}
 	return result;
+}
+
+ConcretableState Def::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	ConcretableState exprState = m_expression->makeConcrete(ns_stack, depMap);
+	ConcretableState givenTypeState = ConcretableState::CONCRETE;
+	if(m_givenType)
+		givenTypeState = m_givenType.getType()->makeConcrete(ns_stack, depMap);
+	return handleChildConcretableChanges(exprState, givenTypeState, depMap);
+}
+
+ConcretableState Def::retryMakeConcreteInternal(DependencyMap& depMap) {
+	return handleChildConcretableChanges(ConcretableState::CONCRETE, ConcretableState::CONCRETE, depMap);
 }
 
 void Let::makeConcrete(NamespaceStack& ns_stack) {

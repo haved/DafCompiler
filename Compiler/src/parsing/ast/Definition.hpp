@@ -67,6 +67,9 @@ public:
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::DEF; }
+
+private:
+	ConcretableState handleChildConcretableChanges(ConcretableState exprState, ConcretableState givenTypeState, DependencyMap& depMap);
 };
 
 class Let : public Definition {
