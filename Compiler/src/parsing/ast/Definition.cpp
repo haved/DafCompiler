@@ -27,41 +27,44 @@ void Let::addToMap(NamedDefinitionMap& map) {
 ConcretableState Def::handleChildConcretableChanges(ConcretableState exprState, ConcretableState givenTypeState, DependencyMap& depMap) {
 	if(exprState == ConcretableState::LOST_CAUSE || givenTypeState == ConcretableState::LOST_CAUSE)
 		return ConcretableState::LOST_CAUSE;
-	ConcretableState result = ConcretableState::CONCRETE;
+	bool readyToBeConcrete = true;
 	if(exprState != ConcretableState::CONCRETE) {
 		depMap.makeFirstDependentOnSecond(this, m_expression.get());
-		result = ConcretableState::TRY_LATER;
+		readyToBeConcrete = false;
 	}
 	if(givenTypeState != ConcretableState::CONCRETE) {
 		depMap.makeFirstDependentOnSecond(this, m_givenType.getType());
-		result = ConcretableState::TRY_LATER;
+	    readyToBeConcrete = false;
 	}
 
-	if(result == ConcretableState::CONCRETE) {
-		m_typeInfo = m_expression->getTypeInfo();
-		if(m_givenType) {
-			ConcreteType* given = m_givenType.getConcreteType();
-			if(given != m_typeInfo.type)
-				getRange().printRangeTo(std::cerr), std::cerr << "Mismatch between the def's given type, and the expression's type" << std::endl;
-		}
+	if(!readyToBeConcrete)
+		return ConcretableState::TRY_LATER;
 
-		if(m_returnKind == ReturnKind::NO_RETURN) {
-			m_typeInfo = ExprTypeInfo(); //Ignore whatever type we got
-		} else if(m_returnKind == ReturnKind::REF_RETURN) {
-			if(m_typeInfo.valueKind == ValueKind::MUT_LVALUE)
-				m_typeInfo.valueKind = ValueKind::LVALUE;
-			else if(m_typeInfo.valueKind == ValueKind::ANONYMOUS) {
-				logDaf(getRange(), ERROR) << "Can't 'def let' to an anonymous expression" << std::endl;
-				return ConcretableState::LOST_CAUSE;
-			}
-		} else if(m_returnKind == ReturnKind::MUT_REF_RETURN) {
-			if(m_typeInfo.valueKind != ValueKind::MUT_LVALUE) {
-				logDaf(getRange(), ERROR) << "Can only 'def mut' to mutable LValues" << std::endl;
-				return ConcretableState::LOST_CAUSE;
-			}
+
+	m_typeInfo = m_expression->getTypeInfo();
+	if(m_givenType) {
+		ConcreteType* given = m_givenType.getConcreteType();
+		if(given != m_typeInfo.type)
+			getRange().printRangeTo(std::cerr), std::cerr << "Mismatch between the def's given type, and the expression's type" << std::endl;
+	}
+
+	if(m_returnKind == ReturnKind::NO_RETURN) {
+		m_typeInfo = ExprTypeInfo(); //Ignore whatever type we got
+	} else if(m_returnKind == ReturnKind::REF_RETURN) {
+		if(m_typeInfo.valueKind == ValueKind::MUT_LVALUE)
+			m_typeInfo.valueKind = ValueKind::LVALUE;
+		else if(m_typeInfo.valueKind == ValueKind::ANONYMOUS) {
+			logDaf(getRange(), ERROR) << "Can't 'def let' to an anonymous expression" << std::endl;
+			return ConcretableState::LOST_CAUSE;
+		}
+	} else if(m_returnKind == ReturnKind::MUT_REF_RETURN) {
+		if(m_typeInfo.valueKind != ValueKind::MUT_LVALUE) {
+			logDaf(getRange(), ERROR) << "Can only 'def mut' to mutable LValues" << std::endl;
+			return ConcretableState::LOST_CAUSE;
 		}
 	}
-	return result;
+
+	return ConcretableState::CONCRETE;
 }
 
 ConcretableState Def::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
