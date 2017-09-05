@@ -251,8 +251,8 @@ unique_ptr<Expression> parseSide(Lexer& lexer, int minimumPrecedence) {
 		side = parsePrimary(lexer);
 	while(true) {
 		optional<const PostfixOperator&> postfixOp;
-		while(postfixOp=parsePostfixOperator(lexer)) {
-			if(postfixOp->precedence<minimumPrecedence)
+		while( (postfixOp=parsePostfixOperator(lexer)) ) {
+			if(postfixOp->precedence < minimumPrecedence)
 				return side;
 			else
 				side = mergeExpressionWithOp(lexer, std::move(side), *postfixOp); //Skips tokens for us, this one
