@@ -64,6 +64,7 @@ ConcretableState Def::makeConcreteInternal(NamespaceStack& ns_stack, DependencyM
 }
 
 ConcretableState Def::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
 	optional<ExprTypeInfo> type = getFinalTypeForDef(m_returnKind, m_givenType, *m_expression.get(), getRange());
 	if(!type)
 		return ConcretableState::LOST_CAUSE;
@@ -85,6 +86,7 @@ ConcretableState Let::makeConcreteInternal(NamespaceStack& ns_stack, DependencyM
 }
 
 ConcretableState Let::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
     if(m_expression) {
 		m_type = m_expression->getTypeInfo().type;
 		if(m_givenType) {
@@ -133,8 +135,8 @@ void Def::printSignature() {
 	if(m_returnKind != ReturnKind::NO_RETURN)
 		std::cout << ":";
 
-	if(m_type)
-		m_type.printSignature();
+	if(m_givenType)
+		m_givenType.printSignature();
 
 	std::cout << "=";
 
@@ -149,11 +151,9 @@ void Let::printSignature() {
 	std::cout << "let ";
 	if(m_mut)
 		std::cout << "mut ";
-	std::cout << m_name;
-	if(m_type.hasType() || m_expression)
-		std::cout << " :";
-	if(m_type.hasType())
-		m_type.printSignature();
+	std::cout << m_name << ":";
+	if(m_givenType)
+		m_givenType.printSignature();
 	if(m_expression) {
 		std::cout << "= ";
 		m_expression->printSignature();
@@ -169,12 +169,20 @@ void TypedefDefinition::addToMap(NamedDefinitionMap& map) {
 	map.addNamedDefinition(m_name, *this);
 }
 
-void TypedefDefinition::makeConcrete(NamespaceStack& ns_stack) {
-	m_type.makeConcrete(ns_stack);
+ConcretableState TypedefDefinition::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+    ConcretableState state = m_type.getType()->makeConcrete(ns_stack, depMap);
+	if(state == ConcretableState::CONCRETE)
+		return retryMakeConcreteInternal(depMap);
+	else if(state == ConcretableState::LOST_CAUSE)
+		return ConcretableState::LOST_CAUSE;
+	depMap.makeFirstDependentOnSecond(this, m_type.getType());
+	return ConcretableState::TRY_LATER;
 }
 
-ConcreteTypeAttempt TypedefDefinition::tryGetConcreteType(DotOpDependencyList& depList) {
-	return m_type.tryGetConcreteType(depList);
+ConcretableState TypedefDefinition::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
+	//We done? Ye
+	return ConcretableState::CONCRETE;
 }
 
 void TypedefDefinition::globalCodegen(CodegenLLVM& codegen) {(void) codegen;}; //Typedefs don't really do codegen
@@ -198,9 +206,15 @@ void NamedefDefinition::addToMap(NamedDefinitionMap& map) {
 	map.addNamedDefinition(m_name, *this);
 }
 
-void NamedefDefinition::makeConcrete(NamespaceStack& ns_stack) {
+ConcretableState NamedefDefinition::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 	assert(m_value);
-	m_value->makeConcrete(ns_stack);
+	ConcretableState state = m_value->makeConcrete(ns_stack, depMap);
+    if(state == ConcretableState::CONCRETE)
+		return retryMakeConcreteInternal(depMap);
+	else if(state == ConcretableState::LOST_CAUSE)
+		return ConcretableState::LOST_CAUSE;
+	depMap.makeFirstDependentOnSecond(this, m_value.get());
+	return ConcretableState::TRY_LATER;
 }
 
 ConcreteNameScope* NamedefDefinition::tryGetConcreteNameScope(DotOpDependencyList& depList) {
