@@ -7,10 +7,31 @@
 
 ConcretableState Concretable::makeConcrete(NamespaceStack& ns_stack, DependencyMap& depMap) {
     assert(m_concreteState == ConcretableState::NEVER_TRIED);
-	m_concreteState = makeConcreteInternal(ns_stack, depMap);
+	ConcretableState returned = makeConcreteInternal(ns_stack, depMap);
+	assert(returned != ConcretableState::NEVER_TRIED);
+
+	if(m_concreteState != ConcretableState::NEVER_TRIED) { //We changed while calling makeConcreteInternal
+	    if(returned == ConcretableState::CONCRETE) {
+		    assert(m_concreteState != ConcretableState::LOST_CAUSE);
+			if(m_concreteState == ConcretableState::TRY_LATER) {
+				m_concreteState = ConcretableState::CONCRETE;
+				depMap.markAsSolved(this);
+			}
+		} else if(returned == ConcretableState::LOST_CAUSE) {
+			assert(m_concreteState != ConcretableState::CONCRETE);
+			if(m_concreteState == ConcretableState::TRY_LATER) {
+				m_concreteState = ConcretableState::LOST_CAUSE;
+				depMap.markAsLostCause(this);
+			}
+		}
+		//else returned is TRY_LATER, we don't do anything, as the state is correct no matter what it is
+		return m_concreteState;
+	}
+
+	m_concreteState = returned;
+
 	switch(m_concreteState) {
 	case ConcretableState::NEVER_TRIED:
-		assert(false);
 		break;
 	case ConcretableState::CONCRETE:
 		depMap.markAsSolved(this);

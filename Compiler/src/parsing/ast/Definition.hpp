@@ -67,9 +67,6 @@ public:
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::DEF; }
-
-private:
-	ConcretableState handleChildConcretableChanges(ConcretableState exprState, ConcretableState givenTypeState, DependencyMap& depMap);
 };
 
 class Let : public Definition {
@@ -79,7 +76,7 @@ private:
 	TypeReference m_givenType;
 	unique_ptr<Expression> m_expression;
 
-	ExprTypeInfo m_typeInfo;
+	ConcreteType* m_type;
 public:
 	Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange& range);
 

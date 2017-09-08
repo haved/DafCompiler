@@ -52,22 +52,18 @@ optional<ExprTypeInfo> getFinalTypeForDef(ReturnKind return_kind, TypeReference&
 	return result;
 }
 
-ConcretableState Def::handleChildConcretableChanges(ConcretableState exprState, ConcretableState givenTypeState, DependencyMap& depMap) {
-	if(exprState == ConcretableState::LOST_CAUSE || givenTypeState == ConcretableState::LOST_CAUSE)
-		return ConcretableState::LOST_CAUSE;
-	bool readyToBeConcrete = true;
-	if(exprState != ConcretableState::CONCRETE) {
-		depMap.makeFirstDependentOnSecond(this, m_expression.get());
-		readyToBeConcrete = false;
-	}
-	if(givenTypeState != ConcretableState::CONCRETE) {
+ConcretableState Def::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	depMap.makeFirstDependentOnSecond(this, m_expression.get());
+	if(m_givenType)
 		depMap.makeFirstDependentOnSecond(this, m_givenType.getType());
-	    readyToBeConcrete = false;
-	}
+	m_expression->makeConcrete(ns_stack, depMap);
+	if(m_givenType)
+		m_givenType.getType()->makeConcrete(ns_stack, depMap);
 
-	if(!readyToBeConcrete)
-		return ConcretableState::TRY_LATER;
+	return ConcretableState::TRY_LATER; //We might
+}
 
+ConcretableState Def::retryMakeConcreteInternal(DependencyMap& depMap) {
 	optional<ExprTypeInfo> type = getFinalTypeForDef(m_returnKind, m_givenType, *m_expression.get(), getRange());
 	if(!type)
 		return ConcretableState::LOST_CAUSE;
@@ -76,31 +72,30 @@ ConcretableState Def::handleChildConcretableChanges(ConcretableState exprState, 
 	return ConcretableState::CONCRETE;
 }
 
-ConcretableState Def::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	ConcretableState exprState = m_expression->makeConcrete(ns_stack, depMap);
-	ConcretableState givenTypeState = ConcretableState::CONCRETE;
-	if(m_givenType)
-		givenTypeState = m_givenType.getType()->makeConcrete(ns_stack, depMap);
-	return handleChildConcretableChanges(exprState, givenTypeState, depMap);
-}
-
-ConcretableState Def::retryMakeConcreteInternal(DependencyMap& depMap) {
-	return handleChildConcretableChanges(ConcretableState::CONCRETE, ConcretableState::CONCRETE, depMap);
-}
-
 ConcretableState Let::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-    ConcretableState exprState = m_expression->makeConcrete(ns_stack, depMap);
-
+	if(m_expression)
+		depMap.makeFirstDependentOnSecond(this, m_expression.get());
+	if(m_givenType)
+		depMap.makeFirstDependentOnSecond(this, m_givenType.getType());
+	if(m_expression)
+		m_expression->makeConcrete(ns_stack, depMap);
+	if(m_givenType)
+	    m_givenType.getType()->makeConcrete(ns_stack, depMap);
+	return ConcretableState::TRY_LATER;
 }
 
-ConcreteTypeAttempt Def::tryGetConcreteType(DotOpDependencyList& depList) {
-	return m_expression->tryGetConcreteType(depList);
-}
-
-ConcreteTypeAttempt Let::tryGetConcreteType(DotOpDependencyList& depList) {
-	if(m_type)
-		return m_type.tryGetConcreteType(depList);
-	return m_expression->tryGetConcreteType(depList);
+ConcretableState Let::retryMakeConcreteInternal(DependencyMap& depMap) {
+    if(m_expression) {
+		m_type = m_expression->getTypeInfo().type;
+		if(m_givenType) {
+			ConcreteType* given = m_givenType.getType()->getConcreteType();
+			if(given != m_type)
+				std::cerr << "ERROR: Differing type from expression and given type in let" << std::endl;
+		}
+	} else {
+		assert(m_givenType);
+		m_type = m_givenType.getType()->getConcreteType();
+	}
 }
 
 void Def::globalCodegen(CodegenLLVM& codegen) {
