@@ -112,6 +112,14 @@ ConcretableState Let::retryMakeConcreteInternal(DependencyMap& depMap) {
 	return ConcretableState::CONCRETE;
 }
 
+const ExprTypeInfo& Def::getTypeInfo() const {
+	return m_typeInfo;
+}
+
+ExprTypeInfo Let::getTypeInfo() const {
+	return ExprTypeInfo(m_type, m_mut ? ValueKind::MUT_LVALUE : ValueKind::LVALUE);
+}
+
 void Def::globalCodegen(CodegenLLVM& codegen) {
 	ExpressionKind kind = m_expression->getExpressionKind();
 	if(kind == ExpressionKind::FUNCTION) {

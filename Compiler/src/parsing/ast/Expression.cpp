@@ -1,12 +1,13 @@
 #include "parsing/ast/Expression.hpp"
 #include "info/DafSettings.hpp"
 #include "parsing/lexing/Lexer.hpp"
-#include "DafLogger.hpp"
 #include "parsing/ast/Definition.hpp"
 #include "parsing/ast/NameScope.hpp"
 #include "parsing/ast/FunctionSignature.hpp"
-#include "CodegenLLVM.hpp"
 #include "parsing/semantic/OperatorCodegen.hpp"
+#include "parsing/semantic/ConcretableHelp.hpp"
+#include "CodegenLLVM.hpp"
+#include "DafLogger.hpp"
 #include <iostream>
 
 using boost::none;
@@ -27,7 +28,12 @@ const ExprTypeInfo& Expression::getTypeInfo() const {
 	return m_typeInfo;
 }
 
-VariableExpression::VariableExpression(const std::string& name, const TextRange& range) : Expression(range), m_name(name), m_target(), m_triedMadeConcrete(false) {}
+ConcretableState Expression::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
+	return ConcretableState::CONCRETE;
+}
+
+VariableExpression::VariableExpression(const std::string& name, const TextRange& range) : Expression(range), m_name(name), m_target() {}
 
 std::string&& VariableExpression::reapIdentifier() && {
 	return std::move(m_name);
@@ -39,58 +45,32 @@ void VariableExpression::printSignature() {
 
 ConcretableState VariableExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 	Definition* target = ns_stack.getDefinitionFromName(m_name, getRange());
-	if(target) {
-		DefinitionKind kind = target->getDefinitionKind();
-		if(kind == DefinitionKind::LET || kind == DefinitionKind::DEF) {
-			m_target = target;
-			ConcretableState targetState = target->getConcretableState();
-			if(targetState == ConcretableState::CONCRETE) {
-				m_typeInfo = m_target->getTypeInfo();
-				return ConcretableState::CONCRETE;
-			}
-			else if(targetState == ConcretableState::LOST_CAUSE)
-				return ConcretableState::LOST_CAUSE;
-		    depMap.makeFirstDependentOnSecond(this, m_target.getDefinition());
-		    return ConcretableState::TRY_LATER;
-		}
-	    complainDefinitionNotLetOrDef(kind, m_name, getRange());
+	if(!target)
+		return ConcretableState::LOST_CAUSE;
+
+	DefinitionKind kind = target->getDefinitionKind();
+	if(kind != DefinitionKind::LET && kind != DefinitionKind::DEF) {
+		complainDefinitionNotLetOrDef(kind, m_name, getRange());
+		return ConcretableState::LOST_CAUSE;
 	}
-	return ConcretableState::LOST_CAUSE;
+
+	m_target = target;
+	ConcretableState state = target->getConcretableState();
+	if(allConcrete() << state)
+		return retryMakeConcreteInternal(depMap);
+	if(anyLost() << state)
+		return ConcretableState::LOST_CAUSE;
+	depMap.makeFirstDependentOnSecond(this, target);
+	return ConcretableState::TRY_LATER;
 }
 
 ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& depNode) {
-    assert(m_target && m_target->getDefinition()->getConcretableState() == ConcretableState::CONCRETE);
-	m_typeInfo = m_target->getTypeInfo();
+	(void) depNode;
+    assert(m_target && m_target.getDefinition()->getConcretableState() == ConcretableState::CONCRETE);
+	m_typeInfo = m_target.getTypeInfo();
 	return ConcretableState::CONCRETE;
 }
 
-/*
-void VariableExpression::makeConcrete(NamespaceStack& ns_stack) {
-    Definition* result = makeConcreteOrOtherDefinition(ns_stack);
-	if(result && !m_target)
-		complainDefinitionNotLetOrDef(result->getDefinitionKind(), m_name, getRange());
-}
-
-Definition* VariableExpression::makeConcreteOrOtherDefinition(NamespaceStack& ns_stack) {
-	assert(m_triedMadeConcrete = !m_triedMadeConcrete);
-	Definition* definition = ns_stack.getDefinitionFromName(m_name, getRange());
-	if(!definition)
-		return nullptr;
-	DefinitionKind kind = definition->getDefinitionKind();
-	if(kind == DefinitionKind::LET || kind == DefinitionKind::DEF)
-		m_target = definition;
-	return definition;
-}
-
-ConcreteTypeAttempt VariableExpression::tryGetConcreteType(DotOpDependencyList& depList) {
-	if(!m_triedMadeConcrete)
-		return ConcreteTypeAttempt::tryLater();
-	else if(m_target)
-		return m_target.tryGetConcreteType(depList);
-    else
-		return ConcreteTypeAttempt::failed();
-}
-*/
 EvaluatedExpression VariableExpression::codegenExpression(CodegenLLVM& codegen) {
 	if(!m_target)
 		return EvaluatedExpression();
@@ -104,23 +84,22 @@ EvaluatedExpression VariableExpression::codegenExpression(CodegenLLVM& codegen) 
 
 
 IntegerConstantExpression::IntegerConstantExpression(daf_largest_uint integer, LiteralKind integerType, const TextRange& range) : Expression(range), m_integer(integer), m_type(literalKindToPrimitiveType(integerType)) {
-	assert(m_type);
+	assert(!m_type->isFloatingPoint());
 }
 
 void IntegerConstantExpression::printSignature() {
 	std::cout << m_integer;
 }
 
-void IntegerConstantExpression::makeConcrete(NamespaceStack& ns_stack) {(void) ns_stack;}
-
-ConcreteTypeAttempt IntegerConstantExpression::tryGetConcreteType(DotOpDependencyList& depList) {
-	(void) depList;
-	return ConcreteTypeAttempt::here(m_type);
+ConcretableState IntegerConstantExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	(void) ns_stack, (void) depMap;
+	m_typeInfo = ExprTypeInfo(m_type, ValueKind::ANONYMOUS);
+	return ConcretableState::CONCRETE;
 }
 
 EvaluatedExpression IntegerConstantExpression::codegenExpression(CodegenLLVM& codegen) {
 	llvm::Value* value = llvm::ConstantInt::get(llvm::IntegerType::get(codegen.Context(), m_type->getBitCount()), m_integer, m_type->isSigned());
-	return EvaluatedExpression(value, m_type);
+	return EvaluatedExpression(value, &m_typeInfo);
 }
 
 RealConstantExpression::RealConstantExpression(daf_largest_float real, LiteralKind realType, const TextRange& range) : Expression(range), m_real(real), m_type(literalKindToPrimitiveType(realType)) {
@@ -131,11 +110,10 @@ void RealConstantExpression::printSignature() {
 	std::cout << m_real;
 }
 
-void RealConstantExpression::makeConcrete(NamespaceStack& ns_stack) {(void) ns_stack;}
-
-ConcreteTypeAttempt RealConstantExpression::tryGetConcreteType(DotOpDependencyList& depList) {
-	(void) depList;
-	return ConcreteTypeAttempt::here(m_type);
+ConcretableState RealConstantExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	(void) ns_stack, (void) depMap;
+	m_typeInfo = ExprTypeInfo(m_type, ValueKind::ANONYMOUS);
+	return ConcretableState::CONCRETE;
 }
 
 EvaluatedExpression RealConstantExpression::codegenExpression(CodegenLLVM& codegen) {
@@ -144,17 +122,12 @@ EvaluatedExpression RealConstantExpression::codegenExpression(CodegenLLVM& codeg
 		real = llvm::APFloat(float(m_real));
 
 	llvm::Value* value = llvm::ConstantFP::get(codegen.Context(), real);
-	return EvaluatedExpression(value, m_type);
+	return EvaluatedExpression(value, &m_typeInfo);
 }
 
 
-InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS) : Expression(TextRange(LHS->getRange(), RHS->getRange())), m_LHS(std::move(LHS)), m_op(op), m_RHS(std::move(RHS)), m_result_type(nullptr), m_broken(false) {
+InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS) : Expression(TextRange(LHS->getRange(), RHS->getRange())), m_LHS(std::move(LHS)), m_op(op), m_RHS(std::move(RHS)), m_result_type(nullptr) {
 	assert(m_LHS && m_RHS && m_op != InfixOperator::CLASS_ACCESS);
-}
-
-void InfixOperatorExpression::makeConcrete(NamespaceStack& ns_stack) {
-	m_LHS->makeConcrete(ns_stack);
-	m_RHS->makeConcrete(ns_stack);
 }
 
 void InfixOperatorExpression::printSignature() {
@@ -163,6 +136,25 @@ void InfixOperatorExpression::printSignature() {
 	std::cout << getTokenTypeText(getInfixOp(m_op).tokenType);
 	m_RHS->printSignature();
 	std::cout << " ";
+}
+
+ConcretableState InfixOperatorExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	ConcretableState l_state = m_LHS->makeConcrete(ns_stack, depMap);
+	ConcretableState r_state = m_RHS->makeConcrete(ns_stack, depMap);
+
+	if(allConcrete() << l_state << r_state)
+		return retryMakeConcreteInternal(depMap);
+	if(anyLost() << l_state << r_state)
+		return ConcretableState::LOST_CAUSE;
+	if(!allConcrete() << l_state)
+		depMap.makeFirstDependentOnSecond(this, m_LHS.get());
+	if(!allConcrete() << r_state)
+		depMap.makeFirstDependentOnSecond(this, m_RHS.get());
+	return ConcretableState::TRY_LATER;
+}
+
+ConcretableState InfixOperatorExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
+	//TODO: Work
 }
 
 void InfixOperatorExpression::findResultTypeOrBroken(ConcreteType* LHS_type, ConcreteType* RHS_type) {

@@ -103,6 +103,7 @@ public:
 class IntegerConstantExpression: public Expression {
 private:
 	daf_largest_uint m_integer;
+	PrimitiveType* m_type;
 public:
 	IntegerConstantExpression(daf_largest_uint integer, LiteralKind integerType, const TextRange& range);
 	IntegerConstantExpression(const IntegerConstantExpression& other) = delete;
@@ -111,7 +112,6 @@ public:
 	void printSignature() override;
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
-	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
@@ -128,7 +128,6 @@ public:
 	void printSignature() override;
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
-	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
@@ -146,7 +145,6 @@ private:
 	InfixOperator m_op;
 	unique_ptr<Expression> m_RHS;
 	PrimitiveType* m_result_type;
-	bool m_broken;
 public:
 	InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS);
 	InfixOperatorExpression(const InfixOperatorExpression& other) = delete;

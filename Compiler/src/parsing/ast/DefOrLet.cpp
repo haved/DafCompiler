@@ -55,11 +55,12 @@ Definition* DefOrLet::getDefinition() {
 	return m_target;
 }
 
-ConcreteTypeAttempt DefOrLet::tryGetConcreteType(DotOpDependencyList& depList) {
-	if(isLet())
-		return static_cast<Let*>(m_target)->tryGetConcreteType(depList);
-	assert(isDef());
-	return static_cast<Def*>(m_target)->tryGetConcreteType(depList);
+ExprTypeInfo DefOrLet::getTypeInfo() {
+	assert(m_target);
+	if(m_let)
+		return getLet()->getTypeInfo();
+	else
+		return getDef()->getTypeInfo();
 }
 
 DefOrLet::operator bool() const {

@@ -84,7 +84,7 @@ public:
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
-	const ExprTypeInfo& getTypeInfo() const;
+	ExprTypeInfo getTypeInfo() const;
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 
