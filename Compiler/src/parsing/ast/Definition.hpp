@@ -115,7 +115,7 @@ class ConcreteNameScope;
 enum class NameScopeExpressionKind;
 class DotOpDependencyList;
 
-class NameScopeExpression : public Concretable{
+class NameScopeExpression : public Concretable {
 private:
 	TextRange m_range;
 public:
@@ -126,7 +126,7 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
-	virtual ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList)=0;
+	virtual ConcreteNameScope* getConcreteNameScope()=0;
 
 	virtual void codegen(CodegenLLVM& codegen) {(void) codegen; std::cout << "TODO: NameScopeExpression codegen" << std::endl; }
 
@@ -145,7 +145,7 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
-	ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList);
+    ConcreteNameScope* getConcreteNameScope();
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 

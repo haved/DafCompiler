@@ -25,7 +25,7 @@ public:
 	virtual void printSignature()=0;
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override=0;
-	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override=0;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
     virtual ConcreteType* getConcreteType()=0;
 };
 
@@ -51,7 +51,7 @@ public:
 	TypeReference(unique_ptr<Type>&& type);
 
 	inline bool hasType() const { return bool(m_type); }
-	inline Type* getType() const { return m_type.get(); }
+	inline Type* getType() const { return m_type.get(); } //TODO: fix ugly getter
 	inline operator bool() const { return hasType(); }
 	inline const TextRange& getRange() const { assert(m_type); return m_type->getRange(); }
 	void printSignature() const;
@@ -65,7 +65,6 @@ class AliasForType : public Type {
 private:
 	std::string m_name;
 	TypedefDefinition* m_target;
-	bool m_makeConcreteCalled;
 public:
 	AliasForType(std::string&& text, const TextRange& range);
 	AliasForType(const AliasForType& other)=delete;
@@ -76,7 +75,6 @@ public:
 	void printSignature() override;
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
-	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 	virtual ConcreteType* getConcreteType() override;
 };
 
@@ -116,7 +114,6 @@ public:
 	~ConcreteTypeUse() = default;
 	virtual void printSignature() override;
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
-	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 	virtual ConcreteType* getConcreteType() override;
 };
 

@@ -8,30 +8,12 @@
 ConcretableState Concretable::makeConcrete(NamespaceStack& ns_stack, DependencyMap& depMap) {
     assert(m_concreteState == ConcretableState::NEVER_TRIED);
 	ConcretableState returned = makeConcreteInternal(ns_stack, depMap);
-	assert(returned != ConcretableState::NEVER_TRIED);
-
-	if(m_concreteState != ConcretableState::NEVER_TRIED) { //We changed while calling makeConcreteInternal
-	    if(returned == ConcretableState::CONCRETE) {
-		    assert(m_concreteState != ConcretableState::LOST_CAUSE);
-			if(m_concreteState == ConcretableState::TRY_LATER) {
-				m_concreteState = ConcretableState::CONCRETE;
-				depMap.markAsSolved(this);
-			}
-		} else if(returned == ConcretableState::LOST_CAUSE) {
-			assert(m_concreteState != ConcretableState::CONCRETE);
-			if(m_concreteState == ConcretableState::TRY_LATER) {
-				m_concreteState = ConcretableState::LOST_CAUSE;
-				depMap.markAsLostCause(this);
-			}
-		}
-		//else returned is TRY_LATER, we don't do anything, as the state is correct no matter what it is
-		return m_concreteState;
-	}
-
+	assert(m_concreteState == ConcretableState::NEVER_TRIED);
 	m_concreteState = returned;
 
 	switch(m_concreteState) {
 	case ConcretableState::NEVER_TRIED:
+		assert(false);
 		break;
 	case ConcretableState::CONCRETE:
 		depMap.markAsSolved(this);
@@ -50,8 +32,11 @@ ConcretableState Concretable::makeConcrete(NamespaceStack& ns_stack, DependencyM
 ConcretableState Concretable::retryMakeConcrete(DependencyMap& depMap) {
 	assert(m_concreteState == ConcretableState::TRY_LATER);
 	ConcretableState state = retryMakeConcreteInternal(depMap);
+	assert(m_concreteState == ConcretableState::TRY_LATER);
 
-    switch(state) {
+	m_concreteState = state;
+
+    switch(m_concreteState) {
 	case ConcretableState::NEVER_TRIED:
 		assert(false);
 		break;
@@ -89,20 +74,10 @@ void DependencyMap::makeFirstDependentOnSecond(Concretable* first, Concretable* 
 	ConcretableState secondState = second->getConcretableState();
 
 	assert( firstState == ConcretableState::NEVER_TRIED || firstState  == ConcretableState::TRY_LATER);
+	assert(secondState == ConcretableState::NEVER_TRIED || secondState == ConcretableState::TRY_LATER);
 
 	auto& A = m_graph[first];
 	auto& B = m_graph[second];
-
-	if(secondState == ConcretableState::CONCRETE) {
-		if(A.dependentOnCount == 0)
-			first->retryMakeConcrete(*this);
-		return;
-	}
-	else if(secondState == ConcretableState::LOST_CAUSE) {
-	    first->silentlyUpdateToLostCause();
-		markAsLostCause(first);
-		return;
-	}
 
 	A.dependentOnCount++;
 	B.dependentOnThis.push_back(first);

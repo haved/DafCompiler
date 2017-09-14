@@ -4,7 +4,7 @@
 #include "parsing/ast/Definition.hpp"
 #include "parsing/semantic/Namespace.hpp"
 #include "parsing/semantic/NamespaceStack.hpp"
-#include "parsing/semantic/DotOpDependencyList.hpp"
+#include "parsing/semantic/Concretable.hpp"
 #include <vector>
 #include <memory>
 #include <string>
@@ -46,8 +46,9 @@ public:
 	virtual void printSignature() override;
 	virtual NameScopeExpressionKind getNameScopeExpressionKind() override;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList) override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+
+	virtual ConcreteNameScope* getConcreteNameScope() override=0;
 
 	virtual Definition* tryGetDefinitionFromName(const std::string& name) override;
 	virtual Definition* getPubDefinitionFromName(const std::string& name, const TextRange& range) override;
@@ -67,12 +68,11 @@ public:
 	virtual void printSignature() override;
 	virtual NameScopeExpressionKind getNameScopeExpressionKind() override;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	Definition* makeConcreteOrOtherDefinition(NamespaceStack& ns_stack);
-	//inline Definition* getTargetDefinition() { return m_target; }
-	virtual ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList) override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcreteNameScope* getConcreteNameScope() override;
 };
 
+/*
 class NameScopeDotOperator : public NameScopeExpression {
 	unique_ptr<NameScopeExpression> m_LHS;
 	std::string m_RHS;
@@ -96,5 +96,5 @@ private:
 	bool prepareForResolving(NamespaceStack& ns_stack);
 	optional<Definition*> tryResolveOrOtherDefinition(DotOpDependencyList& depList);
 	optional<Definition*> tryGetTargetDefinition(DotOpDependencyList& depList);
-};
+};*/
 

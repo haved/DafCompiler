@@ -93,11 +93,9 @@ public:
 	inline TypeReference& getReturnType() { return m_returnType; }
 	inline TypeReference&& reapReturnType() { return std::move(m_returnType); }
 
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
-	virtual ConcreteTypeKind getConcreteTypeKind() override { return ConcreteTypeKind::FUNCTION; }
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 
-	ConcreteTypeAttempt tryGetConcreteReturnType(DotOpDependencyList& depList);
 	bool setOrCheckConcreteReturnType(ConcreteType* type);
 	ConcreteType* getConcreteReturnType();
 };
@@ -127,6 +125,6 @@ public:
 
 	void codegenFunction(CodegenLLVM& codegen, const std::string& name);
 	llvm::Function* getPrototype();
-	ConcreteTypeAttempt tryInferConcreteReturnType(DotOpDependencyList& depList);
+	//ConcreteTypeAttempt tryInferConcreteReturnType(DotOpDependencyList& depList);
 	ConcreteType* getConcreteReturnType();
 };

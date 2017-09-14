@@ -1,4 +1,5 @@
 #include "parsing/ast/Definition.hpp"
+#include "parsing/semantic/ConcretableHelp.hpp"
 #include "DafLogger.hpp"
 #include "CodegenLLVM.hpp"
 #include <iostream>
@@ -53,14 +54,18 @@ optional<ExprTypeInfo> getFinalTypeForDef(ReturnKind return_kind, TypeReference&
 }
 
 ConcretableState Def::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	depMap.makeFirstDependentOnSecond(this, m_expression.get());
-	if(m_givenType)
-		depMap.makeFirstDependentOnSecond(this, m_givenType.getType());
-	m_expression->makeConcrete(ns_stack, depMap);
-	if(m_givenType)
-		m_givenType.getType()->makeConcrete(ns_stack, depMap);
+	ConcretableState exprState = m_expression->makeConcrete(ns_stack, depMap);
+	ConcretableState givenTypeState = m_givenType ? m_givenType.getType()->makeConcrete(ns_stack, depMap) : ConcretableState::CONCRETE;
 
-	return ConcretableState::TRY_LATER; //We might
+	if(allConcrete() << exprState << givenTypeState)
+		return retryMakeConcreteInternal(depMap);
+	if(anyLost() << exprState << givenTypeState)
+		return ConcretableState::LOST_CAUSE;
+	if(!allConcrete() << exprState)
+		depMap.makeFirstDependentOnSecond(this, m_expression.get());
+	if(!allConcrete() << givenTypeState)
+		depMap.makeFirstDependentOnSecond(this, m_givenType.getType());
+	return ConcretableState::TRY_LATER;
 }
 
 ConcretableState Def::retryMakeConcreteInternal(DependencyMap& depMap) {
@@ -74,14 +79,19 @@ ConcretableState Def::retryMakeConcreteInternal(DependencyMap& depMap) {
 }
 
 ConcretableState Let::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	if(m_expression)
+	ConcretableState exprState =
+		m_expression ? m_expression         ->makeConcrete(ns_stack, depMap) : ConcretableState::CONCRETE;
+	ConcretableState typeState =
+		m_givenType  ? m_givenType.getType()->makeConcrete(ns_stack, depMap) : ConcretableState::CONCRETE;
+
+	if(allConcrete() << exprState << typeState)
+		return retryMakeConcreteInternal(depMap);
+	if(anyLost()     << exprState << typeState)
+		return ConcretableState::LOST_CAUSE;
+	if(!allConcrete() << exprState)
 		depMap.makeFirstDependentOnSecond(this, m_expression.get());
-	if(m_givenType)
+	if(!allConcrete() << typeState)
 		depMap.makeFirstDependentOnSecond(this, m_givenType.getType());
-	if(m_expression)
-		m_expression->makeConcrete(ns_stack, depMap);
-	if(m_givenType)
-	    m_givenType.getType()->makeConcrete(ns_stack, depMap);
 	return ConcretableState::TRY_LATER;
 }
 
@@ -98,6 +108,8 @@ ConcretableState Let::retryMakeConcreteInternal(DependencyMap& depMap) {
 		assert(m_givenType);
 		m_type = m_givenType.getType()->getConcreteType();
 	}
+
+	return ConcretableState::CONCRETE;
 }
 
 void Def::globalCodegen(CodegenLLVM& codegen) {
@@ -112,7 +124,7 @@ void Def::globalCodegen(CodegenLLVM& codegen) {
 
 void Let::globalCodegen(CodegenLLVM& codegen) {
 	(void) codegen;
-	//TODO: We do need separate codegen for global and local contexts. I'm sure of it!
+    //TODO: Allocate global space for the let
 }
 
 EvaluatedExpression Def::accessCodegen(CodegenLLVM& codegen) {
@@ -171,9 +183,9 @@ void TypedefDefinition::addToMap(NamedDefinitionMap& map) {
 
 ConcretableState TypedefDefinition::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
     ConcretableState state = m_type.getType()->makeConcrete(ns_stack, depMap);
-	if(state == ConcretableState::CONCRETE)
+	if(allConcrete() << state)
 		return retryMakeConcreteInternal(depMap);
-	else if(state == ConcretableState::LOST_CAUSE)
+	if(anyLost() << state)
 		return ConcretableState::LOST_CAUSE;
 	depMap.makeFirstDependentOnSecond(this, m_type.getType());
 	return ConcretableState::TRY_LATER;
@@ -181,11 +193,10 @@ ConcretableState TypedefDefinition::makeConcreteInternal(NamespaceStack& ns_stac
 
 ConcretableState TypedefDefinition::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
-	//We done? Ye
 	return ConcretableState::CONCRETE;
 }
 
-void TypedefDefinition::globalCodegen(CodegenLLVM& codegen) {(void) codegen;}; //Typedefs don't really do codegen
+void TypedefDefinition::globalCodegen(CodegenLLVM& codegen) {(void) codegen;}; //TODO: Has to do all the things NameScopes do upon global codegen
 
 void TypedefDefinition::printSignature() {
 	if(m_pub)
@@ -209,17 +220,18 @@ void NamedefDefinition::addToMap(NamedDefinitionMap& map) {
 ConcretableState NamedefDefinition::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 	assert(m_value);
 	ConcretableState state = m_value->makeConcrete(ns_stack, depMap);
-    if(state == ConcretableState::CONCRETE)
+    if(allConcrete() << state)
 		return retryMakeConcreteInternal(depMap);
-	else if(state == ConcretableState::LOST_CAUSE)
+	else if(anyLost() << state)
 		return ConcretableState::LOST_CAUSE;
 	depMap.makeFirstDependentOnSecond(this, m_value.get());
 	return ConcretableState::TRY_LATER;
 }
 
-ConcreteNameScope* NamedefDefinition::tryGetConcreteNameScope(DotOpDependencyList& depList) {
-	assert(m_value);
-	return m_value->tryGetConcreteNameScope(depList);
+ConcretableState NamedefDefinition::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
+	//We're done now
+	return ConcretableState::CONCRETE;
 }
 
 void NamedefDefinition::globalCodegen(CodegenLLVM& codegen) {

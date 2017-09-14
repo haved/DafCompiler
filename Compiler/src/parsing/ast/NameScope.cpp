@@ -1,4 +1,5 @@
 #include "parsing/ast/NameScope.hpp"
+#include "parsing/semantic/ConcretableHelp.hpp"
 #include "CodegenLLVM.hpp"
 #include "DafLogger.hpp"
 #include <iostream>
@@ -6,6 +7,11 @@
 void complainDefinitionIsNotNamedef(Definition* definition, std::string& name, const TextRange& range) {
 	auto& out = logDaf(range, ERROR) << "expected namedef; '" << name << "' is a ";
 	printDefinitionKindName(definition->getDefinitionKind(), out) << std::endl;
+}
+
+ConcretableState NameScopeExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
+	return ConcretableState::CONCRETE;
 }
 
 NameScope::NameScope(vector<unique_ptr<Definition>>&& definitions, const TextRange& range) : NameScopeExpression(range), m_definitions(std::move(definitions)), m_definitionMap(), m_filled(false) {}
@@ -32,19 +38,21 @@ NameScopeExpressionKind NameScope::getNameScopeExpressionKind() {
 	return NameScopeExpressionKind::NAME_SCOPE;
 }
 
-void NameScope::makeConcrete(NamespaceStack& ns_stack) {
+ConcretableState NameScope::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 	ns_stack.push(this);
 	assureNameMapFilled();
 
 	for(auto it = m_definitions.begin(); it != m_definitions.end(); ++it) {
-		(*it)->makeConcrete(ns_stack); //we ignore the returned bool //TODO: Does it need to return a bool?
+		(*it)->makeConcrete(ns_stack, depMap); //we ignore the returned bool //TODO: Does it need to return a bool?
 	}
 
 	ns_stack.pop();
+
+	//TODO: Should we be a lost cause if any of the definitions inside were lost causes?
+	return ConcretableState::CONCRETE;
 }
 
-ConcreteNameScope* NameScope::tryGetConcreteNameScope(DotOpDependencyList& depList) {
-	(void) depList;
+ConcreteNameScope* NameScope::getConcreteNameScope() {
 	return this; //Aw yes, we there
 }
 
@@ -96,27 +104,33 @@ NameScopeExpressionKind NameScopeReference::getNameScopeExpressionKind() {
 	return NameScopeExpressionKind::IDENTIFIER;
 }
 
-void NameScopeReference::makeConcrete(NamespaceStack& ns_stack) {
-	Definition* target = makeConcreteOrOtherDefinition(ns_stack);
-	if(target && !m_target)
-		complainDefinitionIsNotNamedef(target, m_name, getRange());
-}
-
-Definition* NameScopeReference::makeConcreteOrOtherDefinition(NamespaceStack& ns_stack) {
+ConcretableState NameScopeReference::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 	Definition* target = ns_stack.getDefinitionFromName(m_name, getRange());
 	if(!target)
-	    return nullptr;
-	if(target->getDefinitionKind() == DefinitionKind::NAMEDEF)
-		m_target = static_cast<NamedefDefinition*>(target);
-	return target;
+		return ConcretableState::LOST_CAUSE;
+	DefinitionKind kind = target->getDefinitionKind();
+	if(kind != DefinitionKind::NAMEDEF) {
+		auto& out = logDaf(getRange(), ERROR) << "expected namedef; " << m_name << "is a ";
+		printDefinitionKindName(kind, out) << std::endl;
+		return ConcretableState::LOST_CAUSE;
+	}
+
+	m_target = static_cast<NamedefDefinition*>(target);
+	ConcretableState state = m_target->getConcretableState();
+
+	if(allConcrete() << state)
+		return retryMakeConcreteInternal(depMap);
+	if(anyLost() << state)
+		return ConcretableState::LOST_CAUSE;
+	depMap.makeFirstDependentOnSecond(this, m_target);
+	return ConcretableState::TRY_LATER;
 }
 
-//Optimize: store the ConcreteNameScope you get, for later calls
-ConcreteNameScope* NameScopeReference::tryGetConcreteNameScope(DotOpDependencyList& depList) {
-    return m_target ? m_target->tryGetConcreteNameScope(depList) : nullptr;
+ConcreteNameScope* NameScopeReference::getConcreteNameScope() {
+	return m_target->getConcreteNameScope();
 }
 
-
+/*
 NameScopeDotOperator::NameScopeDotOperator(unique_ptr<NameScopeExpression>&& LHS, std::string&& RHS, const TextRange& range) : NameScopeExpression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_LHS_target(nullptr), m_LHS_dot(nullptr), m_target(nullptr), m_resolved(false) {
 	assert(m_LHS);
 	assert(m_RHS.size() > 0);
@@ -136,7 +150,6 @@ void NameScopeDotOperator::printLocationAndText() {
 NameScopeExpressionKind NameScopeDotOperator::getNameScopeExpressionKind() {
 	return NameScopeExpressionKind::DOT_OP;
 }
-
 
 ConcreteNameScope* NameScopeDotOperator::tryGetConcreteNameScope(DotOpDependencyList& depList) {
 	if(m_target)
@@ -222,3 +235,4 @@ optional<Definition*> NameScopeDotOperator::tryGetTargetDefinition(DotOpDependen
 		return namescope->getPubDefinitionFromName(m_RHS, getRange()); //Might error on us, but our caller handles that ;)
 	}
 }
+*/
