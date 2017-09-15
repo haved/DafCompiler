@@ -154,77 +154,29 @@ ConcretableState InfixOperatorExpression::makeConcreteInternal(NamespaceStack& n
 }
 
 ConcretableState InfixOperatorExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
-	//TODO: Work
-}
-
-void InfixOperatorExpression::findResultTypeOrBroken(ConcreteType* LHS_type, ConcreteType* RHS_type) {
-    assert(!m_result_type && LHS_type && RHS_type);
-	if(m_broken)
-		return;
-
+	(void) depMap;
+	ConcreteType *LHS_type = m_LHS->getTypeInfo().type, *RHS_type = m_RHS->getTypeInfo().type;
 	m_result_type = getBinaryOpResultType(LHS_type, m_op, RHS_type, getRange());
-	if(!m_result_type)
-		m_broken = true;
-}
-
-ConcreteTypeAttempt InfixOperatorExpression::tryGetConcreteType(DotOpDependencyList& depList) {
-	assert(m_LHS && m_RHS);
-	assert(!m_result_type || !m_broken);
-
-	if(m_result_type)
-		return ConcreteTypeAttempt::here(m_result_type);
-	if(m_broken)
-		return ConcreteTypeAttempt::failed();
-
-	ConcreteTypeAttempt LHS_type = m_LHS->tryGetConcreteType(depList);
-	ConcreteTypeAttempt RHS_type = m_RHS->tryGetConcreteType(depList);
-	if(LHS_type.hasType() && RHS_type.hasType()) {
-	    findResultTypeOrBroken(LHS_type.getType(), RHS_type.getType());
-		assert(bool(m_result_type) != m_broken);
-		return m_broken ? ConcreteTypeAttempt::failed() : ConcreteTypeAttempt::here(m_result_type);
-	}
-	else if(LHS_type.isLostCause() || RHS_type.isLostCause()) {
-		m_broken = true;
-		return ConcreteTypeAttempt::failed();
-	}
-	return ConcreteTypeAttempt::tryLater();
+	m_typeInfo = ExprTypeInfo(m_result_type, ValueKind::ANONYMOUS);
+	return ConcretableState::CONCRETE;
 }
 
 EvaluatedExpression InfixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
-	if(m_broken)
-		return EvaluatedExpression();
+	assert(allConcrete() << getConcretableState());
 
 	EvaluatedExpression LHS_expr = m_LHS->codegenExpression(codegen);
 	EvaluatedExpression RHS_expr = m_RHS->codegenExpression(codegen);
 
 	if(!LHS_expr || !RHS_expr)
 		return EvaluatedExpression();
-
-	if(m_result_type) {
-#ifdef DEBUG
-		PrimitiveType* old_result_type = m_result_type; //Check that the type hasn't changed since last time
-		m_result_type = nullptr;
-		findResultTypeOrBroken(LHS_expr.type, RHS_expr.type);
-
-		//TODO: ConcreteTypes in the future might be the same without having the same address
-		assert(m_result_type == old_result_type && !m_broken);
-#endif
-	}
-	else
-	{
-		findResultTypeOrBroken(LHS_expr.type, RHS_expr.type);
-		if(m_broken)
-			return EvaluatedExpression();
-	}
-
 	assert(m_result_type);
 
-	std::cout << "Outputing binary op with LHS dump: " << std::endl;
+	std::cout << "Outputting binary op with LHS dump: " << std::endl;
 	LHS_expr.value->dump();
 
 	return codegenBinaryOperator(codegen, LHS_expr, m_op, RHS_expr, m_result_type, getRange());
 }
-
+/*
 DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range) : Expression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_LHS_dot(nullptr), m_LHS_target(nullptr), m_target(), m_done(false) {
 	assert(m_LHS);
 	assert(m_RHS.size() > 0); //We don't allow empty identifiers
@@ -338,6 +290,7 @@ optional<Definition*> DotOperatorExpression::tryGetTargetDefinition(DotOpDepende
 		return boost::none; //Try again
 	}
 }
+*/
 
 
 PrefixOperatorExpression::PrefixOperatorExpression(const PrefixOperator& op, int opLine, int opCol, std::unique_ptr<Expression>&& RHS) : Expression(TextRange(opLine, opCol, RHS->getRange())), m_op(op), m_RHS(std::move(RHS)) {
@@ -349,14 +302,25 @@ void PrefixOperatorExpression::printSignature() {
 	m_RHS->printSignature();
 }
 
-void PrefixOperatorExpression::makeConcrete(NamespaceStack& ns_stack) {
-	m_RHS->makeConcrete(ns_stack);
+ConcretableState PrefixOperatorExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	ConcretableState state = m_RHS->makeConcrete(ns_stack, depMap);
+	if(allConcrete() << state)
+		return retryMakeConcreteInternal(depMap);
+	if(anyLost() << state)
+		return ConcretableState::LOST_CAUSE;
+	depMap.makeFirstDependentOnSecond(this, m_RHS.get());
+	return ConcretableState::TRY_LATER;
 }
 
-ConcreteTypeAttempt PrefixOperatorExpression::tryGetConcreteType(DotOpDependencyList& depList) {
-	(void) depList;
-    assert(false && "Don't know how to get the type of any prefix operators yet");
-	return ConcreteTypeAttempt::failed();
+ConcretableState PrefixOperatorExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
+	std::cerr << "Not added prefix operators yet" << std::endl;
+	return ConcretableState::CONCRETE;
+}
+
+EvaluatedExpression codegenExpression(CodegenLLVM& codegen) {
+	(void) codegen;
+	return EvaluatedExpression();
 }
 
 PostfixCrementExpression::PostfixCrementExpression(std::unique_ptr<Expression>&& LHS, bool decrement, int opLine, int opEndCol) : Expression(TextRange(LHS->getRange(), opLine, opEndCol)), m_decrement(decrement), m_LHS(std::move(LHS)) {
@@ -368,8 +332,8 @@ void PostfixCrementExpression::printSignature() {
 	std::cout << (m_decrement ? "--" : "++");
 }
 
-void PostfixCrementExpression::makeConcrete(NamespaceStack& ns_stack) {
-	m_LHS->makeConcrete(ns_stack);
+ConcretableState PostfixCrementExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+    ConcretableState state = m_LHS->makeConcrete(ns_stack, depMap);
 }
 
 ConcreteTypeAttempt PostfixCrementExpression::tryGetConcreteType(DotOpDependencyList& depList) {

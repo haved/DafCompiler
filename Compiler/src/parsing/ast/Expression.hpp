@@ -157,11 +157,9 @@ public:
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
-
-private:
-	void findResultTypeOrBroken(ConcreteType* LHS_type, ConcreteType* RHS_type);
 };
 
+/*
 class DotOperatorExpression : public Expression {
 private:
 	unique_ptr<Expression> m_LHS;
@@ -184,6 +182,7 @@ public:
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
+*/
 
 class PrefixOperatorExpression : public Expression {
 private:
