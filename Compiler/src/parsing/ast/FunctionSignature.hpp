@@ -88,7 +88,7 @@ public:
 	inline std::vector<unique_ptr<FunctionParameter>>& getParams() { return m_parameters; }
 	void mergeInDefReturnKind(ReturnKind def);
 	void setFunctionExpression(FunctionExpression* expression);
-	inline ReturnKind getReturnKind() { return m_returnKind; }
+	inline ReturnKind getGivenReturnKind() { return m_returnKind; }
 	inline bool ateEqualsSign() { return m_ateEquals; }
 	inline TypeReference& getReturnType() { return m_returnType; }
 	inline TypeReference&& reapReturnType() { return std::move(m_returnType); }

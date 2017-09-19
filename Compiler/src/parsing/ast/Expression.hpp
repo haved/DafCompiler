@@ -215,13 +215,10 @@ public:
 };
 
 class FunctionCallArgument {
-private:
+public:
 	bool m_mutableReference;
 	unique_ptr<Expression> m_expression;
-public:
 	FunctionCallArgument(bool mut, unique_ptr<Expression>&& expression);
-	inline bool isMut() { return m_mutableReference; }
-	inline Expression& getExpression() { return *m_expression; }
 	void printSignature();
 };
 
@@ -231,7 +228,6 @@ class FunctionCallExpression : public Expression {
 private:
 	unique_ptr<Expression> m_function;
 	std::vector<FunctionCallArgument> m_args;
-	bool m_broken;
 	FunctionType* m_function_type;
 	ConcreteType* m_function_return_type;
 public:

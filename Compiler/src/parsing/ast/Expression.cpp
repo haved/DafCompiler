@@ -315,10 +315,10 @@ ConcretableState PrefixOperatorExpression::makeConcreteInternal(NamespaceStack& 
 ConcretableState PrefixOperatorExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
 	std::cerr << "Not added prefix operators yet" << std::endl;
-	return ConcretableState::CONCRETE;
+	return ConcretableState::LOST_CAUSE;
 }
 
-EvaluatedExpression codegenExpression(CodegenLLVM& codegen) {
+EvaluatedExpression PrefixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
 	(void) codegen;
 	return EvaluatedExpression();
 }
@@ -334,11 +334,23 @@ void PostfixCrementExpression::printSignature() {
 
 ConcretableState PostfixCrementExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
     ConcretableState state = m_LHS->makeConcrete(ns_stack, depMap);
+	if(allConcrete() << state)
+		return retryMakeConcreteInternal(depMap);
+	if(anyLost() << state)
+		return ConcretableState::LOST_CAUSE;
+	depMap.makeFirstDependentOnSecond(this, m_LHS.get());
+	return ConcretableState::TRY_LATER;
 }
 
-ConcreteTypeAttempt PostfixCrementExpression::tryGetConcreteType(DotOpDependencyList& depList) {
-    assert(false && "Don't know how to get the type of postfix (in|de)crement-operators yet");
-	return ConcreteTypeAttempt::failed();
+ConcretableState PostfixCrementExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
+	std::cerr << "TODO: Add postfix increment and decrement operators" << std::endl;
+	return ConcretableState::LOST_CAUSE;
+}
+
+EvaluatedExpression PostfixCrementExpression::codegenExpression(CodegenLLVM& codegen) {
+	(void) codegen;
+	return EvaluatedExpression();
 }
 
 FunctionCallArgument::FunctionCallArgument(bool mut, unique_ptr<Expression>&& expression) : m_mutableReference(mut), m_expression(std::move(expression)) {
@@ -353,7 +365,7 @@ void FunctionCallArgument::printSignature() {
 }
 
 FunctionCallExpression::FunctionCallExpression(unique_ptr<Expression>&& function, std::vector<FunctionCallArgument>&& arguments, int lastLine, int lastCol)
-	: Expression(TextRange(function->getRange(), lastLine, lastCol)), m_function(std::move(function)), m_args(std::move(arguments)), m_broken(false), m_function_type(nullptr), m_function_return_type(nullptr) {
+	: Expression(TextRange(function->getRange(), lastLine, lastCol)), m_function(std::move(function)), m_args(std::move(arguments)), m_function_type(nullptr), m_function_return_type(nullptr) {
 	assert(m_function); //You can't call none
 }
 
@@ -369,63 +381,48 @@ void FunctionCallExpression::printSignature() {
 	std::cout << ")";
 }
 
-void FunctionCallExpression::makeConcrete(NamespaceStack& ns_stack) {
-    m_function->makeConcrete(ns_stack);
-	for(auto it = m_args.begin(); it != m_args.end(); ++it)
-		it->makeConcrete(ns_stack);
+ConcretableState FunctionCallExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+    ConcretableState state = m_function->makeConcrete(ns_stack, depMap);
+    auto conc = allConcrete() << state;
+	auto lost = anyLost() << state;
+	for(auto it = m_args.begin(); it != m_args.end(); ++it) {
+	    Expression* arg = it->m_expression.get();
+		ConcretableState state = arg->makeConcrete(ns_stack, depMap);
+		conc = conc << state;
+		lost = lost << state;
+		if(state == ConcretableState::TRY_LATER)
+			depMap.makeFirstDependentOnSecond(this, arg);
+	}
+
+	if(conc)
+		return retryMakeConcreteInternal(depMap);
+	if(lost)
+		return ConcretableState::LOST_CAUSE;
+
+	return ConcretableState::TRY_LATER;
 }
 
-ConcreteTypeAttempt FunctionCallExpression::tryGetConcreteType(DotOpDependencyList& depList) {
-	assert(!m_broken || ! m_function_return_type);
-	if(m_function_return_type)
-		return ConcreteTypeAttempt::here(m_function_return_type);
-	if(m_broken)
-		return ConcreteTypeAttempt::failed();
-	if(!m_function_type) {
-		ConcreteTypeAttempt LHS_type_opt = m_function->tryGetConcreteType(depList);
-		if(!LHS_type_opt.hasType()) {
-			if(LHS_type_opt.isLostCause()) {
-				m_broken = true;
-				return ConcreteTypeAttempt::failed();
-			}
-			return ConcreteTypeAttempt::tryLater();
-		}
+ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
 
-		ConcreteType* LHS_type = LHS_type_opt.getType();
-
-		//TODO: Allow function pointer as well
-		if(LHS_type->getConcreteTypeKind() != ConcreteTypeKind::FUNCTION) {
-			auto& out = logDaf(getRange(), ERROR) << "expected function call to call, you know, a function; not a ";
-			LHS_type->printSignature();
-			out << std::endl;
-			m_broken = true;
-			return ConcreteTypeAttempt::failed();
-		}
-
-		m_function_type = static_cast<FunctionType*>(LHS_type);
+	ConcreteType* type = m_function->getTypeInfo().type;
+	if(type->getConcreteTypeKind() != ConcreteTypeKind::FUNCTION) {
+		logDaf(getRange(), ERROR) << "expected function type" << std::endl;
+		return ConcretableState::LOST_CAUSE;
 	}
 
-	assert(m_function_type);
-	ConcreteTypeAttempt result =  m_function_type->tryGetConcreteReturnType(depList);
-    if(result.hasType()) {
-		m_function_return_type = result.getType();
-		return result;
-	} else if(result.isLostCause()) {
-		m_broken = true;
-		return ConcreteTypeAttempt::failed();
-	}
-	return ConcreteTypeAttempt::tryLater();
+	m_function_type = static_cast<FunctionType*>(type);
+	m_function_return_type = m_function_type->getConcreteReturnType();
+
+	m_typeInfo = ExprTypeInfo(m_function_return_type, ValueKind::ANONYMOUS);
+
+	return ConcretableState::CONCRETE;
 }
 
 EvaluatedExpression FunctionCallExpression::codegenExpression(CodegenLLVM& codegen) {
-	if(m_broken)
-		return EvaluatedExpression();
-
 	EvaluatedExpression function = m_function->codegenExpression(codegen);
 	if(!function)
 		return EvaluatedExpression();
-	//TODO: Check m_function_type matches what we got from m_function properly
-	assert(!m_function_type || m_function_type == function.type);
 
 	std::vector<llvm::Value*> ArgsV;
 	for(auto it = m_args.begin(); it != m_args.end(); ++it) {
