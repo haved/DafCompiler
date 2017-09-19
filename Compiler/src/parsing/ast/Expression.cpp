@@ -406,6 +406,7 @@ ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap
 	(void) depMap;
 
 	ConcreteType* type = m_function->getTypeInfo().type;
+	assert(type);
 	if(type->getConcreteTypeKind() != ConcreteTypeKind::FUNCTION) {
 		logDaf(getRange(), ERROR) << "expected function type" << std::endl;
 		return ConcretableState::LOST_CAUSE;
@@ -427,26 +428,23 @@ EvaluatedExpression FunctionCallExpression::codegenExpression(CodegenLLVM& codeg
 	std::vector<llvm::Value*> ArgsV;
 	for(auto it = m_args.begin(); it != m_args.end(); ++it) {
 		//TODO: Mut references as what not. We're supposed to pass references remember
-		EvaluatedExpression arg = it->getExpression().codegenExpression(codegen);
+		EvaluatedExpression arg = it->m_expression->codegenExpression(codegen);
 		if(!arg)
 			return EvaluatedExpression();
 		//TODO: Check type of argument
 		ArgsV.push_back(arg.value);
 	}
 
-	if(function.type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION) {
-		FunctionType* function_type = static_cast<FunctionType*>(function.type);
-		ConcreteType* return_type = function_type->getConcreteReturnType();
-		if(!return_type)
-			return EvaluatedExpression();
+	if(function.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION) {
 		llvm::Function* function_value = static_cast<llvm::Function*>(function.value);
 		llvm::Value* call = codegen.Builder().CreateCall(function_value, ArgsV);
-		return EvaluatedExpression(call, return_type);
-	} else {
-		std::cerr << "TODO: handle function calls on something other than Function*" << std::endl;
-		return EvaluatedExpression();
+		return EvaluatedExpression(call, &m_typeInfo);
 	}
+
+	std::cerr << "TODO: handle function calls on something other than Function*" << std::endl;
+	return EvaluatedExpression();
 }
+
 
 ArrayAccessExpression::ArrayAccessExpression(unique_ptr<Expression>&& array, unique_ptr<Expression>&& index, int lastLine, int lastCol) : Expression(TextRange(array->getRange(), lastLine, lastCol)), m_array(std::move(array)), m_index(std::move(index)) {
 	assert(m_array && m_index);
@@ -460,15 +458,26 @@ void ArrayAccessExpression::printSignature() {
 	std::cout << " ]";
 }
 
-void ArrayAccessExpression::makeConcrete(NamespaceStack& ns_stack) {
-	m_array->makeConcrete(ns_stack);
-	m_index->makeConcrete(ns_stack);
+ConcretableState ArrayAccessExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	ConcretableState arrayState = m_array->makeConcrete(ns_stack, depMap);
+	ConcretableState indexState = m_index->makeConcrete(ns_stack, depMap);
+
+	if(allConcrete() << arrayState << indexState)
+		return retryMakeConcreteInternal(depMap);
+	if(anyLost() << arrayState << indexState)
+		return ConcretableState::LOST_CAUSE;
+	if(!allConcrete() << arrayState)
+		depMap.makeFirstDependentOnSecond(this, m_array.get());
+	if(!allConcrete() << indexState)
+		depMap.makeFirstDependentOnSecond(this, m_index.get());
+
+	return ConcretableState::TRY_LATER;
 }
 
-ConcreteTypeAttempt ArrayAccessExpression::tryGetConcreteType(DotOpDependencyList& depList) {
-	(void) depList;
-	std::cerr << "Array access tryGetConcreteType isn't implemented" << std::endl;
-	return ConcreteTypeAttempt::failed();
+ConcretableState ArrayAccessExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
+    (void) depMap;
+	std::cerr << "Array access expressions are not implemented" << std::endl;
+	return ConcretableState::LOST_CAUSE;
 }
 
 EvaluatedExpression ArrayAccessExpression::codegenExpression(CodegenLLVM& codegen) {

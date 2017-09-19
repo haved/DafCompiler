@@ -2,8 +2,18 @@
 #include "DafLogger.hpp"
 #include "CodegenLLVM.hpp"
 #include "info/DafSettings.hpp"
+#include "parsing/semantic/ConcretableHelp.hpp"
 
 FunctionParameter::FunctionParameter(std::string&& name) : m_name(std::move(name)) {} //An empty name is allowed
+
+ConcretableState FunctionParameter::readyMakeParamConcrete(FunctionType* concretable, NamespaceStack& ns_stack, DependencyMap& depMap) {
+	(void) concretable, (void) ns_stack, (void) depMap;
+	return ConcretableState::CONCRETE;
+}
+
+ConcretableState finalizeMakeParamConcrete() {
+	return ConcretableState::CONCRETE;
+}
 
 void printParameterModifier(ParameterModifier modif) {
 	switch(modif) {
@@ -45,8 +55,11 @@ bool ValueParameter::isCompileTimeOnly() {
 	return m_modif == ParameterModifier::DEF;
 }
 
-void ValueParameter::makeConcrete(NamespaceStack& ns_stack) {
-    m_type.makeConcrete(ns_stack);
+ConcretableState ValueParameter::readyMakeParamConcrete(FunctionType* concretable, NamespaceStack& ns_stack, DependencyMap& depMap) {
+	ConcretableState state = m_type.getType()->makeConcrete(ns_stack, depMap);
+    if(state == ConcretableState::TRY_LATER)
+		depMap.makeFirstDependentOnSecond(concretable, m_type.getType());
+	return state;
 }
 
 ValueParameterTypeInferred::ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName) : FunctionParameter(std::move(name)), m_modif(modif), m_typeName(std::move(typeName)) {
@@ -55,9 +68,7 @@ ValueParameterTypeInferred::ValueParameterTypeInferred(ParameterModifier modif, 
 
 void ValueParameterTypeInferred::printSignature() {
 	printParameterModifier(m_modif);
-	std::cout << m_name;
-	std::cout << ":$";
-	std::cout << m_typeName;
+	std::cout << m_name << ":$" << m_typeName;
 }
 
 bool ValueParameterTypeInferred::isCompileTimeOnly() {
@@ -81,13 +92,13 @@ bool TypedefParameter::isCompileTimeOnly() {
 void TypedefParameter::makeConcrete(NamespaceStack& ns_stack) { (void) ns_stack; }
 
 
-FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_returnType(std::move(returnType)), m_concreteReturnType(boost::none), m_ateEquals(ateEqualsSign), m_cmpTimeOnly(false), m_functionExpression(nullptr) {
+FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& givenReturnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_givenReturnType(std::move(givenReturnType)), m_concreteReturnType(nullptr), m_ateEquals(ateEqualsSign), m_cmpTimeOnly(false), m_functionExpression(nullptr) {
 
 	// If we are explicitly told we don't have a return type, we assert we weren't given one
 	if(m_returnKind == ReturnKind::NO_RETURN)
-		assert(!m_returnType.hasType());
+		assert(!m_givenReturnType);
 	else if(!m_ateEquals) // If we don't infer return type (=), but have a return type (:)
-		assert(m_returnType.hasType()); //Then we require an explicit type
+		assert(m_givenReturnType.hasType()); //Then we require an explicit type
 
 	for(auto it = m_parameters.begin(); it != m_parameters.end(); ++it)
 		if((*it)->isCompileTimeOnly()) {
@@ -116,8 +127,8 @@ void FunctionType::printSignatureMustHaveList(bool list) {
 		else if(m_returnKind == ReturnKind::MUT_REF_RETURN)
 			std::cout << "mut ";
 
-		if(m_returnType.hasType())
-			m_returnType.printSignature();
+		if(m_givenReturnType)
+			m_givenReturnType.printSignature();
 	}
 
 	if(m_ateEquals)
@@ -152,19 +163,50 @@ void FunctionType::setFunctionExpression(FunctionExpression* expression) {
 	m_functionExpression = expression;
 }
 
-void FunctionType::makeConcrete(NamespaceStack& ns_stack) {
-	if(m_returnType)
-		m_returnType.makeConcrete(ns_stack);
-	else if(m_returnKind != ReturnKind::NO_RETURN) //Inferred type
-		assert(m_functionExpression);
-    for(auto& param : m_parameters) {
-		param->makeConcrete(ns_stack);
+ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+    auto all_concrete = allConcrete();
+	auto any_lost = anyLost();
+	if(m_givenReturnType) {
+	    ConcretableState state = m_givenReturnType.getType()->makeConcrete(ns_stack, depMap);
+		all_concrete = all_concrete << state;
+		any_lost = any_lost << state;
+		if(state == ConcretableState::TRY_LATER)
+			depMap.makeFirstDependentOnSecond(this, m_givenReturnType.getType());
 	}
+	if(m_functionExpression) {
+		Expression* body = m_functionExpression->getBody();
+		ConcretableState state = body->getConcretableState();
+		if(state == ConcretableState::NEVER_TRIED)
+			state = body->makeConcrete(ns_stack, depMap); //Well shiet. This is the wrong ns_stack, we need the params
+	}
+
+    for(auto& param : m_parameters) {
+		ConcretableState state = param->readyMakeParamConcrete(this, ns_stack, depMap);
+		all_concrete = all_concrete << state;
+		any_lost = any_lost << state;
+	}
+
+	if(all_concrete)
+		return retryMakeConcreteInternal(depMap);
+	if(any_lost)
+		return ConcretableState::LOST_CAUSE;
+	return ConcretableState::TRY_LATER;
 }
 
-ConcreteTypeAttempt FunctionType::tryGetConcreteType(DotOpDependencyList& depList) {
-	(void) depList;
-	return ConcreteTypeAttempt::here(this);
+ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
+
+	for(auto& param : m_parameters)
+		param->finalizeMakeParamConcrete();
+
+    if(m_returnKind == ReturnKind::NO_RETURN)
+		m_concreteReturnType = getVoidType();
+	else {
+	    ConcreteType* given = m_givenReturnType ? m_givenReturnType.getConcreteType() : nullptr;
+
+	}
+
+	return ConcretableState::CONCRETE;
 }
 
 ConcreteTypeAttempt FunctionType::tryGetConcreteReturnType(DotOpDependencyList& depList) {

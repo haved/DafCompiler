@@ -20,7 +20,8 @@ public:
 	virtual void printSignature()=0;
 	virtual bool isCompileTimeOnly()=0;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack)=0;
+	virtual ConcretableState readyMakeParamConcrete(FunctionType* concretable, NamespaceStack& ns_stack, DependencyMap& depMap);
+	virtual ConcretableState finalizeMakeParamConcrete();
 };
 
 enum class ParameterModifier {
@@ -34,10 +35,10 @@ private:
 	TypeReference m_type;
 public:
 	ValueParameter(ParameterModifier modif, std::string&& name, TypeReference&& type);
-	void printSignature() override;
-	bool isCompileTimeOnly() override;
+	virtual void printSignature() override;
+	virtual bool isCompileTimeOnly() override;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	virtual ConcretableState readyMakeParamConcrete(FunctionType* concretable, NamespaceStack& ns_stack, DependencyMap& depMap) override;
 };
 
 // move a:$T
@@ -47,20 +48,22 @@ private:
 	std::string m_typeName;
 public:
 	ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName);
-	void printSignature() override;
-	bool isCompileTimeOnly() override;
+	virtual void printSignature() override;
+	virtual bool isCompileTimeOnly() override;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	virtual ConcretableState readyMakeParamConcrete(FunctionType* concretable, NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState finalizeMakeParamConcrete() override;
 };
 
 //TODO: Add restrictions here too
 class TypedefParameter : public FunctionParameter {
 public:
 	TypedefParameter(std::string&& name);
-	void printSignature() override;
-	bool isCompileTimeOnly() override;
+	virtual void printSignature() override;
+	virtual bool isCompileTimeOnly() override;
 
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
+	virtual ConcretableState readyMakeParamConcrete(FunctionType* concretable, NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState finalizeMakeParamConcrete() override;
 };
 
 enum class ReturnKind {
@@ -73,8 +76,8 @@ class FunctionType : public Type, public ConcreteType {
 private:
 	std::vector<unique_ptr<FunctionParameter>> m_parameters;
 	ReturnKind m_returnKind;
-	TypeReference m_returnType; //null means void
-	optional<ConcreteType*> m_concreteReturnType;
+	TypeReference m_givenReturnType; //null means void
+	ConcreteType* m_concreteReturnType;
 	bool m_ateEquals;
 	bool m_cmpTimeOnly;
 	FunctionExpression* m_functionExpression;
@@ -90,8 +93,8 @@ public:
 	void setFunctionExpression(FunctionExpression* expression);
 	inline ReturnKind getGivenReturnKind() { return m_returnKind; }
 	inline bool ateEqualsSign() { return m_ateEquals; }
-	inline TypeReference& getReturnType() { return m_returnType; }
-	inline TypeReference&& reapReturnType() { return std::move(m_returnType); }
+	inline TypeReference& getGivenReturnType() { return m_givenReturnType; }
+	inline TypeReference&& reapGivenReturnType() && { return std::move(m_givenReturnType); }
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
@@ -118,6 +121,8 @@ public:
 	virtual void printSignature() override;
 	virtual ExpressionKind getExpressionKind() const override;
 
+	Expression* getBody();
+
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
@@ -125,6 +130,5 @@ public:
 
 	void codegenFunction(CodegenLLVM& codegen, const std::string& name);
 	llvm::Function* getPrototype();
-	//ConcreteTypeAttempt tryInferConcreteReturnType(DotOpDependencyList& depList);
 	ConcreteType* getConcreteReturnType();
 };
