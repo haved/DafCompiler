@@ -88,6 +88,8 @@ public:
 	FunctionType& operator=(const FunctionType& other) = delete;
 	virtual void printSignature() override; //With list
 	void printSignatureMaybeList(); //Only list if parameters
+	ConcreteType* getConcreteType() override;
+
 	inline std::vector<unique_ptr<FunctionParameter>>& getParams() { return m_parameters; }
 	void mergeInDefReturnKind(ReturnKind def);
 	void setFunctionExpression(FunctionExpression* expression);
@@ -99,7 +101,6 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 
-	bool setOrCheckConcreteReturnType(ConcreteType* type);
 	ConcreteType* getConcreteReturnType();
 };
 
@@ -121,7 +122,8 @@ public:
 	virtual void printSignature() override;
 	virtual ExpressionKind getExpressionKind() const override;
 
-	Expression* getBody();
+	ConcretableState makeBodyConcrete(Concretable*)
+	ExprTypeInfo getBodyTypeInfo();
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;

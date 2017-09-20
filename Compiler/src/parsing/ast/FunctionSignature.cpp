@@ -143,6 +143,10 @@ void FunctionType::printSignatureMaybeList() {
 	printSignatureMustHaveList(false);
 }
 
+ConcreteType* FunctionType::getConcreteType() {
+	return this;
+}
+
 void FunctionType::mergeInDefReturnKind(ReturnKind defKind) {
 	assert(defKind != ReturnKind::NO_RETURN); //A def can't have no return, as that is part of the function type
 
@@ -173,12 +177,6 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 		if(state == ConcretableState::TRY_LATER)
 			depMap.makeFirstDependentOnSecond(this, m_givenReturnType.getType());
 	}
-	if(m_functionExpression) {
-		Expression* body = m_functionExpression->getBody();
-		ConcretableState state = body->getConcretableState();
-		if(state == ConcretableState::NEVER_TRIED)
-			state = body->makeConcrete(ns_stack, depMap); //Well shiet. This is the wrong ns_stack, we need the params
-	}
 
     for(auto& param : m_parameters) {
 		ConcretableState state = param->readyMakeParamConcrete(this, ns_stack, depMap);
@@ -202,71 +200,45 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
     if(m_returnKind == ReturnKind::NO_RETURN)
 		m_concreteReturnType = getVoidType();
 	else {
-	    ConcreteType* given = m_givenReturnType ? m_givenReturnType.getConcreteType() : nullptr;
+		ConcreteType* returnType = nullptr;
+		if(m_functionExpression) {
+		    ConcretableState state = m_functionExpression->makeBodyConcrete(this, m_parameters);
+			if(anyLost() << state)
+				return ConcretableState::LOST_CAUSE;
+			if(!allConcrete() << state)
+				return ConcretableState::TRY_LATER;
 
+			ExprTypeInfo bodyType = m_functionExpression->getBodyTypeInfo();
+			assert(bodyType.type);
+
+			returnType = bodyType.type;
+			if(m_returnKind == ReturnKind::REF_RETURN && bodyType.valueKind == ValueKind::ANONYMOUS) {
+				logDaf(getRange(), ERROR) << "function returns a reference, but its body provides an anonymous value" << std::endl;
+				return ConcretableState::LOST_CAUSE;
+			} else if(m_returnKind == ReturnKind::MUT_REF_RETURN && bodyType.valueKind != ValueKind::MUT_LVALUE) {
+				logDaf(getRange(), ERROR) << "function returns a mutable reference, but its body doesn't provide that" << std::endl;
+				return ConcretableState::LOST_CAUSE;
+			}
+		}
+
+	    if(m_givenReturnType) {
+			ConcreteType* given = m_givenReturnType.getConcreteType();
+			if(!returnType)
+				returnType = given;
+			else if(returnType != given) {
+				std::cerr << "TODO: Compare types of function body and given return type" << std::endl;
+				return ConcretableState::LOST_CAUSE;
+			}
+		}
+
+		m_concreteReturnType = returnType;
 	}
 
 	return ConcretableState::CONCRETE;
 }
 
-ConcreteTypeAttempt FunctionType::tryGetConcreteReturnType(DotOpDependencyList& depList) {
-	if(m_concreteReturnType)
-		return ConcreteTypeAttempt::fromOptionalWhereNullIsFail(m_concreteReturnType);
-
-	if(m_returnType) {
-		ConcreteTypeAttempt returnType = m_returnType.tryGetConcreteType(depList);
-		returnType.toOptionalWhereNullIsFail(m_concreteReturnType);
-		return returnType;
-	}
-	else {
-		if(m_returnKind == ReturnKind::NO_RETURN)
-			return ConcreteTypeAttempt::here(*(m_concreteReturnType = getVoidType()));
-		assert(m_functionExpression); //If we infer return value, we must be part of a function expression
-		ConcreteTypeAttempt returnType = m_functionExpression->tryInferConcreteReturnType(depList);
-		returnType.toOptionalWhereNullIsFail(m_concreteReturnType);
-	    return returnType;
-	}
-}
-
-bool FunctionType::setOrCheckConcreteReturnType(ConcreteType* type) {
-	assert(type);
-
-	if(m_returnKind == ReturnKind::NO_RETURN) {
-		m_concreteReturnType = getVoidType();
-		return true; //We ignore whatever type the body has
-	}
-
-	//If we have an explicitly written return type, but haven't gotten the concrete value already
-	if(!m_concreteReturnType && m_returnType) {
-		auto fakeList = DotOpDependencyList::fakeList();
-		ConcreteTypeAttempt returnType = m_returnType.tryGetConcreteType(fakeList);
-		if(returnType.hasType())
-			m_concreteReturnType = returnType.getType(); //Can't fail if terminateIfErrors was called after resolveDotOperators
-	}
-
-	if(m_concreteReturnType) //We have a written target type
-	{
-		if(!*m_concreteReturnType)
-			return false; //Nullptr means broken
-		//TODO: Check type equality properly
-		if(*m_concreteReturnType != type) {
-			auto& out = logDaf(getRange(), ERROR) << "The specified function return type ";
-			(*m_concreteReturnType)->printSignature();
-			out << " does not match the body's type: ";
-			type->printSignature();
-			out << std::endl;
-			return false;
-		}
-		return true;
-	} else {
-		m_concreteReturnType = type; //Type inferred
-		return true;
-	}
-}
-
-//This is called after we have made everything concrete, so if it fails once, it fails forever
 ConcreteType* FunctionType::getConcreteReturnType() {
-	return m_concreteReturnType ? *m_concreteReturnType : nullptr;
+	return m_concreteReturnType;
 }
 
 FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range) : Expression(range), m_type(std::move(type)), m_body(std::move(body)), m_function(nullptr), m_filled(false), m_broken(false) {
@@ -289,6 +261,9 @@ void FunctionExpression::printSignature() {
 ExpressionKind FunctionExpression::getExpressionKind() const {
 	return ExpressionKind::FUNCTION;
 }
+
+virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
 void FunctionExpression::makeConcrete(NamespaceStack& ns_stack) {
 	m_type->makeConcrete(ns_stack);
