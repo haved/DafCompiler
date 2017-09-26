@@ -6,12 +6,8 @@
 
 FunctionParameter::FunctionParameter(std::string&& name) : m_name(std::move(name)) {} //An empty name is allowed
 
-ConcretableState FunctionParameter::readyMakeParamConcrete(FunctionType* concretable, NamespaceStack& ns_stack, DependencyMap& depMap) {
-	(void) concretable, (void) ns_stack, (void) depMap;
-	return ConcretableState::CONCRETE;
-}
-
-ConcretableState finalizeMakeParamConcrete() {
+ConcretableState FunctionParameter::retryMakeConcreteInternal(DependencyMap& depMap) {
+    (void) depMap;
 	return ConcretableState::CONCRETE;
 }
 
@@ -55,10 +51,13 @@ bool ValueParameter::isCompileTimeOnly() {
 	return m_modif == ParameterModifier::DEF;
 }
 
-ConcretableState ValueParameter::readyMakeParamConcrete(FunctionType* concretable, NamespaceStack& ns_stack, DependencyMap& depMap) {
+ConcretableState ValueParameter::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 	ConcretableState state = m_type.getType()->makeConcrete(ns_stack, depMap);
-    if(state == ConcretableState::TRY_LATER)
-		depMap.makeFirstDependentOnSecond(concretable, m_type.getType());
+    if(allConcrete() << state)
+		return retryMakeConcreteInternal(depMap);
+	if(anyLost() << state)
+		return ConcretableState::LOST_CAUSE;
+	depMap.makeFirstDependentOnSecond(this, m_type.getType());
 	return state;
 }
 
@@ -75,7 +74,10 @@ bool ValueParameterTypeInferred::isCompileTimeOnly() {
 	return true;
 }
 
-void ValueParameterTypeInferred::makeConcrete(NamespaceStack& ns_stack) { (void) ns_stack; }
+ConcretableState ValueParameterTypeInferred::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+    (void) ns_stack, (void) depMap;
+	return ConcretableState::CONCRETE;
+}
 
 TypedefParameter::TypedefParameter(std::string&& name) : FunctionParameter(std::move(name)) {
 	assert(m_name.size() > 0); //We can't have empty type parameters. That gets too insane
@@ -170,6 +172,13 @@ void FunctionType::setFunctionExpression(FunctionExpression* expression) {
 ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
     auto all_concrete = allConcrete();
 	auto any_lost = anyLost();
+
+	for(auto& param : m_parameters) {
+		ConcretableState state = param->readyMakeParamConcrete(this, ns_stack, depMap);
+		all_concrete = all_concrete << state;
+		any_lost = any_lost << state;
+	}
+
 	if(m_givenReturnType) {
 	    ConcretableState state = m_givenReturnType.getType()->makeConcrete(ns_stack, depMap);
 		all_concrete = all_concrete << state;
@@ -178,10 +187,17 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 			depMap.makeFirstDependentOnSecond(this, m_givenReturnType.getType());
 	}
 
-    for(auto& param : m_parameters) {
-		ConcretableState state = param->readyMakeParamConcrete(this, ns_stack, depMap);
-		all_concrete = all_concrete << state;
+	if(m_functionExpression) {
+		auto body = m_functionExpression->getBody();
+		assert(body->getConcretableState() == ConcretableState::NEVER_TRIED);
+		//TODO: ADD parameter namespace and push it
+		ConcretableState state = body->makeConcrete(ns_stack, depMap);
+		//TODO: Now pop it
+
+	    all_concrete = all_concrete << state;
 		any_lost = any_lost << state;
+		if(state == ConcretableState::TRY_LATER)
+			depMap.makeFirstDependentOnSecond(this, body);
 	}
 
 	if(all_concrete)
@@ -194,21 +210,12 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
 
-	for(auto& param : m_parameters)
-		param->finalizeMakeParamConcrete();
-
     if(m_returnKind == ReturnKind::NO_RETURN)
 		m_concreteReturnType = getVoidType();
 	else {
 		ConcreteType* returnType = nullptr;
 		if(m_functionExpression) {
-		    ConcretableState state = m_functionExpression->makeBodyConcrete(this, m_parameters);
-			if(anyLost() << state)
-				return ConcretableState::LOST_CAUSE;
-			if(!allConcrete() << state)
-				return ConcretableState::TRY_LATER;
-
-			ExprTypeInfo bodyType = m_functionExpression->getBodyTypeInfo();
+			ExprTypeInfo bodyType = m_functionExpression->getBody()->getTypeInfo();
 			assert(bodyType.type);
 
 			returnType = bodyType.type;
@@ -236,7 +243,7 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 
 	return ConcretableState::CONCRETE;
 }
-
+*/
 ConcreteType* FunctionType::getConcreteReturnType() {
 	return m_concreteReturnType;
 }

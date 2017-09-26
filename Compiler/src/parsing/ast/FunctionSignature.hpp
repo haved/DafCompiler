@@ -11,7 +11,7 @@
 using boost::optional;
 using std::unique_ptr;
 
-class FunctionParameter {
+class FunctionParameter : public Concretable {
 protected:
 	std::string m_name;
 	FunctionParameter(std::string&& name);
@@ -20,8 +20,8 @@ public:
 	virtual void printSignature()=0;
 	virtual bool isCompileTimeOnly()=0;
 
-	virtual ConcretableState readyMakeParamConcrete(FunctionType* concretable, NamespaceStack& ns_stack, DependencyMap& depMap);
-	virtual ConcretableState finalizeMakeParamConcrete();
+    virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override =0;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 };
 
 enum class ParameterModifier {
@@ -38,7 +38,7 @@ public:
 	virtual void printSignature() override;
 	virtual bool isCompileTimeOnly() override;
 
-	virtual ConcretableState readyMakeParamConcrete(FunctionType* concretable, NamespaceStack& ns_stack, DependencyMap& depMap) override;
+    virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 };
 
 // move a:$T
@@ -51,8 +51,7 @@ public:
 	virtual void printSignature() override;
 	virtual bool isCompileTimeOnly() override;
 
-	virtual ConcretableState readyMakeParamConcrete(FunctionType* concretable, NamespaceStack& ns_stack, DependencyMap& depMap) override;
-	virtual ConcretableState finalizeMakeParamConcrete() override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 };
 
 //TODO: Add restrictions here too
@@ -62,8 +61,7 @@ public:
 	virtual void printSignature() override;
 	virtual bool isCompileTimeOnly() override;
 
-	virtual ConcretableState readyMakeParamConcrete(FunctionType* concretable, NamespaceStack& ns_stack, DependencyMap& depMap) override;
-	virtual ConcretableState finalizeMakeParamConcrete() override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 };
 
 enum class ReturnKind {
@@ -122,8 +120,7 @@ public:
 	virtual void printSignature() override;
 	virtual ExpressionKind getExpressionKind() const override;
 
-	ConcretableState makeBodyConcrete(Concretable*)
-	ExprTypeInfo getBodyTypeInfo();
+	Expression* getBody();
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
