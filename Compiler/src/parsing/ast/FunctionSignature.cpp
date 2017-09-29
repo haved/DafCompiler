@@ -91,8 +91,10 @@ bool TypedefParameter::isCompileTimeOnly() {
 	return true;
 }
 
-void TypedefParameter::makeConcrete(NamespaceStack& ns_stack) { (void) ns_stack; }
-
+ConcretableState TypedefParameter::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+    (void) ns_stack, (void) depMap;
+	return ConcretableState::CONCRETE;
+}
 
 FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& givenReturnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_givenReturnType(std::move(givenReturnType)), m_concreteReturnType(nullptr), m_ateEquals(ateEqualsSign), m_cmpTimeOnly(false), m_functionExpression(nullptr) {
 
@@ -174,7 +176,10 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 	auto any_lost = anyLost();
 
 	for(auto& param : m_parameters) {
-		ConcretableState state = param->readyMakeParamConcrete(this, ns_stack, depMap);
+		ConcretableState state = param->makeConcrete(ns_stack, depMap);
+		if(state == ConcretableState::TRY_LATER)
+			depMap.makeFirstDependentOnSecond(this, param.get());
+
 		all_concrete = all_concrete << state;
 		any_lost = any_lost << state;
 	}
@@ -243,7 +248,7 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 
 	return ConcretableState::CONCRETE;
 }
-*/
+
 ConcreteType* FunctionType::getConcreteReturnType() {
 	return m_concreteReturnType;
 }
@@ -269,34 +274,30 @@ ExpressionKind FunctionExpression::getExpressionKind() const {
 	return ExpressionKind::FUNCTION;
 }
 
-virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
-virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
+ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 
-void FunctionExpression::makeConcrete(NamespaceStack& ns_stack) {
-	m_type->makeConcrete(ns_stack);
-	m_body->makeConcrete(ns_stack);
-}
+	m_typeInfo = ExprTypeInfo(m_type.get(), ValueKind::ANONYMOUS);
 
-ConcreteTypeAttempt FunctionExpression::tryGetConcreteType(DotOpDependencyList& depList) {
-	(void) depList;
-    assert(m_type);
-	return ConcreteTypeAttempt::here(m_type.get());
+    ConcretableState state = m_type->makeConcrete(ns_stack, depMap);
+	if(allConcrete() << state)
+		return retryMakeConcreteInternal(depMap);
+	if(anyLost() << state)
+		return ConcretableState::LOST_CAUSE;
+	depMap.makeFirstDependentOnSecond(this, m_type.get());
+	return ConcretableState::TRY_LATER;
 }
 
 EvaluatedExpression FunctionExpression::codegenExpression(CodegenLLVM& codegen) {
-    fillFunctionBody(codegen);
-	if(!m_filled) //broken
+    if(!m_filled)
+		fillFunctionBody(codegen);
+	if(m_broken)
 		return EvaluatedExpression();
-	return EvaluatedExpression(m_function, m_type.get());
+	return EvaluatedExpression(m_function, &m_typeInfo);
 }
 
 void FunctionExpression::codegenFunction(CodegenLLVM& codegen, const std::string& name) {
 	makePrototype(codegen, name);
 	fillFunctionBody(codegen);
-}
-
-ConcreteTypeAttempt FunctionExpression::tryInferConcreteReturnType(DotOpDependencyList& depList) {
-	return m_body->tryGetConcreteType(depList);
 }
 
 ConcreteType* FunctionExpression::getConcreteReturnType() {
@@ -312,7 +313,7 @@ void FunctionExpression::makePrototype(CodegenLLVM& codegen, const std::string& 
 	if(m_function)
 		return;
 
-	std::vector<llvm::Type*> argumentTypes; //TODO, also return type
+	std::vector<llvm::Type*> argumentTypes; //TODO: also return type
 	llvm::FunctionType* FT = llvm::FunctionType::get(llvm::Type::getVoidTy(codegen.Context()), argumentTypes, false);
 
 	m_function = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, name, &codegen.Module());
@@ -323,7 +324,7 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 	if(!m_function)
 		makePrototype(codegen, "anon_function");
 
-	if(m_broken || m_filled)
+	if(m_filled || m_broken)
 		return;
 
 	llvm::BasicBlock* oldInsertBlock = codegen.Builder().GetInsertBlock();
@@ -335,13 +336,13 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 	m_filled = true;
 
 	EvaluatedExpression bodyValue = m_body->codegenExpression(codegen);
-	if(!bodyValue || !m_type->setOrCheckConcreteReturnType(bodyValue.type)) {
+	if(!bodyValue || !m_type->checkConcreteReturnType(bodyValue.typeInfo->type)) {
 		m_function->eraseFromParent();
 		m_broken = true;
 		return;
 	}
 
-	if(bodyValue.type == getVoidType())
+	if(bodyValue.typeInfo->type == getVoidType())
 		codegen.Builder().CreateRetVoid();
 	else
 		codegen.Builder().CreateRet(bodyValue.value);
