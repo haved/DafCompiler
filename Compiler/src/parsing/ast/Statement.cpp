@@ -1,4 +1,5 @@
 #include "parsing/ast/Statement.hpp"
+#include "parsing/semantic/ConcretableHelp.hpp"
 #include <iostream>
 
 Statement::Statement(const TextRange& range) : m_range(range) {
@@ -13,26 +14,35 @@ const TextRange& Statement::getRange() {
 }
 
 void Statement::addToMap(NamedDefinitionMap& map) {
+	//@Speed: a lot of virtual calls that never do anything
 	(void) map; //Definition overrides this, the others don't do nothing
 }
 
-DefinitionStatement::DefinitionStatement(unique_ptr<Definition>&& definition, const TextRange& range)
-	: Statement(range), m_definition(std::move(definition))
+ConcretableState Statement::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
+	return ConcretableState::CONCRETE;
+}
+
+DefinitionStatement::DefinitionStatement(unique_ptr<Definition>&& definition, const TextRange& range) : Statement(range), m_definition(std::move(definition))
 {
-	//m_isDefinition = true;
 	assert(m_definition && !m_definition->isPublic());
-}
-
-void DefinitionStatement::addToMap(NamedDefinitionMap& map) { //overridden
-	m_definition->addToMap(map);
-}
-
-void DefinitionStatement::makeConcrete(NamespaceStack& ns_stack) { //override
-	m_definition->makeConcrete(ns_stack);
 }
 
 void DefinitionStatement::printSignature() {
 	m_definition->printSignature();
+}
+
+void DefinitionStatement::addToMap(NamedDefinitionMap& map) {
+	m_definition->addToMap(map);
+}
+
+ConcretableState DefinitionStatement::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+    ConcretableState state =  m_definition->makeConcreteInternal(ns_stack, depMap);
+	if(allConcrete() << state)
+		return retryMakeConcreteInternal(depMap);
+	if(anyLost() << state)
+		return ConcretableState::LOST_CAUSE;
+	return ConcretableState::TRY_LATER;
 }
 
 ExpressionStatement::ExpressionStatement(unique_ptr<Expression>&& expression, const TextRange& range)
@@ -40,13 +50,18 @@ ExpressionStatement::ExpressionStatement(unique_ptr<Expression>&& expression, co
 	assert(m_expression && m_expression->isStatement());
 }
 
-void ExpressionStatement::makeConcrete(NamespaceStack& ns_stack) {
-	m_expression->makeConcrete(ns_stack);
-}
-
 void ExpressionStatement::printSignature() {
 	m_expression->printSignature();
 	std::cout << ";" << std::endl; //Expressions are not used to this, you know
+}
+
+ConcretableState ExpressionStatement::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+    ConcretableState state =  m_expression->makeConcreteInternal(ns_stack, depMap);
+	if(allConcrete() << state)
+		return retryMakeConcreteInternal(depMap);
+	if(anyLost() << state)
+		return ConcretableState::LOST_CAUSE;
+	return ConcretableState::TRY_LATER;
 }
 
 IfStatement::IfStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body, unique_ptr<Statement>&& else_body, const TextRange& range)

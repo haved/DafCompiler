@@ -2,6 +2,7 @@
 #include "parsing/ast/Definition.hpp"
 #include "parsing/ast/Expression.hpp"
 #include "parsing/ast/TextRange.hpp"
+#include "parsing/semantic/Concretable.hpp"
 #include <memory>
 #include <string>
 #include <boost/optional.hpp>
@@ -10,19 +11,19 @@ using boost::optional;
 using std::unique_ptr;
 
 //A statement can be both an expression or a definition, but not all expressions or definitons are statements
-class Statement {
+class Statement : public Concretable {
 protected:
 	TextRange m_range;
 public:
 	Statement(const TextRange& range);
 	virtual ~Statement();
-
-	//Optimize: a lot of virtual calls that never do anything
-    virtual void addToMap(NamedDefinitionMap& map);
-	virtual void makeConcrete(NamespaceStack& ns_stack) { (void) ns_stack; std::cout << "statement concrete code TODO;" << std::endl;} //TODO: Have this say =0
-
 	virtual void printSignature()=0;
 	const TextRange& getRange();
+
+    virtual void addToMap(NamedDefinitionMap& map);
+
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override =0;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 };
 
 class DefinitionStatement : public Statement {
@@ -30,11 +31,10 @@ private:
 	unique_ptr<Definition> m_definition;
 public:
 	DefinitionStatement(unique_ptr<Definition>&& definition, const TextRange& range);
+	virtual void printSignature() override;
 
 	void addToMap(NamedDefinitionMap& map) override;
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-
-	virtual void printSignature() override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 };
 
 class ExpressionStatement : public Statement {
@@ -42,10 +42,9 @@ private:
 	unique_ptr<Expression> m_expression;
 public:
 	ExpressionStatement(unique_ptr<Expression>&& expression, const TextRange& range);
-
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-
 	virtual void printSignature() override;
+
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 };
 
 class IfStatement : public Statement {
@@ -55,7 +54,12 @@ private:
 	unique_ptr<Statement> m_else_body;
 public:
 	IfStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body, unique_ptr<Statement>&& else_body, const TextRange& range);
-	void printSignature();
+	virtual void printSignature() override;
+
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override {
+		(void) ns_stack, (void) depMap;
+		assert(!"TODO");
+	}
 };
 
 class WhileStatement : public Statement {
@@ -65,6 +69,11 @@ private:
 public:
 	WhileStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body, const TextRange& range);
 	virtual void printSignature() override;
+
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override {
+		(void) ns_stack, (void) depMap;
+		assert(!"TODO");
+	}
 };
 
 class ForStatement : public Statement {
@@ -74,6 +83,11 @@ private:
 public:
 	ForStatement(unique_ptr<Expression>&& iterator, unique_ptr<Statement>&& body, const TextRange& range);
 	virtual void printSignature() override;
+
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override {
+		(void) ns_stack, (void) depMap;
+		assert(!"TODO");
+	}
 };
 
 class ReturnStatement : public Statement {
@@ -82,6 +96,11 @@ private:
 public:
 	ReturnStatement(unique_ptr<Expression>&& value, const TextRange& range);
 	virtual void printSignature() override;
+
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override {
+		(void) ns_stack, (void) depMap;
+		assert(!"TODO");
+	}
 };
 
 enum class LoopStatementType {
@@ -96,4 +115,9 @@ private:
 public:
 	LoopStatement(LoopStatementType type, const TextRange& range);
 	virtual void printSignature() override;
+
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override {
+		(void) ns_stack, (void) depMap;
+		assert(!"TODO");
+	}
 };
