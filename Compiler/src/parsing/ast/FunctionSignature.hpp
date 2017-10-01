@@ -100,6 +100,7 @@ public:
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 
 	ConcreteType* getConcreteReturnType();
+	bool checkConcreteReturnType(ExprTypeInfo* info);
 };
 
 class FunctionExpression : public Expression {

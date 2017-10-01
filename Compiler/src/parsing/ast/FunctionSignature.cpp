@@ -253,6 +253,26 @@ ConcreteType* FunctionType::getConcreteReturnType() {
 	return m_concreteReturnType;
 }
 
+bool FunctionType::checkConcreteReturnType(ExprTypeInfo* type) {
+	assert(allConcrete() << getConcretableState());
+	//TODO: Assert all this stuff, as it's supposed to match what we got in retryMakeConcreteInternal
+    if(m_returnKind == ReturnKind::NO_RETURN)
+		return true;
+	if(m_concreteReturnType != type->type) {
+		logDaf(getRange(), FATAL_ERROR) << "function body's code generated type doesn't match the signature's" << std::endl;
+		return false;
+	}
+	if(m_returnKind == ReturnKind::REF_RETURN && type->valueKind == ValueKind::ANONYMOUS) {
+		logDaf(getRange(), FATAL_ERROR) << "function returning reference has anonymous body" << std::endl;
+		return false;
+	}
+	else if(m_returnKind == ReturnKind::MUT_REF_RETURN && type->valueKind != ValueKind::MUT_LVALUE) {
+		logDaf(getRange(), FATAL_ERROR) << "function body doesn't return mutable reference as signature requires" << std::endl;
+		return false;
+	}
+	return true;
+}
+
 FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range) : Expression(range), m_type(std::move(type)), m_body(std::move(body)), m_function(nullptr), m_filled(false), m_broken(false) {
 	assert(m_type);
 	m_type->setFunctionExpression(this);
@@ -336,7 +356,7 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 	m_filled = true;
 
 	EvaluatedExpression bodyValue = m_body->codegenExpression(codegen);
-	if(!bodyValue || !m_type->checkConcreteReturnType(bodyValue.typeInfo->type)) {
+	if(!bodyValue || !m_type->checkConcreteReturnType(bodyValue.typeInfo)) {
 		m_function->eraseFromParent();
 		m_broken = true;
 		return;
