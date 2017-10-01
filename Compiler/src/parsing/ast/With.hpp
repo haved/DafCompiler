@@ -28,6 +28,8 @@ public:
 	WithDefinition(bool pub, With_As_Construct&& withConstruct, const TextRange& range);
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 
@@ -45,7 +47,8 @@ public:
 	inline bool isStatement() override { return m_expression->isStatement(); }
 	virtual bool evaluatesToValue() const override { return m_expression->evaluatesToValue(); }
 
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	virtual ConcreteTypeAttempt tryGetConcreteType(DotOpDependencyList& depList) override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
+
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };

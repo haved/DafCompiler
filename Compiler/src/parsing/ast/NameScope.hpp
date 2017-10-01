@@ -48,7 +48,7 @@ public:
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 
-	virtual ConcreteNameScope* getConcreteNameScope() override=0;
+	virtual ConcreteNameScope* getConcreteNameScope() override;
 
 	virtual Definition* tryGetDefinitionFromName(const std::string& name) override;
 	virtual Definition* getPubDefinitionFromName(const std::string& name, const TextRange& range) override;

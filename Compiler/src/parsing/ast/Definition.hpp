@@ -79,6 +79,10 @@ private:
 	ConcreteType* m_type;
 public:
 	Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange& range);
+	Let(const Let& other) = delete;
+	Let(Let&& other) = default;
+	Let& operator=(const Let& other) = delete;
+	Let& operator=(Let&& other) = default;
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
 

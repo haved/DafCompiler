@@ -19,6 +19,7 @@ protected:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap);
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap);
 public:
+	virtual ~Concretable();
 	ConcretableState makeConcrete(NamespaceStack& ns_stack, DependencyMap& depMap);
 	ConcretableState retryMakeConcrete(DependencyMap& depMap);
 	ConcretableState getConcretableState() const;

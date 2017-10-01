@@ -5,6 +5,8 @@
 #include <set>
 #include <queue>
 
+Concretable::~Concretable() {}
+
 ConcretableState Concretable::makeConcrete(NamespaceStack& ns_stack, DependencyMap& depMap) {
     assert(m_concreteState == ConcretableState::NEVER_TRIED);
 	ConcretableState returned = makeConcreteInternal(ns_stack, depMap);

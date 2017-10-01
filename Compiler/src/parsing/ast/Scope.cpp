@@ -67,7 +67,7 @@ ConcretableState Scope::makeConcreteInternal(NamespaceStack& ns_stack, Dependenc
 
 ConcretableState Scope::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
-	
+
 	if(m_outExpression)
 		m_typeInfo = m_outExpression->getTypeInfo();
 	else
