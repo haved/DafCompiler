@@ -9,6 +9,9 @@ void complainDefinitionIsNotNamedef(Definition* definition, std::string& name, c
 	printDefinitionKindName(definition->getDefinitionKind(), out) << std::endl;
 }
 
+NameScopeExpression::NameScopeExpression(const TextRange& range) : m_range(range) {}
+NameScopeExpression::~NameScopeExpression() {}
+
 ConcretableState NameScopeExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
 	return ConcretableState::CONCRETE;
@@ -43,7 +46,7 @@ ConcretableState NameScope::makeConcreteInternal(NamespaceStack& ns_stack, Depen
 	assureNameMapFilled();
 
 	for(auto it = m_definitions.begin(); it != m_definitions.end(); ++it) {
-		(*it)->makeConcrete(ns_stack, depMap); //we ignore the returned bool //TODO: Does it need to return a bool?
+		(*it)->makeConcrete(ns_stack, depMap);
 	}
 
 	ns_stack.pop();

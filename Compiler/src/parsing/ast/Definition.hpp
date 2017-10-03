@@ -107,7 +107,7 @@ public:
 	virtual void addToMap(NamedDefinitionMap& map) override;
    	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
-	ConcreteType* getConcreteType() const;
+	ConcreteType* getConcreteType();
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 
@@ -117,7 +117,6 @@ public:
 
 class ConcreteNameScope;
 enum class NameScopeExpressionKind;
-class DotOpDependencyList;
 
 class NameScopeExpression : public Concretable {
 private:
@@ -127,7 +126,7 @@ public:
 	virtual ~NameScopeExpression();
 	inline const TextRange& getRange() { return m_range; }
 
-	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override=0;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
 	virtual ConcreteNameScope* getConcreteNameScope()=0;
@@ -149,7 +148,7 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
-    ConcreteNameScope* getConcreteNameScope();
+	ConcreteNameScope* getConcreteNameScope();
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 

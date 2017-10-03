@@ -75,8 +75,7 @@ public:
 	virtual void printSignature() =0;
 	virtual ExpressionKind getExpressionKind() const =0;
 
-	//TODO =0
-	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override=0;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 	const ExprTypeInfo& getTypeInfo() const;
 

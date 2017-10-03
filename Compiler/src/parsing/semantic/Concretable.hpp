@@ -16,8 +16,8 @@ class Concretable {
 private:
 	ConcretableState m_concreteState=ConcretableState::NEVER_TRIED;
 protected:
-	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap);
-	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap);
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap)=0;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap)=0;
 public:
 	virtual ~Concretable();
 	ConcretableState makeConcrete(NamespaceStack& ns_stack, DependencyMap& depMap);

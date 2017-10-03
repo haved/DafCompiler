@@ -204,6 +204,11 @@ ConcretableState TypedefDefinition::retryMakeConcreteInternal(DependencyMap& dep
 	return ConcretableState::CONCRETE;
 }
 
+ConcreteType* TypedefDefinition::getConcreteType() {
+	assert(allConcrete() << getConcretableState() && m_type);
+	return m_type.getConcreteType();
+}
+
 void TypedefDefinition::globalCodegen(CodegenLLVM& codegen) {(void) codegen;}; //TODO: Has to do all the things NameScopes do upon global codegen
 
 void TypedefDefinition::printSignature() {
@@ -213,9 +218,6 @@ void TypedefDefinition::printSignature() {
 	m_type.printSignature();
 	std::cout << ";" << std::endl;
 }
-
-NameScopeExpression::NameScopeExpression(const TextRange& range) : m_range(range) {}
-NameScopeExpression::~NameScopeExpression() {} //Is this even needed?
 
 NamedefDefinition::NamedefDefinition(bool pub, std::string&& name, unique_ptr<NameScopeExpression>&& value, const TextRange& range) : Definition(pub, range), m_name(std::move(name)), m_value(std::move(value)) {
 	assert(m_value);
@@ -238,8 +240,12 @@ ConcretableState NamedefDefinition::makeConcreteInternal(NamespaceStack& ns_stac
 
 ConcretableState NamedefDefinition::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
-	//We're done now
 	return ConcretableState::CONCRETE;
+}
+
+ConcreteNameScope* NamedefDefinition::getConcreteNameScope() {
+	assert(allConcrete() << getConcretableState() && m_value);
+	return m_value->getConcreteNameScope();
 }
 
 void NamedefDefinition::globalCodegen(CodegenLLVM& codegen) {

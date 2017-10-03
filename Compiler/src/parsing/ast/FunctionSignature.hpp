@@ -122,10 +122,9 @@ public:
 	virtual void printSignature() override;
 	virtual ExpressionKind getExpressionKind() const override;
 
-	Expression* getBody();
+	inline Expression* getBody() {return m_body.get();}
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
-	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 

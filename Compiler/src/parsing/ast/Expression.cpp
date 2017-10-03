@@ -30,6 +30,7 @@ const ExprTypeInfo& Expression::getTypeInfo() const {
 
 ConcretableState Expression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
+	assert(m_typeInfo.type);
 	return ConcretableState::CONCRETE;
 }
 
