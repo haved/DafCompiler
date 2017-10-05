@@ -8,6 +8,14 @@
 Definition::Definition(bool pub, const TextRange &range) : m_pub(pub), m_range(range) {}
 Definition::~Definition() {}
 
+void Definition::globalCodegen(CodegenLLVM& codegen) {
+	(void) codegen;
+}
+
+void Definition::localCodegen(CodegenLLVM& codegen) {
+	(void) codegen;
+}
+
 Def::Def(bool pub, ReturnKind defType, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_returnKind(defType), m_name(std::move(name)), m_givenType(std::move(givenType)), m_expression(std::move(expression)), m_typeInfo() {
 	assert( !(defType == ReturnKind::NO_RETURN && m_givenType)  );
 	assert(m_expression); //We assert a body
@@ -130,9 +138,20 @@ void Def::globalCodegen(CodegenLLVM& codegen) {
 	}
 }
 
+void Def::localCodegen(CodegenLLVM& codegen) {
+	globalCodegen(codegen); //TODO: Keep local context to make closures and stuff
+}
+
 void Let::globalCodegen(CodegenLLVM& codegen) {
 	(void) codegen;
     //TODO: Allocate global space for the let
+}
+
+void Let::localCodegen(CodegenLLVM& codegen) {
+	//TODO: Allocate room
+	if(m_expression) {
+		EvaluatedExpression expr = m_expression->codegenExpression(codegen);
+	}
 }
 
 EvaluatedExpression Def::accessCodegen(CodegenLLVM& codegen) {
@@ -209,8 +228,6 @@ ConcreteType* TypedefDefinition::getConcreteType() {
 	return m_type.getConcreteType();
 }
 
-void TypedefDefinition::globalCodegen(CodegenLLVM& codegen) {(void) codegen;}; //TODO: Has to do all the things NameScopes do upon global codegen
-
 void TypedefDefinition::printSignature() {
 	if(m_pub)
 		std::cout << "pub ";
@@ -249,6 +266,10 @@ ConcreteNameScope* NamedefDefinition::getConcreteNameScope() {
 }
 
 void NamedefDefinition::globalCodegen(CodegenLLVM& codegen) {
+	m_value->codegen(codegen);
+}
+
+void NamedefDefinition::localCodegen(CodegenLLVM& codegen) {
 	m_value->codegen(codegen);
 }
 

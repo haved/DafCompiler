@@ -76,6 +76,15 @@ ConcretableState Scope::retryMakeConcreteInternal(DependencyMap& depMap) {
 	return ConcretableState::CONCRETE;
 }
 
+EvaluatedExpression Scope::codegenExpression(CodegenLLVM& codegen) {
+	for(auto it = m_statements.begin(); it != m_statements.end(); ++it) {
+		(*it)->codegenStatement(codegen); //TODO: Do we care about the returned bool?
+	}
+	if(m_outExpression)
+		return m_outExpression->codegenExpression(codegen);
+	return EvaluatedExpression(); //null return doesn't mean error
+}
+
 ScopeNamespace::ScopeNamespace() : m_definitionMap() {}
 
 void ScopeNamespace::addStatement(Statement& statement) {

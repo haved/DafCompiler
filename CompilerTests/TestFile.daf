@@ -1,3 +1,16 @@
 // -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
-def a := 5;
+def a(a:i32):= {
+	let x := 5;
+	let y := 6+8;
+
+	def b(a:i32):=6;
+
+	namedef ey := {
+		def b(a:i32):=7;
+	};
+
+	6
+};
+
+

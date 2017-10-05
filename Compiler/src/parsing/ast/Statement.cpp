@@ -45,6 +45,12 @@ ConcretableState DefinitionStatement::makeConcreteInternal(NamespaceStack& ns_st
 	return ConcretableState::TRY_LATER;
 }
 
+bool DefinitionStatement::codegenStatement(CodegenLLVM& codegen) {
+	m_definition->localCodegen(codegen);
+	return true;
+}
+
+
 ExpressionStatement::ExpressionStatement(unique_ptr<Expression>&& expression, const TextRange& range)
 	: Statement(range), m_expression(std::move(expression)) {
 	assert(m_expression && m_expression->isStatement());
@@ -63,6 +69,12 @@ ConcretableState ExpressionStatement::makeConcreteInternal(NamespaceStack& ns_st
 		return ConcretableState::LOST_CAUSE;
 	return ConcretableState::TRY_LATER;
 }
+
+bool ExpressionStatement::codegenStatement(CodegenLLVM& codegen) {
+	auto eval = m_expression->codegenExpression(codegen);
+	return eval;
+}
+
 
 IfStatement::IfStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body, unique_ptr<Statement>&& else_body, const TextRange& range)
 	: Statement(range), m_condition(std::move(condition)), m_body(std::move(body)), m_else_body(std::move(else_body)) {

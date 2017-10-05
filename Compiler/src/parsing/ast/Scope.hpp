@@ -24,6 +24,8 @@ public:
 
     virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
+
+	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 };
 
 //Used to temporarily know all definitions declared previously in the scope

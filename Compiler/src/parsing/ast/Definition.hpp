@@ -40,7 +40,9 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override=0;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override=0;
 
-	virtual void globalCodegen(CodegenLLVM& codegen)=0;
+	//Optimize: lots of dead virtual calls (Though O(n))
+	virtual void globalCodegen(CodegenLLVM& codegen);
+	virtual void localCodegen(CodegenLLVM& codegen);
 
 	virtual void printSignature()=0; //Children print 'pub ' if needed
 	virtual DefinitionKind getDefinitionKind() const =0;
@@ -63,6 +65,7 @@ public:
     const ExprTypeInfo& getTypeInfo() const;
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
+	virtual void localCodegen(CodegenLLVM& codegen) override;
 	EvaluatedExpression accessCodegen(CodegenLLVM& codegen);
 
 	virtual void printSignature() override;
@@ -91,6 +94,7 @@ public:
 	ExprTypeInfo getTypeInfo() const;
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
+	virtual void localCodegen(CodegenLLVM& codegen) override;
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::LET; }
@@ -108,8 +112,6 @@ public:
    	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 	ConcreteType* getConcreteType();
-
-	virtual void globalCodegen(CodegenLLVM& codegen) override;
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::TYPEDEF; }
@@ -151,6 +153,7 @@ public:
 	ConcreteNameScope* getConcreteNameScope();
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
+	virtual void localCodegen(CodegenLLVM& codegen) override;
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::NAMEDEF; }

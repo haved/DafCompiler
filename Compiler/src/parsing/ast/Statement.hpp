@@ -24,6 +24,9 @@ public:
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override =0;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
+
+	virtual bool codegenStatement(CodegenLLVM& codegen) { (void) codegen;
+		std::cerr << "TODO: Statement codegen" << std::endl; return true;}
 };
 
 class DefinitionStatement : public Statement {
@@ -35,6 +38,8 @@ public:
 
 	void addToMap(NamedDefinitionMap& map) override;
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+
+	virtual bool codegenStatement(CodegenLLVM& codegen) override;
 };
 
 class ExpressionStatement : public Statement {
@@ -45,6 +50,8 @@ public:
 	virtual void printSignature() override;
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+
+	virtual bool codegenStatement(CodegenLLVM& codegen) override;
 };
 
 class IfStatement : public Statement {
