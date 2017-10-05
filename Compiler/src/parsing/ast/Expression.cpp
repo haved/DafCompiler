@@ -78,9 +78,11 @@ EvaluatedExpression VariableExpression::codegenExpression(CodegenLLVM& codegen) 
 	if(m_target.isDef()) {
 		Def* def = m_target.getDef();
 		return def->accessCodegen(codegen);
+	} else {
+		assert(m_target.isLet());
+		Let* let = m_target.getLet();
+		return let->accessCodegen(codegen);
 	}
-	std::cerr << "TODO: How to handle VariableExpression referencing a let?" << std::endl;
-	return EvaluatedExpression();
 }
 
 
@@ -171,9 +173,6 @@ EvaluatedExpression InfixOperatorExpression::codegenExpression(CodegenLLVM& code
 	if(!LHS_expr || !RHS_expr)
 		return EvaluatedExpression();
 	assert(m_result_type);
-
-	std::cout << "Outputting binary op with LHS dump: " << std::endl;
-	LHS_expr.value->dump();
 
 	return codegenBinaryOperator(codegen, LHS_expr, m_op, RHS_expr, &m_typeInfo, getRange());
 }

@@ -96,6 +96,8 @@ public:
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 	virtual void localCodegen(CodegenLLVM& codegen) override;
 
+	EvaluatedExpression accessCodegen(CodegenLLVM& codegen);
+
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::LET; }
 };

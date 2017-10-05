@@ -158,6 +158,11 @@ EvaluatedExpression Def::accessCodegen(CodegenLLVM& codegen) {
 	return m_expression->codegenExpression(codegen);
 }
 
+EvaluatedExpression Let::accessCodegen(CodegenLLVM& codegen) {
+	
+	return EvaluatedExpression();
+}
+
 void Def::printSignature() {
 	if(m_pub)
 		std::cout << "pub ";

@@ -12,6 +12,7 @@ namespace fs = boost::filesystem;
 #define WARNING 2
 #define NOTE 3
 #define MESSAGE 4
+#define DEBUG_LOG 5
 
 class Lexer;
 struct Token;

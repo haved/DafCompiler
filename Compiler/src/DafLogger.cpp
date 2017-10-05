@@ -4,7 +4,7 @@
 #include "parsing/ast/TextRange.hpp"
 #include <cstdlib>
 
-std::string logLevelNames[] = {"fatal_error", "error", "warning", "note", "message"};
+std::string logLevelNames[] = {"fatal_error", "error", "warning", "note", "message", "debug"};
 
 #define NO_ERROR 0
 #define ERROR_OCCURED 1

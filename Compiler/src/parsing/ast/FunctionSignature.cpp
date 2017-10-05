@@ -357,6 +357,11 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 
 	EvaluatedExpression bodyValue = m_body->codegenExpression(codegen);
 	if(!bodyValue || !m_type->checkConcreteReturnType(bodyValue.typeInfo)) {
+		auto& out = logDaf(getRange(), DEBUG_LOG) << "Function erased due to ";
+		if(!bodyValue)
+			out << "bodyValue being null" << std::endl;
+		else
+			out << "bodyValue having the wrong return type" << std::endl;
 		m_function->eraseFromParent();
 		m_broken = true;
 		return;
