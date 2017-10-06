@@ -438,7 +438,6 @@ EvaluatedExpression FunctionCallExpression::codegenExpression(CodegenLLVM& codeg
 	if(function.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION) {
 		llvm::Function* function_value = static_cast<llvm::Function*>(function.value);
 		llvm::Value* call = codegen.Builder().CreateCall(function_value, ArgsV);
-		std::cout << "Call returned: ";
 		return EvaluatedExpression(call, &m_typeInfo);
 	}
 
