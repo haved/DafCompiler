@@ -37,11 +37,12 @@ void DefinitionStatement::addToMap(NamedDefinitionMap& map) {
 }
 
 ConcretableState DefinitionStatement::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-    ConcretableState state =  m_definition->makeConcreteInternal(ns_stack, depMap);
+    ConcretableState state =  m_definition->makeConcrete(ns_stack, depMap);
 	if(allConcrete() << state)
 		return retryMakeConcreteInternal(depMap);
 	if(anyLost() << state)
 		return ConcretableState::LOST_CAUSE;
+	depMap.makeFirstDependentOnSecond(this, m_definition.get());
 	return ConcretableState::TRY_LATER;
 }
 
@@ -62,11 +63,12 @@ void ExpressionStatement::printSignature() {
 }
 
 ConcretableState ExpressionStatement::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-    ConcretableState state =  m_expression->makeConcreteInternal(ns_stack, depMap);
+    ConcretableState state =  m_expression->makeConcrete(ns_stack, depMap);
 	if(allConcrete() << state)
 		return retryMakeConcreteInternal(depMap);
 	if(anyLost() << state)
 		return ConcretableState::LOST_CAUSE;
+	depMap.makeFirstDependentOnSecond(this, m_expression.get());
 	return ConcretableState::TRY_LATER;
 }
 

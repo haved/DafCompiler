@@ -159,7 +159,7 @@ EvaluatedExpression Def::accessCodegen(CodegenLLVM& codegen) {
 }
 
 EvaluatedExpression Let::accessCodegen(CodegenLLVM& codegen) {
-	
+	(void) codegen; //TODO
 	return EvaluatedExpression();
 }
 

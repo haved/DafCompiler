@@ -1,5 +1,5 @@
 // -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
-
+/*
 def a(a:i32):= {
 	let x := 5;
 	let y := 6+8;
@@ -15,4 +15,8 @@ def a(a:i32):= {
 
 def x:=5;
 def c(a:i32):=x;
-
+*/
+def d(a:i32):= {
+	def x := 6;
+	x
+};

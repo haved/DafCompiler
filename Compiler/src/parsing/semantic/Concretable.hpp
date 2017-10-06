@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include <vector>
+#include <iosfwd>
 
 enum class ConcretableState {
 	NEVER_TRIED,
@@ -24,6 +25,8 @@ public:
 	ConcretableState retryMakeConcrete(DependencyMap& depMap);
 	ConcretableState getConcretableState() const;
 	void silentlyUpdateToLostCause();
+
+	virtual void printConcretableInfo(std::ostream& out);
 };
 
 struct ConcretableDepNode {

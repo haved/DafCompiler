@@ -199,10 +199,11 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 		ConcretableState state = body->makeConcrete(ns_stack, depMap);
 		//TODO: Now pop it
 
-	    all_concrete = all_concrete << state;
-		any_lost = any_lost << state;
 		if(state == ConcretableState::TRY_LATER)
 			depMap.makeFirstDependentOnSecond(this, body);
+
+	    all_concrete = all_concrete << state;
+		any_lost = any_lost << state;
 	}
 
 	if(all_concrete)

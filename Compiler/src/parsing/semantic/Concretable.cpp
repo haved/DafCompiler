@@ -64,6 +64,9 @@ void Concretable::silentlyUpdateToLostCause() {
 	m_concreteState = ConcretableState::LOST_CAUSE;
 }
 
+void Concretable::printConcretableInfo(std::ostream& out) {
+	out << "TODO: Print concretable info" << std::endl;
+}
 
 ConcretableDepNode::ConcretableDepNode() : dependentOnThis(), dependentOnCount(0) {}
 
@@ -145,6 +148,21 @@ bool DependencyMap::complainAboutLoops() {
 	if(m_graph.empty())
 		return false;
 
-	logDaf(ERROR) << "Loops in DependencyMap :(" << std::endl;
+	logDaf(ERROR) << "loops in dependency graph were found: " << std::endl;
+
+	while(!m_graph.empty()) {
+		auto it = m_graph.begin();
+		//TODO: Get TextRange for it, though it may not have a text range :/
+		it->first->printConcretableInfo(std::cout);
+		std::cout << " must be resolved before: " << std::endl;
+		for(auto it2 : it->second.dependentOnThis) {
+			std::cout << " - ";
+			it2->printConcretableInfo(std::cout);
+			std::cout << std::endl;
+		}
+		std::cout << std::endl;
+		m_graph.erase(it);
+	}
+
 	return true;
 }
