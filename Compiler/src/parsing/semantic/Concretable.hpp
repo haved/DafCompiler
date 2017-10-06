@@ -26,7 +26,7 @@ public:
 	ConcretableState getConcretableState() const;
 	void silentlyUpdateToLostCause();
 
-	virtual void printConcretableInfo(std::ostream& out);
+	virtual void printConcretableInfo(std::ostream& out, int tab=4);
 };
 
 struct ConcretableDepNode {
@@ -39,6 +39,7 @@ struct ConcretableDepNode {
 class DependencyMap {
 private:
 	//TODO: @Optimize @Speed is hash map faster?
+	//TODO: @Optimize @Speed not having a map at all and just putting vectors in every Concretable might be even faster (O(n), baby)
 	std::map<Concretable*, ConcretableDepNode> m_graph;
 	bool m_anyLostCauses;
 public:

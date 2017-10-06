@@ -64,7 +64,9 @@ void Concretable::silentlyUpdateToLostCause() {
 	m_concreteState = ConcretableState::LOST_CAUSE;
 }
 
-void Concretable::printConcretableInfo(std::ostream& out) {
+void Concretable::printConcretableInfo(std::ostream& out, int tab) {
+    while(tab--)
+		out << ' ';
 	out << "TODO: Print concretable info" << std::endl;
 }
 
