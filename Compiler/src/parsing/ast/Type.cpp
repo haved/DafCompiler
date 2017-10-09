@@ -6,6 +6,7 @@
 #include "parsing/ast/Expression.hpp"
 #include "parsing/semantic/ConcretableHelp.hpp"
 #include "DafLogger.hpp"
+#include "CodegenLLVM.hpp"
 #include <iostream>
 #include <map>
 
@@ -18,6 +19,11 @@ const TextRange& Type::getRange() {
 ConcretableState Type::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
 	return ConcretableState::CONCRETE;
+}
+
+llvm::Type* ConcreteType::codegenType(CodegenLLVM& codegen) {
+	std::cerr << "TODO: codegen type" << std::endl;
+    return llvm::Type::getVoidTy(codegen.Context());
 }
 
 TypeReference::TypeReference() : m_type() {}
@@ -96,6 +102,10 @@ int PrimitiveType::getBitCount() {
 	return m_bitCount;
 }
 
+llvm::Type* PrimitiveType::codegenType(CodegenLLVM& codegen) {
+	return llvm::Type::getIntNTy(codegen.Context(), m_bitCount);
+}
+
 
 PrimitiveType primitiveTypes[] = {
 	PrimitiveType(LiteralKind::U8, U8_TOKEN, false, Signed::No, 8),
@@ -155,6 +165,10 @@ VoidType voidType;
 
 void VoidType::printSignature() {
 	std::cout << "void";
+}
+
+llvm::Type* VoidType::codegenType(CodegenLLVM& codegen) {
+    return llvm::Type::getVoidTy(codegen.Context());
 }
 
 VoidType* getVoidType() {

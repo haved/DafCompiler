@@ -4,6 +4,7 @@
 #include "parsing/lexing/Token.hpp"
 #include "parsing/semantic/NamespaceStack.hpp"
 #include "parsing/semantic/Concretable.hpp"
+#include "CodegenLLVMForward.hpp"
 
 #include <string>
 #include <memory>
@@ -41,6 +42,9 @@ public:
 	virtual ~ConcreteType()=default;
 	virtual void printSignature()=0;
 	virtual ConcreteTypeKind getConcreteTypeKind()=0;
+
+	//TODO: =0
+	virtual llvm::Type* codegenType(CodegenLLVM& codegen);
 };
 
 class TypeReference {
@@ -99,6 +103,8 @@ public:
 	bool isFloatingPoint();
 	bool isSigned();
 	int getBitCount();
+
+	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 };
 
 PrimitiveType* tokenTypeToPrimitiveType(TokenType type);
@@ -121,6 +127,8 @@ class VoidType : public ConcreteType {
 public:
 	virtual void printSignature() override;
     virtual ConcreteTypeKind getConcreteTypeKind() override { return ConcreteTypeKind::VOID; }
+
+	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 };
 
 VoidType* getVoidType();

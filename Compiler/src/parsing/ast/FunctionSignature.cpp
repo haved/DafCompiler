@@ -274,6 +274,22 @@ bool FunctionType::checkConcreteReturnType(ExprTypeInfo* type) {
 	return true;
 }
 
+llvm::FunctionType* FunctionType::codegenFunctionType(CodegenLLVM& codegen) {
+	assert(allConcrete() << getConcretableState() && m_concreteReturnType);
+
+	std::vector<llvm::Type*> argumentTypes;
+	for(auto& param : m_parameters) {
+		(void) param; //TODO: Parameters
+	}
+
+	llvm::Type* returnType = m_concreteReturnType->codegenType(codegen);
+	if(!returnType)
+		return nullptr;
+
+	return llvm::FunctionType::get(returnType, argumentTypes, false);
+}
+
+
 FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range) : Expression(range), m_type(std::move(type)), m_body(std::move(body)), m_function(nullptr), m_filled(false), m_broken(false) {
 	assert(m_type);
 	m_type->setFunctionExpression(this);
@@ -331,20 +347,19 @@ llvm::Function* FunctionExpression::getPrototype() {
 }
 
 void FunctionExpression::makePrototype(CodegenLLVM& codegen, const std::string& name) {
-	if(m_function)
+	if(m_function || m_broken)
 		return;
 
-	std::vector<llvm::Type*> argumentTypes; //TODO: also return type
-	llvm::FunctionType* FT = llvm::FunctionType::get(llvm::Type::getVoidTy(codegen.Context()), argumentTypes, false);
-
-	m_function = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, name, &codegen.Module());
-	assert(m_function);
+	llvm::FunctionType* FT = m_type->codegenFunctionType(codegen);
+	if(!FT)
+		m_broken = true;
+	else
+		m_function = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, name, &codegen.Module());
 }
 
 void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 	if(!m_function)
 		makePrototype(codegen, "anon_function");
-
 	if(m_filled || m_broken)
 		return;
 

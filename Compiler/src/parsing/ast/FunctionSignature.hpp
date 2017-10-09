@@ -102,6 +102,8 @@ public:
 
 	ConcreteType* getConcreteReturnType();
 	bool checkConcreteReturnType(ExprTypeInfo* info);
+
+	llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen);
 };
 
 class FunctionExpression : public Expression {

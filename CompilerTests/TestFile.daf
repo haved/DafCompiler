@@ -26,3 +26,6 @@ def ey(a:i32):=
 	(def(a:i32):=2)();
 
 def funcptr(a:i32):=def(a:i32):=2;
+
+
+
