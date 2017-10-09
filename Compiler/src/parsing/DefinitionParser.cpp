@@ -105,13 +105,9 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 
 	TextRange range(lexer.getFile(), startLine, startCol, lexer.getPreviousToken());
 
-	if(functionType->getParams().empty()) { //We don't need to pack anything into anything
-		return std::make_unique<Def>(pub, functionType->getGivenReturnKind(), std::move(name), std::move(*functionType).reapGivenReturnType(), std::move(body), range);
-	} else { //We have parameters and must thus pack our def into a function
-		TextRange packedRange(functionType->getRange(), body->getRange());
-		unique_ptr<Expression> packedFunction = std::make_unique<FunctionExpression>(std::move(functionType), std::move(body), packedRange);
-		return std::make_unique<Def>(pub, ReturnKind::VALUE_RETURN, std::move(name), TypeReference(), std::move(packedFunction), range);
-	}
+	TextRange packedRange(functionType->getRange(), body->getRange());
+    auto packedFunction = std::make_unique<FunctionExpression>(std::move(functionType), std::move(body), packedRange);
+	return std::make_unique<Def>(pub, std::move(name), std::move(packedFunction), range);
 }
 
 unique_ptr<Definition> parseTypedefDefinition(Lexer& lexer, bool pub) {

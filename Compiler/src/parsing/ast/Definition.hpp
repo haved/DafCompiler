@@ -50,14 +50,12 @@ public:
 
 class Def : public Definition {
 private:
-	ReturnKind m_returnKind;
 	std::string m_name;
-	TypeReference m_givenType;
-	unique_ptr<Expression> m_expression;
+	unique_ptr<FunctionExpression> m_functionExpression;
 
 	ExprTypeInfo m_typeInfo;
 public:
-	Def(bool pub, ReturnKind defKind, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange& range);
+	Def(bool pub, std::string&& name, unique_ptr<FunctionExpression>&& expression, const TextRange& range);
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;

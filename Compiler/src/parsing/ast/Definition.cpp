@@ -16,9 +16,8 @@ void Definition::localCodegen(CodegenLLVM& codegen) {
 	(void) codegen;
 }
 
-Def::Def(bool pub, ReturnKind defType, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_returnKind(defType), m_name(std::move(name)), m_givenType(std::move(givenType)), m_expression(std::move(expression)), m_typeInfo() {
-	assert( !(defType == ReturnKind::NO_RETURN && m_givenType)  );
-	assert(m_expression); //We assert a body
+Def::Def(bool pub, std::string&& name, unique_ptr<FunctionExpression>&& expression, const TextRange &range) : Definition(pub, range), m_name(std::move(name)), m_functionExpression(std::move(expression)), m_typeInfo() {
+	assert(m_functionExpression); //We assert a body
 }
 
 Let::Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_givenType(std::move(givenType)), m_expression(std::move(expression)), m_type() {
@@ -33,6 +32,7 @@ void Let::addToMap(NamedDefinitionMap& map) {
 	map.addNamedDefinition(m_name, *this);
 }
 
+//TODO: Unused
 optional<ExprTypeInfo> getFinalTypeForDef(ReturnKind return_kind, TypeReference& given_type, Expression& expr, const TextRange& range) {
 
 	if(return_kind == ReturnKind::NO_RETURN)
@@ -62,27 +62,19 @@ optional<ExprTypeInfo> getFinalTypeForDef(ReturnKind return_kind, TypeReference&
 }
 
 ConcretableState Def::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	ConcretableState exprState = m_expression->makeConcrete(ns_stack, depMap);
-	ConcretableState givenTypeState = m_givenType ? m_givenType.getType()->makeConcrete(ns_stack, depMap) : ConcretableState::CONCRETE;
+	ConcretableState state = m_functionExpression->makeConcrete(ns_stack, depMap);
 
-	if(allConcrete() << exprState << givenTypeState)
+    if(allConcrete() << state)
 		return retryMakeConcreteInternal(depMap);
-	if(anyLost() << exprState << givenTypeState)
+	else if(anyLost() << state)
 		return ConcretableState::LOST_CAUSE;
-	if(!allConcrete() << exprState)
-		depMap.makeFirstDependentOnSecond(this, m_expression.get());
-	if(!allConcrete() << givenTypeState)
-		depMap.makeFirstDependentOnSecond(this, m_givenType.getType());
+	depMap.makeFirstDependentOnSecond(this, m_functionExpression.get());
 	return ConcretableState::TRY_LATER;
 }
 
 ConcretableState Def::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
-	optional<ExprTypeInfo> type = getFinalTypeForDef(m_returnKind, m_givenType, *m_expression.get(), getRange());
-	if(!type)
-		return ConcretableState::LOST_CAUSE;
-
-	m_typeInfo = *type;
+	m_typeInfo = m_functionExpression->getTypeInfo();
 	return ConcretableState::CONCRETE;
 }
 
@@ -129,13 +121,8 @@ ExprTypeInfo Let::getTypeInfo() const {
 }
 
 void Def::globalCodegen(CodegenLLVM& codegen) {
-	ExpressionKind kind = m_expression->getExpressionKind();
-	if(kind == ExpressionKind::FUNCTION) {
-		FunctionExpression* function = static_cast<FunctionExpression*>(m_expression.get());
-		function->codegenFunction(codegen, m_name);
-	} else {
-		std::cout << "TODO: What to do when a def isn't a function, just an expression?" << std::endl;
-	}
+	//TODO: Consider inlining
+	m_functionExpression->codegenFunction(codegen, m_name);
 }
 
 void Def::localCodegen(CodegenLLVM& codegen) {
@@ -155,7 +142,8 @@ void Let::localCodegen(CodegenLLVM& codegen) {
 }
 
 EvaluatedExpression Def::accessCodegen(CodegenLLVM& codegen) {
-	return m_expression->codegenExpression(codegen);
+	//TODO: Allow implicit calling of functions without parameters
+	return m_functionExpression->codegenExpression(codegen);
 }
 
 EvaluatedExpression Let::accessCodegen(CodegenLLVM& codegen) {
@@ -168,23 +156,9 @@ void Def::printSignature() {
 		std::cout << "pub ";
 	std::cout << "def ";
 
-	switch(m_returnKind) {
-	case ReturnKind::REF_RETURN: std::cout << "let "; break;
-	case ReturnKind::MUT_REF_RETURN: std::cout << "mut "; break;
-	default: break; //VALUE_RETURN or NO_RETURN
-	}
-
 	std::cout << m_name;
 
-	if(m_returnKind != ReturnKind::NO_RETURN)
-		std::cout << ":";
-
-	if(m_givenType)
-		m_givenType.printSignature();
-
-	std::cout << "=";
-
-	m_expression->printSignature();
+	m_functionExpression->printSignature();
 
 	std::cout << ";" << std::endl;
 }
