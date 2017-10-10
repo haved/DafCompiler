@@ -53,18 +53,21 @@ private:
 	std::string m_name;
 	unique_ptr<FunctionExpression> m_functionExpression;
 
-	ExprTypeInfo m_typeInfo;
+	ExprTypeInfo m_implicitAccessTypeInfo;
 public:
 	Def(bool pub, std::string&& name, unique_ptr<FunctionExpression>&& expression, const TextRange& range);
 
 	virtual void addToMap(NamedDefinitionMap& map) override;
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
-    const ExprTypeInfo& getTypeInfo() const;
+
+	bool allowImplicitAccess();
+	const ExprTypeInfo& getImplicitAccessTypeInfo();
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 	virtual void localCodegen(CodegenLLVM& codegen) override;
-	EvaluatedExpression accessCodegen(CodegenLLVM& codegen);
+	EvaluatedExpression implicitAccessCodegen(CodegenLLVM& codegen);
+	EvaluatedExpression explicitAccessCodegen(CodegenLLVM& codegen);
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::DEF; }

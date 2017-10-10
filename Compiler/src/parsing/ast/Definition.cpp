@@ -74,7 +74,7 @@ ConcretableState Def::makeConcreteInternal(NamespaceStack& ns_stack, DependencyM
 
 ConcretableState Def::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
-	m_typeInfo = m_functionExpression->getTypeInfo();
+	m_implicitAccessTypeInfo = m_functionExpression->getReturnTypeInfo();
 	return ConcretableState::CONCRETE;
 }
 
@@ -112,8 +112,8 @@ ConcretableState Let::retryMakeConcreteInternal(DependencyMap& depMap) {
 	return ConcretableState::CONCRETE;
 }
 
-const ExprTypeInfo& Def::getTypeInfo() const {
-	return m_typeInfo;
+const ExprTypeInfo& Def::getImplicitAccessTypeInfo() {
+	return m_implicitAccessTypeInfo;
 }
 
 ExprTypeInfo Let::getTypeInfo() const {
@@ -141,8 +141,13 @@ void Let::localCodegen(CodegenLLVM& codegen) {
 	}
 }
 
-EvaluatedExpression Def::accessCodegen(CodegenLLVM& codegen) {
-	//TODO: Allow implicit calling of functions without parameters
+EvaluatedExpression Def::implicitAccessCodegen(CodegenLLVM& codegen) {
+    assert(allowImplicitAccess());
+	llvm::Value* call = codegen.Builder().CreateCall(m_functionExpression->getPrototype());
+    return EvaluatedExpression(call, &m_implicitAccessTypeInfo);
+}
+
+EvaluatedExpression Def::explicitAccessCodegen(CodegenLLVM& codegen) {
 	return m_functionExpression->codegenExpression(codegen);
 }
 

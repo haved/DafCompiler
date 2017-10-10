@@ -133,4 +133,5 @@ public:
 	void codegenFunction(CodegenLLVM& codegen, const std::string& name);
 	llvm::Function* getPrototype();
 	ConcreteType* getConcreteReturnType();
+	const ExprTypeInfo& getReturnTypeInfo();
 };
