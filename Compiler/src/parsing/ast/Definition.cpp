@@ -102,7 +102,7 @@ ConcretableState Let::retryMakeConcreteInternal(DependencyMap& depMap) {
 		if(m_givenType) {
 			ConcreteType* given = m_givenType.getType()->getConcreteType();
 			if(given != m_type)
-				std::cerr << "ERROR: Differing type from expression and given type in let" << std::endl;
+				assert(false && "ERROR: Differing type from expression and given type in let");
 		}
 	} else {
 		assert(m_givenType);
@@ -135,9 +135,14 @@ void Let::globalCodegen(CodegenLLVM& codegen) {
 }
 
 void Let::localCodegen(CodegenLLVM& codegen) {
+	llvm::Type* type = m_type->codegenType(codegen);
+	llvm::Function* func = codegen.Builder().GetInsertBlock()->getParent();
+	llvm::IRBuilder<> tmpB(&func->getEntryBlock(), func->getEntryBlock().begin());
+	llvm::Value* space = tmpB.CreateAlloca(type, 0, m_name);
 	//TODO: Allocate room
 	if(m_expression) {
 		EvaluatedExpression expr = m_expression->codegenExpression(codegen);
+		assert(expr.typeInfo->type == m_type);
 	}
 }
 

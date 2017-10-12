@@ -17,11 +17,12 @@ void complainDefinitionNotLetOrDef(DefinitionKind kind, std::string& name, const
 	printDefinitionKindName(kind, out) << std::endl;
 }
 
-Expression::Expression(const TextRange& range) : Concretable(), m_range(range), m_typeInfo() {}
+Expression::Expression(const TextRange& range) : Concretable(), m_range(range), m_typeInfo(), m_allowIncompleteEvaluation(false) {}
 Expression::~Expression() {}
 const TextRange& Expression::getRange() { return m_range; }
 bool Expression::isStatement() { return false; }
 bool Expression::evaluatesToValue() const { return true; }
+void Expression::enableIncompleteEvaluation() { m_allowIncompleteEvaluation = true; }
 
 const ExprTypeInfo& Expression::getTypeInfo() const {
 	assert(getConcretableState() == ConcretableState::CONCRETE && m_typeInfo.type);
@@ -77,7 +78,8 @@ EvaluatedExpression VariableExpression::codegenExpression(CodegenLLVM& codegen) 
 		return EvaluatedExpression();
 	if(m_target.isDef()) {
 		Def* def = m_target.getDef();
-		return def->accessCodegen(codegen);
+		assert(!m_allowIncompleteEvaluation && "TODO: If we allow incomplete eval, call that on the def");
+		return def->implicitAccessCodegen(codegen);
 	} else {
 		assert(m_target.isLet());
 		Let* let = m_target.getLet();

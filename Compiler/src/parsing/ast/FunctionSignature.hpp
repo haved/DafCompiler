@@ -75,7 +75,7 @@ private:
 	std::vector<unique_ptr<FunctionParameter>> m_parameters;
 	ReturnKind m_returnKind;
 	TypeReference m_givenReturnType; //null means void
-	ConcreteType* m_concreteReturnType;
+    ExprTypeInfo m_returnTypeInfo;
 	bool m_ateEquals;
 	bool m_cmpTimeOnly;
 	FunctionExpression* m_functionExpression;
@@ -101,6 +101,7 @@ public:
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 
 	ConcreteType* getConcreteReturnType();
+	const ExprTypeInfo& getReturnTypeInfo();
 	bool checkConcreteReturnType(ExprTypeInfo* info);
 
 	llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen);
