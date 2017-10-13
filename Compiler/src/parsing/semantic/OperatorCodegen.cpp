@@ -4,7 +4,7 @@
 #include "CodegenLLVM.hpp"
 
 EvaluatedExpression castPrimitiveToPrimitive(EvaluatedExpression& expr, PrimitiveType* from, PrimitiveType* to) {
-	assert(from == to); //TODO
+	assert(from == to); //TODO add primitive casting
 	return expr;
 }
 
@@ -19,10 +19,10 @@ bool complainIfNotPrimitive(ConcreteType* type, InfixOperator op, const std::str
 	return false;
 }
 
-PrimitiveType* getBinaryOpResultType(ConcreteType* LHS, InfixOperator op, ConcreteType* RHS, const TextRange& range) {
+ExprTypeInfo getBinaryOpResultTypeNumerical(ConcreteType* LHS, InfixOperator op, ConcreteType* RHS, const TextRange& range) {
 	assert(LHS && RHS);
 	if(complainIfNotPrimitive(LHS, op, "LHS", range) | complainIfNotPrimitive(RHS, op, "RHS", range))
-		return nullptr;
+		return ExprTypeInfo();
 	PrimitiveType* LHS_prim = static_cast<PrimitiveType*>(LHS);
 	PrimitiveType* RHS_prim = static_cast<PrimitiveType*>(RHS);
 
@@ -41,17 +41,17 @@ PrimitiveType* getBinaryOpResultType(ConcreteType* LHS, InfixOperator op, Concre
 			winner = lhsBit > rhsBit ? LHS_prim : RHS_prim;
 	}
 
-	return winner;
+	return ExprTypeInfo(winner, ValueKind::ANONYMOUS);
 }
 
-EvaluatedExpression codegenBinaryOperator(CodegenLLVM& codegen, EvaluatedExpression& LHS, InfixOperator op, EvaluatedExpression& RHS, ExprTypeInfo* target, const TextRange& range) {
+EvaluatedExpression codegenBinaryOperatorNumerical(CodegenLLVM& codegen, EvaluatedExpression& LHS, InfixOperator op, EvaluatedExpression& RHS, ExprTypeInfo* target, const TextRange& range) {
 	assert(LHS && RHS && target &&
 		   LHS.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::PRIMITIVE &&
 		   RHS.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::PRIMITIVE
 		   &&    target->type->getConcreteTypeKind() == ConcreteTypeKind::PRIMITIVE);
 
-	PrimitiveType* LHS_prim = static_cast<PrimitiveType*>(LHS.typeInfo->type);
-	PrimitiveType* RHS_prim = static_cast<PrimitiveType*>(RHS.typeInfo->type);
+	PrimitiveType* LHS_prim =    static_cast<PrimitiveType*>(LHS.typeInfo->type);
+	PrimitiveType* RHS_prim =    static_cast<PrimitiveType*>(RHS.typeInfo->type);
 	PrimitiveType* target_prim = static_cast<PrimitiveType*>(target->type);
 
 	EvaluatedExpression LHS_expr = castPrimitiveToPrimitive(LHS, LHS_prim, target_prim);
@@ -85,4 +85,50 @@ EvaluatedExpression codegenBinaryOperator(CodegenLLVM& codegen, EvaluatedExpress
 	}
 
 	(void)range;
+}
+
+bool isOpNumerical(InfixOperator op) {
+	switch(op) {
+	case InfixOperator::MULT:
+	case InfixOperator::DIVIDE:
+	case InfixOperator::MODULO:
+	case InfixOperator::PLUS:
+	case InfixOperator::MINUS:
+	case InfixOperator::LSL:
+	case InfixOperator::ASR:
+	case InfixOperator::GREATER:
+	case InfixOperator::GREATER_OR_EQUAL:
+	case InfixOperator::LOWER:
+	case InfixOperator::LOWER_OR_EQUAL:
+	case InfixOperator::EQUALS:
+	case InfixOperator::NOT_EQUALS:
+	case InfixOperator::BITWISE_OR:
+	case InfixOperator::LOGICAL_AND:
+	case InfixOperator::LOGICAL_OR:
+	default: return false;
+	}
+}
+
+ExprTypeInfo getBinaryOpResultType(Expression* LHS, InfixOperator op, Expression* RHS, const TextRange& range) {
+	assert(op != InfixOperator::CLASS_ACCESS);
+	if(isOpNumerical(op))
+		return getBinaryOpResultTypeNumerical(LHS->getTypeInfo().type, op, RHS->getTypeInfo().type, range);
+	else if(op == InfixOperator::ASSIGN) {
+	    const ExprTypeInfo& LHS_ti = LHS->getTypeInfo();
+		ConcreteType* RHS_t = RHS->getTypeInfo().type;
+		if(LHS_ti.type != RHS_t)
+			logDaf(range, FATAL_ERROR) << "left and right hand side of assignment are of different types" << std::endl;
+		if(LHS_ti.valueKind != ValueKind::MUT_LVALUE) {
+			logDaf(LHS->getRange(), ERROR) << "left hand side of assignment isn't a mutable lvalue" << std::endl;
+			return ExprTypeInfo();
+		}
+
+		return LHS_ti;
+	}
+	assert(false);
+    return ExprTypeInfo();
+}
+
+EvaluatedExpression codegenBinaryOperator(CodegenLLVM& codegen, EvaluatedExpression& LHS, InfixOperator op, EvaluatedExpression& RHS, ExprTypeInfo* target, const TextRange& range) {
+	
 }

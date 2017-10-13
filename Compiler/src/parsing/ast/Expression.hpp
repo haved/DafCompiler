@@ -8,6 +8,7 @@
 #include "parsing/semantic/NamespaceStack.hpp"
 #include "parsing/semantic/Concretable.hpp"
 #include "CodegenLLVMForward.hpp"
+#include "DafLogger.hpp"
 #include <string>
 #include <vector>
 #include <memory>
@@ -83,7 +84,14 @@ public:
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 	const ExprTypeInfo& getTypeInfo() const;
 
-	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) {(void)codegen; getRange().printRangeTo(std::cout); std::cout << "TODO: Expression codegen" << std::endl; return EvaluatedExpression(); }
+	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) {
+		(void)codegen; logDaf(m_range, ERROR) << "TODO: Expression codegen" << std::endl; return EvaluatedExpression();
+	}
+
+	//The Evaluated Expression's value is a pointer to the respective Type Info
+	virtual EvaluatedExpression codegenAssignment(CodegenLLVM& codegen, bool mut) {
+		(void)codegen, (void) mut; logDaf(m_range, ERROR) << "TODO: Expression assignment codegen" << std::endl; return EvaluatedExpression();
+	}
 };
 
 class VariableExpression : public Expression {
@@ -101,6 +109,7 @@ public:
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
+	virtual EvaluatedExpression codegenAssignment(CodegenLLVM& codegen, bool mut) override;
 };
 
 class IntegerConstantExpression: public Expression {

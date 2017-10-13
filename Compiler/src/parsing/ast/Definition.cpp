@@ -16,11 +16,11 @@ void Definition::localCodegen(CodegenLLVM& codegen) {
 	(void) codegen;
 }
 
-Def::Def(bool pub, std::string&& name, unique_ptr<FunctionExpression>&& expression, const TextRange &range) : Definition(pub, range), m_name(std::move(name)), m_functionExpression(std::move(expression)), m_typeInfo() {
+Def::Def(bool pub, std::string&& name, unique_ptr<FunctionExpression>&& expression, const TextRange &range) : Definition(pub, range), m_name(std::move(name)), m_functionExpression(std::move(expression)), m_implicitAccessTypeInfo() {
 	assert(m_functionExpression); //We assert a body
 }
 
-Let::Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_givenType(std::move(givenType)), m_expression(std::move(expression)), m_type() {
+Let::Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_givenType(std::move(givenType)), m_expression(std::move(expression)), m_typeInfo(), m_space() {
 	assert(m_expression || m_givenType);
 }
 
@@ -97,18 +97,20 @@ ConcretableState Let::makeConcreteInternal(NamespaceStack& ns_stack, DependencyM
 
 ConcretableState Let::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
+	ConcreteType* type;
     if(m_expression) {
-		m_type = m_expression->getTypeInfo().type;
+		type = m_expression->getTypeInfo().type;
 		if(m_givenType) {
 			ConcreteType* given = m_givenType.getType()->getConcreteType();
-			if(given != m_type)
-				assert(false && "ERROR: Differing type from expression and given type in let");
+			if(given != type)
+				assert(false && "ERROR: Differing type from expression and given type in let TODO");
 		}
 	} else {
 		assert(m_givenType);
-		m_type = m_givenType.getType()->getConcreteType();
+		type = m_givenType.getType()->getConcreteType();
 	}
 
+	m_typeInfo = ExprTypeInfo(type, m_mut ? ValueKind::MUT_LVALUE : ValueKind::LVALUE);
 	return ConcretableState::CONCRETE;
 }
 
@@ -117,7 +119,7 @@ const ExprTypeInfo& Def::getImplicitAccessTypeInfo() {
 }
 
 ExprTypeInfo Let::getTypeInfo() const {
-	return ExprTypeInfo(m_type, m_mut ? ValueKind::MUT_LVALUE : ValueKind::LVALUE);
+	return m_typeInfo;
 }
 
 void Def::globalCodegen(CodegenLLVM& codegen) {
@@ -135,15 +137,20 @@ void Let::globalCodegen(CodegenLLVM& codegen) {
 }
 
 void Let::localCodegen(CodegenLLVM& codegen) {
-	llvm::Type* type = m_type->codegenType(codegen);
+	llvm::Type* type = m_typeInfo.type->codegenType(codegen);
+	assert(type);
 	llvm::Function* func = codegen.Builder().GetInsertBlock()->getParent();
 	llvm::IRBuilder<> tmpB(&func->getEntryBlock(), func->getEntryBlock().begin());
-	llvm::Value* space = tmpB.CreateAlloca(type, 0, m_name);
-	//TODO: Allocate room
+	m_space = tmpB.CreateAlloca(type, 0, m_name);
+
 	if(m_expression) {
 		EvaluatedExpression expr = m_expression->codegenExpression(codegen);
-		assert(expr.typeInfo->type == m_type);
+		assert(expr.typeInfo->type == m_typeInfo.type);
+		codegen.Builder().CreateStore(expr.value, m_space, m_name.c_str());
 	}
+
+	//TODO: Uncertain and stuff
+	//TODO: Destructors and stuff
 }
 
 EvaluatedExpression Def::implicitAccessCodegen(CodegenLLVM& codegen) {
@@ -152,13 +159,20 @@ EvaluatedExpression Def::implicitAccessCodegen(CodegenLLVM& codegen) {
     return EvaluatedExpression(call, &m_implicitAccessTypeInfo);
 }
 
+//For when you return the function and don't call it
 EvaluatedExpression Def::explicitAccessCodegen(CodegenLLVM& codegen) {
 	return m_functionExpression->codegenExpression(codegen);
 }
 
 EvaluatedExpression Let::accessCodegen(CodegenLLVM& codegen) {
-	(void) codegen; //TODO
-	return EvaluatedExpression();
+    assert(m_space);
+	return EvaluatedExpression(codegen.Builder().CreateLoad(m_space, m_name.c_str()), &m_typeInfo);
+}
+
+EvaluatedExpression Let::assignmentCodegen(CodegenLLVM& codegen, bool mut) {
+	(void) codegen;
+	assert(m_space && (!mut || m_mut));
+	return EvaluatedExpression(m_space, &m_typeInfo);
 }
 
 void Def::printSignature() {

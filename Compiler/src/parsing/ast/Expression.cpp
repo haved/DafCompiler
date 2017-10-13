@@ -74,8 +74,8 @@ ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& de
 }
 
 EvaluatedExpression VariableExpression::codegenExpression(CodegenLLVM& codegen) {
-	if(!m_target)
-		return EvaluatedExpression();
+    assert(m_target);
+
 	if(m_target.isDef()) {
 		Def* def = m_target.getDef();
 		assert(!m_allowIncompleteEvaluation && "TODO: If we allow incomplete eval, call that on the def");
@@ -87,6 +87,18 @@ EvaluatedExpression VariableExpression::codegenExpression(CodegenLLVM& codegen) 
 	}
 }
 
+EvaluatedExpression VariableExpression::codegenAssignment(CodegenLLVM& codegen, bool mut) {
+    assert(m_target);
+
+	if(m_target.isDef()) {
+		assert(!m_allowIncompleteEvaluation); //We can't assign to a def that isn't evaluated
+	    assert(false && "TODO: Allow assignment to a def");
+		return EvaluatedExpression();
+	} else {
+		assert(m_target.isLet());
+	    return m_target.getLet()->assignmentCodegen(codegen, mut);
+	}
+}
 
 IntegerConstantExpression::IntegerConstantExpression(daf_largest_uint integer, LiteralKind integerType, const TextRange& range) : Expression(range), m_integer(integer), m_type(literalKindToPrimitiveType(integerType)) {
 	assert(!m_type->isFloatingPoint());
@@ -131,7 +143,8 @@ EvaluatedExpression RealConstantExpression::codegenExpression(CodegenLLVM& codeg
 }
 
 
-InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS) : Expression(TextRange(LHS->getRange(), RHS->getRange())), m_LHS(std::move(LHS)), m_op(op), m_RHS(std::move(RHS)), m_result_type(nullptr) {
+InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Exp
+												 ression>&& RHS) : Expression(TextRange(LHS->getRange(), RHS->getRange())), m_LHS(std::move(LHS)), m_op(op), m_RHS(std::move(RHS)), m_result_type(nullptr) {
 	assert(m_LHS && m_RHS && m_op != InfixOperator::CLASS_ACCESS);
 }
 
@@ -176,7 +189,7 @@ EvaluatedExpression InfixOperatorExpression::codegenExpression(CodegenLLVM& code
 		return EvaluatedExpression();
 	assert(m_result_type);
 
-	return codegenBinaryOperator(codegen, LHS_expr, m_op, RHS_expr, &m_typeInfo, getRange());
+	return codegenBinaryOperator(codegen, LHS_expr, m_op, RHS_expr, m_typeInfo, getRange());
 }
 /*
 DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range) : Expression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_LHS_dot(nullptr), m_LHS_target(nullptr), m_target(), m_done(false) {

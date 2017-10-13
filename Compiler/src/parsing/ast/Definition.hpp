@@ -80,7 +80,9 @@ private:
 	TypeReference m_givenType;
 	unique_ptr<Expression> m_expression;
 
-	ConcreteType* m_type;
+	ExprTypeInfo m_typeInfo;
+
+	llvm::Value* m_space;
 public:
 	Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange& range);
 	Let(const Let& other) = delete;
@@ -98,6 +100,7 @@ public:
 	virtual void localCodegen(CodegenLLVM& codegen) override;
 
 	EvaluatedExpression accessCodegen(CodegenLLVM& codegen);
+	EvaluatedExpression assignmentCodegen(CodegenLLVM& codegen, bool mut);
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::LET; }

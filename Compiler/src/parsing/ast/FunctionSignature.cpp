@@ -303,6 +303,9 @@ llvm::FunctionType* FunctionType::codegenFunctionType(CodegenLLVM& codegen) {
 	return llvm::FunctionType::get(returnType, argumentTypes, false);
 }
 
+llvm::Type* FunctionType::codegenType(CodegenLLVM& codegen) {
+	return codegenFunctionType(codegen);
+}
 
 FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range) : Expression(range), m_type(std::move(type)), m_body(std::move(body)), m_function(nullptr), m_filled(false), m_broken(false) {
 	assert(m_type);

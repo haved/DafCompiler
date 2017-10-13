@@ -6,6 +6,6 @@
 #include "parsing/ast/TextRange.hpp"
 #include "CodegenLLVMForward.hpp"
 
-PrimitiveType* getBinaryOpResultType(ConcreteType* LHS, InfixOperator op, ConcreteType* RHS, const TextRange& range);
+ExprTypeInfo getBinaryOpResultType(const ExprTypeInfo& LHS, InfixOperator op, const ExprTypeInfo& RHS, const TextRange& range);
 
-EvaluatedExpression codegenBinaryOperator(CodegenLLVM& codegen, EvaluatedExpression& LHS, InfixOperator op, EvaluatedExpression& RHS, ExprTypeInfo* target, const TextRange& range);
+EvaluatedExpression codegenBinaryOperator(CodegenLLVM& codegen, EvaluatedExpression& LHS, InfixOperator op, EvaluatedExpression& RHS, const ExprTypeInfo& target, const TextRange& range);

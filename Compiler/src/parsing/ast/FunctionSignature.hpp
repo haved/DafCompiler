@@ -105,6 +105,7 @@ public:
 	bool checkConcreteReturnType(ExprTypeInfo* info);
 
 	llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen);
+	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 };
 
 class FunctionExpression : public Expression {
