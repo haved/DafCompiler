@@ -60,7 +60,7 @@ ExprTypeInfo DefOrLet::getTypeInfo() {
 	if(m_let)
 		return getLet()->getTypeInfo();
 	else
-		return getDef()->getTypeInfo();
+		return getDef()->getImplicitAccessTypeInfo();
 }
 
 DefOrLet::operator bool() const {

@@ -89,8 +89,8 @@ public:
 	}
 
 	//The Evaluated Expression's value is a pointer to the respective Type Info
-	virtual EvaluatedExpression codegenAssignment(CodegenLLVM& codegen, bool mut) {
-		(void)codegen, (void) mut; logDaf(m_range, ERROR) << "TODO: Expression assignment codegen" << std::endl; return EvaluatedExpression();
+	virtual EvaluatedExpression codegenPointer(CodegenLLVM& codegen) {
+		(void)codegen; logDaf(m_range, ERROR) << "TODO: Expression pointer codegen" << std::endl; return EvaluatedExpression();
 	}
 };
 
@@ -109,7 +109,7 @@ public:
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
-	virtual EvaluatedExpression codegenAssignment(CodegenLLVM& codegen, bool mut) override;
+	virtual EvaluatedExpression codegenPointer(CodegenLLVM& codegen) override;
 };
 
 class IntegerConstantExpression: public Expression {

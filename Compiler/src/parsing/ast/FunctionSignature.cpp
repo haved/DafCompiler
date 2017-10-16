@@ -96,7 +96,7 @@ ConcretableState TypedefParameter::makeConcreteInternal(NamespaceStack& ns_stack
 	return ConcretableState::CONCRETE;
 }
 
-FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& givenReturnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_givenReturnType(std::move(givenReturnType)), m_returnTypeInfo(), m_ateEquals(ateEqualsSign), m_cmpTimeOnly(false), m_functionExpression(nullptr) {
+FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& givenReturnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_givenReturnType(std::move(givenReturnType)), m_ateEquals(ateEqualsSign), m_cmpTimeOnly(false), m_functionExpression(nullptr), m_returnTypeInfo() {
 
 	// If we are explicitly told we don't have a return type, we assert we weren't given one
 	if(m_returnKind == ReturnKind::NO_RETURN)
@@ -341,6 +341,15 @@ ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_sta
 	return ConcretableState::TRY_LATER;
 }
 
+ConcreteType* FunctionExpression::getConcreteReturnType() {
+	return m_type->getConcreteReturnType();
+}
+
+const ExprTypeInfo& FunctionExpression::getReturnTypeInfo() {
+	return m_type->getReturnTypeInfo();
+}
+
+// ==== Codegen stuff ====
 EvaluatedExpression FunctionExpression::codegenExpression(CodegenLLVM& codegen) {
     if(!m_filled)
 		fillFunctionBody(codegen);
@@ -354,11 +363,6 @@ void FunctionExpression::codegenFunction(CodegenLLVM& codegen, const std::string
 	fillFunctionBody(codegen);
 }
 
-ConcreteType* FunctionExpression::getConcreteReturnType() {
-	return m_type->getConcreteReturnType();
-}
-
-// ==== Codegen stuff ====
 llvm::Function* FunctionExpression::getPrototype() {
 	return m_function;
 }

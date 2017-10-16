@@ -32,35 +32,6 @@ void Let::addToMap(NamedDefinitionMap& map) {
 	map.addNamedDefinition(m_name, *this);
 }
 
-//TODO: Unused
-optional<ExprTypeInfo> getFinalTypeForDef(ReturnKind return_kind, TypeReference& given_type, Expression& expr, const TextRange& range) {
-
-	if(return_kind == ReturnKind::NO_RETURN)
-		return ExprTypeInfo();
-
-	ExprTypeInfo result = expr.getTypeInfo();
-	if(given_type) {
-		ConcreteType* given = given_type.getConcreteType();
-		if(result.type != given)
-			logDaf(range, ERROR) << "Mismatch between given type and expression's type in def" << std::endl;
-	}
-
-	if(return_kind == ReturnKind::REF_RETURN) {
-		if(result.valueKind == ValueKind::MUT_LVALUE)
-			result.valueKind = ValueKind::LVALUE;
-		else if(result.valueKind == ValueKind::ANONYMOUS) {
-			logDaf(range, ERROR) << "Can't 'def let' to an anonymous expression" << std::endl;
-		    return boost::none;
-		}
-	} else if(return_kind == ReturnKind::MUT_REF_RETURN) {
-		if(result.valueKind != ValueKind::MUT_LVALUE) {
-			logDaf(range, ERROR) << "Can only 'def mut' to mutable LValues" << std::endl;
-		    return boost::none;
-		}
-	}
-	return result;
-}
-
 ConcretableState Def::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 	ConcretableState state = m_functionExpression->makeConcrete(ns_stack, depMap);
 
@@ -112,6 +83,11 @@ ConcretableState Let::retryMakeConcreteInternal(DependencyMap& depMap) {
 
 	m_typeInfo = ExprTypeInfo(type, m_mut ? ValueKind::MUT_LVALUE : ValueKind::LVALUE);
 	return ConcretableState::CONCRETE;
+}
+
+bool Def::allowImplicitAccess() {
+	//TODO: Check parameter count of Expression
+    return true;
 }
 
 const ExprTypeInfo& Def::getImplicitAccessTypeInfo() {
@@ -169,9 +145,9 @@ EvaluatedExpression Let::accessCodegen(CodegenLLVM& codegen) {
 	return EvaluatedExpression(codegen.Builder().CreateLoad(m_space, m_name.c_str()), &m_typeInfo);
 }
 
-EvaluatedExpression Let::assignmentCodegen(CodegenLLVM& codegen, bool mut) {
+EvaluatedExpression Let::pointerCodegen(CodegenLLVM& codegen) {
 	(void) codegen;
-	assert(m_space && (!mut || m_mut));
+	assert(m_space);
 	return EvaluatedExpression(m_space, &m_typeInfo);
 }
 

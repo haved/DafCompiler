@@ -105,30 +105,49 @@ bool isOpNumerical(InfixOperator op) {
 	case InfixOperator::BITWISE_OR:
 	case InfixOperator::LOGICAL_AND:
 	case InfixOperator::LOGICAL_OR:
+		return true;
 	default: return false;
 	}
 }
 
-ExprTypeInfo getBinaryOpResultType(Expression* LHS, InfixOperator op, Expression* RHS, const TextRange& range) {
-	assert(op != InfixOperator::CLASS_ACCESS);
+ExprTypeInfo getBinaryOpResultType(const ExprTypeInfo& LHS, InfixOperator op, const ExprTypeInfo& RHS, const TextRange& range) {
 	if(isOpNumerical(op))
-		return getBinaryOpResultTypeNumerical(LHS->getTypeInfo().type, op, RHS->getTypeInfo().type, range);
+		return getBinaryOpResultTypeNumerical(LHS.type, op, RHS.type, range);
 	else if(op == InfixOperator::ASSIGN) {
-	    const ExprTypeInfo& LHS_ti = LHS->getTypeInfo();
-		ConcreteType* RHS_t = RHS->getTypeInfo().type;
-		if(LHS_ti.type != RHS_t)
+		if(LHS.type != RHS.type)
 			logDaf(range, FATAL_ERROR) << "left and right hand side of assignment are of different types" << std::endl;
-		if(LHS_ti.valueKind != ValueKind::MUT_LVALUE) {
-			logDaf(LHS->getRange(), ERROR) << "left hand side of assignment isn't a mutable lvalue" << std::endl;
+		if(LHS.valueKind != ValueKind::MUT_LVALUE) {
+			logDaf(range, ERROR) << "left hand side of assignment isn't a mutable lvalue" << std::endl;
 			return ExprTypeInfo();
 		}
 
-		return LHS_ti;
+		return LHS;
 	}
 	assert(false);
     return ExprTypeInfo();
 }
 
-EvaluatedExpression codegenBinaryOperator(CodegenLLVM& codegen, EvaluatedExpression& LHS, InfixOperator op, EvaluatedExpression& RHS, ExprTypeInfo* target, const TextRange& range) {
-	
+EvaluatedExpression codegenBinaryOperator(CodegenLLVM& codegen, Expression* LHS, InfixOperator op, Expression* RHS, ExprTypeInfo* target, bool ptrReturn, const TextRange& range) {
+	if(isOpNumerical(op)) {
+		EvaluatedExpression LHS_expr = LHS->codegenExpression(codegen);
+		EvaluatedExpression RHS_expr = RHS->codegenExpression(codegen);
+
+		if(!LHS_expr || !RHS_expr)
+			return EvaluatedExpression();
+
+		return codegenBinaryOperatorNumerical(codegen, LHS_expr, op, RHS_expr, target, range);
+	}
+	else if(op == InfixOperator::ASSIGN) {
+
+		EvaluatedExpression LHS_assign = LHS->codegenPointer(codegen); //mutable
+		EvaluatedExpression RHS_expr = RHS->codegenExpression(codegen);
+
+		if(!LHS_assign || !RHS_expr)
+			return EvaluatedExpression();
+
+		codegen.Builder().CreateStore(RHS_expr.value, LHS_assign.value, "assign");
+		return EvaluatedExpression(ptrReturn ? LHS_assign.value : RHS_expr.value, &LHS->getTypeInfo());
+	}
+	assert(false);
+	return EvaluatedExpression();
 }

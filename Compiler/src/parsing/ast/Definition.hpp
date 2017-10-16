@@ -100,7 +100,7 @@ public:
 	virtual void localCodegen(CodegenLLVM& codegen) override;
 
 	EvaluatedExpression accessCodegen(CodegenLLVM& codegen);
-	EvaluatedExpression assignmentCodegen(CodegenLLVM& codegen, bool mut);
+	EvaluatedExpression pointerCodegen(CodegenLLVM& codegen);
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::LET; }

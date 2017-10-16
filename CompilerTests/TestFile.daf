@@ -1,5 +1,6 @@
 // -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
+/*
 def a(a:i32):= {
 	let x := 5;
 	let y := 6+8;
@@ -26,6 +27,9 @@ def ey(a:i32):=
 	(def(a:i32):=2)();
 
 def funcptr(a:i32):=def(a:i32):=2;
+*/
 
-
-
+def a {
+	let mut x := 6;
+	x = x+1;
+};

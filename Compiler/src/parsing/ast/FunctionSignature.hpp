@@ -75,10 +75,12 @@ private:
 	std::vector<unique_ptr<FunctionParameter>> m_parameters;
 	ReturnKind m_returnKind;
 	TypeReference m_givenReturnType; //null means void
-    ExprTypeInfo m_returnTypeInfo;
 	bool m_ateEquals;
 	bool m_cmpTimeOnly;
+
 	FunctionExpression* m_functionExpression;
+	ExprTypeInfo m_returnTypeInfo;
+
 	void printSignatureMustHaveList(bool withList);
 public:
 	FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& returnType, bool ateEqualsSign, TextRange range);
@@ -125,15 +127,14 @@ public:
 	FunctionExpression& operator =(const FunctionExpression& other) = delete;
 	virtual void printSignature() override;
 	virtual ExpressionKind getExpressionKind() const override;
-
 	inline Expression* getBody() {return m_body.get();}
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 
-	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
-
-	void codegenFunction(CodegenLLVM& codegen, const std::string& name);
-	llvm::Function* getPrototype();
 	ConcreteType* getConcreteReturnType();
 	const ExprTypeInfo& getReturnTypeInfo();
+
+	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
+	void codegenFunction(CodegenLLVM& codegen, const std::string& name);
+	llvm::Function* getPrototype();
 };

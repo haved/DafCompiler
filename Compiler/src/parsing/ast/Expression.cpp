@@ -87,7 +87,7 @@ EvaluatedExpression VariableExpression::codegenExpression(CodegenLLVM& codegen) 
 	}
 }
 
-EvaluatedExpression VariableExpression::codegenAssignment(CodegenLLVM& codegen, bool mut) {
+EvaluatedExpression VariableExpression::codegenPointer(CodegenLLVM& codegen) {
     assert(m_target);
 
 	if(m_target.isDef()) {
@@ -96,7 +96,7 @@ EvaluatedExpression VariableExpression::codegenAssignment(CodegenLLVM& codegen, 
 		return EvaluatedExpression();
 	} else {
 		assert(m_target.isLet());
-	    return m_target.getLet()->assignmentCodegen(codegen, mut);
+	    return m_target.getLet()->pointerCodegen(codegen);
 	}
 }
 
@@ -143,8 +143,7 @@ EvaluatedExpression RealConstantExpression::codegenExpression(CodegenLLVM& codeg
 }
 
 
-InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Exp
-												 ression>&& RHS) : Expression(TextRange(LHS->getRange(), RHS->getRange())), m_LHS(std::move(LHS)), m_op(op), m_RHS(std::move(RHS)), m_result_type(nullptr) {
+InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS) : Expression(TextRange(LHS->getRange(), RHS->getRange())), m_LHS(std::move(LHS)), m_op(op), m_RHS(std::move(RHS)), m_result_type(nullptr) {
 	assert(m_LHS && m_RHS && m_op != InfixOperator::CLASS_ACCESS);
 }
 
@@ -173,23 +172,14 @@ ConcretableState InfixOperatorExpression::makeConcreteInternal(NamespaceStack& n
 
 ConcretableState InfixOperatorExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
-	ConcreteType *LHS_type = m_LHS->getTypeInfo().type, *RHS_type = m_RHS->getTypeInfo().type;
-	m_result_type = getBinaryOpResultType(LHS_type, m_op, RHS_type, getRange());
-	m_typeInfo = ExprTypeInfo(m_result_type, ValueKind::ANONYMOUS);
+	m_typeInfo = getBinaryOpResultType(m_LHS->getTypeInfo(), m_op, m_RHS->getTypeInfo(), getRange());
 	return ConcretableState::CONCRETE;
 }
 
 EvaluatedExpression InfixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
 	assert(allConcrete() << getConcretableState());
 
-	EvaluatedExpression LHS_expr = m_LHS->codegenExpression(codegen);
-	EvaluatedExpression RHS_expr = m_RHS->codegenExpression(codegen);
-
-	if(!LHS_expr || !RHS_expr)
-		return EvaluatedExpression();
-	assert(m_result_type);
-
-	return codegenBinaryOperator(codegen, LHS_expr, m_op, RHS_expr, m_typeInfo, getRange());
+	return codegenBinaryOperator(codegen, m_LHS.get(), m_op, m_RHS.get(), &m_typeInfo, getRange());
 }
 /*
 DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range) : Expression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_LHS_dot(nullptr), m_LHS_target(nullptr), m_target(), m_done(false) {
