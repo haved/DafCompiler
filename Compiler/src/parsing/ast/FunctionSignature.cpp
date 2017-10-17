@@ -267,20 +267,19 @@ const ExprTypeInfo& FunctionType::getReturnTypeInfo() {
 	return m_returnTypeInfo;
 }
 
-bool FunctionType::checkConcreteReturnType(ExprTypeInfo* type) {
+bool FunctionType::checkConcreteReturnType(const EvaluatedExpression& expr) {
 	assert(allConcrete() << getConcretableState());
     if(m_returnKind == ReturnKind::NO_RETURN)
 		return true;
-	if(m_returnTypeInfo.type != type->type) {
-		logDaf(getRange(), FATAL_ERROR) << "function body's code generated type doesn't match the signature's" << std::endl;
+
+	if(!expr)
 		return false;
-	}
-	if(m_returnKind == ReturnKind::REF_RETURN && type->valueKind == ValueKind::ANONYMOUS) {
-		logDaf(getRange(), FATAL_ERROR) << "function returning reference has anonymous body" << std::endl;
-		return false;
-	}
-	else if(m_returnKind == ReturnKind::MUT_REF_RETURN && type->valueKind != ValueKind::MUT_LVALUE) {
-		logDaf(getRange(), FATAL_ERROR) << "function body doesn't return mutable reference as signature requires" << std::endl;
+
+	const ExprTypeInfo& type = *expr.typeInfo;
+
+	if(m_returnTypeInfo != type) {
+		logDaf(getRange(), FATAL_ERROR) << "TODO: Compare ExprTypeInfos properly" << std::endl;
+		terminateIfErrors();
 		return false;
 	}
 	return true;
@@ -393,18 +392,19 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 	m_filled = true;
 
 	EvaluatedExpression bodyValue = m_body->codegenExpression(codegen);
-	if(!bodyValue || !m_type->checkConcreteReturnType(bodyValue.typeInfo)) {
-		auto& out = logDaf(getRange(), DEBUG_LOG) << "Function erased due to ";
+	if(!m_type->checkConcreteReturnType(bodyValue)) {
+		auto& out = logDaf(getRange(), ERROR) << "Function erased due to bodyValue ";
 		if(!bodyValue)
-			out << "bodyValue being null" << std::endl;
+			out << "being null but expecting return" << std::endl;
 		else
-			out << "bodyValue having the wrong return type" << std::endl;
+			out << "having the wrong typeInfo" << std::endl;
 		m_function->eraseFromParent();
 		m_broken = true;
 		return;
 	}
 
-	if(bodyValue.typeInfo->type == getVoidType())
+	//TODO: Force EvaluatedExpression to have a type or be fully broken, but first consider if broken EEs can exist
+	if(!bodyValue || bodyValue.typeInfo->type == getVoidType()) //Two ways of having void return :/
 		codegen.Builder().CreateRetVoid();
 	else
 		codegen.Builder().CreateRet(bodyValue.value);

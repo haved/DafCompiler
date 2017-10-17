@@ -39,9 +39,9 @@ struct ExprTypeInfo {
 
 struct EvaluatedExpression {
 	llvm::Value* value;
-    ExprTypeInfo* typeInfo;
+    const ExprTypeInfo* typeInfo;
 	EvaluatedExpression() : value(nullptr), typeInfo(nullptr) {}
-	EvaluatedExpression(llvm::Value* value, ExprTypeInfo* type) : value(value), typeInfo(type) {
+	EvaluatedExpression(llvm::Value* value, const ExprTypeInfo* type) : value(value), typeInfo(type) {
 		assert(typeInfo && typeInfo->type);
 	}
 	operator bool() const { return value && typeInfo; }
@@ -172,6 +172,7 @@ public:
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
+	virtual EvaluatedExpression codegenPointer(CodegenLLVM& codegen) override;
 };
 
 /*

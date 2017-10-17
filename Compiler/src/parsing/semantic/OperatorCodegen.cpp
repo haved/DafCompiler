@@ -146,7 +146,12 @@ EvaluatedExpression codegenBinaryOperator(CodegenLLVM& codegen, Expression* LHS,
 			return EvaluatedExpression();
 
 		codegen.Builder().CreateStore(RHS_expr.value, LHS_assign.value, "assign");
-		return EvaluatedExpression(ptrReturn ? LHS_assign.value : RHS_expr.value, &LHS->getTypeInfo());
+
+		llvm::Value* ret = RHS_expr.value;
+		if(ptrReturn)
+			ret = LHS_assign.value;
+		const ExprTypeInfo* typInfo = &LHS->getTypeInfo();
+		return EvaluatedExpression(ret, typInfo);
 	}
 	assert(false);
 	return EvaluatedExpression();

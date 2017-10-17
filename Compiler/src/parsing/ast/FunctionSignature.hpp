@@ -104,7 +104,7 @@ public:
 
 	ConcreteType* getConcreteReturnType();
 	const ExprTypeInfo& getReturnTypeInfo();
-	bool checkConcreteReturnType(ExprTypeInfo* info);
+	bool checkConcreteReturnType(const EvaluatedExpression& type);
 
 	llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen);
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
