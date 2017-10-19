@@ -66,7 +66,9 @@ public:
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 	virtual void localCodegen(CodegenLLVM& codegen) override;
+
 	EvaluatedExpression implicitAccessCodegen(CodegenLLVM& codegen);
+	EvaluatedExpression implicitPointerCodegen(CodegenLLVM& codegen);
 	EvaluatedExpression explicitAccessCodegen(CodegenLLVM& codegen);
 
 	virtual void printSignature() override;

@@ -267,6 +267,11 @@ const ExprTypeInfo& FunctionType::getReturnTypeInfo() {
 	return m_returnTypeInfo;
 }
 
+bool FunctionType::hasReferenceReturn() {
+	assert(m_returnTypeInfo);
+	return m_returnTypeInfo.valueKind != ValueKind::ANONYMOUS;
+}
+
 bool FunctionType::checkConcreteReturnType(const ExprTypeInfo& type) {
 	assert(allConcrete() << getConcretableState());
     if(m_returnKind == ReturnKind::NO_RETURN)
@@ -288,9 +293,10 @@ llvm::FunctionType* FunctionType::codegenFunctionType(CodegenLLVM& codegen) {
 		(void) param; //TODO: Parameters
 	}
 
-	//TODO: Allow returning references and mutable references
-    assert(m_returnTypeInfo.valueKind == ValueKind::ANONYMOUS);
 	llvm::Type* returnType = m_returnTypeInfo.type->codegenType(codegen);
+	if(hasReferenceReturn()) //We return a reference
+		returnType = llvm::PointerType::getUnqual(returnType);
+
 	if(!returnType)
 		return nullptr;
 
@@ -333,6 +339,10 @@ ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_sta
 		return ConcretableState::LOST_CAUSE;
 	depMap.makeFirstDependentOnSecond(this, m_type.get());
 	return ConcretableState::TRY_LATER;
+}
+
+FunctionType& FunctionExpression::getFunctionType() {
+	return *m_type;
 }
 
 ConcreteType* FunctionExpression::getConcreteReturnType() {
@@ -384,7 +394,8 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 
 	m_filled = true;
 
-	EvaluatedExpression bodyValue = m_body->codegenExpression(codegen);
+	bool refReturn = m_type->hasReferenceReturn();
+	EvaluatedExpression bodyValue = refReturn ? m_body->codegenPointer(codegen) : m_body->codegenExpression(codegen);
 	if(!m_type->checkConcreteReturnType(*bodyValue.typeInfo)) {
 		m_broken = true;
 		m_function->eraseFromParent();

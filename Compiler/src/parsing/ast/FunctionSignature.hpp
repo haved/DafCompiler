@@ -104,6 +104,7 @@ public:
 
 	ConcreteType* getConcreteReturnType();
 	const ExprTypeInfo& getReturnTypeInfo();
+	bool hasReferenceReturn();
 	bool checkConcreteReturnType(const ExprTypeInfo& type);
 
 	llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen);
@@ -131,6 +132,7 @@ public:
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 
+	FunctionType& getFunctionType();
 	ConcreteType* getConcreteReturnType();
 	const ExprTypeInfo& getReturnTypeInfo();
 

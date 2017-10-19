@@ -42,7 +42,7 @@ struct EvaluatedExpression {
 	llvm::Value* value;
     const ExprTypeInfo* typeInfo;
 	EvaluatedExpression(llvm::Value* value, const ExprTypeInfo* type) : value(value), typeInfo(type) {
-		assert(typeInfo && typeInfo->type && ((typeInfo->type == getVoidType()) == !value));
+		assert(typeInfo && ((typeInfo->type == getVoidType()) == !value));
 	}
 
 	bool isVoid() { return !value; }

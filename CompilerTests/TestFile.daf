@@ -33,3 +33,10 @@ def a {
 	let mut x := 6;
 	x = x+1;
 };
+
+mut x := 5;
+
+def myTing {
+	def mut y := x;
+	y = y + 1;
+};

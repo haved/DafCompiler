@@ -109,7 +109,14 @@ void Def::localCodegen(CodegenLLVM& codegen) {
 
 void Let::globalCodegen(CodegenLLVM& codegen) {
 	(void) codegen;
-    //TODO: Allocate global space for the let
+	llvm::Type* type = m_typeInfo.type->codegenType(codegen);
+	bool isConstant = !m_mut;
+	llvm::Constant* init = nullptr;
+	//	if(m_expression)
+	//	init = m_expression->codegenExpression(codegen).value; //TODO: We need a builder for this?
+
+	//TODO: Leak
+    m_space = new llvm::GlobalVariable(type, isConstant, llvm::GlobalValue::ExternalLinkage, init, m_name);
 }
 
 void Let::localCodegen(CodegenLLVM& codegen) {
@@ -131,6 +138,17 @@ void Let::localCodegen(CodegenLLVM& codegen) {
 
 EvaluatedExpression Def::implicitAccessCodegen(CodegenLLVM& codegen) {
     assert(allowImplicitAccess());
+	llvm::Value* call = codegen.Builder().CreateCall(m_functionExpression->getPrototype());
+	if(m_functionExpression->getFunctionType().hasReferenceReturn()) { //We got a pointer
+		llvm::Value* deref = codegen.Builder().CreateLoad(call);
+		return EvaluatedExpression(deref, &m_implicitAccessTypeInfo);
+	}
+    return EvaluatedExpression(call, &m_implicitAccessTypeInfo);
+}
+
+EvaluatedExpression Def::implicitPointerCodegen(CodegenLLVM& codegen) {
+	assert(m_implicitAccessTypeInfo.valueKind != ValueKind::ANONYMOUS);
+	assert(allowImplicitAccess() && m_functionExpression->getFunctionType().hasReferenceReturn());
 	llvm::Value* call = codegen.Builder().CreateCall(m_functionExpression->getPrototype());
     return EvaluatedExpression(call, &m_implicitAccessTypeInfo);
 }

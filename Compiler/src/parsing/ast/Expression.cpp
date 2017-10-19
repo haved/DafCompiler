@@ -82,8 +82,7 @@ EvaluatedExpression VariableExpression::codegenExpression(CodegenLLVM& codegen) 
 		return def->implicitAccessCodegen(codegen);
 	} else {
 		assert(m_target.isLet());
-		Let* let = m_target.getLet();
-		return let->accessCodegen(codegen);
+		return m_target.getLet()->accessCodegen(codegen);
 	}
 }
 
@@ -92,8 +91,7 @@ EvaluatedExpression VariableExpression::codegenPointer(CodegenLLVM& codegen) {
 
 	if(m_target.isDef()) {
 		assert(!m_allowIncompleteEvaluation); //We can't assign to a def that isn't evaluated
-	    assert(false && "TODO: Allow assignment to a def");
-		return EvaluatedExpression(nullptr, nullptr);
+		return m_target.getDef()->implicitPointerCodegen(codegen);
 	} else {
 		assert(m_target.isLet());
 	    return m_target.getLet()->pointerCodegen(codegen);
