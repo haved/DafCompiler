@@ -82,7 +82,7 @@ EvaluatedExpression Scope::codegenExpression(CodegenLLVM& codegen) {
 	}
 	if(m_outExpression)
 		return m_outExpression->codegenExpression(codegen);
-	return EvaluatedExpression(); //null return doesn't mean error
+	return EvaluatedExpression(nullptr, &m_typeInfo);
 }
 
 ScopeNamespace::ScopeNamespace() : m_definitionMap() {}

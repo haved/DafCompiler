@@ -140,5 +140,5 @@ ConcretableState WithExpression::retryMakeConcreteInternal(DependencyMap& depLis
 EvaluatedExpression WithExpression::codegenExpression(CodegenLLVM& codegen) {
 	(void) codegen;
 	std::cerr << "with expression codegenExpression isn't implemented" << std::endl;
-	return EvaluatedExpression();
+	return EvaluatedExpression(nullptr, nullptr); //This will assert false
 }

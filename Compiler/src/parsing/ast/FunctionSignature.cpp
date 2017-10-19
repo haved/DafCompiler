@@ -267,15 +267,10 @@ const ExprTypeInfo& FunctionType::getReturnTypeInfo() {
 	return m_returnTypeInfo;
 }
 
-bool FunctionType::checkConcreteReturnType(const EvaluatedExpression& expr) {
+bool FunctionType::checkConcreteReturnType(const ExprTypeInfo& type) {
 	assert(allConcrete() << getConcretableState());
     if(m_returnKind == ReturnKind::NO_RETURN)
 		return true;
-
-	if(!expr)
-		return false;
-
-	const ExprTypeInfo& type = *expr.typeInfo;
 
 	if(m_returnTypeInfo != type) {
 		logDaf(getRange(), FATAL_ERROR) << "TODO: Compare ExprTypeInfos properly" << std::endl;
@@ -350,10 +345,8 @@ const ExprTypeInfo& FunctionExpression::getReturnTypeInfo() {
 
 // ==== Codegen stuff ====
 EvaluatedExpression FunctionExpression::codegenExpression(CodegenLLVM& codegen) {
-    if(!m_filled)
+    if(!m_filled && !m_broken)
 		fillFunctionBody(codegen);
-	if(m_broken)
-		return EvaluatedExpression();
 	return EvaluatedExpression(m_function, &m_typeInfo);
 }
 
@@ -392,19 +385,13 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 	m_filled = true;
 
 	EvaluatedExpression bodyValue = m_body->codegenExpression(codegen);
-	if(!m_type->checkConcreteReturnType(bodyValue)) {
-		auto& out = logDaf(getRange(), ERROR) << "Function erased due to bodyValue ";
-		if(!bodyValue)
-			out << "being null but expecting return" << std::endl;
-		else
-			out << "having the wrong typeInfo" << std::endl;
-		m_function->eraseFromParent();
+	if(!m_type->checkConcreteReturnType(*bodyValue.typeInfo)) {
 		m_broken = true;
+		m_function->eraseFromParent();
 		return;
 	}
 
-	//TODO: Force EvaluatedExpression to have a type or be fully broken, but first consider if broken EEs can exist
-	if(!bodyValue || bodyValue.typeInfo->type == getVoidType()) //Two ways of having void return :/
+	if(bodyValue.isVoid() || m_type->getConcreteReturnType() == getVoidType())
 		codegen.Builder().CreateRetVoid();
 	else
 		codegen.Builder().CreateRet(bodyValue.value);

@@ -93,7 +93,7 @@ EvaluatedExpression VariableExpression::codegenPointer(CodegenLLVM& codegen) {
 	if(m_target.isDef()) {
 		assert(!m_allowIncompleteEvaluation); //We can't assign to a def that isn't evaluated
 	    assert(false && "TODO: Allow assignment to a def");
-		return EvaluatedExpression();
+		return EvaluatedExpression(nullptr, nullptr);
 	} else {
 		assert(m_target.isLet());
 	    return m_target.getLet()->pointerCodegen(codegen);
@@ -329,7 +329,8 @@ ConcretableState PrefixOperatorExpression::retryMakeConcreteInternal(DependencyM
 
 EvaluatedExpression PrefixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
 	(void) codegen;
-	return EvaluatedExpression();
+	std::cerr << "TODO: prefix operator expression codegen" << std::endl;
+	return EvaluatedExpression(nullptr, nullptr);
 }
 
 PostfixCrementExpression::PostfixCrementExpression(std::unique_ptr<Expression>&& LHS, bool decrement, int opLine, int opEndCol) : Expression(TextRange(LHS->getRange(), opLine, opEndCol)), m_decrement(decrement), m_LHS(std::move(LHS)) {
@@ -359,7 +360,8 @@ ConcretableState PostfixCrementExpression::retryMakeConcreteInternal(DependencyM
 
 EvaluatedExpression PostfixCrementExpression::codegenExpression(CodegenLLVM& codegen) {
 	(void) codegen;
-	return EvaluatedExpression();
+	std::cerr << "TODO: PostfixCrementExpression::codegenExpression" << std::endl;
+	return EvaluatedExpression(nullptr, nullptr);
 }
 
 FunctionCallArgument::FunctionCallArgument(bool mut, unique_ptr<Expression>&& expression) : m_mutableReference(mut), m_expression(std::move(expression)) {
@@ -431,15 +433,11 @@ ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap
 
 EvaluatedExpression FunctionCallExpression::codegenExpression(CodegenLLVM& codegen) {
 	EvaluatedExpression function = m_function->codegenExpression(codegen);
-	if(!function)
-		return EvaluatedExpression();
 
 	std::vector<llvm::Value*> ArgsV;
 	for(auto it = m_args.begin(); it != m_args.end(); ++it) {
 		//TODO: Mut references as what not. We're supposed to pass references remember
 		EvaluatedExpression arg = it->m_expression->codegenExpression(codegen);
-		if(!arg)
-			return EvaluatedExpression();
 		//TODO: Check type of argument
 		ArgsV.push_back(arg.value);
 	}
@@ -451,7 +449,7 @@ EvaluatedExpression FunctionCallExpression::codegenExpression(CodegenLLVM& codeg
 	}
 
 	std::cerr << "TODO: handle function calls on something other than Function*" << std::endl;
-	return EvaluatedExpression();
+	return EvaluatedExpression(nullptr, nullptr);
 }
 
 
@@ -485,12 +483,12 @@ ConcretableState ArrayAccessExpression::makeConcreteInternal(NamespaceStack& ns_
 
 ConcretableState ArrayAccessExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
     (void) depMap;
-	std::cerr << "Array access expressions are not implemented" << std::endl;
+	std::cerr << "TODO: Array access expressions are not implemented" << std::endl;
 	return ConcretableState::LOST_CAUSE;
 }
 
 EvaluatedExpression ArrayAccessExpression::codegenExpression(CodegenLLVM& codegen) {
 	(void) codegen;
-	std::cerr << "Array access codegenExpression isn't implemented" << std::endl;
-	return EvaluatedExpression();
+	std::cerr << "TODO: Array access codegenExpression isn't implemented" << std::endl;
+	return EvaluatedExpression(nullptr, nullptr);
 }

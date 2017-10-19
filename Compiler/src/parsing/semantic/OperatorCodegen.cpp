@@ -45,7 +45,7 @@ ExprTypeInfo getBinaryOpResultTypeNumerical(ConcreteType* LHS, InfixOperator op,
 }
 
 EvaluatedExpression codegenBinaryOperatorNumerical(CodegenLLVM& codegen, EvaluatedExpression& LHS, InfixOperator op, EvaluatedExpression& RHS, ExprTypeInfo* target, const TextRange& range) {
-	assert(LHS && RHS && target &&
+	assert(target &&
 		   LHS.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::PRIMITIVE &&
 		   RHS.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::PRIMITIVE
 		   &&    target->type->getConcreteTypeKind() == ConcreteTypeKind::PRIMITIVE);
@@ -81,7 +81,7 @@ EvaluatedExpression codegenBinaryOperatorNumerical(CodegenLLVM& codegen, Evaluat
 								   : codegen.Builder().CreateUDiv(LHS_expr.value, RHS_expr.value), target);
     default:
 		assert(false);
-		return EvaluatedExpression();
+		return EvaluatedExpression(nullptr, nullptr);
 	}
 
 	(void)range;
@@ -132,18 +132,12 @@ EvaluatedExpression codegenBinaryOperator(CodegenLLVM& codegen, Expression* LHS,
 		EvaluatedExpression LHS_expr = LHS->codegenExpression(codegen);
 		EvaluatedExpression RHS_expr = RHS->codegenExpression(codegen);
 
-		if(!LHS_expr || !RHS_expr)
-			return EvaluatedExpression();
-
 		return codegenBinaryOperatorNumerical(codegen, LHS_expr, op, RHS_expr, target, range);
 	}
 	else if(op == InfixOperator::ASSIGN) {
 
 		EvaluatedExpression LHS_assign = LHS->codegenPointer(codegen); //mutable
 		EvaluatedExpression RHS_expr = RHS->codegenExpression(codegen);
-
-		if(!LHS_assign || !RHS_expr)
-			return EvaluatedExpression();
 
 		codegen.Builder().CreateStore(RHS_expr.value, LHS_assign.value, "assign");
 
@@ -154,5 +148,5 @@ EvaluatedExpression codegenBinaryOperator(CodegenLLVM& codegen, Expression* LHS,
 		return EvaluatedExpression(ret, typInfo);
 	}
 	assert(false);
-	return EvaluatedExpression();
+	return EvaluatedExpression(nullptr, nullptr);
 }

@@ -37,14 +37,15 @@ struct ExprTypeInfo {
 	inline operator bool() const { return !!type; }
 };
 
+//Invariant: typeInfo.type != null
 struct EvaluatedExpression {
 	llvm::Value* value;
     const ExprTypeInfo* typeInfo;
-	EvaluatedExpression() : value(nullptr), typeInfo(nullptr) {}
 	EvaluatedExpression(llvm::Value* value, const ExprTypeInfo* type) : value(value), typeInfo(type) {
-		assert(typeInfo && typeInfo->type);
+		assert(typeInfo && typeInfo->type && ((typeInfo->type == getVoidType()) == !value));
 	}
-	operator bool() const { return value && typeInfo; }
+
+	bool isVoid() { return !value; }
 };
 
 enum class ExpressionKind {
@@ -85,12 +86,12 @@ public:
 	const ExprTypeInfo& getTypeInfo() const;
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) {
-		(void)codegen; logDaf(m_range, ERROR) << "TODO: Expression codegen" << std::endl; return EvaluatedExpression();
+		(void)codegen; logDaf(m_range, ERROR) << "TODO: Expression codegen" << std::endl; return EvaluatedExpression(nullptr, nullptr);
 	}
 
 	//The Evaluated Expression's value is a pointer to the respective Type Info
 	virtual EvaluatedExpression codegenPointer(CodegenLLVM& codegen) {
-		(void)codegen; logDaf(m_range, ERROR) << "TODO: Expression pointer codegen" << std::endl; return EvaluatedExpression();
+		(void)codegen; logDaf(m_range, ERROR) << "TODO: Expression pointer codegen" << std::endl; return EvaluatedExpression(nullptr, nullptr);
 	}
 };
 

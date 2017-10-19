@@ -46,9 +46,8 @@ ConcretableState DefinitionStatement::makeConcreteInternal(NamespaceStack& ns_st
 	return ConcretableState::TRY_LATER;
 }
 
-bool DefinitionStatement::codegenStatement(CodegenLLVM& codegen) {
+void DefinitionStatement::codegenStatement(CodegenLLVM& codegen) {
 	m_definition->localCodegen(codegen);
-	return true;
 }
 
 
@@ -72,9 +71,8 @@ ConcretableState ExpressionStatement::makeConcreteInternal(NamespaceStack& ns_st
 	return ConcretableState::TRY_LATER;
 }
 
-bool ExpressionStatement::codegenStatement(CodegenLLVM& codegen) {
-	auto eval = m_expression->codegenExpression(codegen);
-	return eval;
+void ExpressionStatement::codegenStatement(CodegenLLVM& codegen) {
+	m_expression->codegenExpression(codegen);
 }
 
 
