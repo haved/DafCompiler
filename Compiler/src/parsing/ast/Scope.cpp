@@ -78,11 +78,19 @@ ConcretableState Scope::retryMakeConcreteInternal(DependencyMap& depMap) {
 
 EvaluatedExpression Scope::codegenExpression(CodegenLLVM& codegen) {
 	for(auto it = m_statements.begin(); it != m_statements.end(); ++it) {
-		(*it)->codegenStatement(codegen); //TODO: Do we care about the returned bool?
+		(*it)->codegenStatement(codegen);
 	}
 	if(m_outExpression)
 		return m_outExpression->codegenExpression(codegen);
 	return EvaluatedExpression(nullptr, &m_typeInfo);
+}
+
+EvaluatedExpression Scope::codegenPointer(CodegenLLVM& codegen) {
+	assert(m_typeInfo.valueKind != ValueKind::ANONYMOUS && m_outExpression);
+	for(auto it = m_statements.begin(); it != m_statements.end(); ++it) {
+		(*it)->codegenStatement(codegen);
+	}
+    return m_outExpression->codegenPointer(codegen);
 }
 
 ScopeNamespace::ScopeNamespace() : m_definitionMap() {}

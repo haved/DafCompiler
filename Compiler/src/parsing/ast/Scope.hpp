@@ -7,9 +7,6 @@
 
 using boost::optional;
 
-//Scope is not in Expression.hpp because it must include Statement, which in turn includes Expression.hpp
-//TODO: Make some kind of Namespace implementation that can be filled and used while resolving references in the scope
-
 class Scope : public Expression {
 private:
 	std::vector<std::unique_ptr<Statement>> m_statements;
@@ -26,9 +23,9 @@ public:
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
+	virtual EvaluatedExpression codegenPointer(CodegenLLVM& codegen) override;
 };
 
-//Used to temporarily know all definitions declared previously in the scope
 class ScopeNamespace : public Namespace {
 private:
 	NamedDefinitionMap m_definitionMap;

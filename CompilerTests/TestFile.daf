@@ -40,3 +40,8 @@ def myTing {
 	def mut y := x;
 	y = y + 1;
 };
+
+def daTing {
+	mut x := 5;
+	{x}={x}+{1};
+};

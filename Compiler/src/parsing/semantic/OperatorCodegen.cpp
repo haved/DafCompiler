@@ -139,7 +139,7 @@ EvaluatedExpression codegenBinaryOperator(CodegenLLVM& codegen, Expression* LHS,
 		EvaluatedExpression LHS_assign = LHS->codegenPointer(codegen); //mutable
 		EvaluatedExpression RHS_expr = RHS->codegenExpression(codegen);
 
-		codegen.Builder().CreateStore(RHS_expr.value, LHS_assign.value, "assign");
+		codegen.Builder().CreateStore(RHS_expr.value, LHS_assign.value);
 
 		llvm::Value* ret = RHS_expr.value;
 		if(ptrReturn)
