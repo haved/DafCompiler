@@ -45,3 +45,24 @@ def daTing {
 	mut x := 5;
 	{x}={x}+{1};
 };
+
+/*
+def functionFuckingEveythingUp {
+	mut x := 6;
+	def inc := {
+		def doInc:=x=x+1;
+		doInc
+	};
+
+	let y:=inc;
+};*/
+
+
+def shait {
+	def mut shiet := {
+		mut x := 5;
+		x
+	};
+	x=x+1;
+};
+
