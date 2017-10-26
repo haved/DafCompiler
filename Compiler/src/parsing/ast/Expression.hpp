@@ -48,11 +48,6 @@ struct EvaluatedExpression {
 	bool isVoid() { return !value; }
 };
 
-class Def;
-struct IncompleteExpression {
-	Def* def;
-};
-
 enum class ExpressionKind {
 	VARIABLE,
 	INT_LITERAL,
@@ -73,6 +68,7 @@ class Expression : public Concretable {
 protected:
 	TextRange m_range;
 	ExprTypeInfo m_typeInfo;
+	int m_blockLevel=-1;
 public:
 	Expression(const TextRange& range);
 	virtual ~Expression();
@@ -87,6 +83,8 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override=0;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 	const ExprTypeInfo& getTypeInfo() const;
+	void setBlockLevel(int level);
+	int getBlockLevel() const;
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) {
 		(void)codegen; logDaf(m_range, ERROR) << "TODO: Expression codegen" << std::endl; return EvaluatedExpression(nullptr, nullptr);
@@ -95,11 +93,6 @@ public:
 	//The Evaluated Expression's value is a pointer to the respective Type Info
 	virtual EvaluatedExpression codegenPointer(CodegenLLVM& codegen) {
 		(void)codegen; logDaf(m_range, ERROR) << "TODO: Expression pointer codegen" << std::endl; return EvaluatedExpression(nullptr, nullptr);
-	}
-
-	virtual void codegenInclompleteExpression(CodegenLLVM& codegen, IncompleteExpression* incomplete) {
-		(void) codegen; (void) incomplete;
-		logDaf(m_range, ERROR) << "TODO: incomplete codegen of expression" << std::endl; assert(false);
 	}
 };
 

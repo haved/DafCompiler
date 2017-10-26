@@ -8,6 +8,15 @@
 Definition::Definition(bool pub, const TextRange &range) : m_pub(pub), m_range(range) {}
 Definition::~Definition() {}
 
+void Definition::setBlockLevel(int blockLevel) {
+    assert(m_blockLevel == -1 && blockLevel>=0 && getConcretableState() == ConcretableState::NEVER_TRIED);
+	m_blockLevel = blockLevel;
+}
+
+int Definition::getBlockLevel() const {
+	return m_blockLevel;
+}
+
 void Definition::globalCodegen(CodegenLLVM& codegen) {
 	(void) codegen;
 }
@@ -33,6 +42,7 @@ void Let::addToMap(NamedDefinitionMap& map) {
 }
 
 ConcretableState Def::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	m_functionExpression->setBlockLevel(m_blockLevel);
 	ConcretableState state = m_functionExpression->makeConcrete(ns_stack, depMap);
 
     if(allConcrete() << state)
@@ -50,6 +60,8 @@ ConcretableState Def::retryMakeConcreteInternal(DependencyMap& depMap) {
 }
 
 ConcretableState Let::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	if(m_expression)
+		m_expression->setBlockLevel(m_blockLevel);
 	ConcretableState exprState =
 		m_expression ? m_expression         ->makeConcrete(ns_stack, depMap) : ConcretableState::CONCRETE;
 	ConcretableState typeState =
@@ -115,7 +127,7 @@ void Let::globalCodegen(CodegenLLVM& codegen) {
 	//	if(m_expression)
 	//	init = m_expression->codegenExpression(codegen).value; //TODO: We need a builder for this?
 
-	//TODO: Leak
+	//TODO: @Leak @FixMe
     m_space = new llvm::GlobalVariable(type, isConstant, llvm::GlobalValue::ExternalLinkage, init, m_name);
 }
 
@@ -243,6 +255,7 @@ void NamedefDefinition::addToMap(NamedDefinitionMap& map) {
 
 ConcretableState NamedefDefinition::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 	assert(m_value);
+	m_value->setBlockLevel(m_blockLevel);
 	ConcretableState state = m_value->makeConcrete(ns_stack, depMap);
     if(allConcrete() << state)
 		return retryMakeConcreteInternal(depMap);

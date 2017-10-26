@@ -30,17 +30,20 @@ class Definition : public Concretable {
 protected:
 	bool m_pub;
 	TextRange m_range;
+	int m_blockLevel=-1;
 	Definition(bool pub, const TextRange& range);
 public:
 	virtual ~Definition();
 	inline const TextRange& getRange() { return m_range; }
 	inline bool isPublic() {return m_pub;}
+	void setBlockLevel(int blockLevel);
+	int getBlockLevel() const;
 
 	virtual void addToMap(NamedDefinitionMap& map)=0;
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override=0;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override=0;
 
-	//Optimize: lots of dead virtual calls (Though O(n))
+	//@Optimize: lots of dead virtual calls (Though O(n))
 	virtual void globalCodegen(CodegenLLVM& codegen);
 	virtual void localCodegen(CodegenLLVM& codegen);
 
@@ -131,10 +134,13 @@ enum class NameScopeExpressionKind;
 class NameScopeExpression : public Concretable {
 private:
 	TextRange m_range;
+	int m_blockLevel=0;
 public:
 	NameScopeExpression(const TextRange& range);
 	virtual ~NameScopeExpression();
 	inline const TextRange& getRange() { return m_range; }
+	void setBlockLevel(int blockLevel);
+	int getBlockLevel() const;
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override=0;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;

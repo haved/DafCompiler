@@ -13,6 +13,16 @@ const TextRange& Statement::getRange() {
 	return m_range;
 }
 
+void Statement::setBlockLevel(int level) {
+	assert(level == -1);
+	m_blockLevel = level;
+}
+
+int Statement::getBlockLevel() const {
+	assert(m_blockLevel != -1);
+	return m_blockLevel;
+}
+
 void Statement::addToMap(NamedDefinitionMap& map) {
 	//@Speed: a lot of virtual calls that never do anything
 	(void) map; //Definition overrides this, the others don't do nothing
@@ -37,6 +47,7 @@ void DefinitionStatement::addToMap(NamedDefinitionMap& map) {
 }
 
 ConcretableState DefinitionStatement::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	m_definition->setBlockLevel(m_blockLevel);
     ConcretableState state =  m_definition->makeConcrete(ns_stack, depMap);
 	if(allConcrete() << state)
 		return retryMakeConcreteInternal(depMap);
@@ -62,6 +73,7 @@ void ExpressionStatement::printSignature() {
 }
 
 ConcretableState ExpressionStatement::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	m_expression->setBlockLevel(m_blockLevel);
     ConcretableState state =  m_expression->makeConcrete(ns_stack, depMap);
 	if(allConcrete() << state)
 		return retryMakeConcreteInternal(depMap);

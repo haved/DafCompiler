@@ -12,6 +12,15 @@ void complainDefinitionIsNotNamedef(Definition* definition, std::string& name, c
 NameScopeExpression::NameScopeExpression(const TextRange& range) : m_range(range) {}
 NameScopeExpression::~NameScopeExpression() {}
 
+void NameScopeExpression::setBlockLevel(int blockLevel) {
+	assert(blockLevel >= 0 && getConcretableState() == ConcretableState::NEVER_TRIED);
+	m_blockLevel = blockLevel;
+}
+
+int NameScopeExpression::getBlockLevel() const {
+	return m_blockLevel;
+}
+
 ConcretableState NameScopeExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
 	return ConcretableState::CONCRETE;
@@ -46,6 +55,7 @@ ConcretableState NameScope::makeConcreteInternal(NamespaceStack& ns_stack, Depen
 	assureNameMapFilled();
 
 	for(auto it = m_definitions.begin(); it != m_definitions.end(); ++it) {
+		(*it)->setBlockLevel(getBlockLevel()); //We don't increase block level in NameScopes
 		(*it)->makeConcrete(ns_stack, depMap);
 	}
 
