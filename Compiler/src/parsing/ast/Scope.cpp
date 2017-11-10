@@ -36,7 +36,7 @@ ConcretableState Scope::makeConcreteInternal(NamespaceStack& ns_stack, Dependenc
 	ScopeNamespace scopeNs;
 	ns_stack.push(&scopeNs);
 
-	int internalBlockLevel = m_blockLevel + 1;
+	int internalBlockLevel = m_blockLevel; //The block level only increases when entering functions
 
 	auto concrete = allConcrete();
 	auto lost = anyLost();

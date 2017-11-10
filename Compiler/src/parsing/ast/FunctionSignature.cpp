@@ -196,6 +196,7 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 		auto body = m_functionExpression->getBody();
 		assert(body->getConcretableState() == ConcretableState::NEVER_TRIED);
 		//TODO: ADD parameter namespace and push it
+		body->setBlockLevel(m_functionExpression->getBlockLevel()+1); //it's in the function, meaning the block level increases :)
 		ConcretableState state = body->makeConcrete(ns_stack, depMap);
 		//TODO: Now pop it
 
