@@ -129,6 +129,7 @@ public:
 	virtual void printSignature() override;
 	virtual ExpressionKind getExpressionKind() const override;
 	inline Expression* getBody() {return m_body.get();}
+	inline int getInternalBlockLevel() { return getBlockLevel()+1; }
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 

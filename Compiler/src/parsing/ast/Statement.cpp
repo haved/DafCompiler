@@ -14,7 +14,7 @@ const TextRange& Statement::getRange() {
 }
 
 void Statement::setBlockLevel(int level) {
-	assert(level == -1);
+	assert(m_blockLevel == -1);
 	m_blockLevel = level;
 }
 

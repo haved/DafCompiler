@@ -63,6 +63,6 @@ def shait {
 		mut x := 5;
 		x
 	};
-	x=x+1;
+	shiet=shiet+1;
 };
 

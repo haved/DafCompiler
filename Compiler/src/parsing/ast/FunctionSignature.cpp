@@ -196,7 +196,9 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 		auto body = m_functionExpression->getBody();
 		assert(body->getConcretableState() == ConcretableState::NEVER_TRIED);
 		//TODO: ADD parameter namespace and push it
-		body->setBlockLevel(m_functionExpression->getBlockLevel()+1); //it's in the function, meaning the block level increases :)
+		body->setBlockLevel(m_functionExpression->getInternalBlockLevel());
+		
+		std::vector<Let*> usedVariablesFromOutside;
 		ConcretableState state = body->makeConcrete(ns_stack, depMap);
 		//TODO: Now pop it
 
@@ -333,6 +335,7 @@ ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_sta
 
 	m_typeInfo = ExprTypeInfo(m_type.get(), ValueKind::ANONYMOUS);
 
+	//Nothing left to be done, so you done
     ConcretableState state = m_type->makeConcrete(ns_stack, depMap);
 	if(allConcrete() << state)
 		return retryMakeConcreteInternal(depMap);

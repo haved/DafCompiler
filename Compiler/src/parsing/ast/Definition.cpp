@@ -141,7 +141,7 @@ void Let::localCodegen(CodegenLLVM& codegen) {
 	if(m_expression) {
 		EvaluatedExpression expr = m_expression->codegenExpression(codegen);
 		assert(expr.typeInfo->type == m_typeInfo.type);
-		codegen.Builder().CreateStore(expr.value, m_space, m_name.c_str());
+		codegen.Builder().CreateStore(expr.value, m_space);
 	}
 
 	//TODO: Uncertain and stuff
