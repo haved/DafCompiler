@@ -30,14 +30,11 @@ class Definition : public Concretable {
 protected:
 	bool m_pub;
 	TextRange m_range;
-	int m_blockLevel=-1;
 	Definition(bool pub, const TextRange& range);
 public:
 	virtual ~Definition();
 	inline const TextRange& getRange() { return m_range; }
 	inline bool isPublic() {return m_pub;}
-	void setBlockLevel(int blockLevel);
-	int getBlockLevel() const;
 
 	virtual void addToMap(NamedDefinitionMap& map)=0;
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override=0;

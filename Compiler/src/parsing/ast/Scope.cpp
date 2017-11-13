@@ -36,14 +36,11 @@ ConcretableState Scope::makeConcreteInternal(NamespaceStack& ns_stack, Dependenc
 	ScopeNamespace scopeNs;
 	ns_stack.push(&scopeNs);
 
-	int internalBlockLevel = m_blockLevel; //The block level only increases when entering functions
-
 	auto concrete = allConcrete();
 	auto lost = anyLost();
 
 	for(auto it = m_statements.begin(); it != m_statements.end(); ++it) {
 	    scopeNs.addStatement(**it);
-		(*it)->setBlockLevel(internalBlockLevel);
 		ConcretableState state = (*it)->makeConcrete(ns_stack, depMap);
 	    concrete = concrete << state;
 		lost = lost << state;
@@ -52,8 +49,7 @@ ConcretableState Scope::makeConcreteInternal(NamespaceStack& ns_stack, Dependenc
 	}
 
 	if(m_outExpression) {
-		m_outExpression->setBlockLevel(internalBlockLevel);
-		ConcretableState state = m_outExpression->makeConcrete(ns_stack, depMap);
+	    ConcretableState state = m_outExpression->makeConcrete(ns_stack, depMap);
 		concrete = concrete << state;
 		lost = lost << state;
 		if(state == ConcretableState::TRY_LATER)

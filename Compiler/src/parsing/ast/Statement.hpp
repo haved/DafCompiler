@@ -14,14 +14,11 @@ using std::unique_ptr;
 class Statement : public Concretable {
 protected:
 	TextRange m_range;
-	int m_blockLevel=-1;
 public:
 	Statement(const TextRange& range);
 	virtual ~Statement();
 	virtual void printSignature()=0;
 	const TextRange& getRange();
-	void setBlockLevel(int blockLevel);
-	int getBlockLevel() const;
 
     virtual void addToMap(NamedDefinitionMap& map);
 

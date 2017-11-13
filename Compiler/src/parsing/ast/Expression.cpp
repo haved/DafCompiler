@@ -28,19 +28,8 @@ const ExprTypeInfo& Expression::getTypeInfo() const {
 	return m_typeInfo;
 }
 
-void Expression::setBlockLevel(int blockLevel) {
-	assert(m_blockLevel == -1 && blockLevel>=0 && getConcretableState() == ConcretableState::NEVER_TRIED);
-	m_blockLevel = blockLevel;
-}
-
-int Expression::getBlockLevel() const {
-	assert(m_blockLevel != -1);
-	return m_blockLevel;
-}
-
 ConcretableState Expression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
-	assert(m_typeInfo.type && m_blockLevel != -1);
 	return ConcretableState::CONCRETE;
 }
 
@@ -160,8 +149,6 @@ void InfixOperatorExpression::printSignature() {
 }
 
 ConcretableState InfixOperatorExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	m_LHS->setBlockLevel(m_blockLevel);
-	m_RHS->setBlockLevel(m_blockLevel);
 	ConcretableState l_state = m_LHS->makeConcrete(ns_stack, depMap);
 	ConcretableState r_state = m_RHS->makeConcrete(ns_stack, depMap);
 
@@ -318,7 +305,6 @@ void PrefixOperatorExpression::printSignature() {
 }
 
 ConcretableState PrefixOperatorExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	m_RHS->setBlockLevel(m_blockLevel);
 	ConcretableState state = m_RHS->makeConcrete(ns_stack, depMap);
 	if(allConcrete() << state)
 		return retryMakeConcreteInternal(depMap);
@@ -350,7 +336,6 @@ void PostfixCrementExpression::printSignature() {
 }
 
 ConcretableState PostfixCrementExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	m_LHS->setBlockLevel(m_blockLevel);
 	ConcretableState state = m_LHS->makeConcrete(ns_stack, depMap);
 	if(allConcrete() << state)
 		return retryMakeConcreteInternal(depMap);
@@ -401,7 +386,6 @@ void FunctionCallExpression::printSignature() {
 }
 
 ConcretableState FunctionCallExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	m_function->setBlockLevel(m_blockLevel);
     ConcretableState state = m_function->makeConcrete(ns_stack, depMap);
     auto conc = allConcrete() << state;
 	auto lost = anyLost() << state;
@@ -475,8 +459,6 @@ void ArrayAccessExpression::printSignature() {
 }
 
 ConcretableState ArrayAccessExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	m_array->setBlockLevel(m_blockLevel);
-	m_index->setBlockLevel(m_blockLevel);
 	ConcretableState arrayState = m_array->makeConcrete(ns_stack, depMap);
 	ConcretableState indexState = m_index->makeConcrete(ns_stack, depMap);
 

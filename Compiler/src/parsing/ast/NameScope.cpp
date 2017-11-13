@@ -55,7 +55,6 @@ ConcretableState NameScope::makeConcreteInternal(NamespaceStack& ns_stack, Depen
 	assureNameMapFilled();
 
 	for(auto it = m_definitions.begin(); it != m_definitions.end(); ++it) {
-		(*it)->setBlockLevel(getBlockLevel()); //We don't increase block level in NameScopes
 		(*it)->makeConcrete(ns_stack, depMap);
 	}
 

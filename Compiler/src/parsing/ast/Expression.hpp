@@ -68,7 +68,6 @@ class Expression : public Concretable {
 protected:
 	TextRange m_range;
 	ExprTypeInfo m_typeInfo;
-	int m_blockLevel=-1;
 public:
 	Expression(const TextRange& range);
 	virtual ~Expression();
@@ -83,8 +82,6 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override=0;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 	const ExprTypeInfo& getTypeInfo() const;
-	void setBlockLevel(int level);
-	int getBlockLevel() const;
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) {
 		(void)codegen; logDaf(m_range, ERROR) << "TODO: Expression codegen" << std::endl; return EvaluatedExpression(nullptr, nullptr);
