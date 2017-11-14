@@ -6,6 +6,7 @@
 
 #include "parsing/semantic/Namespace.hpp"
 #include "parsing/ast/TextRange.hpp"
+#include "parsing/semantic/BlockLevel.hpp"
 
 /* SEE Namespace.hpp for an EXPLANATION */
 
@@ -13,10 +14,12 @@
 class NamespaceStack {
 private:
 	std::deque<Namespace*> m_namespaces;
+	BlockLevelInfo m_blockLevelInfo;
 public:
 	NamespaceStack();
 	void push(Namespace* name_space);
 	void pop();
 	Definition* tryGetDefinitionFromName(const std::string& name); //Never complains, just returns null
 	Definition* getDefinitionFromName(const std::string& name, const TextRange& range);
+	BlockLevelInfo& getBlockLevelInfo();
 };

@@ -7,7 +7,7 @@
 
 using boost::optional;
 
-NamespaceStack::NamespaceStack() : m_namespaces() {}
+NamespaceStack::NamespaceStack() : m_namespaces(), m_blockLevelInfo() {}
 
 void NamespaceStack::push(Namespace* name_space) {
 	assert(name_space);
@@ -33,4 +33,8 @@ Definition* NamespaceStack::getDefinitionFromName(const std::string& name, const
 	if(!target)
 		logDaf(range, ERROR) << "unresolved identifier: " << name << std::endl;
 	return target;
+}
+
+BlockLevelInfo& NamespaceStack::getBlockLevelInfo() {
+	return m_blockLevelInfo;
 }
