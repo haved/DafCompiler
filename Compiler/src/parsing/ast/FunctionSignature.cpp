@@ -196,11 +196,12 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 		auto body = m_functionExpression->getBody();
 		assert(body->getConcretableState() == ConcretableState::NEVER_TRIED);
 		//TODO: ADD parameter namespace and push it
-		//TODO: BlockLevel++;
+	    BlockLevelInfo& blockLevel = ns_stack.getBlockLevelInfo();
 		std::vector<Let*> usedVariablesFromOutside;
+		auto prev = blockLevel.push(&usedVariablesFromOutside);
 		ConcretableState state = body->makeConcrete(ns_stack, depMap);
-		//TODO: BlockLevel--;
-		//TODO: Now pop it
+	    blockLevel.pop(prev);
+		//TODO: Now pop the parameter namespace
 
 		if(state == ConcretableState::TRY_LATER)
 			depMap.makeFirstDependentOnSecond(this, body);

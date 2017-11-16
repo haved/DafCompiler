@@ -84,6 +84,8 @@ private:
 
 	ExprTypeInfo m_typeInfo;
 
+	int m_blockLevel; //Used to determine if it's inside or outside a function
+
 	llvm::Value* m_space;
 public:
 	Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange& range);
@@ -97,6 +99,7 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 	ExprTypeInfo getTypeInfo() const;
+	int getBlockLevel() const;
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 	virtual void localCodegen(CodegenLLVM& codegen) override;
