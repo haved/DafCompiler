@@ -63,13 +63,14 @@ public:
 
 	bool allowImplicitAccess();
 	const ExprTypeInfo& getImplicitAccessTypeInfo();
+	const ExprTypeInfo& getFunctionExpressionTypeInfo();
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 	virtual void localCodegen(CodegenLLVM& codegen) override;
 
 	EvaluatedExpression implicitAccessCodegen(CodegenLLVM& codegen);
 	EvaluatedExpression implicitPointerCodegen(CodegenLLVM& codegen);
-	EvaluatedExpression explicitAccessCodegen(CodegenLLVM& codegen);
+	EvaluatedExpression functionAccessCodegen(CodegenLLVM& codegen);
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::DEF; }
@@ -98,7 +99,7 @@ public:
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
-	ExprTypeInfo getTypeInfo() const;
+	const ExprTypeInfo& getTypeInfo() const;
 	int getBlockLevel() const;
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;

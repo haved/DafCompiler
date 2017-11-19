@@ -17,11 +17,19 @@ void complainDefinitionNotLetOrDef(DefinitionKind kind, std::string& name, const
 	printDefinitionKindName(kind, out) << std::endl;
 }
 
-Expression::Expression(const TextRange& range) : Concretable(), m_range(range), m_typeInfo(nullptr, ValueKind::ANONYMOUS) {}
+Expression::Expression(const TextRange& range) : Concretable(), m_range(range), m_typeInfo(nullptr, ValueKind::ANONYMOUS), m_allowFunctionType(false) {}
 Expression::~Expression() {}
 const TextRange& Expression::getRange() { return m_range; }
 bool Expression::isStatement() { return false; }
 bool Expression::evaluatesToValue() const { return true; }
+
+void Expression::enableFunctionType() {
+	m_allowFunctionType = true;
+}
+
+bool Expression::functionTypeAllowed() {
+	return m_allowFunctionType;
+}
 
 const ExprTypeInfo& Expression::getTypeInfo() const {
 	assert(getConcretableState() == ConcretableState::CONCRETE && m_typeInfo.type);
@@ -67,7 +75,7 @@ ConcretableState VariableExpression::makeConcreteInternal(NamespaceStack& ns_sta
 ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& depNode) {
 	(void) depNode;
     assert(m_target && m_target.getDefinition()->getConcretableState() == ConcretableState::CONCRETE);
-	m_typeInfo = m_target.getTypeInfo();
+	m_typeInfo = m_target.getTypeInfo(functionTypeAllowed());
 	return ConcretableState::CONCRETE;
 }
 
@@ -75,6 +83,8 @@ EvaluatedExpression VariableExpression::codegenExpression(CodegenLLVM& codegen) 
     assert(m_target);
 
 	if(m_target.isDef()) {
+		if(functionTypeAllowed())
+			return m_target.getDef()->functionAccessCodegen(codegen);
 		return m_target.getDef()->implicitAccessCodegen(codegen);
 	} else {
 		assert(m_target.isLet());
@@ -86,6 +96,7 @@ EvaluatedExpression VariableExpression::codegenPointer(CodegenLLVM& codegen) {
     assert(m_target);
 
 	if(m_target.isDef()) {
+		assert(!functionTypeAllowed()); //Our m_typeInfo can't be a pointer type, so why are we here
 		return m_target.getDef()->implicitPointerCodegen(codegen);
 	} else {
 		assert(m_target.isLet());
@@ -390,6 +401,7 @@ void FunctionCallExpression::printSignature() {
 }
 
 ConcretableState FunctionCallExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+    m_function->enableFunctionType();
     ConcretableState state = m_function->makeConcrete(ns_stack, depMap);
     auto conc = allConcrete() << state;
 	auto lost = anyLost() << state;
@@ -415,17 +427,17 @@ ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap
 
 	ConcreteType* type = m_function->getTypeInfo().type;
 	assert(type);
+
 	if(type->getConcreteTypeKind() != ConcreteTypeKind::FUNCTION) {
 		logDaf(getRange(), ERROR) << "expected function type" << std::endl;
 		return ConcretableState::LOST_CAUSE;
 	}
 
 	m_function_type = static_cast<FunctionType*>(type);
-	m_function_return_type = m_function_type->getConcreteReturnType();
 
-	m_typeInfo = ExprTypeInfo(m_function_return_type, ValueKind::ANONYMOUS);
-
-	return ConcretableState::CONCRETE;
+	//TODO: Set m_typeInfo
+	//TODO:
+	return ConcretableState::LOST_CAUSE;
 }
 
 EvaluatedExpression FunctionCallExpression::codegenExpression(CodegenLLVM& codegen) {

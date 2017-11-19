@@ -94,7 +94,11 @@ const ExprTypeInfo& Def::getImplicitAccessTypeInfo() {
 	return m_implicitAccessTypeInfo;
 }
 
-ExprTypeInfo Let::getTypeInfo() const {
+const ExprTypeInfo& Def::getFunctionExpressionTypeInfo() {
+	return m_functionExpression->getTypeInfo();
+}
+
+const ExprTypeInfo& Let::getTypeInfo() const {
 	return m_typeInfo;
 }
 
@@ -143,6 +147,8 @@ EvaluatedExpression Def::implicitAccessCodegen(CodegenLLVM& codegen) {
 		llvm::Value* deref = codegen.Builder().CreateLoad(call);
 		return EvaluatedExpression(deref, &m_implicitAccessTypeInfo);
 	}
+	if(m_implicitAccessTypeInfo.type == getVoidType())
+		return EvaluatedExpression(nullptr, &m_implicitAccessTypeInfo);
     return EvaluatedExpression(call, &m_implicitAccessTypeInfo);
 }
 
@@ -154,8 +160,8 @@ EvaluatedExpression Def::implicitPointerCodegen(CodegenLLVM& codegen) {
 }
 
 //For when you return the function and don't call it
-EvaluatedExpression Def::explicitAccessCodegen(CodegenLLVM& codegen) {
-	return m_functionExpression->codegenExpression(codegen);
+EvaluatedExpression Def::functionAccessCodegen(CodegenLLVM& codegen) {
+	return m_functionExpression->codegenExpression(codegen); //Function Expressions always have ANONYMOUS ValueKind
 }
 
 EvaluatedExpression Let::accessCodegen(CodegenLLVM& codegen) {

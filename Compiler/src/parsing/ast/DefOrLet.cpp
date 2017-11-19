@@ -55,12 +55,12 @@ Definition* DefOrLet::getDefinition() {
 	return m_target;
 }
 
-ExprTypeInfo DefOrLet::getTypeInfo() {
+const ExprTypeInfo& DefOrLet::getTypeInfo(bool allowFunctionType) {
 	assert(m_target);
 	if(m_let)
 		return getLet()->getTypeInfo();
 	else
-		return getDef()->getImplicitAccessTypeInfo();
+		return allowFunctionType ? getDef()->getFunctionExpressionTypeInfo() : getDef()->getImplicitAccessTypeInfo();
 }
 
 DefOrLet::operator bool() const {

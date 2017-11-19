@@ -68,6 +68,7 @@ class Expression : public Concretable {
 protected:
 	TextRange m_range;
 	ExprTypeInfo m_typeInfo;
+	bool m_allowFunctionType;
 public:
 	Expression(const TextRange& range);
 	virtual ~Expression();
@@ -78,6 +79,9 @@ public:
 	virtual bool evaluatesToValue() const; //This expression can't be returned unless this is true
 	virtual void printSignature() =0;
 	virtual ExpressionKind getExpressionKind() const =0;
+
+	void enableFunctionType();
+	bool functionTypeAllowed();
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override=0;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;

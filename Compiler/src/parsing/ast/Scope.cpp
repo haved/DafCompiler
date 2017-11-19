@@ -49,6 +49,8 @@ ConcretableState Scope::makeConcreteInternal(NamespaceStack& ns_stack, Dependenc
 	}
 
 	if(m_outExpression) {
+		if(functionTypeAllowed())
+			m_outExpression->enableFunctionType();
 	    ConcretableState state = m_outExpression->makeConcrete(ns_stack, depMap);
 		concrete = concrete << state;
 		lost = lost << state;

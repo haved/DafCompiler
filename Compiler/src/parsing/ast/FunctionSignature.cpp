@@ -199,6 +199,7 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 	    BlockLevelInfo& blockLevel = ns_stack.getBlockLevelInfo();
 		std::vector<Let*> usedVariablesFromOutside;
 		auto prev = blockLevel.push(&usedVariablesFromOutside);
+		body->enableFunctionType();
 		ConcretableState state = body->makeConcrete(ns_stack, depMap);
 	    blockLevel.pop(prev);
 		//TODO: Now pop the parameter namespace

@@ -1,12 +1,13 @@
 // -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
-def callMe() {
-};
+def funky:=6;
 
-def caller() {
+def callMe:=funky;
+
+def caller:= {
 	mut x:=5;
 	x=x+3;
-	callMe();
+	callMe
 };
 
 

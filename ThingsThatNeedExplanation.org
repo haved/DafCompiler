@@ -70,4 +70,18 @@ Doing it that way would be O(n) I think, but the memory fragmentation with the d
 ** Implicit evaluation
 A def consists of a name and a FunctionExpression. When just referencing the def by name, the function is implicitly called.
 When a def has parameters, it can't be implicitly called, as you must supply the parameters.
-The function call
+The function call operator tells its operand that it shouldn't implicitly evaluate any functions, this is then relayed down though expressions
+The type of the expression can then become a FunctionType, and when you codegen the expression, the function is not called, but returned as a Value*.
+Now what's interesting is that if the returned FunctionType* is unique to a FunctionExpression, we don't need to do any function pointer calls.
+
+#+BEGIN_SRC daf
+def func(a:i32) := 6+a;
+def otherFunc := func;
+
+def use {
+    print(otherFunc(4));
+};
+#+END_SRC
+
+otherFunc has the signature ():(a:i32):i32, but the actual LLVM signature is just (), as the returned value has the type FunctionType, with a specific FunctionExpression
+
