@@ -1,68 +1,12 @@
 // -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
-/*
-def a(a:i32):= {
-	let x := 5;
-	let y := 6+8;
-
-	def b(a:i32):=6;
-
-	namedef ey := {
-		def b(a:i32):=7;
-	};
-
-	6
+def callMe() {
 };
 
-def x:=5;
-def c(a:i32):=x;
-
-def d(a:i32):= {
-	def x := 6;
-	c();
-	x
+def caller() {
+	mut x:=5;
+	x=x+3;
+	callMe();
 };
 
-def ey(a:i32):=
-	(def(a:i32):=2)();
-
-def funcptr(a:i32):=def(a:i32):=2;
-*/
-
-def a {
-	let mut x := 6;
-	x = x+1;
-};
-
-mut x := 5;
-
-def myTing {
-	def mut y := x;
-	y = y + 1;
-};
-
-def daTing {
-	mut x := 5;
-	{x}={x}+{1};
-};
-
-/*
-def functionFuckingEveythingUp {
-	mut x := 6;
-	def inc := {
-		def doInc:=x=x+1;
-		doInc
-	};
-
-	let y:=inc;
-};*/
-
-
-def shait {
-	def mut shiet := {
-		mut x := 5;
-		x
-	};
-	shiet=shiet+1;
-};
 

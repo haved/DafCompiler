@@ -27,12 +27,12 @@ enum class ValueKind {
 	ANONYMOUS
 };
 
+//type is null when the ExprTypeInfo isn't assigned to yet
 struct ExprTypeInfo {
 	ConcreteType* type;
 	ValueKind valueKind;
 
 	ExprTypeInfo(ConcreteType* type, ValueKind kind) : type(type), valueKind(kind) {}
-	ExprTypeInfo() : type(nullptr), valueKind(ValueKind::ANONYMOUS) {}
 
 	inline operator bool() const { return !!type; }
 };
@@ -157,7 +157,6 @@ private:
 	unique_ptr<Expression> m_LHS;
 	InfixOperator m_op;
 	unique_ptr<Expression> m_RHS;
-	PrimitiveType* m_result_type;
 public:
 	InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS);
 	InfixOperatorExpression(const InfixOperatorExpression& other) = delete;

@@ -63,7 +63,11 @@ Note that this rule isn't always followed
 In the future we should definitely turn identifiers to indecies in a map, saving strings from moving about.
 ** Binary search for tokens
 We don't want to compare every word with all reserved words.
-** The dot operator resolver
-Maybe find something better than n^2
+** The Concretable stuff
+It's n log n, which is good without having a vector in every single Concretable
+Doing it that way would be O(n) I think, but the memory fragmentation with the default allocation would be horrid
 * The Language
-
+** Implicit evaluation
+A def consists of a name and a FunctionExpression. When just referencing the def by name, the function is implicitly called.
+When a def has parameters, it can't be implicitly called, as you must supply the parameters.
+The function call

@@ -19,10 +19,10 @@ bool complainIfNotPrimitive(ConcreteType* type, InfixOperator op, const std::str
 	return false;
 }
 
-ExprTypeInfo getBinaryOpResultTypeNumerical(ConcreteType* LHS, InfixOperator op, ConcreteType* RHS, const TextRange& range) {
+optional<ExprTypeInfo> getBinaryOpResultTypeNumerical(ConcreteType* LHS, InfixOperator op, ConcreteType* RHS, const TextRange& range) {
 	assert(LHS && RHS);
 	if(complainIfNotPrimitive(LHS, op, "LHS", range) | complainIfNotPrimitive(RHS, op, "RHS", range))
-		return ExprTypeInfo();
+		return boost::none;
 	PrimitiveType* LHS_prim = static_cast<PrimitiveType*>(LHS);
 	PrimitiveType* RHS_prim = static_cast<PrimitiveType*>(RHS);
 
@@ -110,7 +110,7 @@ bool isOpNumerical(InfixOperator op) {
 	}
 }
 
-ExprTypeInfo getBinaryOpResultType(const ExprTypeInfo& LHS, InfixOperator op, const ExprTypeInfo& RHS, const TextRange& range) {
+optional<ExprTypeInfo> getBinaryOpResultType(const ExprTypeInfo& LHS, InfixOperator op, const ExprTypeInfo& RHS, const TextRange& range) {
 	if(isOpNumerical(op))
 		return getBinaryOpResultTypeNumerical(LHS.type, op, RHS.type, range);
 	else if(op == InfixOperator::ASSIGN) {
@@ -118,13 +118,13 @@ ExprTypeInfo getBinaryOpResultType(const ExprTypeInfo& LHS, InfixOperator op, co
 			logDaf(range, FATAL_ERROR) << "left and right hand side of assignment are of different types" << std::endl;
 		if(LHS.valueKind != ValueKind::MUT_LVALUE) {
 			logDaf(range, ERROR) << "left hand side of assignment isn't a mutable lvalue" << std::endl;
-			return ExprTypeInfo();
+			return boost::none;
 		}
 
 		return LHS;
 	}
-	assert(false);
-    return ExprTypeInfo();
+	assert(false && "Unknown binary operator, not yet implemented");
+    return boost::none;
 }
 
 EvaluatedExpression codegenBinaryOperator(CodegenLLVM& codegen, Expression* LHS, InfixOperator op, Expression* RHS, ExprTypeInfo* target, bool ptrReturn, const TextRange& range) {

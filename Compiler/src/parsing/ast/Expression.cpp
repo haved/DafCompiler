@@ -17,7 +17,7 @@ void complainDefinitionNotLetOrDef(DefinitionKind kind, std::string& name, const
 	printDefinitionKindName(kind, out) << std::endl;
 }
 
-Expression::Expression(const TextRange& range) : Concretable(), m_range(range), m_typeInfo() {}
+Expression::Expression(const TextRange& range) : Concretable(), m_range(range), m_typeInfo(nullptr, ValueKind::ANONYMOUS) {}
 Expression::~Expression() {}
 const TextRange& Expression::getRange() { return m_range; }
 bool Expression::isStatement() { return false; }
@@ -136,7 +136,7 @@ EvaluatedExpression RealConstantExpression::codegenExpression(CodegenLLVM& codeg
 }
 
 
-InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS) : Expression(TextRange(LHS->getRange(), RHS->getRange())), m_LHS(std::move(LHS)), m_op(op), m_RHS(std::move(RHS)), m_result_type(nullptr) {
+InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS) : Expression(TextRange(LHS->getRange(), RHS->getRange())), m_LHS(std::move(LHS)), m_op(op), m_RHS(std::move(RHS)) {
 	assert(m_LHS && m_RHS && m_op != InfixOperator::CLASS_ACCESS);
 }
 
@@ -165,8 +165,12 @@ ConcretableState InfixOperatorExpression::makeConcreteInternal(NamespaceStack& n
 
 ConcretableState InfixOperatorExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
-	m_typeInfo = getBinaryOpResultType(m_LHS->getTypeInfo(), m_op, m_RHS->getTypeInfo(), getRange());
-	return ConcretableState::CONCRETE;
+	optional<ExprTypeInfo> info = getBinaryOpResultType(m_LHS->getTypeInfo(), m_op, m_RHS->getTypeInfo(), getRange());
+	if(info) {
+		m_typeInfo = *info;
+		return ConcretableState::CONCRETE;
+	}
+	return ConcretableState::LOST_CAUSE;
 }
 
 EvaluatedExpression InfixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
@@ -425,6 +429,15 @@ ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap
 }
 
 EvaluatedExpression FunctionCallExpression::codegenExpression(CodegenLLVM& codegen) {
+
+	/*EvaluatedExpression* callable = nullptr;
+
+	if(m_function->getExpressionKind() == ExpressionKind::VARIABLE) {
+		VariableExpression* variable = static_cast<VariableExpression*>(m_function.get());
+	    optional<EvaluatedExpression> optCallableExpression = variable->codegenCallable(codegen);
+		if(optCallableExpression)
+			callable = *optCallableExpression;
+	} else
 	EvaluatedExpression function = m_function->codegenExpression(codegen);
 
 	std::vector<llvm::Value*> ArgsV;
@@ -441,7 +454,7 @@ EvaluatedExpression FunctionCallExpression::codegenExpression(CodegenLLVM& codeg
 		return EvaluatedExpression(call, &m_typeInfo);
 	}
 
-	std::cerr << "TODO: handle function calls on something other than Function*" << std::endl;
+	std::cerr << "TODO: handle function calls on something other than Function*" << std::endl;*/
 	return EvaluatedExpression(nullptr, nullptr);
 }
 

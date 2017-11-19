@@ -96,7 +96,7 @@ ConcretableState TypedefParameter::makeConcreteInternal(NamespaceStack& ns_stack
 	return ConcretableState::CONCRETE;
 }
 
-FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& givenReturnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_givenReturnType(std::move(givenReturnType)), m_ateEquals(ateEqualsSign), m_cmpTimeOnly(false), m_functionExpression(nullptr), m_returnTypeInfo() {
+FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& givenReturnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_givenReturnType(std::move(givenReturnType)), m_ateEquals(ateEqualsSign), m_cmpTimeOnly(false), m_functionExpression(nullptr), m_returnTypeInfo(nullptr, ValueKind::ANONYMOUS) {
 
 	// If we are explicitly told we don't have a return type, we assert we weren't given one
 	if(m_returnKind == ReturnKind::NO_RETURN)

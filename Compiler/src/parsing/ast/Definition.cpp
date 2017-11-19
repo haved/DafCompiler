@@ -16,11 +16,11 @@ void Definition::localCodegen(CodegenLLVM& codegen) {
 	(void) codegen;
 }
 
-Def::Def(bool pub, std::string&& name, unique_ptr<FunctionExpression>&& expression, const TextRange &range) : Definition(pub, range), m_name(std::move(name)), m_functionExpression(std::move(expression)), m_implicitAccessTypeInfo() {
+Def::Def(bool pub, std::string&& name, unique_ptr<FunctionExpression>&& expression, const TextRange &range) : Definition(pub, range), m_name(std::move(name)), m_functionExpression(std::move(expression)), m_implicitAccessTypeInfo(nullptr, ValueKind::ANONYMOUS) {
 	assert(m_functionExpression); //We assert a body
 }
 
-Let::Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_givenType(std::move(givenType)), m_expression(std::move(expression)), m_typeInfo(), m_space() {
+Let::Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_givenType(std::move(givenType)), m_expression(std::move(expression)), m_typeInfo(nullptr, ValueKind::ANONYMOUS), m_blockLevel(0), m_space() {
 	assert(m_expression || m_givenType);
 }
 
