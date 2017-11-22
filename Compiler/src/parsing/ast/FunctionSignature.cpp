@@ -96,7 +96,7 @@ ConcretableState TypedefParameter::makeConcreteInternal(NamespaceStack& ns_stack
 	return ConcretableState::CONCRETE;
 }
 
-FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& givenReturnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_givenReturnType(std::move(givenReturnType)), m_ateEquals(ateEqualsSign), m_cmpTimeOnly(false), m_functionExpression(nullptr), m_returnTypeInfo(nullptr, ValueKind::ANONYMOUS) {
+FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& givenReturnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_givenReturnType(std::move(givenReturnType)), m_ateEquals(ateEqualsSign), m_cmpTimeOnly(false), m_functionExpression(nullptr), m_returnTypeInfo(nullptr, ValueKind::ANONYMOUS), m_implicitAccessReturnTypeInfo() {
 
 	// If we are explicitly told we don't have a return type, we assert we weren't given one
 	if(m_returnKind == ReturnKind::NO_RETURN)
@@ -257,14 +257,19 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 		default: assert(false); break;
 		}
 		m_returnTypeInfo = ExprTypeInfo(returnType, kind);
+
+		if(m_parameters.empty()) {
+			m_implicitAccessReturnTypeInfo = m_returnTypeInfo;
+			while(m_implicitAccessReturnTypeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION) {
+				FunctionType* func = static_cast<FunctionType*>(m_implicitAccessReturnTypeInfo->type);
+				m_implicitAccessReturnTypeInfo = func->getImplicitAccessReturnTypeInfo();
+				if(!m_implicitAccessReturnTypeInfo)
+					break;
+			}
+		}
 	}
 
 	return ConcretableState::CONCRETE;
-}
-
-ConcreteType* FunctionType::getConcreteReturnType() {
-    assert(m_returnTypeInfo);
-	return m_returnTypeInfo.type;
 }
 
 const ExprTypeInfo& FunctionType::getReturnTypeInfo() {
@@ -272,9 +277,12 @@ const ExprTypeInfo& FunctionType::getReturnTypeInfo() {
 	return m_returnTypeInfo;
 }
 
-bool FunctionType::hasReferenceReturn() {
-	assert(m_returnTypeInfo);
-	return m_returnTypeInfo.valueKind != ValueKind::ANONYMOUS;
+bool FunctionType::isReferenceReturn() {
+	return (m_returnTypeInfo.valueKind != ValueKind::ANONYMOUS);
+}
+
+const optional<ExprTypeInfo>& FunctionType::getImplicitAccessReturnTypeInfo() {
+    return m_implicitAccessReturnTypeInfo;
 }
 
 bool FunctionType::checkConcreteReturnType(const ExprTypeInfo& type) {
@@ -299,7 +307,7 @@ llvm::FunctionType* FunctionType::codegenFunctionType(CodegenLLVM& codegen) {
 	}
 
 	llvm::Type* returnType = m_returnTypeInfo.type->codegenType(codegen);
-	if(hasReferenceReturn()) //We return a reference
+	if(isReferenceReturn()) //We return a reference
 		returnType = llvm::PointerType::getUnqual(returnType);
 
 	if(!returnType)

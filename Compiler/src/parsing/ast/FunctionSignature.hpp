@@ -79,7 +79,9 @@ private:
 	bool m_cmpTimeOnly;
 
 	FunctionExpression* m_functionExpression;
-	ExprTypeInfo m_returnTypeInfo;
+
+	ExprTypeInfo m_returnTypeInfo; //This is the explicit return type, matches LLVM's
+	optional<ExprTypeInfo> m_implicitAccessReturnTypeInfo;
 
 	void printSignatureMustHaveList(bool withList);
 public:
@@ -97,15 +99,15 @@ public:
 	inline ReturnKind getGivenReturnKind() { return m_returnKind; }
 	inline bool ateEqualsSign() { return m_ateEquals; }
 	inline TypeReference& getGivenReturnType() { return m_givenReturnType; }
-	inline TypeReference&& reapGivenReturnType() && { return std::move(m_givenReturnType); }
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 
-	ConcreteType* getConcreteReturnType();
-	const ExprTypeInfo& getReturnTypeInfo();
-	bool hasReferenceReturn();
 	bool checkConcreteReturnType(const ExprTypeInfo& type);
+
+	const ExprTypeInfo& getReturnTypeInfo();
+	bool isReferenceReturn();
+	const optional<ExprTypeInfo>& getImplicitAccessReturnTypeInfo();
 
 	llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen);
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
@@ -133,8 +135,9 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 
 	FunctionType& getFunctionType();
-	ConcreteType* getConcreteReturnType();
-	const ExprTypeInfo& getReturnTypeInfo();
+
+	EvaluatedExpression codegenExplicitExpression(CodegenLLVM& codegen);
+	EvaluatedExpression codegenImplicitExpression(CodegenLLVM& codegen);
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 	void codegenFunction(CodegenLLVM& codegen, const std::string& name);
