@@ -9,4 +9,7 @@ def caller {
 	x=x+callMe;
 };
 
+def a {
+	mut x := (def:=def:=5);
+};
 
