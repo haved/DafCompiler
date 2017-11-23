@@ -13,3 +13,11 @@ def a {
 	mut x := (def:=def:=5);
 };
 
+
+def doSomething := {
+	(def:=5)
+};
+
+def main {
+	mut x := doSomething;
+};

@@ -259,13 +259,11 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 		m_returnTypeInfo = ExprTypeInfo(returnType, kind);
 
 		if(m_parameters.empty()) {
-			m_implicitAccessReturnTypeInfo = m_returnTypeInfo;
-			while(m_implicitAccessReturnTypeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION) {
-				FunctionType* func = static_cast<FunctionType*>(m_implicitAccessReturnTypeInfo->type);
+			if(m_returnTypeInfo.type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION) {
+				FunctionType* func = static_cast<FunctionType*>(m_returnTypeInfo.type);
 				m_implicitAccessReturnTypeInfo = func->getImplicitAccessReturnTypeInfo();
-				if(!m_implicitAccessReturnTypeInfo)
-					break;
-			}
+			} else
+				m_implicitAccessReturnTypeInfo = m_returnTypeInfo;
 		}
 	}
 
