@@ -42,10 +42,10 @@ struct EvaluatedExpression {
 	llvm::Value* value;
     const ExprTypeInfo* typeInfo;
 	EvaluatedExpression(llvm::Value* value, const ExprTypeInfo* type) : value(value), typeInfo(type) {
-		assert(typeInfo && ((typeInfo->type == getVoidType()) == !value));
+		assert(typeInfo);
 	}
 
-	bool isVoid() { return !value; }
+	bool isVoid() { return typeInfo->type == getVoidType(); }
 };
 
 enum class ExpressionKind {

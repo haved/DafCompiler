@@ -16,7 +16,7 @@ void Definition::localCodegen(CodegenLLVM& codegen) {
 	(void) codegen;
 }
 
-Def::Def(bool pub, std::string&& name, unique_ptr<FunctionExpression>&& expression, const TextRange &range) : Definition(pub, range), m_name(std::move(name)), m_functionExpression(std::move(expression)), m_implicitAccessTypeInfo(nullptr, ValueKind::ANONYMOUS) {
+Def::Def(bool pub, std::string&& name, unique_ptr<FunctionExpression>&& expression, const TextRange &range) : Definition(pub, range), m_name(std::move(name)), m_functionExpression(std::move(expression)) {
 	assert(m_functionExpression); //We assert a body
 }
 
@@ -45,7 +45,6 @@ ConcretableState Def::makeConcreteInternal(NamespaceStack& ns_stack, DependencyM
 
 ConcretableState Def::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
-	m_implicitAccessTypeInfo = m_functionExpression->getReturnTypeInfo();
 	return ConcretableState::CONCRETE;
 }
 
@@ -85,17 +84,16 @@ ConcretableState Let::retryMakeConcreteInternal(DependencyMap& depMap) {
 	return ConcretableState::CONCRETE;
 }
 
-bool Def::allowImplicitAccess() {
-	//TODO: Check parameter count of Expression
-    return true;
+bool Def::allowsImplicitAccess() {
+    return !!m_functionExpression->getFunctionType().getImplicitAccessReturnTypeInfo();
 }
 
 const ExprTypeInfo& Def::getImplicitAccessTypeInfo() {
-	return m_implicitAccessTypeInfo;
+	return *m_functionExpression->getFunctionType().getImplicitAccessReturnTypeInfo();
 }
 
 const ExprTypeInfo& Def::getFunctionExpressionTypeInfo() {
-	return m_functionExpression->getTypeInfo();
+	return m_functionExpression->getTypeInfo(); //A FunctionExpression in a def is allowed to return itself
 }
 
 const ExprTypeInfo& Let::getTypeInfo() const {
@@ -141,22 +139,13 @@ void Let::localCodegen(CodegenLLVM& codegen) {
 }
 
 EvaluatedExpression Def::implicitAccessCodegen(CodegenLLVM& codegen) {
-    assert(allowImplicitAccess());
-	llvm::Value* call = codegen.Builder().CreateCall(m_functionExpression->getPrototype());
-	if(m_functionExpression->getFunctionType().hasReferenceReturn()) { //We got a pointer
-		llvm::Value* deref = codegen.Builder().CreateLoad(call);
-		return EvaluatedExpression(deref, &m_implicitAccessTypeInfo);
-	}
-	if(m_implicitAccessTypeInfo.type == getVoidType())
-		return EvaluatedExpression(nullptr, &m_implicitAccessTypeInfo);
-    return EvaluatedExpression(call, &m_implicitAccessTypeInfo);
+    assert(allowsImplicitAccess());
+	return m_functionExpression->codegenImplicitExpression(codegen, false);
 }
 
 EvaluatedExpression Def::implicitPointerCodegen(CodegenLLVM& codegen) {
-	assert(m_implicitAccessTypeInfo.valueKind != ValueKind::ANONYMOUS);
-	assert(allowImplicitAccess() && m_functionExpression->getFunctionType().hasReferenceReturn());
-	llvm::Value* call = codegen.Builder().CreateCall(m_functionExpression->getPrototype());
-    return EvaluatedExpression(call, &m_implicitAccessTypeInfo);
+	assert(allowsImplicitAccess());
+	return m_functionExpression->codegenImplicitExpression(codegen, true);
 }
 
 //For when you return the function and don't call it

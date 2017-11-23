@@ -52,8 +52,6 @@ class Def : public Definition {
 private:
 	std::string m_name;
 	unique_ptr<FunctionExpression> m_functionExpression;
-
-	ExprTypeInfo m_implicitAccessTypeInfo;
 public:
 	Def(bool pub, std::string&& name, unique_ptr<FunctionExpression>&& expression, const TextRange& range);
 
@@ -61,7 +59,7 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
-	bool allowImplicitAccess();
+	bool allowsImplicitAccess();
 	const ExprTypeInfo& getImplicitAccessTypeInfo();
 	const ExprTypeInfo& getFunctionExpressionTypeInfo();
 

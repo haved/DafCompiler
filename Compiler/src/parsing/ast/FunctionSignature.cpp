@@ -306,7 +306,10 @@ llvm::FunctionType* FunctionType::codegenFunctionType(CodegenLLVM& codegen) {
 		(void) param; //TODO: Parameters
 	}
 
-	llvm::Type* returnType = m_returnTypeInfo.type->codegenType(codegen);
+	//TODO: Make pretty
+	llvm::Type* returnType = m_returnTypeInfo.type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION ?
+		llvm::Type::getVoidTy(codegen.Context()) :
+		m_returnTypeInfo.type->codegenType(codegen);
 	if(isReferenceReturn()) //We return a reference
 		returnType = llvm::PointerType::getUnqual(returnType);
 
@@ -342,10 +345,6 @@ ExpressionKind FunctionExpression::getExpressionKind() const {
 }
 
 ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-
-	m_typeInfo = ExprTypeInfo(m_type.get(), ValueKind::ANONYMOUS);
-
-	//Nothing left to be done, so you done
     ConcretableState state = m_type->makeConcrete(ns_stack, depMap);
 	if(allConcrete() << state)
 		return retryMakeConcreteInternal(depMap);
@@ -355,23 +354,71 @@ ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_sta
 	return ConcretableState::TRY_LATER;
 }
 
+ConcretableState FunctionExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
+
+	if(functionTypeAllowed())
+		m_typeInfo = ExprTypeInfo(m_type.get(), ValueKind::ANONYMOUS);
+	else {
+		const optional<ExprTypeInfo>& implicit = m_type->getImplicitAccessReturnTypeInfo();
+		if(!implicit) {
+			logDaf(getRange(), ERROR) << "trying to implicitly evaluate a function that can't be" << std::endl;
+			return ConcretableState::LOST_CAUSE;
+		}
+		m_typeInfo = *implicit;
+	}
+
+	return ConcretableState::CONCRETE;
+}
+
 FunctionType& FunctionExpression::getFunctionType() {
 	return *m_type;
 }
 
-ConcreteType* FunctionExpression::getConcreteReturnType() {
-	return m_type->getConcreteReturnType();
-}
-
-const ExprTypeInfo& FunctionExpression::getReturnTypeInfo() {
-	return m_type->getReturnTypeInfo();
-}
-
 // ==== Codegen stuff ====
-EvaluatedExpression FunctionExpression::codegenExpression(CodegenLLVM& codegen) {
-    if(!m_filled && !m_broken)
+EvaluatedExpression FunctionExpression::codegenExplicitExpression(CodegenLLVM& codegen) {
+	if(!m_filled && !m_broken)
 		fillFunctionBody(codegen);
-	return EvaluatedExpression(m_function, &m_typeInfo);
+	return EvaluatedExpression(m_function, &m_typeInfo); //TODO: The m_function is not really needed
+}
+
+EvaluatedExpression FunctionExpression::codegenImplicitExpression(CodegenLLVM& codegen, bool pointerReturn) {
+	if(!m_filled && !m_broken)
+		fillFunctionBody(codegen);
+	llvm::Value* value;
+	bool lastValuePointer;
+	ExprTypeInfo start = ExprTypeInfo(m_type.get(), ValueKind::ANONYMOUS);
+	const ExprTypeInfo* info = &start;
+	do {
+		FunctionType* func = static_cast<FunctionType*>(info->type);
+	    assert(func->getImplicitAccessReturnTypeInfo() && func->getFunctionExpression());
+		value = codegen.Builder().CreateCall(func->getFunctionExpression()->getPrototype());
+		lastValuePointer = func->isReferenceReturn();
+
+		info = &func->getReturnTypeInfo(); //What's returned from one function call
+	} while(info->type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION);
+
+	if(lastValuePointer) {
+		if(pointerReturn)
+			return EvaluatedExpression(value, info);
+		else
+			return EvaluatedExpression(codegen.Builder().CreateLoad(value), info);
+	} else {
+		assert(!pointerReturn);
+		return EvaluatedExpression(value, info);
+	}
+}
+
+EvaluatedExpression FunctionExpression::codegenExpression(CodegenLLVM& codegen) {
+    if(functionTypeAllowed())
+		return codegenExplicitExpression(codegen);
+	else
+		return codegenImplicitExpression(codegen, false);
+}
+
+EvaluatedExpression FunctionExpression::codegenPointer(CodegenLLVM& codegen) {
+    assert(!functionTypeAllowed());
+	return codegenImplicitExpression(codegen, true);
 }
 
 void FunctionExpression::codegenFunction(CodegenLLVM& codegen, const std::string& name) {
@@ -408,15 +455,30 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 
 	m_filled = true;
 
-	bool refReturn = m_type->hasReferenceReturn();
-	EvaluatedExpression bodyValue = refReturn ? m_body->codegenPointer(codegen) : m_body->codegenExpression(codegen);
+	bool refReturn = m_type->isReferenceReturn();
+	EvaluatedExpression bodyValue(nullptr, &m_typeInfo); //Just to fulfull the invariant
+    if(refReturn) {
+		bodyValue = m_body->codegenPointer(codegen);
+	} else {
+		m_body->enableFunctionType();
+		bodyValue = m_body->codegenExpression(codegen);
+	    while(bodyValue.typeInfo->type != m_type->getReturnTypeInfo().type) {
+			assert(bodyValue.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION);
+			FunctionType* func = static_cast<FunctionType*>(bodyValue.typeInfo->type);
+			assert(func->getFunctionExpression());
+			auto* prototype =func->getFunctionExpression()->getPrototype();
+			bodyValue = EvaluatedExpression(codegen.Builder().CreateCall(prototype), &func->getReturnTypeInfo());
+		}
+	}
+
 	if(!m_type->checkConcreteReturnType(*bodyValue.typeInfo)) {
 		m_broken = true;
 		m_function->eraseFromParent();
 		return;
 	}
 
-	if(bodyValue.isVoid() || m_type->getConcreteReturnType() == getVoidType())
+	if(bodyValue.isVoid() || m_type->getReturnTypeInfo().type == getVoidType()
+	   || m_type->getReturnTypeInfo().type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION) //TODO: Improve
 		codegen.Builder().CreateRetVoid();
 	else
 		codegen.Builder().CreateRet(bodyValue.value);
@@ -426,4 +488,3 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 	if(oldInsertBlock)
 		codegen.Builder().SetInsertPoint(oldInsertBlock);
 }
-
