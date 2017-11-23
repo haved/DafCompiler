@@ -33,6 +33,7 @@ void Let::addToMap(NamedDefinitionMap& map) {
 }
 
 ConcretableState Def::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	m_functionExpression->enableFunctionType();
 	ConcretableState state = m_functionExpression->makeConcrete(ns_stack, depMap);
 
     if(allConcrete() << state)

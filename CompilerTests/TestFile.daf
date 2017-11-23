@@ -4,10 +4,9 @@ def funky:=6;
 
 def callMe:=funky;
 
-def caller:= {
+def caller {
 	mut x:=5;
-	x=x+3;
-	callMe
+	x=x+callMe;
 };
 
 
