@@ -27,7 +27,7 @@ def mut test:= {
 	val
 };
 
-def testTwo := test;
+def testTwo :mut i32= test;
 
 def testThree {
 	testTwo = testTwo + 4;

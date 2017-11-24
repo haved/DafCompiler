@@ -218,6 +218,34 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 	return ConcretableState::TRY_LATER;
 }
 
+ValueKind returnKindToValueKind(ReturnKind kind) {
+	switch(kind) {
+	case ReturnKind::VALUE_RETURN:   return ValueKind::ANONYMOUS;
+	case ReturnKind::REF_RETURN:     return ValueKind::LVALUE;
+	case ReturnKind::MUT_REF_RETURN: return ValueKind::MUT_LVALUE;
+	default: assert(false); return ValueKind::ANONYMOUS;
+	}
+}
+
+//A larger score can be converted to a lower score
+int getValueKindScore(ValueKind kind) {
+	switch(kind) {
+	case ValueKind::ANONYMOUS: return 0;
+	case ValueKind::LVALUE: return 1;
+	case ValueKind::MUT_LVALUE: return 2;
+	default: assert(false); return -1;
+	}
+}
+
+bool returnTypeWorks(const ExprTypeInfo& attempt, ValueKind kind, ConcreteType* type) {
+    if(getValueKindScore(attempt.valueKind) < getValueKindScore(kind))
+		return false; //The value kind score is too low
+    if(type == nullptr)
+		return true;
+	std::cerr << "TODO: Proper type comparison, por favor" << std::endl;
+	return attempt.type == type;
+}
+
 ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
 
@@ -227,36 +255,34 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 	}
 	else {
 		ConcreteType* returnType = nullptr;
-		if(m_functionExpression) {
-			ExprTypeInfo bodyType = m_functionExpression->getBody()->getTypeInfo();
-			assert(bodyType.type);
-
-			returnType = bodyType.type;
-			if(m_returnKind == ReturnKind::REF_RETURN && bodyType.valueKind == ValueKind::ANONYMOUS) {
-				logDaf(getRange(), ERROR) << "function returns a reference, but its body provides an anonymous value" << std::endl;
-				return ConcretableState::LOST_CAUSE;
-			} else if(m_returnKind == ReturnKind::MUT_REF_RETURN && bodyType.valueKind != ValueKind::MUT_LVALUE) {
-				logDaf(getRange(), ERROR) << "function returns a mutable reference, but its body doesn't provide that" << std::endl;
-				return ConcretableState::LOST_CAUSE;
-			}
-		}
-
-	    if(m_givenReturnType) {
-			ConcreteType* given = m_givenReturnType.getConcreteType();
-			if(!returnType)
-				returnType = given;
-			else if(returnType != given) { //TODO: This is where we dig down through a function until we get the correct type
-				std::cerr << "TODO: Compare types of function body and given return type" << std::endl;
-				return ConcretableState::LOST_CAUSE;
-			}
-		}
-
 		ValueKind kind;
-		switch(m_returnKind) {
-		case ReturnKind::VALUE_RETURN:   kind = ValueKind::ANONYMOUS;  break;
-		case ReturnKind::REF_RETURN:     kind = ValueKind::LVALUE;     break;
-		case ReturnKind::MUT_REF_RETURN: kind = ValueKind::MUT_LVALUE; break;
-		default: assert(false); break;
+
+		if(m_functionExpression) {
+			ExprTypeInfo topBodyInfo = m_functionExpression->getBody()->getTypeInfo();
+
+			ValueKind requiredValueKind = returnKindToValueKind(m_returnKind);
+			ConcreteType* requiredType = nullptr;
+			if(m_givenReturnType)
+				requiredType = m_givenReturnType.getConcreteType();
+
+			ExprTypeInfo digBodyInfo = topBodyInfo;
+			while(!returnTypeWorks(digBodyInfo, requiredValueKind, requiredType)) {
+				if(digBodyInfo.type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION) {
+					FunctionType* ret = static_cast<FunctionType*>(digBodyInfo.type);
+					if(ret->canCallOnceImplicitly()) {
+						digBodyInfo = ret->getReturnTypeInfo();
+						continue;
+					}
+				}
+
+				logDaf(getRange(), ERROR) << "function body returns ";
+				topBodyInfo.makeConcrete();
+				return ConcretableState::LOST_CAUSE;
+			}
+
+		} else {
+		    logDaf(getRange(), ERROR) << "I'm not sure you're allowed to just have a function type without a body. Function pointers aren't here" << std::endl;
+			return ConcretableState::LOST_CAUSE;
 		}
 
 		m_returnTypeInfo = ExprTypeInfo(returnType, kind);
@@ -265,8 +291,9 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 
 		m_hasActualLLVMReturn = !m_returnedFunctionType && !m_returnTypeInfo.isVoid();
 
-		if(m_parameters.empty()) {
+		if(canCallOnceImplicitly()) {
 			if(isFunctionTypeReturn()) {
+				//can still be none, if the function we reference has parameters
 				m_implicitAccessReturnTypeInfo = getFunctionTypeReturn()->getImplicitAccessReturnTypeInfo();
 			} else
 				m_implicitAccessReturnTypeInfo = m_returnTypeInfo;
@@ -295,6 +322,10 @@ FunctionType* FunctionType::getFunctionTypeReturn() {
 
 bool FunctionType::hasActualLLVMReturn() {
 	return m_hasActualLLVMReturn;
+}
+
+bool FunctionType::canCallOnceImplicitly() {
+	return m_parameters.empty();
 }
 
 const optional<ExprTypeInfo>& FunctionType::getImplicitAccessReturnTypeInfo() {

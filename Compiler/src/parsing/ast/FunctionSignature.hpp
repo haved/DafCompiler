@@ -114,6 +114,7 @@ public:
 	FunctionType* getFunctionTypeReturn();
 	bool hasActualLLVMReturn();
 
+	bool canCallOnceImplicitly();
 	const optional<ExprTypeInfo>& getImplicitAccessReturnTypeInfo();
 
 	llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen);
