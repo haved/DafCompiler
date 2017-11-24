@@ -237,13 +237,22 @@ int getValueKindScore(ValueKind kind) {
 	}
 }
 
-bool returnTypeWorks(const ExprTypeInfo& attempt, ValueKind kind, ConcreteType* type) {
-    if(getValueKindScore(attempt.valueKind) < getValueKindScore(kind))
+void printValueKind(ValueKind kind, std::ostream& out) {
+	switch(kind) {
+	case ValueKind::ANONYMOUS: break;
+	case ValueKind::MUT_LVALUE: out << "mut ";
+	case ValueKind::LVALUE: out << "let "; break;
+	default: assert(false); break;
+	}
+}
+
+bool returnTypeWorks(const ExprTypeInfo& attempt, const ExprTypeInfo& requirement) {
+    if(getValueKindScore(attempt.valueKind) < getValueKindScore(requirement.valueKind))
 		return false; //The value kind score is too low
-    if(type == nullptr)
+    if(requirement.type == nullptr)
 		return true;
-	std::cerr << "TODO: Proper type comparison, por favor" << std::endl;
-	return attempt.type == type;
+	//std::cerr << "TODO: Proper type comparison, por favor" << std::endl;
+	return attempt.type == requirement.type;
 }
 
 ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) {
@@ -264,9 +273,10 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 			ConcreteType* requiredType = nullptr;
 			if(m_givenReturnType)
 				requiredType = m_givenReturnType.getConcreteType();
+			ExprTypeInfo required(requiredType, requiredValueKind);
 
 			ExprTypeInfo digBodyInfo = topBodyInfo;
-			while(!returnTypeWorks(digBodyInfo, requiredValueKind, requiredType)) {
+			while(!returnTypeWorks(digBodyInfo, required)) {
 				if(digBodyInfo.type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION) {
 					FunctionType* ret = static_cast<FunctionType*>(digBodyInfo.type);
 					if(ret->canCallOnceImplicitly()) {
@@ -275,11 +285,19 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 					}
 				}
 
-				logDaf(getRange(), ERROR) << "function body returns ";
-				topBodyInfo.makeConcrete();
+				auto& out = logDaf(getRange(), ERROR) << "function body returns ";
+				printValueKind(topBodyInfo.valueKind, out);
+				topBodyInfo.type->printSignature();
+				out << " but function signature requires ";
+				printValueKind(requiredValueKind, out);
+				if(requiredType)
+					requiredType->printSignature();
+				out << std::endl;
+
 				return ConcretableState::LOST_CAUSE;
 			}
-
+			returnType = requiredType ? requiredType : digBodyInfo.type;
+			kind = requiredValueKind;
 		} else {
 		    logDaf(getRange(), ERROR) << "I'm not sure you're allowed to just have a function type without a body. Function pointers aren't here" << std::endl;
 			return ConcretableState::LOST_CAUSE;
@@ -425,7 +443,7 @@ FunctionType& FunctionExpression::getFunctionType() {
 EvaluatedExpression FunctionExpression::codegenExplicitExpression(CodegenLLVM& codegen) {
 	if(!m_filled && !m_broken)
 		fillFunctionBody(codegen);
-	return EvaluatedExpression(m_function, &m_typeInfo); //TODO: The m_function is not really needed
+	return EvaluatedExpression(m_function, &m_typeInfo);
 }
 
 EvaluatedExpression FunctionExpression::codegenImplicitExpression(CodegenLLVM& codegen, bool pointerReturn) {
@@ -502,13 +520,14 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 	m_filled = true;
 
 	bool refReturn = m_type->isReferenceReturn();
-	EvaluatedExpression bodyValue(nullptr, &m_typeInfo); //Just to fulfull the invariant
+	EvaluatedExpression bodyValue(nullptr, &m_typeInfo); //Just to fullfull the invariant
     if(refReturn) {
 		bodyValue = m_body->codegenPointer(codegen);
 	} else {
 		m_body->enableFunctionType();
 		bodyValue = m_body->codegenExpression(codegen);
-	    while(bodyValue.typeInfo->type != m_type->getReturnTypeInfo().type) {
+		//TODO: We can have an anonymous kind return but an lvalue body
+	    while(!returnTypeWorks(*bodyValue.typeInfo, m_type->getReturnTypeInfo())) {
 			assert(bodyValue.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION);
 			FunctionType* func = static_cast<FunctionType*>(bodyValue.typeInfo->type);
 			assert(func->getFunctionExpression());
