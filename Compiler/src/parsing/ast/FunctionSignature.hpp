@@ -80,7 +80,9 @@ private:
 
 	FunctionExpression* m_functionExpression;
 
-	ExprTypeInfo m_returnTypeInfo; //This is the explicit return type, matches LLVM's
+	ExprTypeInfo m_returnTypeInfo; //This is the explicit return type, matches LLVM (FunctionType becomes void)
+	FunctionType* m_returnedFunctionType; //nullptr unless we return a function type
+	bool m_hasActualLLVMReturn;
 	optional<ExprTypeInfo> m_implicitAccessReturnTypeInfo;
 
 	void printSignatureMustHaveList(bool withList);
@@ -108,6 +110,10 @@ public:
 
 	const ExprTypeInfo& getReturnTypeInfo();
 	bool isReferenceReturn();
+	bool isFunctionTypeReturn();
+	FunctionType* getFunctionTypeReturn();
+	bool hasActualLLVMReturn();
+
 	const optional<ExprTypeInfo>& getImplicitAccessReturnTypeInfo();
 
 	llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen);

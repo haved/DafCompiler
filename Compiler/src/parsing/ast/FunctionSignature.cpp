@@ -96,7 +96,7 @@ ConcretableState TypedefParameter::makeConcreteInternal(NamespaceStack& ns_stack
 	return ConcretableState::CONCRETE;
 }
 
-FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& givenReturnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_givenReturnType(std::move(givenReturnType)), m_ateEquals(ateEqualsSign), m_cmpTimeOnly(false), m_functionExpression(nullptr), m_returnTypeInfo(nullptr, ValueKind::ANONYMOUS), m_implicitAccessReturnTypeInfo() {
+FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, ReturnKind returnKind, TypeReference&& givenReturnType, bool ateEqualsSign, TextRange range) : Type(range), m_parameters(std::move(params)), m_returnKind(returnKind), m_givenReturnType(std::move(givenReturnType)), m_ateEquals(ateEqualsSign), m_cmpTimeOnly(false), m_functionExpression(nullptr), m_returnTypeInfo(nullptr, ValueKind::ANONYMOUS), m_returnedFunctionType(nullptr), m_hasActualLLVMReturn(false), m_implicitAccessReturnTypeInfo() {
 
 	// If we are explicitly told we don't have a return type, we assert we weren't given one
 	if(m_returnKind == ReturnKind::NO_RETURN)
@@ -221,8 +221,10 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
 
-    if(m_returnKind == ReturnKind::NO_RETURN)
+    if(m_returnKind == ReturnKind::NO_RETURN) {
 		m_returnTypeInfo = ExprTypeInfo(getVoidType(), ValueKind::ANONYMOUS);
+		m_hasActualLLVMReturn = false;
+	}
 	else {
 		ConcreteType* returnType = nullptr;
 		if(m_functionExpression) {
@@ -243,7 +245,7 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 			ConcreteType* given = m_givenReturnType.getConcreteType();
 			if(!returnType)
 				returnType = given;
-			else if(returnType != given) {
+			else if(returnType != given) { //TODO: This is where we dig down through a function until we get the correct type
 				std::cerr << "TODO: Compare types of function body and given return type" << std::endl;
 				return ConcretableState::LOST_CAUSE;
 			}
@@ -256,12 +258,16 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 		case ReturnKind::MUT_REF_RETURN: kind = ValueKind::MUT_LVALUE; break;
 		default: assert(false); break;
 		}
+
 		m_returnTypeInfo = ExprTypeInfo(returnType, kind);
+		if(returnType->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION)
+			m_returnedFunctionType = static_cast<FunctionType*>(returnType);
+
+		m_hasActualLLVMReturn = !m_returnedFunctionType && !m_returnTypeInfo.isVoid();
 
 		if(m_parameters.empty()) {
-			if(m_returnTypeInfo.type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION) {
-				FunctionType* func = static_cast<FunctionType*>(m_returnTypeInfo.type);
-				m_implicitAccessReturnTypeInfo = func->getImplicitAccessReturnTypeInfo();
+			if(isFunctionTypeReturn()) {
+				m_implicitAccessReturnTypeInfo = getFunctionTypeReturn()->getImplicitAccessReturnTypeInfo();
 			} else
 				m_implicitAccessReturnTypeInfo = m_returnTypeInfo;
 		}
@@ -271,12 +277,24 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 }
 
 const ExprTypeInfo& FunctionType::getReturnTypeInfo() {
-	assert(m_returnTypeInfo);
+	assert(m_returnTypeInfo.type);
 	return m_returnTypeInfo;
 }
 
 bool FunctionType::isReferenceReturn() {
 	return (m_returnTypeInfo.valueKind != ValueKind::ANONYMOUS);
+}
+
+bool FunctionType::isFunctionTypeReturn() {
+	return !!m_returnedFunctionType;
+}
+
+FunctionType* FunctionType::getFunctionTypeReturn() {
+	return m_returnedFunctionType;
+}
+
+bool FunctionType::hasActualLLVMReturn() {
+	return m_hasActualLLVMReturn;
 }
 
 const optional<ExprTypeInfo>& FunctionType::getImplicitAccessReturnTypeInfo() {
@@ -288,7 +306,7 @@ bool FunctionType::checkConcreteReturnType(const ExprTypeInfo& type) {
     if(m_returnKind == ReturnKind::NO_RETURN)
 		return true;
 
-	if(m_returnTypeInfo != type) {
+	if(!m_returnTypeInfo.equals(type)) {
 		logDaf(getRange(), FATAL_ERROR) << "TODO: Compare ExprTypeInfos properly" << std::endl;
 		terminateIfErrors();
 		return false;
@@ -297,17 +315,16 @@ bool FunctionType::checkConcreteReturnType(const ExprTypeInfo& type) {
 }
 
 llvm::FunctionType* FunctionType::codegenFunctionType(CodegenLLVM& codegen) {
-	assert(allConcrete() << getConcretableState() && m_returnTypeInfo);
+	assert(allConcrete() << getConcretableState() && m_returnTypeInfo.type);
 
 	std::vector<llvm::Type*> argumentTypes;
 	for(auto& param : m_parameters) {
 		(void) param; //TODO: Parameters
 	}
 
-	//TODO: Make pretty
-	llvm::Type* returnType = m_returnTypeInfo.type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION ?
-		llvm::Type::getVoidTy(codegen.Context()) :
-		m_returnTypeInfo.type->codegenType(codegen);
+	llvm::Type* returnType = m_hasActualLLVMReturn ?
+		m_returnTypeInfo.type->codegenType(codegen) : llvm::Type::getVoidTy(codegen.Context());
+
 	if(isReferenceReturn()) //We return a reference
 		returnType = llvm::PointerType::getUnqual(returnType);
 
@@ -475,11 +492,10 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 		return;
 	}
 
-	if(bodyValue.isVoid() || m_type->getReturnTypeInfo().type == getVoidType()
-	   || m_type->getReturnTypeInfo().type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION) //TODO: Improve
-		codegen.Builder().CreateRetVoid();
-	else
+	if(m_type->hasActualLLVMReturn())
 		codegen.Builder().CreateRet(bodyValue.value);
+	else
+		codegen.Builder().CreateRetVoid();
 
 	llvm::verifyFunction(*m_function);
 

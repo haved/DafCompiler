@@ -34,7 +34,8 @@ struct ExprTypeInfo {
 
 	ExprTypeInfo(ConcreteType* type, ValueKind kind) : type(type), valueKind(kind) {}
 
-	inline operator bool() const { return !!type; }
+	inline bool equals(const ExprTypeInfo& other) const { return type == other.type && valueKind == other.valueKind; }
+	inline bool isVoid() const { return type == getVoidType(); }
 };
 
 //Invariant: typeInfo.type != null
@@ -45,7 +46,7 @@ struct EvaluatedExpression {
 		assert(typeInfo);
 	}
 
-	bool isVoid() { return typeInfo->type == getVoidType(); }
+	inline bool isVoid() const { return typeInfo->isVoid(); }
 };
 
 enum class ExpressionKind {
