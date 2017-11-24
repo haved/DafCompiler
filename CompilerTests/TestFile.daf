@@ -21,3 +21,14 @@ def doSomething := {
 def main {
 	mut x := doSomething;
 };
+
+mut val := 5;
+def mut test:= {
+	val
+};
+
+def testTwo := test;
+
+def testThree {
+	testTwo = testTwo + 4;
+};
