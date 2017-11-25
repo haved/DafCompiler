@@ -33,3 +33,7 @@ def testTwo :mut i32= test;
 def testThree :mut= testTwo;
 
 def testFour := testTwo;
+
+def mut x := val;
+def y := x;
+def mut z := x;
