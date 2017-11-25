@@ -82,7 +82,7 @@ private:
 
 	ExprTypeInfo m_returnTypeInfo; //This is the explicit return type, matches LLVM (FunctionType becomes void)
 	FunctionType* m_returnedFunctionType; //nullptr unless we return a function type
-	bool m_hasActualLLVMReturn;
+	bool m_hasActualLLVMReturn; //All but void and FunctionType
 	optional<ExprTypeInfo> m_implicitAccessReturnTypeInfo;
 
 	void printSignatureMustHaveList(bool withList);

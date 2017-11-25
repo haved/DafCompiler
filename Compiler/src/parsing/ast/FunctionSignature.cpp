@@ -327,7 +327,7 @@ const ExprTypeInfo& FunctionType::getReturnTypeInfo() {
 }
 
 bool FunctionType::isReferenceReturn() {
-	return (m_returnTypeInfo.valueKind != ValueKind::ANONYMOUS);
+    return (m_returnTypeInfo.valueKind != ValueKind::ANONYMOUS);
 }
 
 bool FunctionType::isFunctionTypeReturn() {
@@ -521,19 +521,20 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 
 	bool refReturn = m_type->isReferenceReturn();
 	EvaluatedExpression bodyValue(nullptr, &m_typeInfo); //Just to fullfull the invariant
-    if(refReturn) {
+	bool givenRefReturn = false;
+
+	if(m_body->isReferenceTypeInfo()) {
+		givenRefReturn = true;
 		bodyValue = m_body->codegenPointer(codegen);
-	} else {
-		m_body->enableFunctionType();
+	} else
 		bodyValue = m_body->codegenExpression(codegen);
-		//TODO: We can have an anonymous kind return but an lvalue body
-	    while(!returnTypeWorks(*bodyValue.typeInfo, m_type->getReturnTypeInfo())) {
-			assert(bodyValue.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION);
-			FunctionType* func = static_cast<FunctionType*>(bodyValue.typeInfo->type);
-			assert(func->getFunctionExpression());
-			auto* prototype =func->getFunctionExpression()->getPrototype();
-			bodyValue = EvaluatedExpression(codegen.Builder().CreateCall(prototype), &func->getReturnTypeInfo());
-		}
+	while(!returnTypeWorks(*bodyValue.typeInfo, m_type->getReturnTypeInfo())) {
+		assert(bodyValue.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION);
+		FunctionType* func = static_cast<FunctionType*>(bodyValue.typeInfo->type);
+		assert(func->getFunctionExpression());
+		auto* prototype =func->getFunctionExpression()->getPrototype();
+		bodyValue = EvaluatedExpression(codegen.Builder().CreateCall(prototype), &func->getReturnTypeInfo());
+		givenRefReturn = func->isReferenceReturn();
 	}
 
 	if(!m_type->checkConcreteReturnType(*bodyValue.typeInfo)) {
@@ -542,8 +543,14 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 		return;
 	}
 
-	if(m_type->hasActualLLVMReturn())
-		codegen.Builder().CreateRet(bodyValue.value);
+	if(m_type->hasActualLLVMReturn()) {
+		llvm::Value* ret = bodyValue.value;
+		if(refReturn)
+			assert(givenRefReturn);
+		else if(givenRefReturn)
+			ret = codegen.Builder().CreateLoad(ret);
+		codegen.Builder().CreateRet(ret);
+	}
 	else
 		codegen.Builder().CreateRetVoid();
 

@@ -88,7 +88,7 @@ EvaluatedExpression Scope::codegenExpression(CodegenLLVM& codegen) {
 }
 
 EvaluatedExpression Scope::codegenPointer(CodegenLLVM& codegen) {
-	assert(m_typeInfo.valueKind != ValueKind::ANONYMOUS && m_outExpression);
+	assert(isReferenceTypeInfo() && m_outExpression);
 	for(auto it = m_statements.begin(); it != m_statements.end(); ++it) {
 		(*it)->codegenStatement(codegen);
 	}

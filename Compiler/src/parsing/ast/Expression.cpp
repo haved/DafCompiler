@@ -36,6 +36,10 @@ const ExprTypeInfo& Expression::getTypeInfo() const {
 	return m_typeInfo;
 }
 
+bool Expression::isReferenceTypeInfo() const {
+	return getTypeInfo().valueKind != ValueKind::ANONYMOUS;
+}
+
 ConcretableState Expression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
 	return ConcretableState::CONCRETE;
@@ -93,10 +97,10 @@ EvaluatedExpression VariableExpression::codegenExpression(CodegenLLVM& codegen) 
 }
 
 EvaluatedExpression VariableExpression::codegenPointer(CodegenLLVM& codegen) {
-    assert(m_target);
+    assert(m_target && isReferenceTypeInfo());
 
 	if(m_target.isDef()) {
-		assert(!functionTypeAllowed()); //Our m_typeInfo can't be a pointer type, so why are we here
+		assert(!functionTypeAllowed()); //There is no way to return a def's function and also be reference return
 		return m_target.getDef()->implicitPointerCodegen(codegen);
 	} else {
 		assert(m_target.isLet());

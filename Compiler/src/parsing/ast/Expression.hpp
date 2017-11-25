@@ -87,6 +87,7 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override=0;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 	const ExprTypeInfo& getTypeInfo() const;
+	bool isReferenceTypeInfo() const;
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) {
 		(void)codegen; logDaf(m_range, ERROR) << "TODO: Expression codegen" << std::endl; return EvaluatedExpression(nullptr, nullptr);
