@@ -95,13 +95,12 @@ public:
 	void printSignatureMaybeList(); //Only list if parameters
 	ConcreteType* getConcreteType() override;
 
-	inline std::vector<unique_ptr<FunctionParameter>>& getParams() { return m_parameters; }
+	inline const std::vector<unique_ptr<FunctionParameter>>& getParams() { return m_parameters; }
 	void mergeInDefReturnKind(ReturnKind def);
-	void setFunctionExpression(FunctionExpression* expression);
-	FunctionExpression* getFunctionExpression() { return m_functionExpression; }
 	inline ReturnKind getGivenReturnKind() { return m_returnKind; }
 	inline bool ateEqualsSign() { return m_ateEquals; }
-	inline TypeReference& getGivenReturnType() { return m_givenReturnType; }
+	void setFunctionExpression(FunctionExpression* expression);
+	FunctionExpression* getFunctionExpression() { return m_functionExpression; }
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;

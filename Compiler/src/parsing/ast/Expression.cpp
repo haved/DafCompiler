@@ -405,8 +405,10 @@ void FunctionCallExpression::printSignature() {
 }
 
 ConcretableState FunctionCallExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+
     m_function->enableFunctionType();
     ConcretableState state = m_function->makeConcrete(ns_stack, depMap);
+
     auto conc = allConcrete() << state;
 	auto lost = anyLost() << state;
 	for(auto it = m_args.begin(); it != m_args.end(); ++it) {
@@ -433,44 +435,50 @@ ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap
 	assert(type);
 
 	if(type->getConcreteTypeKind() != ConcreteTypeKind::FUNCTION) {
-		logDaf(getRange(), ERROR) << "expected function type" << std::endl;
+		logDaf(getRange(), ERROR) << "function call expected function type" << std::endl;
 		return ConcretableState::LOST_CAUSE;
 	}
 
 	m_function_type = static_cast<FunctionType*>(type);
 
-	//TODO: Set m_typeInfo
-	//TODO:
-	return ConcretableState::LOST_CAUSE;
+	ExprTypeInfo finalTypeInfo = m_function->getTypeInfo();
+
+	unsigned int givenParameters = m_args.size();
+	unsigned int parameterIndex = 0;
+	do {
+		FunctionType* funcType = static_cast<FunctionType*>(finalTypeInfo.type);
+
+		if(parameterIndex == givenParameters) {
+			if(functionTypeAllowed()) { //We've done all our parameters, just return the rest
+				m_typeInfo = finalTypeInfo;
+				break;
+			} else {
+			    optional<ExprTypeInfo> implicit = funcType->getImplicitAccessReturnTypeInfo();
+				if(!implicit) {
+					logDaf(getRange(), ERROR) << "not enough parameters specified" << std::endl;
+					return ConcretableState::LOST_CAUSE;
+				}
+				m_typeInfo = *implicit;
+			}
+		}
+		const auto& funcParams = funcType->getParams();
+		unsigned int requiredParamC = funcParams.size();
+		if(givenParameters - parameterIndex < requiredParamC) {
+			logDaf(getRange(), ERROR) << "not enough parameters specified. Given " << (givenParameters-parameterIndex) << "/" << requiredParamC << std::endl;
+			return ConcretableState::LOST_CAUSE;
+		}
+
+		finalTypeInfo = funcType->getReturnTypeInfo();
+
+		parameterIndex+=requiredParamC;
+
+	} while (true);
+
+	return ConcretableState::CONCRETE;
 }
 
 EvaluatedExpression FunctionCallExpression::codegenExpression(CodegenLLVM& codegen) {
 
-	/*EvaluatedExpression* callable = nullptr;
-
-	if(m_function->getExpressionKind() == ExpressionKind::VARIABLE) {
-		VariableExpression* variable = static_cast<VariableExpression*>(m_function.get());
-	    optional<EvaluatedExpression> optCallableExpression = variable->codegenCallable(codegen);
-		if(optCallableExpression)
-			callable = *optCallableExpression;
-	} else
-	EvaluatedExpression function = m_function->codegenExpression(codegen);
-
-	std::vector<llvm::Value*> ArgsV;
-	for(auto it = m_args.begin(); it != m_args.end(); ++it) {
-		//TODO: Mut references as what not. We're supposed to pass references remember
-		EvaluatedExpression arg = it->m_expression->codegenExpression(codegen);
-		//TODO: Check type of argument
-		ArgsV.push_back(arg.value);
-	}
-
-	if(function.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION) {
-		llvm::Function* function_value = static_cast<llvm::Function*>(function.value);
-		llvm::Value* call = codegen.Builder().CreateCall(function_value, ArgsV);
-		return EvaluatedExpression(call, &m_typeInfo);
-	}
-
-	std::cerr << "TODO: handle function calls on something other than Function*" << std::endl;*/
 	return EvaluatedExpression(nullptr, nullptr);
 }
 
