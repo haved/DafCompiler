@@ -13,10 +13,10 @@ ConcretableState FunctionParameter::retryMakeConcreteInternal(DependencyMap& dep
 
 void printParameterModifier(ParameterModifier modif) {
 	switch(modif) {
-	case ParameterModifier:: NONE:
+	case ParameterModifier::NONE:
 		return;
-	case ParameterModifier::DEF:
-		std::cout << "def ";
+	case ParameterModifier::LET:
+		std::cout << "let ";
 		break;
 	case ParameterModifier::MUT:
 		std::cout << "mut ";
@@ -35,7 +35,7 @@ void printParameterModifier(ParameterModifier modif) {
 	}
 }
 
-ValueParameter::ValueParameter(ParameterModifier modif, std::string&& name, TypeReference&& type) : FunctionParameter(std::move(name)), m_modif(modif), m_type(std::move(type)) {
+ValueParameter::ValueParameter(ParameterModifier modif, std::string&& name, TypeReference&& type) : FunctionParameter(std::move(name)), m_modif(modif), m_type(std::move(type)), m_callTypeInfo(nullptr, ValueKind::ANONYMOUS) {
 	assert(m_type);
 	//We allow m_name to be underscore
 }
@@ -47,8 +47,8 @@ void ValueParameter::printSignature() {
 	m_type.printSignature();
 }
 
-bool ValueParameter::isCompileTimeOnly() {
-	return m_modif == ParameterModifier::DEF;
+ParameterKind ValueParameter::getParameterKind() {
+	return ParameterKind::VALUE_PARAM;
 }
 
 ConcretableState ValueParameter::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
@@ -61,6 +61,23 @@ ConcretableState ValueParameter::makeConcreteInternal(NamespaceStack& ns_stack, 
 	return state;
 }
 
+ValueKind parameterModifierToArgValueKind(ParameterModifier modif) {
+	switch(modif) {
+	case ParameterModifier::NONE: return ValueKind::ANONYMOUS;
+	case ParameterModifier::LET: return ValueKind::LVALUE;
+	case ParameterModifier::MUT: return ValueKind::MUT_LVALUE;
+	case ParameterModifier::MOVE: return ValueKind::MUT_LVALUE;
+	case ParameterModifier::UNCRT: return ValueKind::MUT_LVALUE;
+	case ParameterModifier::DTOR: return ValueKind::MUT_LVALUE;
+	default: assert(false); return ValueKind::ANONYMOUS;
+	}
+}
+
+ConcretableState ValueParameter::retryMakeConcreteInternal(DependencyMap& depMap) {
+	m_callTypeInfo = ExprTypeInfo(m_type.getConcreteType(), parameterModifierToArgValueKind(m_modif));
+	return ConcretableState::CONCRETE;
+}
+
 ValueParameterTypeInferred::ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName) : FunctionParameter(std::move(name)), m_modif(modif), m_typeName(std::move(typeName)) {
     assert(m_typeName.size() > 0); //TODO: do this for all identifiers that can't be underscore
 }
@@ -70,8 +87,8 @@ void ValueParameterTypeInferred::printSignature() {
 	std::cout << m_name << ":$" << m_typeName;
 }
 
-bool ValueParameterTypeInferred::isCompileTimeOnly() {
-	return true;
+ParameterKind ValueParameterTypeInferred::getParameterKind() {
+	return ParameterKind::VALUE_PARAM_TYPEINFER;
 }
 
 ConcretableState ValueParameterTypeInferred::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
@@ -87,8 +104,8 @@ void TypedefParameter::printSignature() {
 	std::cout << m_name;
 }
 
-bool TypedefParameter::isCompileTimeOnly() {
-	return true;
+ParameterKind TypedefParameter::getParameterKind() {
+	return ParameterKind::TYPEDEF_PARAM;
 }
 
 ConcretableState TypedefParameter::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
@@ -103,12 +120,6 @@ FunctionType::FunctionType(std::vector<unique_ptr<FunctionParameter>>&& params, 
 		assert(!m_givenReturnType);
 	else if(!m_ateEquals) // If we don't infer return type (=), but have a return type (:)
 		assert(m_givenReturnType.hasType()); //Then we require an explicit type
-
-	for(auto it = m_parameters.begin(); it != m_parameters.end(); ++it)
-		if((*it)->isCompileTimeOnly()) {
-			m_cmpTimeOnly = true;
-			break;
-		}
 }
 
 void FunctionType::printSignatureMustHaveList(bool list) {

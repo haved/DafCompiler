@@ -11,6 +11,14 @@
 using boost::optional;
 using std::unique_ptr;
 
+enum class ParameterKind {
+    VALUE_PARAM,
+	VALUE_PARAM_TYPEINFER,
+	DEF_PARAM,
+	TYPEDEF_PARAM,
+	NAMEDEF_PARAM
+};
+
 class FunctionParameter : public Concretable {
 protected:
 	std::string m_name;
@@ -18,14 +26,15 @@ protected:
 public:
 	virtual ~FunctionParameter() {}
 	virtual void printSignature()=0;
-	virtual bool isCompileTimeOnly()=0;
+
+	virtual ParameterKind getParameterKind() =0;
 
     virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override =0;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 };
 
 enum class ParameterModifier {
-	NONE, DEF, MUT, MOVE, UNCRT, DTOR
+	NONE, LET, MUT, MOVE, UNCRT, DTOR
 };
 
 // uncrt a:int
@@ -33,12 +42,17 @@ class ValueParameter : public FunctionParameter {
 private:
     ParameterModifier m_modif;
 	TypeReference m_type;
+
+	ExprTypeInfo m_callTypeInfo;
 public:
 	ValueParameter(ParameterModifier modif, std::string&& name, TypeReference&& type);
 	virtual void printSignature() override;
-	virtual bool isCompileTimeOnly() override;
+	virtual ParameterKind getParameterKind() override;
 
     virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
+
+	const ExprTypeInfo& getCallTypeInfo();
 };
 
 // move a:$T
@@ -49,7 +63,7 @@ private:
 public:
 	ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName);
 	virtual void printSignature() override;
-	virtual bool isCompileTimeOnly() override;
+	virtual ParameterKind getParameterKind() override;
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 };
@@ -59,7 +73,7 @@ class TypedefParameter : public FunctionParameter {
 public:
 	TypedefParameter(std::string&& name);
 	virtual void printSignature() override;
-	virtual bool isCompileTimeOnly() override;
+	virtual ParameterKind getParameterKind() override;
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 };

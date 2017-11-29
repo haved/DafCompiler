@@ -428,6 +428,10 @@ ConcretableState FunctionCallExpression::makeConcreteInternal(NamespaceStack& ns
 	return ConcretableState::TRY_LATER;
 }
 
+bool checkIfParameterMatchesOrComplain(const FunctionParameter& requested, const FunctionCallArgument& given) {
+	
+}
+
 ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
 
@@ -445,7 +449,7 @@ ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap
 
 	unsigned int givenParameters = m_args.size();
 	unsigned int parameterIndex = 0;
-	do {
+	while (true) {
 		FunctionType* funcType = static_cast<FunctionType*>(finalTypeInfo.type);
 
 		if(parameterIndex == givenParameters) {
@@ -459,6 +463,7 @@ ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap
 					return ConcretableState::LOST_CAUSE;
 				}
 				m_typeInfo = *implicit;
+				break;
 			}
 		}
 		const auto& funcParams = funcType->getParams();
@@ -468,11 +473,19 @@ ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap
 			return ConcretableState::LOST_CAUSE;
 		}
 
-		finalTypeInfo = funcType->getReturnTypeInfo();
-
+		bool failed = false;
+		for(int i = 0; i < requiredParamC; i++) {
+			const FunctionParameter& requested = *funcParams[i];
+		    const FunctionCallArgument& given = m_args[parameterIndex+i];
+			if(!checkIfParameterMatchesOrComplain(requested, given))
+				failed = true;
+		}
+		if(failed)
+			return ConcretableState::LOST_CAUSE;
 		parameterIndex+=requiredParamC;
 
-	} while (true);
+		finalTypeInfo = funcType->getReturnTypeInfo();
+	}
 
 	return ConcretableState::CONCRETE;
 }
