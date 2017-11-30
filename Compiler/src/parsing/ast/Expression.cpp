@@ -478,6 +478,9 @@ bool checkIfParameterMatchesOrComplain(const FunctionParameter& requested, const
 		printValueKind(requestedTypeInfo.valueKind, out, true);
 		out << std::endl;
 		return false;
+	} else if(requestedTypeInfo.valueKind != ValueKind::MUT_LVALUE && given.m_mutableReference) {
+		logDaf(range, ERROR) << "passing a mut parameter to a function that doesn't need it" << std::endl;
+		return false;
 	}
 
 	if(givenTypeInfo.type != requestedTypeInfo.type) {
@@ -555,9 +558,32 @@ ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap
 	return ConcretableState::CONCRETE;
 }
 
+enum EvalLevel {
+	IMPLICIT_VALUE,
+	IMPLICIT_POINTER,
+	FUNCTION
+};
+
+EvaluatedExpression codegenFunctionCall(EvaluatedExpression function, CodegenLLVM& codegen, EvalLevel l) {
+	assert(function.type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION);
+
+	EvaluatedExpression current = function;
+
+	while(true) {
+		auto funcType = static_cast<FunctionType*>(current.type);
+		llvm::Value* func_prototype = funcType->getFunctionExpression()->getPrototype();
+		
+	}
+}
+
 EvaluatedExpression FunctionCallExpression::codegenExpression(CodegenLLVM& codegen) {
-	(void) codegen;
-	return EvaluatedExpression(nullptr, nullptr);
+	EvalLevel l = functionTypeAllowed() ? FUNCTION : IMPLICIT_VALUE;
+    return codegenFunctionCall(m_function->codegenExpression(codegen), codegen, l);
+}
+
+EvaluatedExpression FunctionCallExpression::codegenPointer(CodegenLLVM& codegen) {
+	assert(!functionTypeAllowed() && m_typeInfo.valueKind != ValueKind::ANONYMOUS);
+	return codegenFunctionCall(m_function->codegenExpression(codegen), codegen, IMPLICIT_POINTER);
 }
 
 

@@ -365,7 +365,9 @@ llvm::FunctionType* FunctionType::codegenFunctionType(CodegenLLVM& codegen) {
 
 	std::vector<llvm::Type*> argumentTypes;
 	for(auto& param : m_parameters) {
-		(void) param; //TODO: Parameters
+		assert(param->getParameterKind() == ParameterKind::VALUE_PARAM && "We only support value params");
+		ValueParameter* valParam = static_cast<ValueParameter*>(param.get());
+		
 	}
 
 	llvm::Type* returnType = m_hasActualLLVMReturn ?

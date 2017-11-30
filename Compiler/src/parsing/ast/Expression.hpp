@@ -269,6 +269,7 @@ public:
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
+	virtual EvaluatedExpression codegenPointer(CodegenLLVM& codegen) override;
 };
 
 class ArrayAccessExpression : public Expression {
