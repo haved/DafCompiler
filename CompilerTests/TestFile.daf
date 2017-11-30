@@ -1,5 +1,6 @@
 // -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
 
+/*
 def funky:=6;
 
 def callMe:=funky;
@@ -37,3 +38,13 @@ def testFour := testTwo;
 def mut x := val;
 def y := x;
 def mut z := x;
+*/
+
+def func(a:i32, b:u8):i32=5;
+
+def caller {
+	func(1);
+	func(1, def():=5);
+	func(1, 2u8, 3);
+	//func(4, 1u8);
+};

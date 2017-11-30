@@ -161,7 +161,9 @@ unique_ptr<Expression> mergeOpWithExpression(const PrefixOperator& prefixOp, int
 }
 
 bool parseFunctionCallArgument(Lexer& lexer, vector<FunctionCallArgument>& args) {
-	//NOTE: Perhaps take a text range for the argument. Not too big of an issue, but hey
+	int startLine = lexer.getCurrentToken().line;
+	int startCol  = lexer.getCurrentToken().col;
+
 	bool mut = false;
 	if(lexer.currType() == MUT) {
 		lexer.advance(); //Eat 'mut'
@@ -170,7 +172,8 @@ bool parseFunctionCallArgument(Lexer& lexer, vector<FunctionCallArgument>& args)
 
 	auto argument = parseExpression(lexer);
 	if(argument) {
-		args.emplace_back(mut, std::move(argument));
+		TextRange range(startLine, startCol, argument->getRange());
+		args.emplace_back(mut, std::move(argument), range);
 		return true;
 	}
 	return false;
@@ -208,7 +211,7 @@ unique_ptr<Expression> parseFunctionCallExpression(Lexer& lexer, unique_ptr<Expr
 	lexer.advance(); //Eat ')'
 	if(!function)
 		return none_exp(); //return none, but eat the entire operator
-	return unique_ptr<Expression>(new FunctionCallExpression(std::move(function), std::move(args), lexer.getPreviousToken().line,  lexer.getPreviousToken().endCol));
+	return unique_ptr<Expression>(new FunctionCallExpression(std::move(function), std::move(args), lexer.getPreviousToken().line, lexer.getPreviousToken().endCol));
 }
 
 unique_ptr<Expression> parseArrayAccessExpression(Lexer& lexer, unique_ptr<Expression>&& array) {

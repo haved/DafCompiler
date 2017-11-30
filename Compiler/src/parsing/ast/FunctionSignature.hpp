@@ -27,7 +27,7 @@ public:
 	virtual ~FunctionParameter() {}
 	virtual void printSignature()=0;
 
-	virtual ParameterKind getParameterKind() =0;
+	virtual ParameterKind getParameterKind() const =0;
 
     virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override =0;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
@@ -47,12 +47,12 @@ private:
 public:
 	ValueParameter(ParameterModifier modif, std::string&& name, TypeReference&& type);
 	virtual void printSignature() override;
-	virtual ParameterKind getParameterKind() override;
+	virtual ParameterKind getParameterKind() const override;
 
     virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 
-	const ExprTypeInfo& getCallTypeInfo();
+	const ExprTypeInfo& getCallTypeInfo() const;
 };
 
 // move a:$T
@@ -63,7 +63,7 @@ private:
 public:
 	ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName);
 	virtual void printSignature() override;
-	virtual ParameterKind getParameterKind() override;
+	virtual ParameterKind getParameterKind() const override;
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 };
@@ -73,7 +73,7 @@ class TypedefParameter : public FunctionParameter {
 public:
 	TypedefParameter(std::string&& name);
 	virtual void printSignature() override;
-	virtual ParameterKind getParameterKind() override;
+	virtual ParameterKind getParameterKind() const override;
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 };

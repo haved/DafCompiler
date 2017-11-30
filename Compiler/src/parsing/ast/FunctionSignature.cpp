@@ -47,7 +47,7 @@ void ValueParameter::printSignature() {
 	m_type.printSignature();
 }
 
-ParameterKind ValueParameter::getParameterKind() {
+ParameterKind ValueParameter::getParameterKind() const {
 	return ParameterKind::VALUE_PARAM;
 }
 
@@ -74,8 +74,13 @@ ValueKind parameterModifierToArgValueKind(ParameterModifier modif) {
 }
 
 ConcretableState ValueParameter::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
 	m_callTypeInfo = ExprTypeInfo(m_type.getConcreteType(), parameterModifierToArgValueKind(m_modif));
 	return ConcretableState::CONCRETE;
+}
+
+const ExprTypeInfo& ValueParameter::getCallTypeInfo() const {
+	return m_callTypeInfo;
 }
 
 ValueParameterTypeInferred::ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName) : FunctionParameter(std::move(name)), m_modif(modif), m_typeName(std::move(typeName)) {
@@ -87,7 +92,7 @@ void ValueParameterTypeInferred::printSignature() {
 	std::cout << m_name << ":$" << m_typeName;
 }
 
-ParameterKind ValueParameterTypeInferred::getParameterKind() {
+ParameterKind ValueParameterTypeInferred::getParameterKind() const {
 	return ParameterKind::VALUE_PARAM_TYPEINFER;
 }
 
@@ -104,7 +109,7 @@ void TypedefParameter::printSignature() {
 	std::cout << m_name;
 }
 
-ParameterKind TypedefParameter::getParameterKind() {
+ParameterKind TypedefParameter::getParameterKind() const {
 	return ParameterKind::TYPEDEF_PARAM;
 }
 
@@ -234,26 +239,7 @@ ValueKind returnKindToValueKind(ReturnKind kind) {
 	case ReturnKind::VALUE_RETURN:   return ValueKind::ANONYMOUS;
 	case ReturnKind::REF_RETURN:     return ValueKind::LVALUE;
 	case ReturnKind::MUT_REF_RETURN: return ValueKind::MUT_LVALUE;
-	default: assert(false); return ValueKind::ANONYMOUS;
-	}
-}
-
-//A larger score can be converted to a lower score
-int getValueKindScore(ValueKind kind) {
-	switch(kind) {
-	case ValueKind::ANONYMOUS: return 0;
-	case ValueKind::LVALUE: return 1;
-	case ValueKind::MUT_LVALUE: return 2;
-	default: assert(false); return -1;
-	}
-}
-
-void printValueKind(ValueKind kind, std::ostream& out) {
-	switch(kind) {
-	case ValueKind::ANONYMOUS: break;
-	case ValueKind::MUT_LVALUE: out << "mut ";
-	case ValueKind::LVALUE: out << "let "; break;
-	default: assert(false); break;
+	default: assert(false && "NO_RETURN can't be converted to any ValueKind"); return ValueKind::ANONYMOUS;
 	}
 }
 

@@ -13,6 +13,7 @@
 #include <vector>
 #include <memory>
 #include <boost/optional.hpp>
+#include <iosfwd>
 
 using std::unique_ptr;
 using boost::optional;
@@ -26,6 +27,9 @@ enum class ValueKind {
 	LVALUE,
 	ANONYMOUS
 };
+
+int getValueKindScore(ValueKind kind);
+void printValueKind(ValueKind kind, std::ostream& out, bool printAnon = false);
 
 //type is null when the ExprTypeInfo isn't assigned to yet
 struct ExprTypeInfo {
@@ -238,9 +242,10 @@ public:
 
 class FunctionCallArgument {
 public:
+	TextRange m_range;
 	bool m_mutableReference;
 	unique_ptr<Expression> m_expression;
-	FunctionCallArgument(bool mut, unique_ptr<Expression>&& expression);
+	FunctionCallArgument(bool mut, unique_ptr<Expression>&& expression, const TextRange& range);
 	void printSignature();
 };
 
@@ -251,7 +256,6 @@ private:
 	unique_ptr<Expression> m_function;
 	std::vector<FunctionCallArgument> m_args;
 	FunctionType* m_function_type;
-	ConcreteType* m_function_return_type;
 public:
 	FunctionCallExpression(unique_ptr<Expression>&& function, std::vector<FunctionCallArgument>&& arguments, int lastLine, int lastCol);
 	FunctionCallExpression(const FunctionCallExpression& other) = delete;

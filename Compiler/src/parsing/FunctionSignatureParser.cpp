@@ -29,9 +29,6 @@ ParameterModifier parseParameterModifier(Lexer& lexer) {
 	TokenType type = lexer.currType();
 
 	switch(type) {
-	case DEF:
-		lexer.advance();
-		return ParameterModifier::DEF;
 	case MUT:
 		lexer.advance();
 		return ParameterModifier::MUT;
@@ -44,6 +41,9 @@ ParameterModifier parseParameterModifier(Lexer& lexer) {
 	case DESTRUCTOR:
 		lexer.advance();
 		return ParameterModifier::DTOR;
+	case DEF:
+		lexer.advance();
+	    assert(false && "We don't support DEF parameters in the parser");
 	default:
 		return ParameterModifier::NONE;
 	}
