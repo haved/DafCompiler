@@ -29,6 +29,9 @@ ParameterModifier parseParameterModifier(Lexer& lexer) {
 	TokenType type = lexer.currType();
 
 	switch(type) {
+	case LET:
+		lexer.advance();
+		return ParameterModifier::LET;
 	case MUT:
 		lexer.advance();
 		return ParameterModifier::MUT;

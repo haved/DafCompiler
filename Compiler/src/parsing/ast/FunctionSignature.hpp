@@ -53,6 +53,8 @@ public:
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 
 	const ExprTypeInfo& getCallTypeInfo() const;
+	ConcreteType* getType() const;
+	bool isReferenceParameter() const;
 };
 
 // move a:$T

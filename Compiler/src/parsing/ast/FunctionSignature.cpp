@@ -83,6 +83,14 @@ const ExprTypeInfo& ValueParameter::getCallTypeInfo() const {
 	return m_callTypeInfo;
 }
 
+ConcreteType* ValueParameter::getType() const {
+	return m_callTypeInfo.type;
+}
+
+bool ValueParameter::isReferenceParameter() const {
+	return m_callTypeInfo.valueKind != ValueKind::ANONYMOUS;
+}
+
 ValueParameterTypeInferred::ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName) : FunctionParameter(std::move(name)), m_modif(modif), m_typeName(std::move(typeName)) {
     assert(m_typeName.size() > 0); //TODO: do this for all identifiers that can't be underscore
 }
@@ -367,7 +375,10 @@ llvm::FunctionType* FunctionType::codegenFunctionType(CodegenLLVM& codegen) {
 	for(auto& param : m_parameters) {
 		assert(param->getParameterKind() == ParameterKind::VALUE_PARAM && "We only support value params");
 		ValueParameter* valParam = static_cast<ValueParameter*>(param.get());
-		
+		llvm::Type* type = valParam->getType()->codegenType(codegen);
+		if(valParam->isReferenceParameter())
+			type = llvm::PointerType::getUnqual(type);
+		argumentTypes.push_back(type);
 	}
 
 	llvm::Type* returnType = m_hasActualLLVMReturn ?

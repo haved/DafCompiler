@@ -565,14 +565,14 @@ enum EvalLevel {
 };
 
 EvaluatedExpression codegenFunctionCall(EvaluatedExpression function, CodegenLLVM& codegen, EvalLevel l) {
-	assert(function.type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION);
+	assert(function.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION);
 
 	EvaluatedExpression current = function;
 
 	while(true) {
-		auto funcType = static_cast<FunctionType*>(current.type);
+		auto funcType = static_cast<FunctionType*>(current.typeInfo->type);
 		llvm::Value* func_prototype = funcType->getFunctionExpression()->getPrototype();
-		
+		//TODO:
 	}
 }
 
