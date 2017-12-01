@@ -268,6 +268,7 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
+	EvaluatedExpression codegenFunctionCall(CodegenLLVM& codegen, bool pointerReturn);
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 	virtual EvaluatedExpression codegenPointer(CodegenLLVM& codegen) override;
 };

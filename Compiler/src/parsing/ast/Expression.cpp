@@ -558,32 +558,56 @@ ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap
 	return ConcretableState::CONCRETE;
 }
 
-enum EvalLevel {
-	IMPLICIT_VALUE,
-	IMPLICIT_POINTER,
-	FUNCTION
-};
+EvaluatedExpression FunctionCallExpression::codegenFunctionCall(CodegenLLVM& codegen, bool pointerReturn) {
+	EvaluatedExpression function = m_function->codegenExpression(codegen);
 
-EvaluatedExpression codegenFunctionCall(EvaluatedExpression function, CodegenLLVM& codegen, EvalLevel l) {
 	assert(function.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION);
 
-	EvaluatedExpression current = function;
+	const ExprTypeInfo* current = function.typeInfo;
+	llvm::Value* result;
+	bool resultIsRef;
 
+	int parameterIndex = 0;
 	while(true) {
-		auto funcType = static_cast<FunctionType*>(current.typeInfo->type);
+		auto* funcType = static_cast<FunctionType*>(current->type);
 		llvm::Value* func_prototype = funcType->getFunctionExpression()->getPrototype();
-		//TODO:
+
+		auto& paramsRequired = funcType->getParams();
+		assert(m_args.size() >= paramsRequired.size()+parameterIndex);
+		std::vector<llvm::Value*> paramsGiven;
+
+		for(unsigned int i = 0; i < paramsRequired.size(); i++) {
+			auto* param = paramsRequired[i].get();
+			assert(param->getParameterKind() == ParameterKind::VALUE_PARAM);
+			auto* valParam = 
+		}
+
+		result = codegen.Builder().CreateCall(func_prototype);
+		resultIsRef = funcType->isReferenceReturn();
+
+		current = &funcType->getReturnTypeInfo();
+		if(current->type->getConcreteTypeKind() != ConcreteTypeKind::FUNCTION) {
+			break;
+		}
 	}
+
+	if(pointerReturn) {
+		assert(resultIsRef);
+	} else {
+		if(resultIsRef)
+			result = codegen.Builder().CreateLoad(result);
+	}
+
+	return EvaluatedExpression(result, current);
 }
 
 EvaluatedExpression FunctionCallExpression::codegenExpression(CodegenLLVM& codegen) {
-	EvalLevel l = functionTypeAllowed() ? FUNCTION : IMPLICIT_VALUE;
-    return codegenFunctionCall(m_function->codegenExpression(codegen), codegen, l);
+    return codegenFunctionCall(codegen, false);
 }
 
 EvaluatedExpression FunctionCallExpression::codegenPointer(CodegenLLVM& codegen) {
-	assert(!functionTypeAllowed() && m_typeInfo.valueKind != ValueKind::ANONYMOUS);
-	return codegenFunctionCall(m_function->codegenExpression(codegen), codegen, IMPLICIT_POINTER);
+	assert(!functionTypeAllowed());
+	return codegenFunctionCall(codegen, true);
 }
 
 
