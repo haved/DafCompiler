@@ -567,7 +567,7 @@ EvaluatedExpression FunctionCallExpression::codegenFunctionCall(CodegenLLVM& cod
 	llvm::Value* result;
 	bool resultIsRef;
 
-	int parameterIndex = 0;
+	unsigned int parameterIndex = 0;
 	while(true) {
 		auto* funcType = static_cast<FunctionType*>(current->type);
 		llvm::Value* func_prototype = funcType->getFunctionExpression()->getPrototype();
@@ -579,14 +579,25 @@ EvaluatedExpression FunctionCallExpression::codegenFunctionCall(CodegenLLVM& cod
 		for(unsigned int i = 0; i < paramsRequired.size(); i++) {
 			auto* param = paramsRequired[i].get();
 			assert(param->getParameterKind() == ParameterKind::VALUE_PARAM);
-			auto* valParam = 
+			auto* valParam = static_cast<ValueParameter*>(param);
+			bool refParam =  valParam->isReferenceParameter();
+			Expression& expression = *m_args[parameterIndex+i].m_expression;
+			assert(refParam ? expression.isReferenceTypeInfo() : true);
+			EvaluatedExpression paramEval = refParam ? expression.codegenPointer(codegen) : expression.codegenExpression(codegen);
+			paramsGiven.push_back(paramEval.value);
 		}
 
-		result = codegen.Builder().CreateCall(func_prototype);
+		parameterIndex += paramsRequired.size();
+
+		result = codegen.Builder().CreateCall(func_prototype, paramsGiven);
 		resultIsRef = funcType->isReferenceReturn();
 
 		current = &funcType->getReturnTypeInfo();
 		if(current->type->getConcreteTypeKind() != ConcreteTypeKind::FUNCTION) {
+			assert(parameterIndex == m_args.size());
+			break;
+		}
+	    else if(functionTypeAllowed() && parameterIndex && m_args.size()) { //Stop bothering with
 			break;
 		}
 	}

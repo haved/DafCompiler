@@ -44,7 +44,8 @@ def other(let a:i32){};
 
 def func(a:i32, b:u8):i32=5;
 
-def caller {
-	/*func(1, 2u8);
-	func(4, 1u8);*/
+def caller:mut={
+	func(1, 2u8);
+	mut x:=func(4, 1u8);
+	x
 };
