@@ -48,12 +48,11 @@ mut x:=1;
 
 def funkier():mut=x;
 
-def otherFunc(mut a:i32):mut = x;
+def otherFunc(a:i32):mut = x;
 
 def caller:mut={
 	func(1, 2u8);
 	mut x:=func(4, 1u8);
 
-	otherFunc(mut x);
-	otherFunc(mut funkier)
+	otherFunc(funkier)
 };

@@ -535,12 +535,17 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 	EvaluatedExpression bodyValue(nullptr, &m_typeInfo); //Just to fullfull the invariant
 	bool givenRefReturn = false;
 
-	if(!refReturn || m_body->getTypeInfo().type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION)
-		bodyValue = m_body->codegenExpression(codegen);
-	else {
+	bool bodyGivesRef = m_body->isReferenceTypeInfo();
+	if(refReturn && bodyGivesRef) {
 		bodyValue = m_body->codegenPointer(codegen);
 		givenRefReturn = true;
+	} else {
+		if(refReturn)
+			assert(m_body->getTypeInfo().type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION);
+		bodyValue = m_body->codegenExpression(codegen);
+		givenRefReturn = false;
 	}
+
 	while(!returnTypeWorks(*bodyValue.typeInfo, m_type->getReturnTypeInfo())) {
 		assert(bodyValue.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION);
 		FunctionType* func = static_cast<FunctionType*>(bodyValue.typeInfo->type);
