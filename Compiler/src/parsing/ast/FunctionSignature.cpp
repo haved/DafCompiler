@@ -282,7 +282,7 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 
 			ExprTypeInfo digBodyInfo = topBodyInfo;
 			while(!returnTypeWorks(digBodyInfo, required)) {
-				if(digBodyInfo.type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION) {
+				if(isFunctionType(digBodyInfo)) {
 					FunctionType* ret = static_cast<FunctionType*>(digBodyInfo.type);
 					if(ret->canCallOnceImplicitly()) {
 						digBodyInfo = ret->getReturnTypeInfo();
@@ -304,12 +304,12 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 			returnType = requiredType ? requiredType : digBodyInfo.type;
 			kind = requiredValueKind;
 		} else {
-		    logDaf(getRange(), ERROR) << "I'm not sure you're allowed to just have a function type without a body. Function pointers aren't here" << std::endl;
+		    assert("FunctionPointers aren't implemented");
 			return ConcretableState::LOST_CAUSE;
 		}
 
 		m_returnTypeInfo = ExprTypeInfo(returnType, kind);
-		if(returnType->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION)
+		if(isFunctionType(returnType))
 			m_returnedFunctionType = static_cast<FunctionType*>(returnType);
 
 		m_hasActualLLVMReturn = !m_returnedFunctionType && !m_returnTypeInfo.isVoid();
@@ -397,6 +397,18 @@ llvm::Type* FunctionType::codegenType(CodegenLLVM& codegen) {
 	return codegenFunctionType(codegen);
 }
 
+bool isFunctionType(ConcreteType* type) {
+	assert(type);
+	return type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION;
+}
+
+bool isFunctionType(const ExprTypeInfo& info) {
+    bool is = isFunctionType(info.type);
+	//If we have a function, the valueKind must be ANONYMOUS
+	assert(!is || info.valueKind == ValueKind::ANONYMOUS);
+	return is;
+}
+
 FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range) : Expression(range), m_type(std::move(type)), m_body(std::move(body)), m_function(nullptr), m_filled(false), m_broken(false) {
 	assert(m_type);
 	m_type->setFunctionExpression(this);
@@ -472,7 +484,7 @@ EvaluatedExpression FunctionExpression::codegenImplicitExpression(CodegenLLVM& c
 		lastValuePointer = func->isReferenceReturn();
 
 		info = &func->getReturnTypeInfo(); //What's returned from one function call
-	} while(info->type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION);
+	} while(isFunctionType(*info));
 
 	if(lastValuePointer) {
 		if(pointerReturn)
@@ -541,7 +553,7 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 		givenRefReturn = true;
 	} else {
 		if(refReturn)
-			assert(m_body->getTypeInfo().type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION);
+			assert(isFunctionType(m_body->getTypeInfo()));
 		bodyValue = m_body->codegenExpression(codegen);
 		givenRefReturn = false;
 	}

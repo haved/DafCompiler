@@ -136,6 +136,9 @@ public:
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 };
 
+bool isFunctionType(const ExprTypeInfo& info);
+bool isFunctionType(ConcreteType* type);
+
 class FunctionExpression : public Expression {
 private:
 	unique_ptr<FunctionType> m_type;

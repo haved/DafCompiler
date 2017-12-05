@@ -498,7 +498,7 @@ ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap
 	ConcreteType* type = m_function->getTypeInfo().type;
 	assert(type);
 
-	if(type->getConcreteTypeKind() != ConcreteTypeKind::FUNCTION) {
+	if(!isFunctionType(type)) {
 		logDaf(getRange(), ERROR) << "function call expected function type" << std::endl;
 		return ConcretableState::LOST_CAUSE;
 	}
@@ -545,7 +545,7 @@ ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap
 		parameterIndex+=requiredParamC;
 
 		finalTypeInfo = funcType->getReturnTypeInfo();
-		if(finalTypeInfo.type->getConcreteTypeKind() != ConcreteTypeKind::FUNCTION) {
+		if(!isFunctionType(finalTypeInfo)) {
 			if(parameterIndex != givenParameters) {
 				logDaf(getRange(), ERROR) << (givenParameters-parameterIndex) << " too many parameters given" << std::endl;
 				return ConcretableState::LOST_CAUSE;
@@ -561,7 +561,7 @@ ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap
 EvaluatedExpression FunctionCallExpression::codegenFunctionCall(CodegenLLVM& codegen, bool pointerReturn) {
 	EvaluatedExpression function = m_function->codegenExpression(codegen);
 
-	assert(function.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION);
+	assert(isFunctionType(*function.typeInfo));
 
 	const ExprTypeInfo* current = function.typeInfo;
 	llvm::Value* result;
@@ -593,7 +593,7 @@ EvaluatedExpression FunctionCallExpression::codegenFunctionCall(CodegenLLVM& cod
 		resultIsRef = funcType->isReferenceReturn();
 
 		current = &funcType->getReturnTypeInfo();
-		if(current->type->getConcreteTypeKind() != ConcreteTypeKind::FUNCTION) {
+		if(!isFunctionType(*current)) {
 			assert(parameterIndex == m_args.size());
 			break;
 		}
