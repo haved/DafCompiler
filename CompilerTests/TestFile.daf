@@ -44,8 +44,16 @@ def other(let a:i32){};
 
 def func(a:i32, b:u8):i32=5;
 
+mut x:=1;
+
+def funkier():mut=x;
+
+def otherFunc(mut a:i32):mut = x;
+
 def caller:mut={
 	func(1, 2u8);
 	mut x:=func(4, 1u8);
-	x
+
+	otherFunc(mut x);
+	otherFunc(mut funkier)
 };

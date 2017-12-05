@@ -617,7 +617,7 @@ EvaluatedExpression FunctionCallExpression::codegenExpression(CodegenLLVM& codeg
 }
 
 EvaluatedExpression FunctionCallExpression::codegenPointer(CodegenLLVM& codegen) {
-	assert(!functionTypeAllowed());
+	assert(isReferenceTypeInfo());
 	return codegenFunctionCall(codegen, true);
 }
 

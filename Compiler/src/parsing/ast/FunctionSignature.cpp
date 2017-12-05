@@ -459,10 +459,12 @@ EvaluatedExpression FunctionExpression::codegenExplicitExpression(CodegenLLVM& c
 EvaluatedExpression FunctionExpression::codegenImplicitExpression(CodegenLLVM& codegen, bool pointerReturn) {
 	if(!m_filled && !m_broken)
 		fillFunctionBody(codegen);
+	assert(!m_broken && "Function broken yet trying codegen :(");
 	llvm::Value* value;
 	bool lastValuePointer;
 	ExprTypeInfo start = ExprTypeInfo(m_type.get(), ValueKind::ANONYMOUS);
 	const ExprTypeInfo* info = &start;
+
 	do {
 		FunctionType* func = static_cast<FunctionType*>(info->type);
 	    assert(func->getImplicitAccessReturnTypeInfo() && func->getFunctionExpression());
@@ -533,11 +535,12 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 	EvaluatedExpression bodyValue(nullptr, &m_typeInfo); //Just to fullfull the invariant
 	bool givenRefReturn = false;
 
-	if(m_body->isReferenceTypeInfo()) {
-		givenRefReturn = true;
-		bodyValue = m_body->codegenPointer(codegen);
-	} else
+	if(!refReturn || m_body->getTypeInfo().type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION)
 		bodyValue = m_body->codegenExpression(codegen);
+	else {
+		bodyValue = m_body->codegenPointer(codegen);
+		givenRefReturn = true;
+	}
 	while(!returnTypeWorks(*bodyValue.typeInfo, m_type->getReturnTypeInfo())) {
 		assert(bodyValue.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION);
 		FunctionType* func = static_cast<FunctionType*>(bodyValue.typeInfo->type);
