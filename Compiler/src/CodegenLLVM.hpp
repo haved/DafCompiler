@@ -14,6 +14,11 @@
 #include <memory>
 #include <string>
 
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
+
+
 class CodegenLLVM {
 private:
 	llvm::LLVMContext m_context;
@@ -27,4 +32,5 @@ public:
 };
 
 class FileRegistry;
-void doCodegen(FileRegistry& files);
+void doCodegen(CodegenLLVM& codegen, FileRegistry& files);
+void outputCodegenToFile(CodegenLLVM& codegen, fs::path& outputFile);

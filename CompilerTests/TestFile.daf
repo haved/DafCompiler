@@ -1,4 +1,4 @@
-// -*- compile-command: "time ./CompileToTest.py && ./RunTests.py -f TestFile.daf" -*-
+// -*- compile-command: "time ./CompileToTest.py && ./RunTest.py TestFile.daf" -*-
 
 /*
 def funky:=6;

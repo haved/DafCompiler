@@ -58,5 +58,5 @@ target_include_directories(DafCompiler PUBLIC "${CMAKE_SOURCE_DIR}/src")
 
 # Find the libraries that correspond to the LLVM components
 # that we wish to use
-LLVM_MAP_COMPONENTS_TO_LIBNAMES(llvm_libs core irreader)
+LLVM_MAP_COMPONENTS_TO_LIBNAMES(llvm_libs core irreader support passes target asmparser asmprinter codegen)
 TARGET_LINK_LIBRARIES(DafCompiler ${Boost_LIBRARIES} ${llvm_libs})

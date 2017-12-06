@@ -38,11 +38,16 @@ int main(int argc, const char** argv) {
 	if(dependencyGraph.complainAboutLoops())
 		terminateIfErrors(), assert(false);
 
-	doCodegen(files);
-
+    CodegenLLVM codegen("The global daf LLVM module");
+	doCodegen(codegen, files);
 	terminateIfErrors();
 
+	if(debug)
+		codegen.Module().dump();
+
+	outputCodegenToFile(codegen, files.getOutput());
 	llvm::llvm_shutdown(); //There will still be objects on the heap after this ;(
+	terminateIfErrors();
 
 	puts("Shutdown gracefully");
 

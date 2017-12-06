@@ -43,6 +43,7 @@ public:
 	inline int getFileCount() { return m_registeredFiles.size(); }
 	inline RegisteredFileInternal* getFileAt(uint index) { return &m_registeredFiles[index]; }
 	inline RegisteredFile getFileReference(uint index) { assert(index < m_registeredFiles.size()); return RegisteredFile(this, index); }
+	inline fs::path& getOutput() { return m_outputFile; }
 	void printFiles();
 };
 
