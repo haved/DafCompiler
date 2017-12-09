@@ -39,7 +39,7 @@ def mut x := val;
 def y := x;
 def mut z := x;
 */
-
+/*
 def other(let a:i32){};
 
 def func(a:i32, b:u8):i32=5;
@@ -55,4 +55,14 @@ def caller:mut={
 	mut x:=func(4, 1u8);
 
 	otherFunc(funkier)
+};
+*/
+
+def gimmie5:=5;
+
+def inputInt():i32 "inputIntFromC";
+
+def dafMain():i32 {
+	mut x := inputInt;
+	x+2
 };

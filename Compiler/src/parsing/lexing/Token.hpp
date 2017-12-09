@@ -73,6 +73,8 @@ void setTokenFromRealNumber(Token& token, LiteralKind realType, daf_largest_floa
 
 void setTokenFromInteger(Token& token, LiteralKind intType, daf_largest_uint integer, int line, int col, int endCol, const std::string& text);
 
+void setTokenFromStringLiteral(Token& token, std::string&& text, int line, int col, int endLine, int endCol);
+
 bool mergeTokens(Token& first, const Token& second);
 
 void setProperEOFToken(Token& token, int line, char col);

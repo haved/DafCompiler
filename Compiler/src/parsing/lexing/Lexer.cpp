@@ -6,7 +6,7 @@
 
 #include <string>
 
-#define FIRST_CHAR_COL 0 //The column the first char on a line is
+#define FIRST_CHAR_COL 0 //The colunmn the first char on a line is
 //TAB_WIDTH is defined in Constants.hpp
 
 Lexer::Lexer(RegisteredFile file) : m_file(file), infile(),
@@ -97,14 +97,30 @@ char Lexer::parseOneChar() {
 	default: break;
 	};
 
-	logDaf(m_file, controlLine, controlCol, ERROR) << "Expected a special char, not '" << control << "'";
+	logDaf(m_file, controlLine, controlCol, ERROR) << "Expected a special char after \\, not '" << control << "'";
 	return control;
 }
 
-//TODO
 bool Lexer::parseStringLiteral(Token& token) {
-	(void) token;
-	return false;
+	int startLine = line;
+	int startCol = col;
+	advanceChar(); //Eat '"'
+	std::string text;
+	while(currentChar != '"') {
+		if(currentChar == EOF) {
+			logDaf(m_file, line, col, ERROR) << "expected '\"' before EOF" << std::endl;
+			return false;
+		} else if(currentChar == '\n') {
+			logDaf(m_file, line, col, ERROR) << "expected '\"' before EOL" << std::endl;
+			return false;
+		}
+		text.push_back(parseOneChar());
+	}
+	setTokenFromStringLiteral(token, std::move(text), startLine, startCol, line, col);
+
+	advanceChar(); //Eat ending '"'
+
+	return true;
 }
 
 //TODO
@@ -135,6 +151,10 @@ bool Lexer::advance() {
 				if(parseNumberLiteral(getLastToken()))
 					break; //If the lookahead token was set (Wanted behaviour)
 				continue; //Otherwise an error was given and we keep looking for tokens
+			} else if(currentChar == '"') {
+				if(parseStringLiteral(getLastToken()))
+					break;
+				continue;
 			}
 			else if(isStartOfText(currentChar)) {
 				std::string& word = getLastToken().text;

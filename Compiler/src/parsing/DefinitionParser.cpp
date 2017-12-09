@@ -83,31 +83,21 @@ unique_ptr<Definition> parseDefDefinition(Lexer& lexer, bool pub) {
 
 	ReturnKind defReturnKind = parseReturnKind(lexer);
 
-	//TODO: Gotta find out about that inline and what it even means
-
 	if(!lexer.expectToken(IDENTIFIER))
 		return none_defnt();
 
 	std::string name(lexer.getCurrentToken().text);
 	lexer.advance(); //Eat identifier
 
-	unique_ptr<FunctionType> functionType = parseFunctionType(lexer, AllowCompileTimeParameters::YES, AllowEatingEqualsSign::YES);
-	if(!functionType)
-		return none_defnt();
-	functionType->mergeInDefReturnKind(defReturnKind);
-
-	unique_ptr<Expression> body = parseFunctionBody(lexer, *functionType);
-	if(!body)
+	unique_ptr<FunctionExpression> function = parseFunctionExpression(lexer, defReturnKind);
+	if(!function)
 		return none_defnt();
 
 	if(lexer.expectToken(STATEMENT_END))
 		lexer.advance(); // Eat ';'
 
 	TextRange range(lexer.getFile(), startLine, startCol, lexer.getPreviousToken());
-
-	TextRange packedRange(functionType->getRange(), body->getRange());
-    auto packedFunction = std::make_unique<FunctionExpression>(std::move(functionType), std::move(body), packedRange);
-	return std::make_unique<Def>(pub, std::move(name), std::move(packedFunction), range);
+	return std::make_unique<Def>(pub, std::move(name), std::move(function), range);
 }
 
 unique_ptr<Definition> parseTypedefDefinition(Lexer& lexer, bool pub) {

@@ -216,7 +216,7 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 			depMap.makeFirstDependentOnSecond(this, m_givenReturnType.getType());
 	}
 
-	if(m_functionExpression) {
+	if(m_functionExpression && m_functionExpression->hasBody()) {
 		auto body = m_functionExpression->getBody();
 		assert(body->getConcretableState() == ConcretableState::NEVER_TRIED);
 		//TODO: ADD parameter namespace and push it
@@ -271,7 +271,7 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 		ConcreteType* returnType = nullptr;
 		ValueKind kind;
 
-		if(m_functionExpression) {
+		if(m_functionExpression && m_functionExpression->hasBody()) {
 			ExprTypeInfo topBodyInfo = m_functionExpression->getBody()->getTypeInfo();
 
 			ValueKind requiredValueKind = returnKindToValueKind(m_returnKind);
@@ -304,8 +304,9 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 			returnType = requiredType ? requiredType : digBodyInfo.type;
 			kind = requiredValueKind;
 		} else {
-		    assert("FunctionPointers aren't implemented");
-			return ConcretableState::LOST_CAUSE;
+			assert(m_givenReturnType.getType());
+			returnType = m_givenReturnType.getConcreteType();
+			kind = returnKindToValueKind(m_returnKind);
 		}
 
 		m_returnTypeInfo = ExprTypeInfo(returnType, kind);
@@ -409,20 +410,30 @@ bool isFunctionType(const ExprTypeInfo& info) {
 	return is;
 }
 
-FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range) : Expression(range), m_type(std::move(type)), m_body(std::move(body)), m_function(nullptr), m_filled(false), m_broken(false) {
+FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range) : Expression(range), m_type(std::move(type)), m_body(std::move(body)), m_foreign_function(boost::none), m_function(nullptr), m_filled(false), m_broken(false) {
 	assert(m_type);
 	m_type->setFunctionExpression(this);
 	assert(m_body);
 }
 
+FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, std::string&& foreign_function, TextRange range) : Expression(range), m_type(std::move(type)), m_body(nullptr), m_foreign_function(std::move(foreign_function)), m_function(nullptr), m_filled(false), m_broken(false) {
+	assert(m_type);
+	m_type->setFunctionExpression(this);
+}
+
 void FunctionExpression::printSignature() {
 	m_type->printSignature();
 	std::cout << " ";
-	if(DafSettings::shouldPrintFullSignature()) {
-		assert(m_body);
-		m_body->printSignature();
+	if(hasBody()) {
+		if(DafSettings::shouldPrintFullSignature()) {
+			assert(m_body);
+			m_body->printSignature();
+		} else {
+			std::cout << "{...}";
+		}
 	} else {
-		std::cout << "{...}";
+		assert(m_foreign_function);
+		std::cout << "#foreign \"" << *m_foreign_function << "\"";
 	}
 }
 
@@ -523,17 +534,33 @@ void FunctionExpression::makePrototype(CodegenLLVM& codegen, const std::string& 
 		return;
 
 	llvm::FunctionType* FT = m_type->codegenFunctionType(codegen);
-	if(!FT)
+	if(!FT) {
 		m_broken = true;
-	else
-		m_function = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, name, &codegen.Module());
+		return;
+	}
+
+	const std::string* namePtr = &name;
+	if(m_foreign_function) {
+		if(codegen.Module().getFunction(*m_foreign_function)) {
+			logDaf(getRange(), ERROR) << "Function name " << name << " already taken in LLVM codegen" << std::endl;
+			m_broken = true;
+			return;
+		}
+		m_filled = true;
+		namePtr = &*m_foreign_function;
+	}
+
+	m_function = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, *namePtr, &codegen.Module());
 }
 
 void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
-	if(!m_function)
+	if(!m_function) {
 		makePrototype(codegen, "anon_function");
+	}
 	if(m_filled || m_broken)
 		return;
+
+	assert(m_body);
 
 	llvm::BasicBlock* oldInsertBlock = codegen.Builder().GetInsertBlock();
 

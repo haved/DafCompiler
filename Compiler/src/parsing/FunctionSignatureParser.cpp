@@ -52,10 +52,7 @@ ParameterModifier parseParameterModifier(Lexer& lexer) {
 	}
 }
 
-bool parseFunctionParameter(Lexer& lexer, std::vector<unique_ptr<FunctionParameter>>& params, AllowCompileTimeParameters compTimeParamEnum) {
-
-	bool compTimeParam = static_cast<bool>(compTimeParamEnum);
-
+bool parseFunctionParameter(Lexer& lexer, std::vector<unique_ptr<FunctionParameter>>& params) {
 	ParameterModifier modif = parseParameterModifier(lexer);
 
 	if(!lexer.expectToken(IDENTIFIER))
@@ -65,9 +62,6 @@ bool parseFunctionParameter(Lexer& lexer, std::vector<unique_ptr<FunctionParamet
 
 	//We assume you meant value parameter if you forgot colon but have a modifier
 	if(modif == ParameterModifier::NONE && lexer.getLookahead().type != TYPE_SEPARATOR) {
-		if(!compTimeParam)
-			logDaf(lexer.getFile(), lexer.getPreviousToken(), ERROR) << "type parameters are only allowed in def parameter lists." << std::endl;
-
 		if(!lexer.expectProperIdentifier())
 			return false;
 
@@ -84,8 +78,6 @@ bool parseFunctionParameter(Lexer& lexer, std::vector<unique_ptr<FunctionParamet
 	lexer.advance(); //Eat ':'
 
 	if(lexer.currType() == TYPE_INFERRED) {
-		if(!compTimeParam)
-			logDaf(lexer.getFile(), lexer.getPreviousToken(), ERROR) << "type inferring is only allowed in def parameter lists." << std::endl;
 		lexer.advance(); //Eat '$'
 
 		if(!lexer.expectProperIdentifier()) //Gives normal expected identifier error if different token
@@ -104,7 +96,7 @@ bool parseFunctionParameter(Lexer& lexer, std::vector<unique_ptr<FunctionParamet
 	return true;
 }
 
-unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowCompileTimeParameters compTimeParam, AllowEatingEqualsSign equalSignEdibleEnum) {
+unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowEatingEqualsSign equalSignEdibleEnum) {
 
 	bool equalSignEdible = static_cast<bool>(equalSignEdibleEnum);
 
@@ -117,7 +109,7 @@ unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowCompileTimeParamet
 			do {
 				lexer.advance(); //Eat ( or comma
 
-				if( !parseFunctionParameter(lexer, params, compTimeParam) ) {
+				if( !parseFunctionParameter(lexer, params) ) {
 					if(skipUntil(lexer, RIGHT_PAREN))
 						break;
 					return none_funcTyp();
@@ -178,6 +170,15 @@ unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowCompileTimeParamet
 	return std::make_unique<FunctionType>(std::move(params), return_kind, std::move(type), ateEqualsSign, range);
 }
 
+optional<std::string> tryParseForeignFunctionBody(Lexer& lexer, FunctionType& type) {
+	if(!type.ateEqualsSign() && lexer.currType() == STRING_LITERAL) {
+		std::string output = std::move(lexer.getCurrentToken().text);
+		lexer.advance();
+		return output;
+	}
+
+	return boost::none;
+}
 
 unique_ptr<Expression> parseFunctionBody(Lexer& lexer, FunctionType& type) {
 	if(!type.ateEqualsSign())
@@ -198,35 +199,43 @@ unique_ptr<Expression> parseFunctionBody(Lexer& lexer, FunctionType& type) {
 	return body;
 }
 
-unique_ptr<Expression> none_expr() {
-	return unique_ptr<Expression>();
+unique_ptr<FunctionExpression> none_func_expr() {
+	return unique_ptr<FunctionExpression>();
 }
 
-//Can start at def to allow compile time parameters, at 'inline', at '(', or ':', '=' if you're weird, or '{' for just a body
-unique_ptr<Expression> parseFunctionExpression(Lexer& lexer) {
+unique_ptr<FunctionExpression> parseFunctionExpression(Lexer& lexer, optional<ReturnKind> givenDefReturnKind) {
 
 	int startLine = lexer.getCurrentToken().line;
 	int startCol  = lexer.getCurrentToken().col;
 
-	ReturnKind defReturnKind = ReturnKind::VALUE_RETURN;
-	bool def = lexer.currType() == DEF;
-	if(def) {
-		lexer.advance(); //Eat 'def'
-		defReturnKind = parseReturnKind(lexer);
+	ReturnKind defReturnKind;
+	if(givenDefReturnKind) {
+		defReturnKind = *givenDefReturnKind;
+	} else {
+		if(lexer.currType() == DEF) {
+			lexer.advance(); //Eat 'def'
+			defReturnKind = parseReturnKind(lexer);
+		}
 	}
 
-	unique_ptr<FunctionType> type = parseFunctionType(lexer, def?AllowCompileTimeParameters::YES : AllowCompileTimeParameters::NO, AllowEatingEqualsSign::YES);
+	unique_ptr<FunctionType> type = parseFunctionType(lexer, AllowEatingEqualsSign::YES);
 	if(!type)
-		return none_expr();
+		return none_func_expr();
 
 	type->mergeInDefReturnKind(defReturnKind);
 
+	optional<std::string> foreign_function = tryParseForeignFunctionBody(lexer, *type);
+	if(foreign_function) {
+		TextRange range(lexer.getFile(), startLine, startCol, lexer.getPreviousToken());
+		return std::make_unique<FunctionExpression>(std::move(type), std::move(*foreign_function), range);
+	}
+
 	unique_ptr<Expression> body = parseFunctionBody(lexer, *type);
 	if(!body)
-		return none_expr();
+		return none_func_expr();
 
 	TextRange range(lexer.getFile(), startLine, startCol, lexer.getPreviousToken());
 
-	return std::unique_ptr<FunctionExpression>(new FunctionExpression(std::move(type), std::move(body), range));
+	return std::make_unique<FunctionExpression>(std::move(type), std::move(body), range);
 }
 

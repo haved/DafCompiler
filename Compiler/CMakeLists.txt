@@ -60,3 +60,30 @@ target_include_directories(DafCompiler PUBLIC "${CMAKE_SOURCE_DIR}/src")
 # that we wish to use
 LLVM_MAP_COMPONENTS_TO_LIBNAMES(llvm_libs core irreader support passes target asmparser asmprinter codegen)
 TARGET_LINK_LIBRARIES(DafCompiler ${Boost_LIBRARIES} ${llvm_libs})
+
+
+TARGET_LINK_LIBRARIES(DafCompiler ${Boost_LIBRARIES})
+TARGET_LINK_LIBRARIES(DafCompiler
+  LLVMXCoreCodeGen
+  LLVMSystemZCodeGen
+  LLVMSystemZAsmParser
+  LLVMSparcCodeGen
+  LLVMSparcAsmParser
+  LLVMPowerPCCodeGen
+  LLVMPowerPCAsmParser
+  LLVMNVPTXCodeGen
+  LLVMMSP430CodeGen
+  LLVMMipsCodeGen
+  LLVMMipsAsmParser
+  LLVMHexagonCodeGen
+  LLVMHexagonAsmParser
+  LLVMBPFCodeGen
+  LLVMARMCodeGen
+  LLVMARMAsmParser
+  LLVMAMDGPUCodeGen
+  LLVMAMDGPUAsmParser
+  LLVMAArch64CodeGen
+  LLVMAArch64AsmParser
+  LLVMX86CodeGen
+  LLVMX86AsmParser
+  )

@@ -1,4 +1,5 @@
 #include "parsing/lexing/Token.hpp"
+#include <cassert>
 
 //TODO: Huge performance boost potential
 const char* TOKEN_TEXT[] = {
@@ -166,6 +167,17 @@ void setTokenFromInteger(Token& token, LiteralKind intType, daf_largest_uint int
 	token.col = col;
 	token.endCol = endCol;
 	token.text = text;
+}
+
+void setTokenFromStringLiteral(Token& token, std::string&& text, int line, int col, int endLine, int endCol) {
+	token.type = STRING_LITERAL;
+	token.text = std::move(text);
+	token.real = 0.0;
+	token.integer = 0;
+	token.line = line;
+	token.col = col;
+	token.endCol = endCol;
+	assert(line == endLine); //TODO: Support multiline tokens
 }
 
 bool mergeTokens(Token& first, const Token& second) {

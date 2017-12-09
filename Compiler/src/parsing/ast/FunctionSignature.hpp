@@ -143,6 +143,7 @@ class FunctionExpression : public Expression {
 private:
 	unique_ptr<FunctionType> m_type;
 	unique_ptr<Expression> m_body;
+	optional<std::string> m_foreign_function;
 	llvm::Function* m_function;
 	bool m_filled;
 	bool m_broken;
@@ -151,12 +152,14 @@ private:
 	void fillFunctionBody(CodegenLLVM& codegen);
 public:
 	FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& body, TextRange range);
+	FunctionExpression(unique_ptr<FunctionType>&& type, std::string&& foreign_function, TextRange range);
 	FunctionExpression(const FunctionExpression& other) = delete;
 	~FunctionExpression() = default;
 	FunctionExpression& operator =(const FunctionExpression& other) = delete;
 	virtual void printSignature() override;
 	virtual ExpressionKind getExpressionKind() const override;
-	inline Expression* getBody() {return m_body.get();}
+	inline Expression* getBody() { assert(hasBody()); return m_body.get(); }
+	inline bool hasBody() { return !!m_body.get(); }
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
