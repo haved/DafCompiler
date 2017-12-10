@@ -223,7 +223,8 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 	    BlockLevelInfo& blockLevel = ns_stack.getBlockLevelInfo();
 		std::vector<Let*> usedVariablesFromOutside;
 		auto prev = blockLevel.push(&usedVariablesFromOutside);
-		body->enableFunctionType();
+		if(hasReturn())
+			body->enableFunctionType();
 		ConcretableState state = body->makeConcrete(ns_stack, depMap);
 	    blockLevel.pop(prev);
 		//TODO: Now pop the parameter namespace
@@ -327,13 +328,17 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 	return ConcretableState::CONCRETE;
 }
 
+bool FunctionType::hasReturn() {
+	return m_returnKind != ReturnKind::NO_RETURN;
+}
+
 const ExprTypeInfo& FunctionType::getReturnTypeInfo() {
 	assert(m_returnTypeInfo.type);
 	return m_returnTypeInfo;
 }
 
 bool FunctionType::isReferenceReturn() {
-    return (m_returnTypeInfo.valueKind != ValueKind::ANONYMOUS);
+	return hasReturn() && (m_returnTypeInfo.valueKind != ValueKind::ANONYMOUS);
 }
 
 bool FunctionType::isFunctionTypeReturn() {
@@ -570,6 +575,7 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 
 	m_filled = true;
 
+	bool returns = m_type->hasReturn();
 	bool refReturn = m_type->isReferenceReturn();
 	EvaluatedExpression bodyValue(nullptr, &m_typeInfo); //Just to fullfull the invariant
 	bool givenRefReturn = false;
@@ -585,7 +591,7 @@ void FunctionExpression::fillFunctionBody(CodegenLLVM& codegen) {
 		givenRefReturn = false;
 	}
 
-	while(!returnTypeWorks(*bodyValue.typeInfo, m_type->getReturnTypeInfo())) {
+	while(returns && !returnTypeWorks(*bodyValue.typeInfo, m_type->getReturnTypeInfo())) {
 		assert(bodyValue.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION);
 		FunctionType* func = static_cast<FunctionType*>(bodyValue.typeInfo->type);
 		assert(func->getFunctionExpression());

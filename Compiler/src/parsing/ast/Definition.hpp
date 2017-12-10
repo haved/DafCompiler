@@ -60,7 +60,7 @@ public:
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
 	bool allowsImplicitAccess();
-	const ExprTypeInfo& getImplicitAccessTypeInfo();
+	const optional<ExprTypeInfo>& getImplicitAccessTypeInfo();
 	const ExprTypeInfo& getFunctionExpressionTypeInfo();
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;

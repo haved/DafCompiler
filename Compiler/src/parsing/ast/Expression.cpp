@@ -101,7 +101,13 @@ ConcretableState VariableExpression::makeConcreteInternal(NamespaceStack& ns_sta
 ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& depNode) {
 	(void) depNode;
     assert(m_target && m_target.getDefinition()->getConcretableState() == ConcretableState::CONCRETE);
-	m_typeInfo = m_target.getTypeInfo(functionTypeAllowed());
+	optional<const ExprTypeInfo*> targetTypeInfo = m_target.getTypeInfo(functionTypeAllowed());
+	if(!targetTypeInfo) {
+		logDaf(getRange(), ERROR) << "can't get implicit value of '" << m_name << "'" << std::endl;
+		return ConcretableState::LOST_CAUSE;
+	}
+
+	m_typeInfo = **targetTypeInfo;
 	return ConcretableState::CONCRETE;
 }
 

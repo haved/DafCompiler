@@ -123,6 +123,7 @@ public:
 
 	bool checkConcreteReturnType(const ExprTypeInfo& type);
 
+	bool hasReturn();
 	const ExprTypeInfo& getReturnTypeInfo();
 	bool isReferenceReturn();
 	bool isFunctionTypeReturn();

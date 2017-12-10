@@ -1,68 +1,17 @@
 // -*- compile-command: "time ./CompileToTest.py && ./RunTest.py TestFile.daf" -*-
 
-/*
-def funky:=6;
+def inputInt:i32 "inputIntFromC";
 
-def callMe:=funky;
+def printInt(a:i32) "printIntToC";
 
-def caller {
-	mut x:=5;
-	x=x+callMe;
+def dafFunctionParameters(a:i32):= {
+	printInt
 };
-
-def a {
-	mut x := (def:=def:=5);
-};
-
-
-def doSomething := {
-	(def:=5)
-};
-
-def main {
-	mut x := doSomething;
-};
-
-
-mut val := 5;
-def mut test:= {
-	val
-};
-
-def testTwo :mut i32= test;
-
-def testThree :mut= testTwo;
-
-def testFour := testTwo;
-
-def mut x := val;
-def y := x;
-def mut z := x;
-*/
-/*
-def other(let a:i32){};
-
-def func(a:i32, b:u8):i32=5;
-
-mut x:=1;
-
-def funkier():mut=x;
-
-def otherFunc(a:i32):mut = x;
-
-def caller:mut={
-	func(1, 2u8);
-	mut x:=func(4, 1u8);
-
-	otherFunc(funkier)
-};
-*/
-
-def gimmie5:=5;
-
-def inputInt():i32 "inputIntFromC";
 
 def dafMain():i32 {
-	mut x := inputInt;
-	x+2
+	mut x := inputInt();
+	mut y := inputInt;
+	printInt(x+y);
+	dafFunctionParameters(5)(20);
+	1
 };

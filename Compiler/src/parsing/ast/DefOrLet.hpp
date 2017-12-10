@@ -31,7 +31,7 @@ public:
 	Def* getDef();
 	Let* getLet();
 	Definition* getDefinition();
-	const ExprTypeInfo& getTypeInfo(bool allowFunctionType);
+	optional<const ExprTypeInfo*> getTypeInfo(bool allowFunctionType);
 	operator bool() const;
 };
 

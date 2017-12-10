@@ -89,8 +89,8 @@ bool Def::allowsImplicitAccess() {
     return !!m_functionExpression->getFunctionType().getImplicitAccessReturnTypeInfo();
 }
 
-const ExprTypeInfo& Def::getImplicitAccessTypeInfo() {
-	return *m_functionExpression->getFunctionType().getImplicitAccessReturnTypeInfo();
+const optional<ExprTypeInfo>& Def::getImplicitAccessTypeInfo() {
+	return m_functionExpression->getFunctionType().getImplicitAccessReturnTypeInfo();
 }
 
 const ExprTypeInfo& Def::getFunctionExpressionTypeInfo() {
