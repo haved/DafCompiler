@@ -18,38 +18,31 @@
 using std::unique_ptr;
 using boost::optional;
 
-class Lexer;
-class Definition;
-enum class DefinitionKind;
-
 enum class ValueKind {
 	MUT_LVALUE,
 	LVALUE,
 	ANONYMOUS
 };
 
-int getValueKindScore(ValueKind kind);
+int getValueKindScore(ValueKind kind); //Higher can be converted to lower
 void printValueKind(ValueKind kind, std::ostream& out, bool printAnon = false);
 
-//type is null when the ExprTypeInfo isn't assigned to yet
 struct ExprTypeInfo {
 	ConcreteType* type;
 	ValueKind valueKind;
-
 	ExprTypeInfo(ConcreteType* type, ValueKind kind) : type(type), valueKind(kind) {}
-
-	inline bool equals(const ExprTypeInfo& other) const { return type == other.type && valueKind == other.valueKind; }
+	inline bool equals(const ExprTypeInfo& other) const
+	{ return type == other.type && valueKind == other.valueKind; }
 	inline bool isVoid() const { return type == getVoidType(); }
 };
+ExprTypeInfo getNoneTypeInfo();
 
-//Invariant: typeInfo.type != null
 struct EvaluatedExpression {
 	llvm::Value* value;
-    const ExprTypeInfo* typeInfo;
+    const ExprTypeInfo* typeInfo; // != null
 	EvaluatedExpression(llvm::Value* value, const ExprTypeInfo* type) : value(value), typeInfo(type) {
 		assert(typeInfo);
 	}
-
 	inline bool isVoid() const { return typeInfo->isVoid(); }
 };
 
@@ -255,12 +248,8 @@ class FunctionCallExpression : public Expression {
 private:
 	unique_ptr<Expression> m_function;
 	std::vector<FunctionCallArgument> m_args;
-	FunctionType* m_function_type;
 public:
 	FunctionCallExpression(unique_ptr<Expression>&& function, std::vector<FunctionCallArgument>&& arguments, int lastLine, int lastCol);
-	FunctionCallExpression(const FunctionCallExpression& other) = delete;
-	~FunctionCallExpression() = default;
-	FunctionCallExpression& operator =(const FunctionCallExpression& other) = delete;
 	virtual bool isStatement() override {return true;}
 	virtual void printSignature() override;
 	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::FUNCTION_CALL; }

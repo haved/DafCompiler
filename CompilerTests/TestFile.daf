@@ -8,6 +8,8 @@ def dafFunctionParameters(a:i32):= {
 	printInt
 };
 
+def doAdd(a:i32, b:i32):=a+b;
+
 def dafMain():i32 {
 	mut x := inputInt();
 	mut y := inputInt;

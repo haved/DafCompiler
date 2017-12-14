@@ -34,6 +34,10 @@ void printValueKind(ValueKind kind, std::ostream& out, bool printAnon) {
 	}
 }
 
+ExprTypeInfo getNoneTypeInfo() {
+	return ExprTypeInfo(nullptr, ValueKind::ANONYMOUS);
+}
+
 void complainDefinitionNotLetOrDef(DefinitionKind kind, std::string& name, const TextRange& range) {
 	auto& out = logDaf(range, ERROR) << "expected a let or def, but '" << name << "' is a ";
 	printDefinitionKindName(kind, out) << std::endl;
@@ -415,9 +419,12 @@ void FunctionCallArgument::printSignature() {
 	m_expression->printSignature();
 }
 
-FunctionCallExpression::FunctionCallExpression(unique_ptr<Expression>&& function, std::vector<FunctionCallArgument>&& arguments, int lastLine, int lastCol)
-	: Expression(TextRange(function->getRange(), lastLine, lastCol)), m_function(std::move(function)), m_args(std::move(arguments)), m_function_type(nullptr) {
-	assert(m_function); //You can't call none
+FunctionCallExpression::FunctionCallExpression(unique_ptr<Expression>&& function,
+											   std::vector<FunctionCallArgument>&& arguments,
+											   int lastLine, int lastCol)
+	: Expression(TextRange(function->getRange(), lastLine, lastCol)),
+	  m_function(std::move(function)), m_args(std::move(arguments)) {
+	assert(m_function);
 }
 
 void FunctionCallExpression::printSignature() {
@@ -454,168 +461,6 @@ ConcretableState FunctionCallExpression::makeConcreteInternal(NamespaceStack& ns
 		return ConcretableState::LOST_CAUSE;
 
 	return ConcretableState::TRY_LATER;
-}
-
-optional<ExprTypeInfo> typeInfoFromFunctionCallArg(const FunctionCallArgument& arg) {
-    ExprTypeInfo exprTypeInfo = arg.m_expression->getTypeInfo();
-	bool mutArg = arg.m_mutableReference;
-	if(mutArg && exprTypeInfo.valueKind != ValueKind::MUT_LVALUE) {
-		logDaf(arg.m_range, ERROR) << "trying to pass a non-mutable expression as a mutable variable" << std::endl;
-		return none;
-	}
-	return ExprTypeInfo(exprTypeInfo.type, mutArg ? ValueKind::MUT_LVALUE: ValueKind::ANONYMOUS);
-}
-
-bool checkIfParameterMatchesOrComplain(const FunctionParameter& requested, const FunctionCallArgument& given) {
-	assert(requested.getParameterKind() == ParameterKind::VALUE_PARAM && "We only handle normal value parameters");
-
-	const TextRange& range = given.m_range;
-
-	const ExprTypeInfo& requestedTypeInfo = static_cast<const ValueParameter*>(&requested)->getCallTypeInfo();
-	optional<ExprTypeInfo> givenTypeInfoOpt = typeInfoFromFunctionCallArg(given);
-	if(!givenTypeInfoOpt)
-		return false;
-	ExprTypeInfo givenTypeInfo = *givenTypeInfoOpt;
-
-	if(getValueKindScore(requestedTypeInfo.valueKind) > getValueKindScore(givenTypeInfo.valueKind)) {
-		auto& out = logDaf(range, ERROR) << "argument passed is ";
-		printValueKind(givenTypeInfo.valueKind, out, true);
-		out << "but expected ";
-		printValueKind(requestedTypeInfo.valueKind, out, true);
-		out << std::endl;
-		return false;
-	} else if(requestedTypeInfo.valueKind != ValueKind::MUT_LVALUE && given.m_mutableReference) {
-		logDaf(range, ERROR) << "passing a mut parameter to a function that doesn't need it" << std::endl;
-		return false;
-	}
-
-	if(givenTypeInfo.type != requestedTypeInfo.type) {
-		logDaf(range, ERROR) << "type mismatch between passed argument and expected parameter" << std::endl;
-		assert(false && "TODO: Do type comparisons");
-		return false;
-	}
-
-	return true;
-}
-
-ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
-	(void) depMap;
-
-	ConcreteType* type = m_function->getTypeInfo().type;
-	assert(type);
-
-	if(!isFunctionType(type)) {
-		logDaf(getRange(), ERROR) << "function call expected function type" << std::endl;
-		return ConcretableState::LOST_CAUSE;
-	}
-
-	m_function_type = static_cast<FunctionType*>(type);
-
-	ExprTypeInfo finalTypeInfo = m_function->getTypeInfo();
-
-	unsigned int givenParameters = m_args.size();
-	unsigned int parameterIndex = 0;
-	while (true) {
-		FunctionType* funcType = static_cast<FunctionType*>(finalTypeInfo.type);
-
-		if(parameterIndex == givenParameters) {
-			if(functionTypeAllowed()) { //We've done all our parameters, just return the rest
-				m_typeInfo = finalTypeInfo;
-				break;
-			} else {
-			    optional<ExprTypeInfo> implicit = funcType->getImplicitAccessReturnTypeInfo();
-				if(!implicit) {
-					logDaf(getRange(), ERROR) << "not enough parameters specified" << std::endl;
-					return ConcretableState::LOST_CAUSE;
-				}
-				m_typeInfo = *implicit;
-				break;
-			}
-		}
-		const auto& funcParams = funcType->getParams();
-		unsigned int requiredParamC = funcParams.size();
-		if(givenParameters - parameterIndex < requiredParamC) {
-			logDaf(getRange(), ERROR) << "not enough parameters specified. Given " << (givenParameters-parameterIndex) << "/" << requiredParamC << std::endl;
-			return ConcretableState::LOST_CAUSE;
-		}
-
-		bool failed = false;
-		for(unsigned int i = 0; i < requiredParamC; i++) {
-			const FunctionParameter& requested = *funcParams[i];
-		    const FunctionCallArgument& given = m_args[parameterIndex+i];
-			if(!checkIfParameterMatchesOrComplain(requested, given))
-				failed = true;
-		}
-		if(failed)
-			return ConcretableState::LOST_CAUSE;
-		parameterIndex+=requiredParamC;
-
-		finalTypeInfo = funcType->getReturnTypeInfo();
-		if(!isFunctionType(finalTypeInfo)) {
-			if(parameterIndex != givenParameters) {
-				logDaf(getRange(), ERROR) << (givenParameters-parameterIndex) << " too many parameters given" << std::endl;
-				return ConcretableState::LOST_CAUSE;
-			}
-			m_typeInfo = finalTypeInfo;
-			break;
-		}
-	}
-
-	return ConcretableState::CONCRETE;
-}
-
-EvaluatedExpression FunctionCallExpression::codegenFunctionCall(CodegenLLVM& codegen, bool pointerReturn) {
-	EvaluatedExpression function = m_function->codegenExpression(codegen);
-
-	assert(isFunctionType(*function.typeInfo));
-
-	const ExprTypeInfo* current = function.typeInfo;
-	llvm::Value* result;
-	bool resultIsRef;
-
-	unsigned int parameterIndex = 0;
-	while(true) {
-		auto* funcType = static_cast<FunctionType*>(current->type);
-		llvm::Value* func_prototype = funcType->getFunctionExpression()->getPrototype();
-
-		auto& paramsRequired = funcType->getParams();
-		assert(m_args.size() >= paramsRequired.size()+parameterIndex);
-		std::vector<llvm::Value*> paramsGiven;
-
-		for(unsigned int i = 0; i < paramsRequired.size(); i++) {
-			auto* param = paramsRequired[i].get();
-			assert(param->getParameterKind() == ParameterKind::VALUE_PARAM);
-			auto* valParam = static_cast<ValueParameter*>(param);
-			bool refParam =  valParam->isReferenceParameter();
-			Expression& expression = *m_args[parameterIndex+i].m_expression;
-			assert(refParam ? expression.isReferenceTypeInfo() : true);
-			EvaluatedExpression paramEval = refParam ? expression.codegenPointer(codegen) : expression.codegenExpression(codegen);
-			paramsGiven.push_back(paramEval.value);
-		}
-
-		parameterIndex += paramsRequired.size();
-
-		result = codegen.Builder().CreateCall(func_prototype, paramsGiven);
-		resultIsRef = funcType->isReferenceReturn();
-
-		current = &funcType->getReturnTypeInfo();
-		if(!isFunctionType(*current)) {
-			assert(parameterIndex == m_args.size());
-			break;
-		}
-	    else if(functionTypeAllowed() && parameterIndex && m_args.size()) { //Stop bothering with
-			break;
-		}
-	}
-
-	if(pointerReturn) {
-		assert(resultIsRef);
-	} else {
-		if(resultIsRef)
-			result = codegen.Builder().CreateLoad(result);
-	}
-
-	return EvaluatedExpression(result, current);
 }
 
 EvaluatedExpression FunctionCallExpression::codegenExpression(CodegenLLVM& codegen) {
