@@ -28,6 +28,9 @@ private:
 
 	ExprTypeInfo m_returnTypeInfo;
 	optional<ExprTypeInfo> m_implicitCallReturnTypeInfo;
+
+	bool makeConcreteNeverCalled();
+	bool isConcrete();
 public:
 	FunctionType(param_list&& parameters, ReturnKind givenReturnKind,
 				 optional<TypeReference> givenReturnType, TextRange& range);
@@ -36,11 +39,19 @@ public:
 	virtual ConcreteTypeKind getConcreteTypeKind() override;
 
 	bool hasReturn();
+
+	bool addReturnKindModifier(ReturnKind kind);
 	void setFunctionBody(Expression* body);
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
+
+	ExprTypeInfo getReturnTypeInfo();
+	optional<ExprTypeInfo> getImplicitCallReturnTypeInfo();
 };
+
+bool isFunctionType(ConcreteType* type);
+FunctionType* castToFunctionType(ConcreteType* type);
 
 class FunctionExpression : public Expression {
 

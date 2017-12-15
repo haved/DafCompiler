@@ -4,6 +4,22 @@
 #include "info/DafSettings.hpp"
 #include "parsing/semantic/ConcretableHelp.hpp"
 
+#define len(TB) sizeof(TB)/sizeof(*TB)
+ReturnKind returnKindScores[] = {ReturnKind::NO_RETURN, ReturnKind::VALUE_RETURN,
+					 ReturnKind::REF_RETURN, ReturnKind::MUT_REF_RETURN};
+
+int returnKindToScore(ReturnKind kind) {
+    int i = 0;
+	while(returnKindScores[i]!=kind)
+		i++;
+	return i;
+}
+
+ReturnKind scoreToReturnKind(int score) {
+	assert(score >= 0 && (unsigned)score < len(returnKindScores));
+	return returnKindScores[score];
+}
+
 ValueKind returnKindToValueKind(ReturnKind kind) {
 	switch(kind) {
     default: assert(false);
@@ -11,6 +27,21 @@ ValueKind returnKindToValueKind(ReturnKind kind) {
 	case ReturnKind::REF_RETURN: return ValueKind::LVALUE;
 	case ReturnKind::MUT_REF_RETURN: return ValueKind::MUT_LVALUE;
 	}
+}
+
+void degradeValueKind(ValueKind& self, ValueKind target) {
+	if(getValueKindScore(self) > getValueKindScore(target))
+		self = target;
+}
+
+bool isFunctionType(ConcreteType* type) {
+	assert(type);
+	return type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION;
+}
+
+FunctionType* castToFunctionType(ConcreteType* type) {
+	assert(isFunctionType(type));
+	return static_cast<FunctionType*>(type);
 }
 
 FunctionType::FunctionType(param_list&& parameters, ReturnKind givenKind,
@@ -29,6 +60,14 @@ FunctionType::FunctionType(param_list&& parameters, ReturnKind givenKind,
 		assert(m_givenReturnType->getType());
 }
 
+bool FunctionType::makeConcreteNeverCalled() {
+	return getConcretableState() == ConcretableState::NEVER_TRIED;
+}
+
+bool FunctionType::isConcrete() {
+	return getConcretableState() == ConcretableState::CONCRETE;
+}
+
 ConcreteType* FunctionType::getConcreteType() {
 	return this;
 }
@@ -42,14 +81,21 @@ bool FunctionType::hasReturn() {
 }
 
 void FunctionType::setFunctionBody(Expression* body) {
-	assert(body);
+	assert(body && makeConcreteNeverCalled());
 	m_functionBody = body;
 }
 
 bool FunctionType::addReturnKindModifier(ReturnKind kind) {
+    assert(makeConcreteNeverCalled());
 	if(!hasReturn() && kind != ReturnKind::NO_RETURN) {
 		logDaf(getRange(), ERROR) << "can't apply return modifiers to a function without a return" << std::endl;
+		return false;
 	}
+	int newScore = returnKindToScore(kind);
+	int oldScore = returnKindToScore(m_givenReturnKind);
+	if(oldScore < newScore)
+	    m_givenReturnKind = kind;
+	return true;
 }
 
 ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
@@ -95,19 +141,75 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 	return ConcretableState::TRY_LATER;
 }
 
+bool isReturnCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind, ExprTypeInfo& given) {
+	if(getValueKindScore(requiredKind) > getValueKindScore(given.valueKind))
+		return false;
+    if(requiredType && *requiredType != given.type) {
+		std::cout << "TODO: Compare types properly" << std::endl;
+		return false;
+	}
+    return true;
+}
+
+void complainReturnIsntCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind,
+							   ExprTypeInfo& given, const TextRange& range) {
+	auto& out = logDaf(range, ERROR) << "Type of function body isn't sufficient with signature" << std::endl;
+	out << "\tgiven ";
+	printValueKind(given.valueKind, out);
+	given.type->printSignature();
+	out << " required ";
+	printValueKind(requiredKind, out, true);
+	if(requiredType)
+		(*requiredType)->printSignature();
+	out << std::endl;
+}
+
 ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
+
 	if(hasReturn()) {
-	    ValueKind kind = returnKindToValueKind(m_givenReturnKind);
+	    ValueKind reqKind = returnKindToValueKind(m_givenReturnKind);
+		optional<ConcreteType*> reqType;
+		if(m_givenReturnType)
+			reqType = m_givenReturnType->getType()->getConcreteType();
+
 		if(m_functionBody) {
 			Expression* body = *m_functionBody;
 			ExprTypeInfo bodyTypeInfo = body->getTypeInfo();
 
+			while(!isReturnCorrect(reqType, reqKind, bodyTypeInfo)) {
+			    if(isFunctionType(bodyTypeInfo.type)) {
+				    FunctionType* function = castToFunctionType(bodyTypeInfo.type);
+					optional<ExprTypeInfo> func_return = function->getImplicitCallReturnTypeInfo();
+					if(func_return)
+						bodyTypeInfo = *func_return;
+					continue;
+				}
+
+				complainReturnIsntCorrect(reqType, reqKind, bodyTypeInfo, getRange());
+				return ConcretableState::LOST_CAUSE;
+			}
+
+			m_returnTypeInfo = bodyTypeInfo;
+			degradeValueKind(m_returnTypeInfo.valueKind, reqKind);
 		} else {
-			assert(m_givenReturnType);
-			m_returnTypeInfo = ExprTypeInfo(m_givenReturnType->getType()->getConcreteType(), );
+			assert(reqType);
+			m_returnTypeInfo = ExprTypeInfo(*reqType, reqKind);
 		}
-	} else {
+	} else { //The point of no return
 		m_returnTypeInfo = ExprTypeInfo(getVoidType(), ValueKind::ANONYMOUS);
 		m_implicitCallReturnTypeInfo = boost::none;
-	}
+	} //And there's something in the air
+
+	return ConcretableState::CONCRETE;
+}
+
+ExprTypeInfo FunctionType::getReturnTypeInfo() {
+	assert(isConcrete());
+	return m_returnTypeInfo;
+}
+
+optional<ExprTypeInfo> FunctionType::getImplicitCallReturnTypeInfo() {
+	assert(isConcrete());
+	return m_implicitCallReturnTypeInfo;
 }
