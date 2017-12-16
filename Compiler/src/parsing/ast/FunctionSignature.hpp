@@ -37,7 +37,7 @@ public:
 
 	virtual ConcreteType* getConcreteType() override;
 	virtual ConcreteTypeKind getConcreteTypeKind() override;
-
+	virtual void printSignature() override;
 	bool hasReturn();
 
 	bool addReturnKindModifier(ReturnKind kind);
@@ -54,5 +54,28 @@ bool isFunctionType(ConcreteType* type);
 FunctionType* castToFunctionType(ConcreteType* type);
 
 class FunctionExpression : public Expression {
+private:
+	unique_ptr<FunctionType> m_type;
+	optional<unique_ptr<Expression>> m_function_body;
+	optional<std::string> m_function_name;
 
+	bool m_broken_prototype, m_filled_prototype;
+	llvm::Function* m_prototype;
+	void fillPrototype(CodegenLLVM& codegen);
+public:
+	FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& function_body, TextRange& range);
+	FunctionExpression(unique_ptr<FunctionType>&& type, std::string&& foreign_name, TextRange& range);
+
+	virtual ExpressionKind getExpressionKind() const override;
+	virtual void printSignature() override;
+
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
+
+	void makePrototype(CodegenLLVM& codegen);
+	llvm::Function* tryGetOrMakePrototype(CodegenLLVM& codegen);
+
+	EvaluatedExpression codegenImplicitExpression(CodegenLLVM& codegen, bool pointer);
+	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
+	virtual EvaluatedExpression codegenPointer(CodegenLLVM& codegen) override;
 };

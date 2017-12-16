@@ -180,7 +180,7 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 			while(!isReturnCorrect(reqType, reqKind, bodyTypeInfo)) {
 			    if(isFunctionType(bodyTypeInfo.type)) {
 				    FunctionType* function = castToFunctionType(bodyTypeInfo.type);
-					optional<ExprTypeInfo> func_return = function->getImplicitCallReturnTypeInfo();
+					optional<ExprTypeInfo> func_return = function->getReturnTypeInfo();
 					if(func_return)
 						bodyTypeInfo = *func_return;
 					continue;
@@ -198,7 +198,7 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 		}
 	} else { //The point of no return
 		m_returnTypeInfo = ExprTypeInfo(getVoidType(), ValueKind::ANONYMOUS);
-		m_implicitCallReturnTypeInfo = boost::none;
+		m_implicitCallReturnTypeInfo = m_returnTypeInfo;
 	} //And there's something in the air
 
 	return ConcretableState::CONCRETE;
@@ -212,4 +212,99 @@ ExprTypeInfo FunctionType::getReturnTypeInfo() {
 optional<ExprTypeInfo> FunctionType::getImplicitCallReturnTypeInfo() {
 	assert(isConcrete());
 	return m_implicitCallReturnTypeInfo;
+}
+
+
+
+FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& function_body,
+									   TextRange& range) :
+	Expression(range),
+	m_type(std::move(type)),
+	m_function_body(std::move(function_body)),
+	m_foreign_name(boost::none) {
+	assert(*m_function_body);
+	m_type->setFunctionBody(m_function_body->get());
+}
+
+FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, std::string&& foreign_name,
+									   TextRange& range) :
+	Expression(range),
+	m_type(std::move(type)),
+	m_function_body(boost::none),
+	m_foreign_name(foreign_name) {}
+
+ExpressionKind FunctionExpression::getExpressionKind() const {
+	return ExpressionKind::FUNCTION;
+}
+
+void FunctionExpression::printSignature() {
+	m_type->printSignature();
+}
+
+ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	auto conc = allConcrete();
+	auto lost = anyLost();
+
+	ConcretableState state = m_type->makeConcrete(ns_stack, depMap);
+	if(state == ConcretableState::TRY_LATER)
+		depMap.makeFirstDependentOnSecond(this, m_type.get());
+	conc = conc << state;
+	lost = lost << state;
+
+	if(conc)
+		return ConcretableState::CONCRETE;
+	if(lost)
+		return ConcretableState::LOST_CAUSE;
+	return ConcretableState::TRY_LATER;
+}
+
+ConcretableState FunctionExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
+	if(functionTypeAllowed()) {
+		m_typeInfo = ExprTypeInfo(m_type.get(), ValueKind::ANONYMOUS);
+	} else {
+		optional<ExprTypeInfo> implicitType = m_type->getImplicitCallReturnTypeInfo();
+		if(!implicitType) {
+			logDaf(getRange(), ERROR) << "expected implicitly callable function, but this isn't it" << std::endl;
+			return ConcretableState::LOST_CAUSE;
+		}
+		m_typeInfo = *implicitType;
+	}
+	return ConcretableState::CONCRETE;
+}
+
+EvaluatedExpression FunctionExpression::codegenImplicitExpression(CodegenLLVM& codegen, bool pointer) {
+    
+}
+
+EvaluatedExpression FunctionExpression::codegenExpression(CodegenLLVM& codegen) {
+	if(functionTypeAllowed()) {
+		return EvaluatedExpression(nullptr, &m_typeInfo);
+	}
+	return codegenImplicitExpression(codegen, false);
+}
+
+EvaluatedExpression FunctionExpression::codegenPointer(CodegenLLVM& codegen) {
+	assert(!functionTypeAllowed()); //Never tell an expression it can be a function and then try get its pointer
+	return codegenImplicitExpression(codegen, true);
+}
+
+void FunctionExpression::makePrototype(CodegenLLVM& codegen) {
+	assert(!m_prototype && !m_broken_prototype);
+	
+}
+
+llvm::Function* FunctionExpression::tryGetOrMakePrototype(CodegenLLVM& codegen) {
+	for(;;) {
+		if(m_broken_prototype)
+			return nullptr;
+		if(m_prototype)
+			return m_prototype;
+		makePrototype(codegen);
+		assert(!!m_prototype != m_broken_prototype);
+	}
+}
+
+void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
+	assert(m_prototype && !m_broken_prototype && !m_filled_prototype);
 }
