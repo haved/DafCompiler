@@ -18,6 +18,7 @@ void Definition::localCodegen(CodegenLLVM& codegen) {
 
 Def::Def(bool pub, std::string&& name, unique_ptr<FunctionExpression>&& expression, const TextRange &range) : Definition(pub, range), m_name(std::move(name)), m_functionExpression(std::move(expression)) {
 	assert(m_functionExpression); //We assert a body
+	m_functionExpression->setFunctionName(m_name);
 }
 
 Let::Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange &range) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_givenType(std::move(givenType)), m_expression(std::move(expression)), m_typeInfo(nullptr, ValueKind::ANONYMOUS), m_blockLevel(0), m_space() {

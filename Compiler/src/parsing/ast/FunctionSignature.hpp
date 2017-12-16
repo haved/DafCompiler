@@ -18,13 +18,15 @@ enum class ReturnKind {
 
 ValueKind returnKindToValueKind(ReturnKind kind);
 
+class FunctionExpression;
+
 using param_list = std::vector<unique_ptr<FunctionParameter> >;
 class FunctionType : public Type, public ConcreteType {
 private:
 	param_list m_parameters;
 	ReturnKind m_givenReturnKind;
 	optional<TypeReference> m_givenReturnType;
-	optional<Expression*> m_functionBody;
+	optional<FunctionExpression*> m_functionExpression;
 
 	ExprTypeInfo m_returnTypeInfo;
 	optional<ExprTypeInfo> m_implicitCallReturnTypeInfo;
@@ -38,16 +40,20 @@ public:
 	virtual ConcreteType* getConcreteType() override;
 	virtual ConcreteTypeKind getConcreteTypeKind() override;
 	virtual void printSignature() override;
-	bool hasReturn();
 
 	bool addReturnKindModifier(ReturnKind kind);
-	void setFunctionBody(Expression* body);
+	void setFunctionExpression(FunctionExpression* body);
+	FunctionExpression* getFunctionExpression();
+	bool hasReturn();
+	bool isReferenceReturn();
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 
-	ExprTypeInfo getReturnTypeInfo();
-	optional<ExprTypeInfo> getImplicitCallReturnTypeInfo();
+	ExprTypeInfo& getReturnTypeInfo();
+	optional<ExprTypeInfo>& getImplicitCallReturnTypeInfo();
+
+	llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen);
 };
 
 bool isFunctionType(ConcreteType* type);
@@ -61,6 +67,9 @@ private:
 
 	bool m_broken_prototype, m_filled_prototype;
 	llvm::Function* m_prototype;
+
+	EvaluatedExpression none_evalExpr();
+	void makePrototype(CodegenLLVM& codegen);
 	void fillPrototype(CodegenLLVM& codegen);
 public:
 	FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& function_body, TextRange& range);
@@ -69,12 +78,16 @@ public:
 	virtual ExpressionKind getExpressionKind() const override;
 	virtual void printSignature() override;
 
+	Expression* getBody();
+
+	void setFunctionName(std::string& name);
+
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 
-	void makePrototype(CodegenLLVM& codegen);
 	llvm::Function* tryGetOrMakePrototype(CodegenLLVM& codegen);
 
+	EvaluatedExpression codegenExplicitFunction(CodegenLLVM& codegen);
 	EvaluatedExpression codegenImplicitExpression(CodegenLLVM& codegen, bool pointer);
 	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
 	virtual EvaluatedExpression codegenPointer(CodegenLLVM& codegen) override;
