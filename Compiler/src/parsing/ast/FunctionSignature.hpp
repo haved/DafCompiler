@@ -46,6 +46,7 @@ public:
 	FunctionExpression* getFunctionExpression();
 	bool hasReturn();
 	bool isReferenceReturn();
+	bool canBeCalledImplicitlyOnce();
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;

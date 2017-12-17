@@ -102,6 +102,10 @@ bool FunctionType::isReferenceReturn() {
 	return returnKindToScore(m_givenReturnKind) >= returnKindToScore(ReturnKind::REF_RETURN);
 }
 
+bool FunctionType::canBeCalledImplicitlyOnce() {
+	return m_parameters.empty();
+}
+
 ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 	bool hasBody = m_functionExpression && (*m_functionExpression)->getBody();
 	if(hasReturn() && !hasBody && !m_givenReturnType) {
@@ -146,7 +150,7 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 	return ConcretableState::TRY_LATER;
 }
 
-bool isReturnCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind, ExprTypeInfo& given) {
+bool isReturnCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind, const ExprTypeInfo& given) {
 	if(getValueKindScore(requiredKind) > getValueKindScore(given.valueKind))
 		return false;
     if(requiredType && *requiredType != given.type) {
@@ -197,9 +201,15 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 
 			m_returnTypeInfo = bodyTypeInfo;
 			degradeValueKind(m_returnTypeInfo.valueKind, reqKind);
+
+			if(canBeCalledImplicitlyOnce() && isFunctionType(m_returnTypeInfo.type))
+				m_implicitCallReturnTypeInfo = castToFunctionType(m_returnTypeInfo.type)->
+					getImplicitCallReturnTypeInfo();
+
 		} else {
 			assert(reqType);
 			m_returnTypeInfo = ExprTypeInfo(*reqType, reqKind);
+			m_implicitCallReturnTypeInfo = m_returnTypeInfo;
 		}
 	} else { //The point of no return
 		m_returnTypeInfo = ExprTypeInfo(getVoidType(), ValueKind::ANONYMOUS);
@@ -410,21 +420,38 @@ llvm::Function* FunctionExpression::tryGetOrMakePrototype(CodegenLLVM& codegen) 
 
 void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 	assert(m_prototype && !m_broken_prototype && !m_filled_prototype && m_function_body);
+	Expression* body = m_function_body->get();
 
 	llvm::BasicBlock* oldInsertBlock = codegen.Builder().GetInsertBlock();
 
 	llvm::BasicBlock* BB = llvm::BasicBlock::Create(codegen.Context(), "entry", m_prototype);
 	codegen.Builder().SetInsertPoint(BB);
 
-	ExprTypeInfo targetTypeInfo = m_type->getReturnTypeInfo();
+	ExprTypeInfo& targetTypeInfo = m_type->getReturnTypeInfo();
 
-    while(!isReturnCorrect(targetTypeInfo.type, targetTypeInfo.valueKind, *currentTypeInfo)) {
-		assert(isFunctionType(currentTypeInfo->type));
-		FunctionType* functionType = castToFunctionType(currentTypeInfo->type);
-		
+	bool returns = m_type->hasReturn();
+	bool returnsRef = m_type->isReferenceReturn();
+	bool refBody = body->isReferenceTypeInfo();
+
+	EvaluatedExpression eval(nullptr, &m_typeInfo); //temporary
+	bool evalIsPointer = returnsRef && refBody;
+	if(evalIsPointer) {
+		eval = body->codegenPointer(codegen);
+		assert(isReturnCorrect(targetTypeInfo.type, targetTypeInfo.valueKind, *eval.typeInfo));
+	} else {
+		eval = body->codegenExpression(codegen);
+		if(returnsRef)
+			assert(isFunctionType(eval.typeInfo->type));
+
+		while(returns && !isReturnCorrect(targetTypeInfo.type, targetTypeInfo.valueKind, *eval.typeInfo)) {
+			assert(isFunctionType(eval.typeInfo->type));
+			FunctionType* func = castToFunctionType(eval.typeInfo->type);
+			FunctionExpression* expression = func->getFunctionExpression();
+		    assert(expression && "We sorta assume a FunctionType has an expression");
+			llvm::Function* prototype = expression->tryGetOrMakePrototype(codegen);
+			
+		}
 	}
-
-
 
 	llvm::verifyFunction(*m_prototype);
 
