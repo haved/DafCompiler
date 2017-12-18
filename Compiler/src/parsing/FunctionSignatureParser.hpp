@@ -12,7 +12,7 @@ enum class AllowEatingEqualsSign:bool {
 	YES = true, NO = false
 };
 
-unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowEatingEqualsSign equalSignEdible);
+unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowEatingEqualsSign equalSignEdible, bool* ateEquals);
 
 unique_ptr<FunctionExpression> parseFunctionExpression(Lexer& lexer, optional<ReturnKind> givenReturnKind = boost::none);
 

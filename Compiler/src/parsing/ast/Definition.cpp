@@ -87,11 +87,11 @@ ConcretableState Let::retryMakeConcreteInternal(DependencyMap& depMap) {
 }
 
 bool Def::allowsImplicitAccess() {
-    return !!m_functionExpression->getFunctionType().getImplicitAccessReturnTypeInfo();
+    return !!m_functionExpression->getFunctionType()->getImplicitCallReturnTypeInfo();
 }
 
 const optional<ExprTypeInfo>& Def::getImplicitAccessTypeInfo() {
-	return m_functionExpression->getFunctionType().getImplicitAccessReturnTypeInfo();
+	return m_functionExpression->getFunctionType()->getImplicitCallReturnTypeInfo();
 }
 
 const ExprTypeInfo& Def::getFunctionExpressionTypeInfo() {
@@ -103,8 +103,7 @@ const ExprTypeInfo& Let::getTypeInfo() const {
 }
 
 void Def::globalCodegen(CodegenLLVM& codegen) {
-	//TODO: Consider inlining
-	m_functionExpression->codegenFunction(codegen, m_name);
+	m_functionExpression->tryGetOrMakePrototype(codegen);
 }
 
 void Def::localCodegen(CodegenLLVM& codegen) {
@@ -131,7 +130,11 @@ void Let::localCodegen(CodegenLLVM& codegen) {
 	m_space = tmpB.CreateAlloca(type, 0, m_name);
 
 	if(m_expression) {
-		EvaluatedExpression expr = m_expression->codegenExpression(codegen);
+		optional<EvaluatedExpression> opt_expr = m_expression->codegenExpression(codegen);
+		if(!opt_expr)
+			return;
+		EvaluatedExpression expr = *opt_expr;
+
 		assert(expr.typeInfo->type == m_typeInfo.type);
 		codegen.Builder().CreateStore(expr.value, m_space);
 	}
@@ -140,27 +143,27 @@ void Let::localCodegen(CodegenLLVM& codegen) {
 	//TODO: Destructors and stuff
 }
 
-EvaluatedExpression Def::implicitAccessCodegen(CodegenLLVM& codegen) {
+optional<EvaluatedExpression> Def::implicitAccessCodegen(CodegenLLVM& codegen) {
     assert(allowsImplicitAccess());
 	return m_functionExpression->codegenImplicitExpression(codegen, false);
 }
 
-EvaluatedExpression Def::implicitPointerCodegen(CodegenLLVM& codegen) {
+optional<EvaluatedExpression> Def::implicitPointerCodegen(CodegenLLVM& codegen) {
 	assert(allowsImplicitAccess());
 	return m_functionExpression->codegenImplicitExpression(codegen, true);
 }
 
 //For when you return the function and don't call it
-EvaluatedExpression Def::functionAccessCodegen(CodegenLLVM& codegen) {
+optional<EvaluatedExpression> Def::functionAccessCodegen(CodegenLLVM& codegen) {
 	return m_functionExpression->codegenExpression(codegen); //Function Expressions always have ANONYMOUS ValueKind
 }
 
-EvaluatedExpression Let::accessCodegen(CodegenLLVM& codegen) {
+optional<EvaluatedExpression> Let::accessCodegen(CodegenLLVM& codegen) {
     assert(m_space);
 	return EvaluatedExpression(codegen.Builder().CreateLoad(m_space, m_name.c_str()), &m_typeInfo);
 }
 
-EvaluatedExpression Let::pointerCodegen(CodegenLLVM& codegen) {
+optional<EvaluatedExpression> Let::pointerCodegen(CodegenLLVM& codegen) {
 	(void) codegen;
 	assert(m_space);
 	return EvaluatedExpression(m_space, &m_typeInfo);

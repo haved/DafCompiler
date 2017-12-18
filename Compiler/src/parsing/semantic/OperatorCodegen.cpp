@@ -127,26 +127,29 @@ optional<ExprTypeInfo> getBinaryOpResultType(const ExprTypeInfo& LHS, InfixOpera
     return boost::none;
 }
 
-EvaluatedExpression codegenBinaryOperator(CodegenLLVM& codegen, Expression* LHS, InfixOperator op, Expression* RHS, ExprTypeInfo* target, bool ptrReturn, const TextRange& range) {
+optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, Expression* LHS, InfixOperator op, Expression* RHS, ExprTypeInfo* target, bool ptrReturn, const TextRange& range) {
 	if(isOpNumerical(op)) {
-		EvaluatedExpression LHS_expr = LHS->codegenExpression(codegen);
-		EvaluatedExpression RHS_expr = RHS->codegenExpression(codegen);
-
-		return codegenBinaryOperatorNumerical(codegen, LHS_expr, op, RHS_expr, target, range);
+	    optional<EvaluatedExpression> LHS_expr = LHS->codegenExpression(codegen);
+		optional<EvaluatedExpression> RHS_expr = RHS->codegenExpression(codegen);
+		if(LHS_expr && RHS_expr)
+			return codegenBinaryOperatorNumerical(codegen, *LHS_expr, op, *RHS_expr, target, range);
+		return boost::none;
 	}
 	else if(op == InfixOperator::ASSIGN) {
 
-		EvaluatedExpression LHS_assign = LHS->codegenPointer(codegen); //mutable
-		EvaluatedExpression RHS_expr = RHS->codegenExpression(codegen);
+		optional<EvaluatedExpression> LHS_assign = LHS->codegenPointer(codegen); //mutable
+		optional<EvaluatedExpression> RHS_expr = RHS->codegenExpression(codegen);
+		if(!LHS_assign || !RHS_expr)
+			return boost::none;
 
-		codegen.Builder().CreateStore(RHS_expr.value, LHS_assign.value);
+		codegen.Builder().CreateStore(RHS_expr->value, LHS_assign->value);
 
-		llvm::Value* ret = RHS_expr.value;
+		llvm::Value* ret = RHS_expr->value;
 		if(ptrReturn)
-			ret = LHS_assign.value;
+			ret = LHS_assign->value;
 		const ExprTypeInfo* typInfo = &LHS->getTypeInfo();
 		return EvaluatedExpression(ret, typInfo);
 	}
 	assert(false);
-	return EvaluatedExpression(nullptr, nullptr);
+	return boost::none;
 }

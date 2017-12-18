@@ -17,8 +17,10 @@ TypeReference parseFunctionType(Lexer& lexer) {
 		lexer.advance(); //Eat 'def'
 		defReturnKind = parseReturnKind(lexer);
 	}
-	auto functionType = parseFunctionType(lexer, AllowEatingEqualsSign::NO);
-	functionType->mergeInDefReturnKind(defReturnKind);
+	bool ateEquals;
+	auto functionType = parseFunctionType(lexer, AllowEatingEqualsSign::NO, &ateEquals);
+	assert(!ateEquals);
+	functionType->addReturnKindModifier(defReturnKind);
 	return TypeReference(std::move(functionType));
 }
 

@@ -39,7 +39,7 @@ ExprTypeInfo getNoneTypeInfo();
 
 struct EvaluatedExpression {
 	llvm::Value* value;
-    const ExprTypeInfo* typeInfo; // != null
+    const ExprTypeInfo* typeInfo; //!= null;
 	EvaluatedExpression(llvm::Value* value, const ExprTypeInfo* type) : value(value), typeInfo(type) {
 		assert(typeInfo);
 	}
@@ -86,13 +86,17 @@ public:
 	const ExprTypeInfo& getTypeInfo() const;
 	bool isReferenceTypeInfo() const;
 
-	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) {
-		(void)codegen; logDaf(m_range, ERROR) << "TODO: Expression codegen" << std::endl; return EvaluatedExpression(nullptr, nullptr);
+	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) {
+		(void) codegen;
+	    assert(false && "TODO: implement codegenExpression");
+		return boost::none;
 	}
 
 	//The Evaluated Expression's value is a pointer to the respective Type Info
-	virtual EvaluatedExpression codegenPointer(CodegenLLVM& codegen) {
-		(void)codegen; logDaf(m_range, ERROR) << "TODO: Expression pointer codegen" << std::endl; return EvaluatedExpression(nullptr, nullptr);
+	virtual optional<EvaluatedExpression> codegenPointer(CodegenLLVM& codegen) {
+		(void) codegen;
+		assert(false && "TODO: implement codegenPointer");
+		return boost::none;
 	}
 };
 
@@ -110,8 +114,8 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
-	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
-	virtual EvaluatedExpression codegenPointer(CodegenLLVM& codegen) override;
+	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
+	virtual optional<EvaluatedExpression> codegenPointer(CodegenLLVM& codegen) override;
 };
 
 class IntegerConstantExpression: public Expression {
@@ -128,7 +132,7 @@ public:
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 
-	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
+	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
 };
 
 class RealConstantExpression : public Expression {
@@ -145,7 +149,7 @@ public:
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 
-	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
+	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
 };
 
 class ConstantStringExpression : public Expression {
@@ -172,8 +176,8 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
-	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
-	virtual EvaluatedExpression codegenPointer(CodegenLLVM& codegen) override;
+	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
+	virtual optional<EvaluatedExpression> codegenPointer(CodegenLLVM& codegen) override;
 };
 
 /*
@@ -214,7 +218,7 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
-	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
+	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
 };
 
 class PostfixCrementExpression : public Expression {
@@ -230,7 +234,7 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
-	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
+	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
 };
 
 class FunctionCallArgument {
@@ -257,9 +261,9 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
-	EvaluatedExpression codegenFunctionCall(CodegenLLVM& codegen, bool pointerReturn);
-	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
-	virtual EvaluatedExpression codegenPointer(CodegenLLVM& codegen) override;
+	optional<EvaluatedExpression> codegenFunctionCall(CodegenLLVM& codegen, bool pointerReturn);
+	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
+	virtual optional<EvaluatedExpression> codegenPointer(CodegenLLVM& codegen) override;
 };
 
 class ArrayAccessExpression : public Expression {
@@ -275,5 +279,5 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
-	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
+	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
 };

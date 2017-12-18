@@ -115,7 +115,7 @@ ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& de
 	return ConcretableState::CONCRETE;
 }
 
-EvaluatedExpression VariableExpression::codegenExpression(CodegenLLVM& codegen) {
+optional<EvaluatedExpression> VariableExpression::codegenExpression(CodegenLLVM& codegen) {
     assert(m_target);
 
 	if(m_target.isDef()) {
@@ -128,7 +128,7 @@ EvaluatedExpression VariableExpression::codegenExpression(CodegenLLVM& codegen) 
 	}
 }
 
-EvaluatedExpression VariableExpression::codegenPointer(CodegenLLVM& codegen) {
+optional<EvaluatedExpression> VariableExpression::codegenPointer(CodegenLLVM& codegen) {
     assert(m_target && isReferenceTypeInfo());
 
 	if(m_target.isDef()) {
@@ -154,7 +154,7 @@ ConcretableState IntegerConstantExpression::makeConcreteInternal(NamespaceStack&
 	return ConcretableState::CONCRETE;
 }
 
-EvaluatedExpression IntegerConstantExpression::codegenExpression(CodegenLLVM& codegen) {
+optional<EvaluatedExpression> IntegerConstantExpression::codegenExpression(CodegenLLVM& codegen) {
 	llvm::Value* value = llvm::ConstantInt::get(llvm::IntegerType::get(codegen.Context(), m_type->getBitCount()), m_integer, m_type->isSigned());
 	return EvaluatedExpression(value, &m_typeInfo);
 }
@@ -173,7 +173,7 @@ ConcretableState RealConstantExpression::makeConcreteInternal(NamespaceStack& ns
 	return ConcretableState::CONCRETE;
 }
 
-EvaluatedExpression RealConstantExpression::codegenExpression(CodegenLLVM& codegen) {
+optional<EvaluatedExpression> RealConstantExpression::codegenExpression(CodegenLLVM& codegen) {
 	llvm::APFloat real(m_real);
 	if(m_type->getBitCount() == 32)
 		real = llvm::APFloat(float(m_real));
@@ -220,12 +220,12 @@ ConcretableState InfixOperatorExpression::retryMakeConcreteInternal(DependencyMa
 	return ConcretableState::LOST_CAUSE;
 }
 
-EvaluatedExpression InfixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
+optional<EvaluatedExpression> InfixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
 	assert(allConcrete() << getConcretableState());
 	return codegenBinaryOperator(codegen, m_LHS.get(), m_op, m_RHS.get(), &m_typeInfo, false, getRange());
 }
 
-EvaluatedExpression InfixOperatorExpression::codegenPointer(CodegenLLVM& codegen) {
+optional<EvaluatedExpression> InfixOperatorExpression::codegenPointer(CodegenLLVM& codegen) {
 	assert(allConcrete() << getConcretableState());
 	return codegenBinaryOperator(codegen, m_LHS.get(), m_op, m_RHS.get(), &m_typeInfo, true, getRange());
 }
@@ -371,10 +371,10 @@ ConcretableState PrefixOperatorExpression::retryMakeConcreteInternal(DependencyM
 	return ConcretableState::LOST_CAUSE;
 }
 
-EvaluatedExpression PrefixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
+optional<EvaluatedExpression> PrefixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
 	(void) codegen;
 	std::cerr << "TODO: prefix operator expression codegen" << std::endl;
-	return EvaluatedExpression(nullptr, nullptr);
+	return boost::none;
 }
 
 PostfixCrementExpression::PostfixCrementExpression(std::unique_ptr<Expression>&& LHS, bool decrement, int opLine, int opEndCol) : Expression(TextRange(LHS->getRange(), opLine, opEndCol)), m_decrement(decrement), m_LHS(std::move(LHS)) {
@@ -402,10 +402,10 @@ ConcretableState PostfixCrementExpression::retryMakeConcreteInternal(DependencyM
 	return ConcretableState::LOST_CAUSE;
 }
 
-EvaluatedExpression PostfixCrementExpression::codegenExpression(CodegenLLVM& codegen) {
+optional<EvaluatedExpression> PostfixCrementExpression::codegenExpression(CodegenLLVM& codegen) {
 	(void) codegen;
 	std::cerr << "TODO: PostfixCrementExpression::codegenExpression" << std::endl;
-	return EvaluatedExpression(nullptr, nullptr);
+	return boost::none;
 }
 
 FunctionCallArgument::FunctionCallArgument(bool mut, unique_ptr<Expression>&& expression, const TextRange& range) : m_range(range), m_mutableReference(mut), m_expression(std::move(expression)) {
@@ -463,11 +463,22 @@ ConcretableState FunctionCallExpression::makeConcreteInternal(NamespaceStack& ns
 	return ConcretableState::TRY_LATER;
 }
 
-EvaluatedExpression FunctionCallExpression::codegenExpression(CodegenLLVM& codegen) {
+ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
+	return ConcretableState::LOST_CAUSE;
+}
+
+optional<EvaluatedExpression> FunctionCallExpression::codegenFunctionCall(CodegenLLVM& codegen, bool pointer) {
+	(void) codegen, (void) pointer;
+	assert(false && "TODO: Function call");
+	return boost::none;
+}
+
+optional<EvaluatedExpression> FunctionCallExpression::codegenExpression(CodegenLLVM& codegen) {
     return codegenFunctionCall(codegen, false);
 }
 
-EvaluatedExpression FunctionCallExpression::codegenPointer(CodegenLLVM& codegen) {
+optional<EvaluatedExpression> FunctionCallExpression::codegenPointer(CodegenLLVM& codegen) {
 	assert(isReferenceTypeInfo());
 	return codegenFunctionCall(codegen, true);
 }
@@ -507,8 +518,8 @@ ConcretableState ArrayAccessExpression::retryMakeConcreteInternal(DependencyMap&
 	return ConcretableState::LOST_CAUSE;
 }
 
-EvaluatedExpression ArrayAccessExpression::codegenExpression(CodegenLLVM& codegen) {
+optional<EvaluatedExpression> ArrayAccessExpression::codegenExpression(CodegenLLVM& codegen) {
 	(void) codegen;
 	std::cerr << "TODO: Array access codegenExpression isn't implemented" << std::endl;
-	return EvaluatedExpression(nullptr, nullptr);
+	return boost::none;
 }

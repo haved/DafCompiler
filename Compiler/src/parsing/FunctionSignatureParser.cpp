@@ -96,7 +96,7 @@ bool parseFunctionParameter(Lexer& lexer, std::vector<unique_ptr<FunctionParamet
 	return true;
 }
 
-unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowEatingEqualsSign equalSignEdibleEnum) {
+unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowEatingEqualsSign equalSignEdibleEnum, bool* ateEqualsOut) {
 
 	bool equalSignEdible = static_cast<bool>(equalSignEdibleEnum);
 
@@ -130,7 +130,7 @@ unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowEatingEqualsSign e
 	//We have now eaten parameters
 	auto return_kind = ReturnKind::NO_RETURN;
 	bool ateEqualsSign = false;
-	TypeReference type;
+	optional<TypeReference> type = boost::none;
 
 	//TODO: Almost as if I don't want to merge ':' and '='
 	if(lexer.currType() == DECLARE) {
@@ -141,20 +141,12 @@ unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowEatingEqualsSign e
 		return_kind = ReturnKind::VALUE_RETURN;
 	}
 	else if(lexer.currType() == TYPE_SEPARATOR) {
-		return_kind = ReturnKind::VALUE_RETURN;
 		lexer.advance(); //Eat ':'
-		if(lexer.currType() == LET) {
-			return_kind = ReturnKind::REF_RETURN;
-			lexer.advance(); //Eat 'let'
-		}
-		if(lexer.currType() == MUT) {
-			return_kind = ReturnKind::MUT_REF_RETURN;
-			lexer.advance(); //Eat 'mut'
-		}
+	    return_kind = parseReturnKind(lexer);
 
 		if(lexer.currType() != ASSIGN || !equalSignEdible) { // '='
 			type = parseType(lexer);
-			if(!type)
+			if(!(*type))
 				return none_funcTyp();
 		}
 	}
@@ -167,11 +159,12 @@ unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowEatingEqualsSign e
 	}
 
 	TextRange range(lexer.getFile(), startLine, startCol, lexer.getPreviousToken());
-	return std::make_unique<FunctionType>(std::move(params), return_kind, std::move(type), ateEqualsSign, range);
+	*ateEqualsOut = ateEqualsSign;
+	return std::make_unique<FunctionType>(std::move(params), return_kind, std::move(type), range);
 }
 
-optional<std::string> tryParseForeignFunctionBody(Lexer& lexer, FunctionType& type) {
-	if(!type.ateEqualsSign() && lexer.currType() == STRING_LITERAL) {
+optional<std::string> tryParseForeignFunctionBody(Lexer& lexer, bool ateEquals, FunctionType& type) {
+	if(!ateEquals && lexer.currType() == STRING_LITERAL) {
 		std::string output = std::move(lexer.getCurrentToken().text);
 		lexer.advance();
 		return output;
@@ -180,14 +173,14 @@ optional<std::string> tryParseForeignFunctionBody(Lexer& lexer, FunctionType& ty
 	return boost::none;
 }
 
-unique_ptr<Expression> parseFunctionBody(Lexer& lexer, FunctionType& type) {
-	if(!type.ateEqualsSign())
+unique_ptr<Expression> parseFunctionBody(Lexer& lexer, bool ateEquals, FunctionType& type) {
+	if(!ateEquals)
 		lexer.expectToken(SCOPE_START);
 	unique_ptr<Expression> body = parseExpression(lexer);
 	if(!body)
 		return body; //none expression
 
-	if(type.getGivenReturnKind() == ReturnKind::NO_RETURN) {
+	if(!type.hasReturn()) {
 		if(body->evaluatesToValue())
 			logDaf(body->getRange(), WARNING) << "function body return value ignored" << std::endl;
 	}
@@ -208,7 +201,7 @@ unique_ptr<FunctionExpression> parseFunctionExpression(Lexer& lexer, optional<Re
 	int startLine = lexer.getCurrentToken().line;
 	int startCol  = lexer.getCurrentToken().col;
 
-	ReturnKind defReturnKind;
+	ReturnKind defReturnKind = ReturnKind::VALUE_RETURN;
 	if(givenDefReturnKind) {
 		defReturnKind = *givenDefReturnKind;
 	} else {
@@ -218,19 +211,21 @@ unique_ptr<FunctionExpression> parseFunctionExpression(Lexer& lexer, optional<Re
 		}
 	}
 
-	unique_ptr<FunctionType> type = parseFunctionType(lexer, AllowEatingEqualsSign::YES);
+	bool ateEquals = false;
+	unique_ptr<FunctionType> type = parseFunctionType(lexer, AllowEatingEqualsSign::YES, &ateEquals);
 	if(!type)
 		return none_func_expr();
 
-	type->mergeInDefReturnKind(defReturnKind);
+	if(!type->addReturnKindModifier(defReturnKind))
+		return none_func_expr();
 
-	optional<std::string> foreign_function = tryParseForeignFunctionBody(lexer, *type);
+	optional<std::string> foreign_function = tryParseForeignFunctionBody(lexer, ateEquals, *type);
 	if(foreign_function) {
 		TextRange range(lexer.getFile(), startLine, startCol, lexer.getPreviousToken());
 		return std::make_unique<FunctionExpression>(std::move(type), std::move(*foreign_function), range);
 	}
 
-	unique_ptr<Expression> body = parseFunctionBody(lexer, *type);
+	unique_ptr<Expression> body = parseFunctionBody(lexer, ateEquals, *type);
 	if(!body)
 		return none_func_expr();
 

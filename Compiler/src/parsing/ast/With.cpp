@@ -137,8 +137,8 @@ ConcretableState WithExpression::retryMakeConcreteInternal(DependencyMap& depLis
 	return ConcretableState::LOST_CAUSE;
 }
 
-EvaluatedExpression WithExpression::codegenExpression(CodegenLLVM& codegen) {
+optional<EvaluatedExpression> WithExpression::codegenExpression(CodegenLLVM& codegen) {
 	(void) codegen;
 	std::cerr << "with expression codegenExpression isn't implemented" << std::endl;
-	return EvaluatedExpression(nullptr, nullptr); //This will assert false
+	return boost::none;
 }

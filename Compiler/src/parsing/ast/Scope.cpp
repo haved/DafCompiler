@@ -78,7 +78,7 @@ ConcretableState Scope::retryMakeConcreteInternal(DependencyMap& depMap) {
 	return ConcretableState::CONCRETE;
 }
 
-EvaluatedExpression Scope::codegenExpression(CodegenLLVM& codegen) {
+optional<EvaluatedExpression> Scope::codegenExpression(CodegenLLVM& codegen) {
 	for(auto it = m_statements.begin(); it != m_statements.end(); ++it) {
 		(*it)->codegenStatement(codegen);
 	}
@@ -87,7 +87,7 @@ EvaluatedExpression Scope::codegenExpression(CodegenLLVM& codegen) {
 	return EvaluatedExpression(nullptr, &m_typeInfo);
 }
 
-EvaluatedExpression Scope::codegenPointer(CodegenLLVM& codegen) {
+optional<EvaluatedExpression> Scope::codegenPointer(CodegenLLVM& codegen) {
 	assert(isReferenceTypeInfo() && m_outExpression);
 	for(auto it = m_statements.begin(); it != m_statements.end(); ++it) {
 		(*it)->codegenStatement(codegen);

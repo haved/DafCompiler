@@ -66,9 +66,9 @@ public:
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 	virtual void localCodegen(CodegenLLVM& codegen) override;
 
-	EvaluatedExpression implicitAccessCodegen(CodegenLLVM& codegen);
-	EvaluatedExpression implicitPointerCodegen(CodegenLLVM& codegen);
-	EvaluatedExpression functionAccessCodegen(CodegenLLVM& codegen);
+	optional<EvaluatedExpression> implicitAccessCodegen(CodegenLLVM& codegen);
+	optional<EvaluatedExpression> implicitPointerCodegen(CodegenLLVM& codegen);
+	optional<EvaluatedExpression> functionAccessCodegen(CodegenLLVM& codegen);
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::DEF; }
@@ -103,8 +103,8 @@ public:
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 	virtual void localCodegen(CodegenLLVM& codegen) override;
 
-	EvaluatedExpression accessCodegen(CodegenLLVM& codegen);
-	EvaluatedExpression pointerCodegen(CodegenLLVM& codegen);
+	optional<EvaluatedExpression> accessCodegen(CodegenLLVM& codegen);
+	optional<EvaluatedExpression> pointerCodegen(CodegenLLVM& codegen);
 
 	virtual void printSignature() override;
 	virtual DefinitionKind getDefinitionKind() const override { return DefinitionKind::LET; }

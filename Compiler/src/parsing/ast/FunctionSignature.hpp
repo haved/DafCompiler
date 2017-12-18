@@ -55,8 +55,10 @@ public:
 	optional<ExprTypeInfo>& getImplicitCallReturnTypeInfo();
 
 	llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen);
+	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 };
 
+bool isFunctionType(const ExprTypeInfo& typeInfo);
 bool isFunctionType(ConcreteType* type);
 FunctionType* castToFunctionType(ConcreteType* type);
 
@@ -69,16 +71,18 @@ private:
 	bool m_broken_prototype, m_filled_prototype;
 	llvm::Function* m_prototype;
 
-	EvaluatedExpression none_evalExpr();
 	void makePrototype(CodegenLLVM& codegen);
 	void fillPrototype(CodegenLLVM& codegen);
 public:
 	FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& function_body, TextRange& range);
 	FunctionExpression(unique_ptr<FunctionType>&& type, std::string&& foreign_name, TextRange& range);
+	FunctionExpression(const FunctionExpression& other)=delete;
+	FunctionExpression& operator=(const FunctionExpression& other)=delete;
 
 	virtual ExpressionKind getExpressionKind() const override;
 	virtual void printSignature() override;
 
+	FunctionType* getFunctionType();
 	Expression* getBody();
 
 	void setFunctionName(std::string& name);
@@ -88,8 +92,8 @@ public:
 
 	llvm::Function* tryGetOrMakePrototype(CodegenLLVM& codegen);
 
-	EvaluatedExpression codegenExplicitFunction(CodegenLLVM& codegen);
-	EvaluatedExpression codegenImplicitExpression(CodegenLLVM& codegen, bool pointer);
-	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
-	virtual EvaluatedExpression codegenPointer(CodegenLLVM& codegen) override;
+	optional<EvaluatedExpression> codegenExplicitFunction(CodegenLLVM& codegen);
+	optional<EvaluatedExpression> codegenImplicitExpression(CodegenLLVM& codegen, bool pointer);
+	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
+	virtual optional<EvaluatedExpression> codegenPointer(CodegenLLVM& codegen) override;
 };

@@ -53,5 +53,5 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
-	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
+	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
 };
