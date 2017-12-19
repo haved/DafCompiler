@@ -465,13 +465,135 @@ ConcretableState FunctionCallExpression::makeConcreteInternal(NamespaceStack& ns
 
 ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
-	return ConcretableState::LOST_CAUSE;
+
+	ExprTypeInfo functionTypeInfo = m_function->getTypeInfo();
+	if(!isFunctionType(functionTypeInfo)) {
+		logDaf(getRange(), ERROR) << "can't function call what isn't a function" << std::endl;
+		return ConcretableState::LOST_CAUSE;
+	}
+
+	FunctionType* funcType = castToFunctionType(functionTypeInfo.type);
+    const unsigned int givenParams = m_args.size();
+
+    while(true) {
+		unsigned int funcParams = funcType->getParameters().size();
+	    if(funcParams == givenParams) {
+			break;
+		} else if(funcType->canBeCalledImplicitlyOnce()) {
+			ConcreteType* retType = funcType->getReturnTypeInfo().type;
+			if(!isFunctionType(retType)) {
+				logDaf(getRange(), ERROR) << "given parameters when none were needed" << std::endl;
+				return ConcretableState::LOST_CAUSE;
+			}
+			funcType = castToFunctionType(retType);
+		} else {
+			logDaf(getRange(), ERROR) << "wrong number of parameters given, expected " << funcParams << " but got " << givenParams << std::endl;
+			return ConcretableState::LOST_CAUSE;
+		}
+	}
+
+	auto& reqParams = funcType->getParameters();
+    assert(givenParams == reqParams.size());
+
+	for(unsigned int i = 0; i < givenParams; i++) {
+		FunctionParameter* required = reqParams[i].get();
+		FunctionCallArgument& given = m_args[i];
+
+		if(required->getParameterKind() != ParameterKind::VALUE_PARAM) {
+			logDaf(given.m_range, ERROR) << "We only support value parameters for now" << std::endl;
+			return ConcretableState::LOST_CAUSE;
+		}
+
+		ValueParameter* requiredValParam = static_cast<ValueParameter*>(required);
+		if(!requiredValParam->acceptsOrComplain(given))
+			return ConcretableState::LOST_CAUSE;
+	}
+
+	if(functionTypeAllowed()) {
+		m_typeInfo = funcType->getReturnTypeInfo();
+	} else {
+		optional<ExprTypeInfo> implicit = funcType->getImplicitCallReturnTypeInfo();
+		if(!implicit) {
+			logDaf(getRange(), ERROR) << "not enough parameters supplied to call all functions" << std::endl;
+			return ConcretableState::LOST_CAUSE;
+		}
+		m_typeInfo = *implicit;
+	}
+
+	return ConcretableState::CONCRETE;
 }
 
 optional<EvaluatedExpression> FunctionCallExpression::codegenFunctionCall(CodegenLLVM& codegen, bool pointer) {
-	(void) codegen, (void) pointer;
-	assert(false && "TODO: Function call");
-	return boost::none;
+    optional<EvaluatedExpression> function = m_function->codegenExpression(codegen);
+	if(!function)
+		return boost::none;
+
+    FunctionType* funcType = castToFunctionType(function->typeInfo->type);
+	const unsigned int givenParams = m_args.size();
+
+	//Implicit calls until we can use our parameters
+
+    while(true) {
+		unsigned int funcParams = funcType->getParameters().size();
+	    if(funcParams == givenParams) {
+			break;
+		}
+		assert(funcType->canBeCalledImplicitlyOnce());
+		FunctionExpression* funcExpr = funcType->getFunctionExpression();
+		assert(funcExpr && "can only call function expressions");
+		llvm::Function* prototype = funcExpr->tryGetOrMakePrototype(codegen);
+		if(!prototype)
+			return boost::none;
+		codegen.Builder().CreateCall(prototype);
+		funcType = castToFunctionType(funcType->getReturnTypeInfo().type);
+	}
+
+	auto& reqParams = funcType->getParameters();
+	assert(givenParams == reqParams.size());
+
+	//Codegen arguments
+	std::vector<llvm::Value*> args;
+    for(unsigned int i = 0; i < givenParams; i++) {
+		FunctionParameter* required = reqParams[i].get();
+		assert(required->getParameterKind() == ParameterKind::VALUE_PARAM);
+		ValueParameter* requiredValParam = static_cast<ValueParameter*>(required);
+
+		Expression* argExpression = m_args[i].m_expression.get();
+		optional<EvaluatedExpression> arg = requiredValParam->isReferenceParameter() ?
+			argExpression->codegenPointer(codegen) : argExpression->codegenExpression(codegen);
+		if(!arg)
+			return boost::none;
+
+		assert(arg->typeInfo->type == requiredValParam->getCallTypeInfo().type && "TODO: Proper type comparison");
+		args.push_back(arg->value);
+	}
+
+	//Call the function with parameters
+	FunctionExpression* funcExpr = funcType->getFunctionExpression();
+	assert(funcExpr && "can only call function expressions");
+	llvm::Function* prototype = funcExpr->tryGetOrMakePrototype(codegen);
+	if(!prototype)
+		return boost::none;
+	llvm::Value* returnVal = codegen.Builder().CreateCall(prototype, args);
+
+	//If we can't return a function, implicitly call the return until it's no longer a function
+	if(!functionTypeAllowed()) {
+		while(isFunctionType(funcType->getReturnTypeInfo())) {
+			funcType = castToFunctionType(funcType->getReturnTypeInfo().type);
+			FunctionExpression* funcExpr = funcType->getFunctionExpression();
+		    assert(funcExpr && "can only call function types with expressions");
+			llvm::Function* prototype = funcExpr->tryGetOrMakePrototype(codegen);
+			if(!prototype)
+				return boost::none;
+			returnVal = codegen.Builder().CreateCall(prototype);
+		}
+	}
+
+	assert(!funcType->isReferenceReturn() || !pointer);
+	if(funcType->isReferenceReturn() && !pointer) {
+		returnVal = codegen.Builder().CreateLoad(returnVal);
+	}
+	return EvaluatedExpression(returnVal, &funcType->getReturnTypeInfo());
 }
 
 optional<EvaluatedExpression> FunctionCallExpression::codegenExpression(CodegenLLVM& codegen) {

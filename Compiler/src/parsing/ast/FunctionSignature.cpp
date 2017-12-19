@@ -140,6 +140,10 @@ bool FunctionType::canBeCalledImplicitlyOnce() {
 	return m_parameters.empty();
 }
 
+param_list& FunctionType::getParameters() {
+	return m_parameters;
+}
+
 ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 	bool hasBody = m_functionExpression && (*m_functionExpression)->getBody();
 	if(hasReturn() && !hasBody && !m_givenReturnType) {

@@ -11,6 +11,12 @@ def dafFunctionParameters(a:i32):= {
 def dafMain():i32 {
 	mut x := inputInt; //We need to support body-less function calls etc
 	mut y := inputInt;
-	x+y
+	printInt(x+y);
+	def extraPrint:= {
+		printInt(377);
+		printInt
+	};
+	extraPrint(x-y);
+	5
 };
 

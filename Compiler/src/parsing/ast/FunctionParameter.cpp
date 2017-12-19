@@ -88,6 +88,28 @@ bool ValueParameter::isReferenceParameter() const {
 	return m_callTypeInfo.valueKind != ValueKind::ANONYMOUS;
 }
 
+bool ValueParameter::acceptsOrComplain(FunctionCallArgument& arg) {
+	const ExprTypeInfo& argTypeInfo = arg.m_expression->getTypeInfo();
+    if(getValueKindScore(m_callTypeInfo.valueKind) > getValueKindScore(argTypeInfo.valueKind)) {
+		auto& out = logDaf(arg.m_range, ERROR) << "function argument doesn't fit parameter modifier: ";
+	    printParameterModifier(m_modif);
+		out << std::endl;
+		return false;
+	}
+
+	bool requireMutOnArg = m_callTypeInfo.valueKind == ValueKind::MUT_LVALUE;
+	if(requireMutOnArg && !arg.m_mutableReference) {
+		logDaf(arg.m_range, ERROR) << "expected argument to be mut" << std::endl;
+		return false;
+	}
+
+	if(argTypeInfo.type != m_callTypeInfo.type) {
+		logDaf(arg.m_range, ERROR) << "TODO: Compare types properly, cause these pointers are different" << std::endl;
+		return false;
+	}
+	return true;
+}
+
 ValueParameterTypeInferred::ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName) : FunctionParameter(std::move(name)), m_modif(modif), m_typeName(std::move(typeName)) {
     assert(m_typeName.size() > 0); //TODO: do this for all identifiers that can't be underscore
 }

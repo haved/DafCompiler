@@ -48,6 +48,7 @@ public:
 	const ExprTypeInfo& getCallTypeInfo() const;
 	ConcreteType* getType() const;
 	bool isReferenceParameter() const;
+	bool acceptsOrComplain(FunctionCallArgument& arg);
 };
 
 // move a:$T
