@@ -107,7 +107,7 @@ ConcreteTypeKind FunctionType::getConcreteTypeKind() {
 }
 
 void FunctionType::setFunctionExpression(FunctionExpression* expression) {
-	assert(expression && makeConcreteNeverCalled());
+	assert(expression && !m_functionExpression && makeConcreteNeverCalled());
 	m_functionExpression = expression;
 }
 
@@ -117,17 +117,14 @@ FunctionExpression* FunctionType::getFunctionExpression() {
 
 bool FunctionType::addReturnKindModifier(ReturnKind kind) {
     assert(makeConcreteNeverCalled());
-	if(hasReturn()) {
-		int newScore = returnKindToScore(kind);
-		int oldScore = returnKindToScore(m_givenReturnKind);
-		if(oldScore < newScore)
-			m_givenReturnKind = kind;
-		return true;
-	}
-	else if(returnKindToScore(kind) > returnKindToScore(ReturnKind::VALUE_RETURN)) {
+	if(!hasReturn() && kind != ReturnKind::NO_RETURN) {
 		logDaf(getRange(), ERROR) << "can't apply return modifiers to a function without a return" << std::endl;
 		return false;
 	}
+    int newScore = returnKindToScore(kind);
+	int oldScore = returnKindToScore(m_givenReturnKind);
+	if(newScore > oldScore)
+		m_givenReturnKind = kind;
 	return true;
 }
 
@@ -239,9 +236,12 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 			m_returnTypeInfo = bodyTypeInfo;
 			degradeValueKind(m_returnTypeInfo.valueKind, reqKind);
 
-			if(canBeCalledImplicitlyOnce() && isFunctionType(m_returnTypeInfo))
-				m_implicitCallReturnTypeInfo = castToFunctionType(m_returnTypeInfo.type)->
-					getImplicitCallReturnTypeInfo();
+			if(canBeCalledImplicitlyOnce()) {
+				if(isFunctionType(m_returnTypeInfo))
+					m_implicitCallReturnTypeInfo = castToFunctionType(m_returnTypeInfo.type)->getImplicitCallReturnTypeInfo();
+				else
+					m_implicitCallReturnTypeInfo = m_returnTypeInfo;
+			}
 
 		} else {
 			assert(reqType);
@@ -314,7 +314,9 @@ FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, std::str
 	m_function_name(foreign_name),
 	m_broken_prototype(false),
 	m_filled_prototype(false),
-	m_prototype() {}
+	m_prototype() {
+	m_type->setFunctionExpression(this);
+}
 
 ExpressionKind FunctionExpression::getExpressionKind() const {
 	return ExpressionKind::FUNCTION;
@@ -398,7 +400,7 @@ optional<EvaluatedExpression> FunctionExpression::codegenImplicitExpression(Code
 			assert(current->valueKind == ValueKind::ANONYMOUS);
 			FunctionType* funcType = castToFunctionType(current->type);
 		    FunctionExpression* func = funcType->getFunctionExpression();
-			assert(func && "a function type requires a body for now");
+			assert(func && "a function type requires an expression for now");
 			llvm::Function* prototype = func->tryGetOrMakePrototype(codegen);
 			if(!prototype)
 				return boost::none;

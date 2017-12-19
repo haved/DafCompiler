@@ -216,6 +216,8 @@ unique_ptr<FunctionExpression> parseFunctionExpression(Lexer& lexer, optional<Re
 	if(!type)
 		return none_func_expr();
 
+	if(defReturnKind == ReturnKind::VALUE_RETURN)
+		defReturnKind = ReturnKind::NO_RETURN; //To support not having a return
 	if(!type->addReturnKindModifier(defReturnKind))
 		return none_func_expr();
 

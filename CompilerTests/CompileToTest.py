@@ -7,8 +7,12 @@
 ##No, 2016-12-03
 ###Noo, 2016-12-04
 
+exec_name = "CompileToTest.py"
+
 cmakeTarget = "Unix Makefiles" #Ninja
 makeCommand = ["make", "-j3"] #["ninja"]
+linker = ""
+export_compile_commands = True
 
 from subprocess import call
 from sys import argv
@@ -31,7 +35,27 @@ if not isdir(buildDir):
     makedirs(buildDir)
 chdir(buildDir)
 
-if call(["cmake", cmakeRelative]+(opt[2:]if len(opt)>2 else [])+["-G"+cmakeTarget, "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"]) != 0:
+hasLLD = call(["ld.lld", "--version"]) == 0
+if hasLLD:
+    linker="ld.lld"
+
+cmakeCallList = ["cmake", cmakeRelative]
+if len(linker) > 0:
+    cmakeCallList += ["-DCMAKE_LINKER="+linker]
+if len(opt)>2:
+    cmakeCallList+=opt[2:]
+cmakeCallList+=["-G"+cmakeTarget]
+if  export_compile_commands:
+    cmakeCallList+=["-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"]
+
+print(exec_name, "cmake command: ", " ".join(cmakeCallList))
+
+if call(cmakeCallList) != 0:
+    print(exec_name, "fatal error in cmake")
     exit(1)
+
+print(exec_name, "make command: ", " ".join(cmakeCallList))
+
 if call(makeCommand) != 0:
+    print(exec_name, "fatal error in make")
     exit(1)
