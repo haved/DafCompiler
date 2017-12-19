@@ -35,7 +35,7 @@ except TimeoutExpired:
 
 try:
     print("TEST: compiling C++")
-    code = run(["g++", dafMainCallerSrc, "-o", dafMainCallerObj, "-c"], timeout=2, stdout=stdout if printProgramOutput else PIPE).returncode
+    code = run(["g++", dafMainCallerSrc, "-o", dafMainCallerObj, "-c"], timeout=5, stdout=stdout if printProgramOutput else PIPE).returncode
     flush();
     if code is not 0:
         print("ERROR: Compiling C++ part failed", code)
@@ -47,7 +47,7 @@ except TimeoutExpired:
 
 
 try:
-    code = run(["g++", outputObjectFile, dafMainCallerObj, "-o", execOut], timeout=2, stdout=stdout if printProgramOutput else PIPE).returncode
+    code = run(["g++", outputObjectFile, dafMainCallerObj, "-o", execOut], timeout=5, stdout=stdout if printProgramOutput else PIPE).returncode
     flush();
     if code is not 0:
         print("ERROR: Linking failed with error code", code)
