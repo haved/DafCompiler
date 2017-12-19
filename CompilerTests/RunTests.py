@@ -89,7 +89,7 @@ else: #memcheck!
         print("Running memcheck (",inx+1,"/",len(files),": ",file_,")",sep='',file=scriptOutput)
         flush()
         try:
-            program = run(["valgrind", "--leak-check=full", "--show-leak-kinds=all", binary, file_], stdout=stdout if printProgramOutput else PIPE, stderr=PIPE, universal_newlines=True, timeout=5) #Five second timeout in valgrind
+            program = run(["valgrind", "--leak-check=full", "--show-leak-kinds=all", binary, file_], stdout=stdout if printProgramOutput else PIPE, stderr=PIPE, universal_newlines=True, timeout=15)
             flush()
             if program.returncode != 0: #The compiler faulted, don't print valgrind
                 print("ERROR: Test (",inx+1,"/",len(files),": ",file_,") returned code: ", program.returncode, sep='',file=scriptOutput)

@@ -31,19 +31,20 @@ class FileRegistry {
 private:
 	std::vector<RegisteredFileInternal> m_registeredFiles;
 	std::vector<SourcePath> m_sourcePaths;
+	bool m_outputFileSet;
 	fs::path m_outputFile;
-	fs::path m_linkFileOutput;
+	optional<fs::path> m_linkFileOutput;
 	std::vector<std::string> m_linkfileStatements;
 public:
 	FileRegistry();
 	bool tryAddPath(fs::path&& path, bool sourceIncluded);
 	bool tryAddFile(std::string&& path);
 	bool setOutput(fs::path&& path);
+	fs::path& getOutput();
 	inline int getSourcePathCount() { return m_sourcePaths.size(); }
 	inline int getFileCount() { return m_registeredFiles.size(); }
 	inline RegisteredFileInternal* getFileAt(uint index) { return &m_registeredFiles[index]; }
 	inline RegisteredFile getFileReference(uint index) { assert(index < m_registeredFiles.size()); return RegisteredFile(this, index); }
-	inline fs::path& getOutput() { return m_outputFile; }
 	void printFiles();
 };
 

@@ -65,7 +65,7 @@ void outputCodegenToFile(CodegenLLVM& codegen, fs::path& outputFile) {
 	llvm::raw_fd_ostream dest(Filename, EC, llvm::sys::fs::F_None);
 
 	if(EC) {
-		logDaf(FATAL_ERROR) << "Could not open file: " << EC.message() << std::endl;
+		logDaf(FATAL_ERROR) << "Could not open file("<<Filename<<"): " << EC.message() << std::endl;
 		terminateIfErrors();
 	}
 

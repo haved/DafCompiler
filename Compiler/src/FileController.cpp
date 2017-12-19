@@ -3,6 +3,8 @@
 
 #include <cstring>
 
+fs::path defaultOutputFile("a.out");
+
 #define STR_SAME(x, y) (strcmp(x, y) == 0)
 
 void printDafcHelpPage() {
@@ -68,7 +70,7 @@ FileRegistry parseCommandArguments(int argc, const char** argv) {
 
 SourcePath::SourcePath(bool p_sourceIncluded, fs::path&& p_path) : sourceIncluded(p_sourceIncluded), path(std::move(p_path)) {}
 
-FileRegistry::FileRegistry() : m_registeredFiles(), m_sourcePaths(), m_outputFile(), m_linkFileOutput(), m_linkfileStatements() {}
+FileRegistry::FileRegistry() : m_registeredFiles(), m_sourcePaths(), m_outputFileSet(false), m_outputFile(defaultOutputFile), m_linkFileOutput(boost::none), m_linkfileStatements() {}
 
 bool FileRegistry::tryAddPath(fs::path&& path, bool sourceIncluded) {
 	if(!fs::is_directory(path)) {
@@ -81,10 +83,14 @@ bool FileRegistry::tryAddPath(fs::path&& path, bool sourceIncluded) {
 }
 
 bool FileRegistry::setOutput(fs::path&& path) {
-	if(m_outputFile.size()!=0)
+	if(m_outputFileSet)
 		logDaf(WARNING) << "setting output a second time, from " << m_outputFile << " to " << path << std::endl;
 	m_outputFile = std::move(path);
 	return true;
+}
+
+fs::path& FileRegistry::getOutput() {
+    return m_outputFile;
 }
 
 bool FileRegistry::tryAddFile(std::string&& inputName) {
