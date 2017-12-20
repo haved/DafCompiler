@@ -75,7 +75,7 @@ public:
 	// === Used by Statement parser ===
 	virtual bool isStatement();
 	virtual bool evaluatesToValue() const; //This expression can't be returned unless this is true
-	virtual void printSignature() =0;
+	virtual void printSignature()override =0;
 	virtual ExpressionKind getExpressionKind() const =0;
 
 	void enableFunctionType();

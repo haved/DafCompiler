@@ -18,7 +18,7 @@ protected:
 	FunctionParameter(std::string&& name);
 public:
 	virtual ~FunctionParameter() {}
-	virtual void printSignature()=0;
+	virtual void printSignature()override=0;
 
 	virtual ParameterKind getParameterKind() const =0;
 

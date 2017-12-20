@@ -23,7 +23,7 @@ public:
 	Type(const TextRange& range);
 	virtual ~Type()=default;
 	const TextRange& getRange();
-	virtual void printSignature()=0;
+	virtual void printSignature() override =0;
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override=0;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;

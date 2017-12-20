@@ -224,6 +224,11 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 			Expression* body = (*m_functionExpression)->getBody();
 			ExprTypeInfo bodyTypeInfo = body->getTypeInfo();
 
+			if(bodyTypeInfo.isVoid()) {
+				logDaf(getRange(), ERROR) << "a function with a return can't return void" << std::endl;
+				return ConcretableState::LOST_CAUSE;
+			}
+
 			while(!isReturnCorrect(reqType, reqKind, bodyTypeInfo)) {
 			    if(isFunctionType(bodyTypeInfo)) {
 				    FunctionType* function = castToFunctionType(bodyTypeInfo.type);

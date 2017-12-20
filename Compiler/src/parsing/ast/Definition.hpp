@@ -44,7 +44,7 @@ public:
 	virtual void globalCodegen(CodegenLLVM& codegen);
 	virtual void localCodegen(CodegenLLVM& codegen);
 
-	virtual void printSignature()=0; //Children print 'pub ' if needed
+	virtual void printSignature()override=0; //Children print 'pub ' if needed
 	virtual DefinitionKind getDefinitionKind() const =0;
 };
 

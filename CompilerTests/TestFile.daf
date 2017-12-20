@@ -5,5 +5,5 @@ def dafMain:i32 {
 	printInt(155);
 	5
 };
- 
+
 def printInt(a:i32) "printIntToC";
