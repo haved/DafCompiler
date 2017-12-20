@@ -1,29 +1,9 @@
 // -*- compile-command: "time ./CompileToTest.py && time ./RunTest.py TestFile.daf" -*-
 
-def inputInt:i32 "inputIntFromC";
 
+def dafMain:i32 {
+	printInt(155);
+	5
+};
+ 
 def printInt(a:i32) "printIntToC";
-
-def dafFunctionParameters(a:i32):= {
-	printInt
-};
-
-def fromHell2:=printInt;
-def fromHell1(a:i32):=fromHell2;
-
-
-def dafMain():i32 {
-	mut x := inputInt; //We need to support body-less function calls etc
-	mut y := inputInt;
-	printInt(x+y);
-	def extraPrint:= {
-		printInt(377);
-		printInt
-	};
-	extraPrint(x-y);
-	fromHell1(4)(155);
-	//thisDoesntWork(5);
-	7
-};
-
-//def thisDoesntWork:=printInt;

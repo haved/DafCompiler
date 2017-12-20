@@ -23,7 +23,7 @@ execOut = "dafExec.out"
 printProgramOutput = True;
 
 try:
-    code = run([binary, inFile, "-o", outputObjectFile], timeout=2, stdout=stdout if printProgramOutput else PIPE).returncode
+    code = run([binary, inFile, "-o", outputObjectFile], timeout=2, stdout=stdout if printProgramOutput else PIPE, stderr=stderr if printProgramOutput else PIPE).returncode
     flush();
     if code is not 0:
         print("ERROR: daf compilation returned with error code", code);

@@ -443,9 +443,11 @@ ConcretableState FunctionCallExpression::makeConcreteInternal(NamespaceStack& ns
 
     m_function->enableFunctionType();
     ConcretableState state = m_function->makeConcrete(ns_stack, depMap);
-
     auto conc = allConcrete() << state;
 	auto lost = anyLost() << state;
+	if(state == ConcretableState::TRY_LATER)
+		depMap.makeFirstDependentOnSecond(this, m_function.get());
+
 	for(auto it = m_args.begin(); it != m_args.end(); ++it) {
 	    Expression* arg = it->m_expression.get();
 		ConcretableState state = arg->makeConcrete(ns_stack, depMap);

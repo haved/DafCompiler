@@ -26,7 +26,9 @@ public:
 	ConcretableState getConcretableState() const;
 	void silentlyUpdateToLostCause();
 
-	virtual void printConcretableInfo(std::ostream& out, int tab=4);
+	virtual void printSignature()=0;
+
+	virtual void printConcretableInfo(std::ostream& out, int tab=4, bool printRange=false);
 };
 
 struct ConcretableDepNode {

@@ -64,10 +64,10 @@ void Concretable::silentlyUpdateToLostCause() {
 	m_concreteState = ConcretableState::LOST_CAUSE;
 }
 
-void Concretable::printConcretableInfo(std::ostream& out, int tab) {
+void Concretable::printConcretableInfo(std::ostream& out, int tab, bool printRange) {
     while(tab--)
 		out << ' ';
-	out << "TODO: Print concretable info" << std::endl;
+    printSignature();
 }
 
 ConcretableDepNode::ConcretableDepNode() : dependentOnThis(), dependentOnCount(0) {}
@@ -139,7 +139,8 @@ void DependencyMap::markAsLostCause(Concretable* lostCause) {
 }
 
 bool DependencyMap::nodeHasDependencies(Concretable* c) {
-	return m_graph.find(c)->second.dependentOnCount != 0;
+	auto find = m_graph.find(c);
+	return find != m_graph.end() && find->second.dependentOnCount != 0;
 }
 
 bool DependencyMap::anyLostCauses() {
