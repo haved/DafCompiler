@@ -140,6 +140,76 @@ optional<EvaluatedExpression> VariableExpression::codegenPointer(CodegenLLVM& co
 	}
 }
 
+FunctionParameterExpression::FunctionParameterExpression(FunctionType* funcType, unsigned paramIndex, const TextRange& range) :
+	Expression(range), m_funcType(funcType), m_parameterIndex(paramIndex) {
+	assert(m_funcType && m_funcType->getFunctionExpression());
+}
+
+ExpressionKind FunctionParameterExpression::getExpressionKind() const {
+	return ExpressionKind::FUNCTION_PARAMETER;
+}
+
+void FunctionParameterExpression::printSignature() {
+	std::cout << "FunctionParameter(" << m_parameterIndex << ")" << std::endl;
+}
+
+ConcretableState FunctionParameterExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	(void) ns_stack;
+
+	param_list& params = m_funcType->getParameters();
+	assert(m_parameterIndex < params.size());
+
+	FunctionParameter* param = params[m_parameterIndex].get();
+	ConcretableState state = param->getConcretableState();
+	if(state == ConcretableState::TRY_LATER)
+		depMap.makeFirstDependentOnSecond(this, m_funcType);
+    if(allConcrete() << state)
+		return retryMakeConcreteInternal(depMap);
+    if(anyLost() << state)
+		return ConcretableState::LOST_CAUSE;
+	return ConcretableState::TRY_LATER;
+}
+
+ConcretableState FunctionParameterExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
+	param_list& params = m_funcType->getParameters();
+	FunctionParameter* param = params[m_parameterIndex].get();
+	assert(param->getParameterKind() == ParameterKind::VALUE_PARAM);
+	ValueParameter* valParam = static_cast<ValueParameter*>(param);
+	m_typeInfo = valParam->getCallTypeInfo();
+	return ConcretableState::CONCRETE;
+}
+
+optional<EvaluatedExpression> FunctionParameterExpression::codegenFuncParam(CodegenLLVM& codegen, bool ptr) {
+	FunctionExpression* expr = m_funcType->getFunctionExpression();
+	assert(expr);
+	llvm::Function* prototype = expr->tryGetOrMakePrototype(codegen);
+	if(!prototype)
+		return boost::none;
+	assert(codegen.Builder().GetInsertBlock()->getParent() == prototype);
+
+	auto argIterator = prototype->arg_begin();
+	int index = m_parameterIndex;
+	while(index--) //TODO: O(1) p[eo]r favore?
+		++argIterator;
+	llvm::Value* value = &(*argIterator); //C++, my dudes
+
+	bool isReferenceParameter = isReferenceTypeInfo();
+	assert(isReferenceParameter || !ptr);
+	if(isReferenceParameter && !ptr)
+		value = codegen.Builder().CreateLoad(value);
+
+	return EvaluatedExpression(value, &m_typeInfo);
+}
+
+optional<EvaluatedExpression> FunctionParameterExpression::codegenExpression(CodegenLLVM& codegen) {
+    return codegenFuncParam(codegen, false);
+}
+
+optional<EvaluatedExpression> FunctionParameterExpression::codegenPointer(CodegenLLVM& codegen) {
+    return codegenFuncParam(codegen, true);
+}
+
 IntegerConstantExpression::IntegerConstantExpression(daf_largest_uint integer, LiteralKind integerType, const TextRange& range) : Expression(range), m_integer(integer), m_type(literalKindToPrimitiveType(integerType)) {
 	assert(!m_type->isFloatingPoint());
 }

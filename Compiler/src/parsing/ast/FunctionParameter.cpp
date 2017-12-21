@@ -1,7 +1,10 @@
 #include "parsing/ast/FunctionParameter.hpp"
+#include "parsing/ast/Definition.hpp"
+#include "parsing/ast/Expression.hpp"
+#include "parsing/ast/FunctionSignature.hpp"
 #include "parsing/semantic/ConcretableHelp.hpp"
 
-FunctionParameter::FunctionParameter(std::string&& name) : m_name(std::move(name)) {} //An empty name is allowed
+FunctionParameter::FunctionParameter(std::string&& name, const TextRange& range) : m_name(std::move(name)), m_range(range) {} //An empty name is allowed
 
 ConcretableState FunctionParameter::retryMakeConcreteInternal(DependencyMap& depMap) {
     (void) depMap;
@@ -32,7 +35,7 @@ void printParameterModifier(ParameterModifier modif) {
 	}
 }
 
-ValueParameter::ValueParameter(ParameterModifier modif, std::string&& name, TypeReference&& type) : FunctionParameter(std::move(name)), m_modif(modif), m_type(std::move(type)), m_callTypeInfo(nullptr, ValueKind::ANONYMOUS) {
+ValueParameter::ValueParameter(ParameterModifier modif, std::string&& name, TypeReference&& type, const TextRange& range) : FunctionParameter(std::move(name), range), m_modif(modif), m_type(std::move(type)), m_callTypeInfo(nullptr, ValueKind::ANONYMOUS) {
 	assert(m_type);
 	//We allow m_name to be underscore
 }
@@ -48,16 +51,6 @@ ParameterKind ValueParameter::getParameterKind() const {
 	return ParameterKind::VALUE_PARAM;
 }
 
-ConcretableState ValueParameter::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	ConcretableState state = m_type.getType()->makeConcrete(ns_stack, depMap);
-    if(allConcrete() << state)
-		return retryMakeConcreteInternal(depMap);
-	if(anyLost() << state)
-		return ConcretableState::LOST_CAUSE;
-	depMap.makeFirstDependentOnSecond(this, m_type.getType());
-	return state;
-}
-
 ValueKind parameterModifierToArgValueKind(ParameterModifier modif) {
 	switch(modif) {
 	case ParameterModifier::NONE: return ValueKind::ANONYMOUS;
@@ -70,6 +63,24 @@ ValueKind parameterModifierToArgValueKind(ParameterModifier modif) {
 	}
 }
 
+unique_ptr<Let> ValueParameter::makeLet(FunctionType* funcType, int paramIndex) {
+	ValueKind kind = parameterModifierToArgValueKind(m_modif);
+	bool mut = kind == ValueKind::MUT_LVALUE;
+	bool ref = mut || kind == ValueKind::LVALUE;
+	unique_ptr<Expression> expr = std::make_unique<FunctionParameterExpression>(funcType, paramIndex, m_range);
+	return std::make_unique<Let>(false, mut, std::string(m_name), TypeReference(), std::move(expr), m_range, ref);
+}
+
+ConcretableState ValueParameter::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	ConcretableState state = m_type.getType()->makeConcrete(ns_stack, depMap);
+    if(allConcrete() << state)
+		return retryMakeConcreteInternal(depMap);
+	if(anyLost() << state)
+		return ConcretableState::LOST_CAUSE;
+	depMap.makeFirstDependentOnSecond(this, m_type.getType());
+	return state;
+}
+
 ConcretableState ValueParameter::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
 	m_callTypeInfo = ExprTypeInfo(m_type.getConcreteType(), parameterModifierToArgValueKind(m_modif));
@@ -77,18 +88,22 @@ ConcretableState ValueParameter::retryMakeConcreteInternal(DependencyMap& depMap
 }
 
 const ExprTypeInfo& ValueParameter::getCallTypeInfo() const {
+	assert(allConcrete() << getConcretableState());
 	return m_callTypeInfo;
 }
 
 ConcreteType* ValueParameter::getType() const {
+	assert(allConcrete() << getConcretableState());
 	return m_callTypeInfo.type;
 }
 
 bool ValueParameter::isReferenceParameter() const {
+	assert(allConcrete() << getConcretableState());
 	return m_callTypeInfo.valueKind != ValueKind::ANONYMOUS;
 }
 
 bool ValueParameter::acceptsOrComplain(FunctionCallArgument& arg) {
+	assert(allConcrete() << getConcretableState() << arg.m_expression->getConcretableState());
 	const ExprTypeInfo& argTypeInfo = arg.m_expression->getTypeInfo();
     if(getValueKindScore(m_callTypeInfo.valueKind) > getValueKindScore(argTypeInfo.valueKind)) {
 		auto& out = logDaf(arg.m_range, ERROR) << "function argument doesn't fit parameter modifier: ";
@@ -110,7 +125,7 @@ bool ValueParameter::acceptsOrComplain(FunctionCallArgument& arg) {
 	return true;
 }
 
-ValueParameterTypeInferred::ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName) : FunctionParameter(std::move(name)), m_modif(modif), m_typeName(std::move(typeName)) {
+ValueParameterTypeInferred::ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName, const TextRange& range) : FunctionParameter(std::move(name), range), m_modif(modif), m_typeName(std::move(typeName)) {
     assert(m_typeName.size() > 0); //TODO: do this for all identifiers that can't be underscore
 }
 
@@ -128,7 +143,7 @@ ConcretableState ValueParameterTypeInferred::makeConcreteInternal(NamespaceStack
 	return ConcretableState::CONCRETE;
 }
 
-TypedefParameter::TypedefParameter(std::string&& name) : FunctionParameter(std::move(name)) {
+TypedefParameter::TypedefParameter(std::string&& name, const TextRange& range) : FunctionParameter(std::move(name), range) {
 	assert(m_name.size() > 0); //We can't have empty type parameters. That gets too insane
 }
 

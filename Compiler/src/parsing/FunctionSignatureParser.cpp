@@ -58,6 +58,8 @@ bool parseFunctionParameter(Lexer& lexer, std::vector<unique_ptr<FunctionParamet
 	if(!lexer.expectToken(IDENTIFIER))
 		return false;
 	std::string name(lexer.getCurrentToken().text);
+	int lineStart = lexer.getCurrentToken().line;
+	int colStart  = lexer.getCurrentToken().col;
 	//NOTE: We don't eat identifier here, as we want to check if it's proper is some cases
 
 	//We assume you meant value parameter if you forgot colon but have a modifier
@@ -67,7 +69,7 @@ bool parseFunctionParameter(Lexer& lexer, std::vector<unique_ptr<FunctionParamet
 
 		lexer.advance(); //Eat proper identifier
 
-		params.push_back(std::make_unique<TypedefParameter>(std::move(name)));
+		params.push_back(std::make_unique<TypedefParameter>(std::move(name), TextRange(lexer.getFile(), lexer.getPreviousToken())));
 		return true;
 	}
 
@@ -83,7 +85,7 @@ bool parseFunctionParameter(Lexer& lexer, std::vector<unique_ptr<FunctionParamet
 		if(!lexer.expectProperIdentifier()) //Gives normal expected identifier error if different token
 			return false;
 
-		params.push_back(std::make_unique<ValueParameterTypeInferred>(modif, std::move(name), std::string(lexer.getCurrentToken().text)));
+		params.push_back(std::make_unique<ValueParameterTypeInferred>(modif, std::move(name), std::string(lexer.getCurrentToken().text), TextRange(lexer.getFile(), lineStart, colStart, lexer.getCurrentToken())));
 
 		lexer.advance(); //Eat identifier
 		return true;
@@ -92,7 +94,7 @@ bool parseFunctionParameter(Lexer& lexer, std::vector<unique_ptr<FunctionParamet
 	TypeReference type = parseType(lexer);
 	if(!type)
 		return false;
-	params.push_back(std::make_unique<ValueParameter>(modif, std::move(name), std::move(type)));
+	params.push_back(std::make_unique<ValueParameter>(modif, std::move(name), std::move(type), TextRange(lexer.getFile(), lineStart, colStart, lexer.getPreviousToken())));
 	return true;
 }
 

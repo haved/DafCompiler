@@ -83,11 +83,12 @@ private:
 
 	ExprTypeInfo m_typeInfo;
 
-	int m_blockLevel; //Used to determine if it's inside or outside a function
+	int m_blockLevel; //Used to determine if it's inside or outside a function given
 
 	llvm::Value* m_space;
+	bool m_stealSpaceFromTarget; //Used for reference function parameters
 public:
-	Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange& range);
+	Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange& range, bool stealSpaceFromTarget=false);
 	Let(const Let& other) = delete;
 	Let(Let&& other) = default;
 	Let& operator=(const Let& other) = delete;
@@ -148,7 +149,7 @@ public:
 
 	virtual void codegen(CodegenLLVM& codegen) {(void) codegen; std::cout << "TODO: NameScopeExpression codegen" << std::endl; }
 
-	virtual void printSignature()=0;
+	virtual void printSignature()override =0;
 	virtual NameScopeExpressionKind getNameScopeExpressionKind()=0;
 };
 

@@ -1,4 +1,5 @@
 #include "parsing/ast/FunctionSignature.hpp"
+#include "parsing/ast/Definition.hpp"
 #include "DafLogger.hpp"
 #include "CodegenLLVM.hpp"
 #include "info/DafSettings.hpp"
@@ -66,13 +67,16 @@ FunctionType::FunctionType(param_list&& parameters, ReturnKind givenKind,
 	m_givenReturnType(std::move(givenType)),
 	m_functionExpression(boost::none),
 	m_returnTypeInfo(getNoneTypeInfo()),
-	m_implicitCallReturnTypeInfo(boost::none) {
-
+	m_implicitCallReturnTypeInfo(boost::none),
+	m_parameter_lets(),
+	m_parameter_map() {
     if(!hasReturn())
 		assert(!m_givenReturnType);
 	if(m_givenReturnType)
 		assert(m_givenReturnType->getType());
 }
+
+FunctionType::~FunctionType() {} //To allow forward declaration of unique_ptr<Let>
 
 void FunctionType::printSignature() {
 	auto& out = std::cout << '(';
@@ -144,6 +148,28 @@ param_list& FunctionType::getParameters() {
 	return m_parameters;
 }
 
+parameter_let_list& FunctionType::getParameterLetList() {
+	return m_parameter_lets;
+}
+
+Definition* FunctionType::tryGetDefinitionFromName(const std::string& name) {
+    return m_parameter_map.tryGetDefinitionFromName(name);
+}
+
+bool FunctionType::readyParameterLets() {
+	for(unsigned int i = 0; i < m_parameters.size(); i++) {
+		FunctionParameter* param = m_parameters[i].get();
+		assert(param->getParameterKind() == ParameterKind::VALUE_PARAM);
+		ValueParameter* valParam = static_cast<ValueParameter*>(param);
+		unique_ptr<Let> paramLet = valParam->makeLet(this, i);
+		if(!paramLet)
+			return false;
+	    paramLet->addToMap(m_parameter_map);
+		m_parameter_lets.push_back(std::move(paramLet));
+	}
+	return true;
+}
+
 ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 	bool hasBody = m_functionExpression && (*m_functionExpression)->getBody();
 	if(hasReturn() && !hasBody && !m_givenReturnType) {
@@ -171,10 +197,13 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 	}
 
 	if(m_functionExpression && (*m_functionExpression)->getBody()) {
+		readyParameterLets();
 		Expression* body = (*m_functionExpression)->getBody();
+		ns_stack.push(this);
 		if(hasReturn())
 			body->enableFunctionType();
 		ConcretableState state = body->makeConcrete(ns_stack, depMap);
+		ns_stack.pop();
 		if(state == ConcretableState::TRY_LATER)
 			depMap.makeFirstDependentOnSecond(this, body);
 		conc = conc << state;
@@ -325,6 +354,10 @@ FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, std::str
 	m_filled_prototype(false),
 	m_prototype() {
 	m_type->setFunctionExpression(this);
+}
+
+FunctionExpression::~FunctionExpression() {
+	//Hey there, we just need to define this destructor here to allow forward declaration of unique_ptr<Let>
 }
 
 ExpressionKind FunctionExpression::getExpressionKind() const {

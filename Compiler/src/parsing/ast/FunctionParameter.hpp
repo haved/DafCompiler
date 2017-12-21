@@ -15,7 +15,8 @@ enum class ParameterKind {
 class FunctionParameter : public Concretable {
 protected:
 	std::string m_name;
-	FunctionParameter(std::string&& name);
+	TextRange m_range;
+	FunctionParameter(std::string&& name, const TextRange& range);
 public:
 	virtual ~FunctionParameter() {}
 	virtual void printSignature()override=0;
@@ -30,6 +31,8 @@ enum class ParameterModifier {
 	NONE, LET, MUT, MOVE, UNCRT, DTOR
 };
 
+class Let;
+class FunctionType;
 // uncrt a:int
 class ValueParameter : public FunctionParameter {
 private:
@@ -38,9 +41,11 @@ private:
 
 	ExprTypeInfo m_callTypeInfo;
 public:
-	ValueParameter(ParameterModifier modif, std::string&& name, TypeReference&& type);
+	ValueParameter(ParameterModifier modif, std::string&& name, TypeReference&& type, const TextRange& range);
 	virtual void printSignature() override;
 	virtual ParameterKind getParameterKind() const override;
+
+	unique_ptr<Let> makeLet(FunctionType* funcType, int paramIndex);
 
     virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
@@ -57,7 +62,7 @@ private:
 	ParameterModifier m_modif;
 	std::string m_typeName;
 public:
-	ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName);
+	ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName, const TextRange& range);
 	virtual void printSignature() override;
 	virtual ParameterKind getParameterKind() const override;
 
@@ -67,7 +72,7 @@ public:
 //TODO: Add restrictions here too
 class TypedefParameter : public FunctionParameter {
 public:
-	TypedefParameter(std::string&& name);
+	TypedefParameter(std::string&& name, const TextRange& range);
 	virtual void printSignature() override;
 	virtual ParameterKind getParameterKind() const override;
 

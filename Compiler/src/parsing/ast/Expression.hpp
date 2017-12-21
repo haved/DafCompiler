@@ -48,6 +48,7 @@ struct EvaluatedExpression {
 
 enum class ExpressionKind {
 	VARIABLE,
+	FUNCTION_PARAMETER,
 	INT_LITERAL,
 	REAL_LITERAL,
 	STRING_LITERAL,
@@ -114,6 +115,27 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
+	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
+	virtual optional<EvaluatedExpression> codegenPointer(CodegenLLVM& codegen) override;
+};
+
+class FunctionType;
+class FunctionParameterExpression : public Expression {
+private:
+	FunctionType* m_funcType;
+	unsigned m_parameterIndex;
+public:
+	FunctionParameterExpression(FunctionType* m_funcType, unsigned parameterIndex, const TextRange& range);
+	FunctionParameterExpression(const FunctionParameterExpression& other) = delete;
+	FunctionParameterExpression& operator=(const FunctionParameterExpression& other) = delete;
+
+	virtual ExpressionKind getExpressionKind() const override;
+	virtual void printSignature() override;
+
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
+
+	optional<EvaluatedExpression> codegenFuncParam(CodegenLLVM& codegen, bool ptr);
 	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
 	virtual optional<EvaluatedExpression> codegenPointer(CodegenLLVM& codegen) override;
 };
