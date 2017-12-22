@@ -664,7 +664,7 @@ optional<EvaluatedExpression> FunctionCallExpression::codegenFunctionCall(Codege
 		}
 	}
 
-	assert(!funcType->isReferenceReturn() || !pointer);
+	assert(funcType->isReferenceReturn() || !pointer);
 	if(funcType->isReferenceReturn() && !pointer) {
 		returnVal = codegen.Builder().CreateLoad(returnVal);
 	}

@@ -554,6 +554,7 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 		if(returnsRef)
 			assert(isFunctionType(*eval.typeInfo));
 
+		bool givenRef = false;
 		while(returns && !isReturnCorrect(targetTypeInfo.type, targetTypeInfo.valueKind, *eval.typeInfo)) {
 			assert(isFunctionType(*eval.typeInfo));
 			FunctionType* func = castToFunctionType(eval.typeInfo->type);
@@ -563,20 +564,20 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 			assert(func->canBeCalledImplicitlyOnce());
 			llvm::Value* val = codegen.Builder().CreateCall(prototype);
 			eval = EvaluatedExpression(val, &func->getReturnTypeInfo());
+			givenRef = func->isReferenceReturn();
 		}
 
-		bool givenRef = getValueKindScore(eval.typeInfo->valueKind) > getValueKindScore(ValueKind::LVALUE);
 		assert(!returnsRef || givenRef);
 		if(givenRef && !returnsRef)
 			eval = EvaluatedExpression(codegen.Builder().CreateLoad(eval.value), eval.typeInfo);
 	}
 
-	assert(eval.typeInfo->equals(targetTypeInfo));
-
     if(m_prototype->getReturnType()->isVoidTy())
 		codegen.Builder().CreateRetVoid();
-	else
+	else {
+		assert(eval.typeInfo->type == targetTypeInfo.type);
 		codegen.Builder().CreateRet(eval.value);
+	}
 
 	llvm::verifyFunction(*m_prototype);
 
