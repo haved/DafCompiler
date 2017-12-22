@@ -1,12 +1,29 @@
 // -*- compile-command: "time ./CompileToTest.py && time ./RunTests.py -f TestFile.daf" -*-
 
-def printInt(a:i32) "printIntToC";
+//def printInt(a:i32) "printIntToC";
 
-def printMyNum(test:i32) {
-	printInt(test);
+def incByTwo(a:i32):i32 {
+	a
+};
+/*
+def printThenSet(mut number:i32, too:i32) {
+	printInt(number);
+	number=too;
 };
 
-def dafMain:i32 {
-	printInt(155);
-	5
+def getPtr(mut a:i32):mut i32=a;
+*/
+def dafMain() {
+	mut x := 6;
+	//incByTwo(mut x);
+	/*mut y := 8;
+	printThenSet(mut x, y);
+	incByTwo(mut y);
+	printThenSet(mut y, x);
+	printInt(y);
+	printInt(incByTwo(mut x));
+	printInt(x+y);
+	printInt(x);
+	getPtr(mut x)=x+5;
+	x*/
 };

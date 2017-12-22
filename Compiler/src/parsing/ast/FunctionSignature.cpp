@@ -182,7 +182,7 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 
 	readyParameterLets();
 
-	for(auto& paramLet : m_parameter_lets) {
+	for(auto& paramLet : m_parameter_lets) { //Responsibility of let to make parameter concrete
 		ConcretableState state = paramLet->makeConcrete(ns_stack, depMap);
 		if(state == ConcretableState::TRY_LATER)
 			depMap.makeFirstDependentOnSecond(this, paramLet.get());
@@ -291,11 +291,13 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 		} else {
 			assert(reqType);
 			m_returnTypeInfo = ExprTypeInfo(*reqType, reqKind);
-			m_implicitCallReturnTypeInfo = m_returnTypeInfo;
+			if(canBeCalledImplicitlyOnce())
+				m_implicitCallReturnTypeInfo = m_returnTypeInfo;
 		}
 	} else { //The point of no return
 		m_returnTypeInfo = ExprTypeInfo(getVoidType(), ValueKind::ANONYMOUS);
-		m_implicitCallReturnTypeInfo = m_returnTypeInfo;
+		if(canBeCalledImplicitlyOnce())
+			m_implicitCallReturnTypeInfo = m_returnTypeInfo;
 	} //And there's something in the air
 
 	return ConcretableState::CONCRETE;

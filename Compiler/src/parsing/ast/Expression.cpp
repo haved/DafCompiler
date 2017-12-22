@@ -581,15 +581,18 @@ ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap
 			return ConcretableState::LOST_CAUSE;
 	}
 
+	const ExprTypeInfo& returnTypeGotten = funcType->getReturnTypeInfo();
 	if(functionTypeAllowed()) {
-		m_typeInfo = funcType->getReturnTypeInfo();
-	} else {
+		m_typeInfo = returnTypeGotten;
+	} else if(isFunctionType(returnTypeGotten)) {
 		optional<ExprTypeInfo> implicit = funcType->getImplicitCallReturnTypeInfo();
 		if(!implicit) {
 			logDaf(getRange(), ERROR) << "not enough parameters supplied to call all functions" << std::endl;
 			return ConcretableState::LOST_CAUSE;
 		}
 		m_typeInfo = *implicit;
+	} else {
+		m_typeInfo = returnTypeGotten;
 	}
 
 	return ConcretableState::CONCRETE;
