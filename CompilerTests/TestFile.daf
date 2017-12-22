@@ -1,12 +1,12 @@
 // -*- compile-command: "time ./CompileToTest.py && time ./RunTests.py -f TestFile.daf" -*-
-/*
-def printMyNum(a:i32) {
-	printInt(a);
+
+def printInt(a:i32) "printIntToC";
+
+def printMyNum(test:i32) {
+	printInt(test);
 };
-*/
+
 def dafMain:i32 {
 	printInt(155);
 	5
 };
-
-def printInt(a:i32) "printIntToC";

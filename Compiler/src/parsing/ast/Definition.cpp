@@ -22,7 +22,7 @@ Def::Def(bool pub, std::string&& name, unique_ptr<FunctionExpression>&& expressi
 }
 
 Let::Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange &range, bool stealSpaceFromTarget) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_givenType(std::move(givenType)), m_expression(std::move(expression)), m_typeInfo(nullptr, ValueKind::ANONYMOUS), m_blockLevel(0), m_space(), m_stealSpaceFromTarget(stealSpaceFromTarget) {
-	assert(m_expression || m_givenType); //TODO: Allow let's without assignment, and do all the uncrt stuff
+	assert(m_expression || m_givenType);
 }
 
 void Def::addToMap(NamedDefinitionMap& map) {

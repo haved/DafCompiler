@@ -179,7 +179,7 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 
 	auto conc = allConcrete();
 	auto lost = anyLost();
-
+	/*
 	for(auto& param:m_parameters) {
 		ConcretableState state = param->makeConcrete(ns_stack, depMap);
 		if(state == ConcretableState::TRY_LATER)
@@ -187,6 +187,9 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 		conc = conc << state;
 		lost = lost << state;
 	}
+	*/
+
+	for(auto& )
 
 	if(m_givenReturnType) {
 		ConcretableState state = m_givenReturnType->getType()->makeConcrete(ns_stack, depMap);
