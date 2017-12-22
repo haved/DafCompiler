@@ -126,20 +126,26 @@ void Let::globalCodegen(CodegenLLVM& codegen) {
 void Let::localCodegen(CodegenLLVM& codegen) {
 	llvm::Type* type = m_typeInfo.type->codegenType(codegen);
 	assert(type);
-	llvm::Function* func = codegen.Builder().GetInsertBlock()->getParent();
-	llvm::IRBuilder<> tmpB(&func->getEntryBlock(), func->getEntryBlock().begin());
-	m_space = tmpB.CreateAlloca(type, 0, m_name);
+	if(m_stealSpaceFromTarget) {
+		optional<EvaluatedExpression> opt_expr = m_expression->codegenPointer(codegen);
+		assert(opt_expr && "the pointer at which we're supposed to put the let is boost::none");
+		assert(opt_expr->typeInfo->type == m_typeInfo.type);
+		m_space = opt_expr->value;
+	} else {
+		llvm::Function* func = codegen.Builder().GetInsertBlock()->getParent();
+		llvm::IRBuilder<> tmpB(&func->getEntryBlock(), func->getEntryBlock().begin());
+		m_space = tmpB.CreateAlloca(type, 0, m_name);
 
-	if(m_expression) {
-		optional<EvaluatedExpression> opt_expr = m_expression->codegenExpression(codegen);
-		if(!opt_expr)
-			return;
-		EvaluatedExpression expr = *opt_expr;
+		if(m_expression) {
+			optional<EvaluatedExpression> opt_expr = m_expression->codegenExpression(codegen);
+			if(!opt_expr)
+				return;
+			EvaluatedExpression expr = *opt_expr;
 
-		assert(expr.typeInfo->type == m_typeInfo.type);
-		codegen.Builder().CreateStore(expr.value, m_space);
+			assert(expr.typeInfo->type == m_typeInfo.type);
+			codegen.Builder().CreateStore(expr.value, m_space);
+		}
 	}
-
 	//TODO: Uncertain and stuff
 	//TODO: Destructors and stuff
 }

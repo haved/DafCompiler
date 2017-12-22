@@ -179,17 +179,19 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 
 	auto conc = allConcrete();
 	auto lost = anyLost();
-	/*
-	for(auto& param:m_parameters) {
-		ConcretableState state = param->makeConcrete(ns_stack, depMap);
+
+	readyParameterLets();
+
+	for(auto& paramLet : m_parameter_lets) {
+		ConcretableState state = paramLet->makeConcrete(ns_stack, depMap);
 		if(state == ConcretableState::TRY_LATER)
-			depMap.makeFirstDependentOnSecond(this, param.get());
+			depMap.makeFirstDependentOnSecond(this, paramLet.get());
 		conc = conc << state;
 		lost = lost << state;
 	}
-	*/
 
-	for(auto& )
+	for(auto& param:m_parameters)
+		assert(param->getConcretableState()!=ConcretableState::NEVER_TRIED);
 
 	if(m_givenReturnType) {
 		ConcretableState state = m_givenReturnType->getType()->makeConcrete(ns_stack, depMap);
@@ -200,7 +202,6 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 	}
 
 	if(m_functionExpression && (*m_functionExpression)->getBody()) {
-		readyParameterLets();
 		Expression* body = (*m_functionExpression)->getBody();
 		ns_stack.push(this);
 		if(hasReturn())
@@ -245,6 +246,9 @@ void complainReturnIsntCorrect(optional<ConcreteType*> requiredType, ValueKind r
 
 ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
+
+	for(auto& param:m_parameters)
+		assert(allConcrete() << param->getConcretableState());
 
 	if(hasReturn()) {
 	    ValueKind reqKind = returnKindToValueKind(m_givenReturnKind);
@@ -525,6 +529,10 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 	codegen.Builder().SetInsertPoint(BB);
 
 	ExprTypeInfo& targetTypeInfo = m_type->getReturnTypeInfo();
+
+	for(auto& letParam : m_type->getParameterLetList()) {
+		letParam->localCodegen(codegen);
+	}
 
 	bool returns = m_type->hasReturn();
 	bool returnsRef = m_type->isReferenceReturn();
