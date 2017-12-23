@@ -2,10 +2,23 @@ cmake_minimum_required (VERSION 3.4.3)
 project (DafCompiler)
 set(DafCompiler_VERSION_MAJOR 1)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_CXX_FLAGS}")
-if(UNIX)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-endif()
+# User specified:
+# DAF_DEBUG_MACRO:bool
+# DAF_LINK_ALL_LLVM:bool
+# DAF_EXTRA_CXX_FLAGS:String
+# DAF_EXTRA_LINK_FLAGS:String
+#
+# You might want to play with these:
+# CMAKE_CXX_COMPILER
+# CMAKE_LINKER
+# CMAKE_BUILD_TYPE #I don't know what this does, so I do debug/release stuff manually
+
+
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DAF_EXTRA_CXX_FLAGS}") #-Wall -Weffc++ -Wextra -pedantic -g -O2
+SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${DAF_EXTRA_LINK_FLAGS}")
+#if(UNIX)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+#endif()
 
 file(GLOB MySources
     #src/*.hpp
@@ -52,19 +65,20 @@ ADD_DEFINITIONS(${LLVM_DEFINITIONS})
 add_executable(DafCompiler ${MySources} ${MySourcesParsing} ${MySourcesParsingLexing} ${MySourcesParsingAst} ${MySourcesParsingSemantic} ${MySourcesInfo})
 target_include_directories(DafCompiler PUBLIC "${CMAKE_SOURCE_DIR}/src")
 
+if(DAF_DEBUG_MACRO)
+  target_compile_definitions(DafCompiler PRIVATE DAF_DEBUG)
+endif()
+
 TARGET_LINK_LIBRARIES(DafCompiler ${Boost_LIBRARIES})
-
-# Find the libraries that correspond to the LLVM components
-# that we wish to use
-#LLVM_MAP_COMPONENTS_TO_LIBNAMES(core) #llvm_libs irreader support   # passes target asmparser asmprinter codegen
-#TARGET_LINK_LIBRARIES(DafCompiler ${llvm_libs})
-
-TARGET_LINK_LIBRARIES(DafCompiler
+TARGET_LINK_LIBRARIES(DafCompiler #The strictly necessary llvm linking
   LLVMX86CodeGen
   LLVMX86AsmParser
   )
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
+if(DAF_LINK_ALL_LLVM)
+  LLVM_MAP_COMPONENTS_TO_LIBNAMES(core) #llvm_libs irreader support   # passes target asmparser asmprinter codegen
+  TARGET_LINK_LIBRARIES(DafCompiler ${llvm_libs})
+
     TARGET_LINK_LIBRARIES(DafCompiler
         LLVMXCoreCodeGen
         LLVMSystemZCodeGen
@@ -88,6 +102,4 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
         LLVMAArch64CodeGen
         LLVMAArch64AsmParser
         )
-else()
-    target_compile_definitions(DafCompiler PRIVATE DAF_DEBUG)
 endif()

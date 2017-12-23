@@ -16,3 +16,5 @@
 /**/afl_*/
 /**/*.out
 /**/*.o
+DebugBuild/
+ReleaseBuild/
