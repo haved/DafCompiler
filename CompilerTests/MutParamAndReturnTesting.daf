@@ -1,4 +1,3 @@
-// -*- compile-command: "cd .. && time ./buildScript.py --tests --testFilter TestFile.daf" -*-
 
 def printInt(a:i32) "printIntToC";
 

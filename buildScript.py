@@ -4,6 +4,7 @@ from sys import argv
 import os.path, os, subprocess, re
 
 printDafCompileOutput = False
+printDafRunOutput = True
 
 binaryName = "buildScript.py"
 def fatal_error(text, *arg):
@@ -19,6 +20,18 @@ def info(text, *arg):
 def expectText(name, text, target):
     if text not in target:
         fatal_error("expected {} to be in [{}], not {}".format(name, ",".join(target), text))
+
+def cleanupTmpFiles(options, silent=False):
+    remove = [options.getOption("-testDafOutput"), options.getOption("-testCppOutput"), options.getOption("-testBinaryOutput")]
+    if not silent:
+        info("Removing {}, {} and {}", *remove)
+    for file in remove:
+        try:
+            os.remove(file)
+        except FileNotFoundError as e:
+            if not silent:
+                info("File didn't exist: {}", file)
+
 
 #Key is option, value is default in debug
 #List value means legal options, first item being default in debug
@@ -189,6 +202,22 @@ def compileDafCaller(options):
         if compileCall.returncode is not 0:
             fatal_error("Compiling C++ main file failed with error code: {}", compileCall.returncall)
 
+def runCommand(name, command, timeout, forwardOutput=False):
+    try:
+        with subprocess.Popen(command, stdout=None if forwardOutput else subprocess.PIPE, stderr=None if forwardOutput else subprocess.PIPE) as process:
+            process.wait(timeout=timeout)
+            if process.returncode is not 0:
+                info("last command: {}", "   ".join(command))
+                if not forwardOutput:
+                    info("STDOUT for this command: ")
+                    print(process.stdout.read().decode("utf-8"))
+                    info("STDERR for this command: ")
+                    print(process.stderr.read().decode("utf-8"))
+                fatal_error("{} failed with return code {}", name, process.returncode)
+    except TimeoutError as e:
+        info("last command: {}", "   ".join(command))
+        fatal_error("{} timed out", name)
+
 def doTests(options):
     filesToConsider = []
 
@@ -215,51 +244,17 @@ def doTests(options):
         dafCompileCommand = [os.path.join(options.getOption("-buildDir"),"DafCompiler")]
         dafCompileCommand += [os.path.join(options.getOption("-testFolder"), file)]
         dafCompileCommand += ["-o", options.getOption("-testDafOutput")]
-        try:
-            with subprocess.Popen(dafCompileCommand, stdout=subprocess.stdout if printDafCompileOutput else subprocess.PIPE) as dafCompile:
-                dafCompile.wait(timeout=10)
-                if dafCompile.returncode is not 0:
-                    info("last command: {}", "   ".join(dafCompileCommand))
-                    if not printDafCompileOutput:
-                        info("STDOUT for this command: ")
-                        print(dafCompile.stdout.read())
-                    fatal_error("DafCompiler in test {} failed with return code {}", testString, dafCompile.returncode)
-        except TimeoutError as e:
-            info("last command: {}", "   ".join(dafCompileCommand))
-            fatal_error("DafCompiler in test {} timed out", testString)
+        runCommand("DafCompiler on test {}".format(testString), dafCompileCommand, 10, printDafCompileOutput)
 
         linkCommand = ["g++", options.getOption("-testDafOutput"), options.getOption("-testCppOutput")]
         linkCommand += ["-o", options.getOption("-testBinaryOutput")]
-        try:
-            with subprocess.Popen(linkCommand) as link:
-                link.wait(timeout=10)
-                if link.returncode is not 0:
-                    info("last command: {}", "   ".join(linkCommand))
-                    fatal_error("Linking failed in test {} with return code {}", testString)
-        except TimeoutError as e:
-            info("last command: {}", "   ".join(linkCommand))
-            fatal_error("Linking in test {} timed out", testString)
+        runCommand("Linking on test {}".format(testString), linkCommand, 10, True)
 
         runFileCommand = [options.getOption("-testBinaryOutput")]
-        try:
-            with subprocess.Popen(runFileCommand) as run:
-                run.wait(timeout=10)
-                if run.returncode is not 0:
-                    info("last command: {}", "   ".join(runFileCommand))
-                    fatal_error("Running test {} failed with error code {}", testString, run.returncode)
-        except TimeoutError as e:
-            info("last command: {}", "   ".join(linkCommand))
-            fatal_error("Running test {} timed out", testString)
-
-    remove = [options.getOption("-testDafOutput"), options.getOption("-testCppOutput"), options.getOption("-testBinaryOutput")]
-    info("Removing {}, {} and {}", *remove)
-    for file in remove:
-        try:
-            os.remove(file)
-        except FileNotFoundError as e:
-            info("File didn't exist: {}", file)
+        runCommand("Running test {}".format(testString), runFileCommand, 10, printDafRunOutput)
 
     info("All {} tests successful", len(filesToConsider))
+    cleanupTmpFiles(options)
 
 def printHelpMessage(knownOptions):
     default = [val for key,val in knownOptions.items()]

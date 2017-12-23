@@ -16,8 +16,5 @@ extern "C" {
 }
 
 int main() {
-	std::cout << "We are now calling dafMain" << std::endl;
-	int result = dafMain();
-	std::cout << "Result: " << result << std::endl;
-	return 0;
+    return dafMain();
 }
