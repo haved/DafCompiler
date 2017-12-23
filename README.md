@@ -6,6 +6,7 @@ Daf is a staticly typed multi-paradigm programming language designed to make sof
  - CompilerTests: A folder with a bunch of daf files you'll try to compile
   - By no means advanced tests. Will only report compiler errors
  - DafLinker: The dafln python script for linking and parsing Linkfiles
- - DafParser: A java program for parsing old, simple daf, and turning it into C++
+ - DafParser: An old java program for parsing outdated, simple daf, and turning it into broken C++
  - Specs: contains markdown files for remembering stuff
+ - Tools: contains things link an emacs mode for daf
 Keep in mind that daf changes very quickly at this point, and that files may be outdated.
