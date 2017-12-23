@@ -2,13 +2,9 @@ cmake_minimum_required (VERSION 3.4.3)
 project (DafCompiler)
 set(DafCompiler_VERSION_MAJOR 1)
 
-option(EXTRA_WARNINGS "ExtraWarnings" OFF)
-
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_CXX_FLAGS}")
 if(UNIX)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++17 -Weffc++")
-endif()
-if(EXTRA_WARNINGS)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -pedantic")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 endif()
 
 file(GLOB MySources

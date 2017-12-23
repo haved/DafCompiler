@@ -191,7 +191,7 @@ ConcretableState FunctionParameterExpression::retryMakeConcreteInternal(Dependen
 	assert(param->getParameterKind() == ParameterKind::VALUE_PARAM);
 	ValueParameter* valParam = static_cast<ValueParameter*>(param);
 	m_typeInfo = valParam->getCallTypeInfo();
-	assert(isReferenceTypeInfo() == valParam->isReferenceParameter());
+	assert(valParam->isReferenceParameter() == (m_typeInfo.valueKind != ValueKind::ANONYMOUS));
 	return ConcretableState::CONCRETE;
 }
 
