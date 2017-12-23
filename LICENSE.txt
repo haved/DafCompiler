@@ -8,7 +8,7 @@ Wanting a license where:
 
 * I'm not liable for anything
 * People can use the code for whatever
-* People can't sell my code or modifications of it
+* People can use my code or modifications of it commercially
 * Use of my source must contain original copyright and the license
 * Use of my code does not require you to publish source or follow the same license 
 * I have the ability the change the license if I want to
