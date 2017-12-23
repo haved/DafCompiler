@@ -101,7 +101,7 @@ void NameScope::codegen(CodegenLLVM& codegen) {
     for(auto& definition:m_definitions) {
 		definition->globalCodegen(codegen);
 	}
-};
+}
 
 
 NameScopeReference::NameScopeReference(std::string&& name, const TextRange& range) : NameScopeExpression(range), m_name(std::move(name)), m_target(nullptr) {}
