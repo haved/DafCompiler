@@ -55,7 +55,7 @@ knownOptions = {"-buildDir": "DebugBuild",
                 "-testBinaryOutput": "CompilerTests/Testing/outputBinary"}
 
 releaseDefaults = {"-buildDir": "ReleaseBuild",
-                   "-X86Only": "false",
+                   "-allLLVM": "true",
                    "W": "all",
                    "O": "2",
                    "g": "false"}
@@ -156,7 +156,7 @@ def doCMake(options):
     extraCppFlags = [options.getOption("-extraCppFlags")]
     O_opt = options.getOption("O")
     if O_opt != "none":
-        extraCppFlags += ["O"+O_opt]
+        extraCppFlags += ["-O"+O_opt]
     if options.getOption("g") == "true":
         extraCppFlags += ["-g"]
     warn_opt = options.getOption("W")
