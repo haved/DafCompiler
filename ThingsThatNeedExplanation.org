@@ -8,45 +8,12 @@ my ability to write clean code is put to the test.
 Here I'll note the parts of the code base in particular need of explanation.
 If you want to understand anything at all, I recommend you start at the main method.
 * The Codebase
-** Expressions
-*** evaluatesToValue() and needsSemicolonAfterStatement()
-These two boolean-returning methods in Expression are used by the statement parser.
-Expressions can be statements if =isStatement()= returns true.
-Normally statements are followed by semicolons, but statements like if, for, while etc. don't need them.
-These special statements actually contain another statement, which often is a scope.
-A scope is an expression, defined in Scope.hpp, and it overrides the two methods we started with.
-Scopes can evaluate to the last expression, and is thus itself an expression, but it may also not.
-In which case, it would be bad if the enclosing scope thought it returned something.
-Therefore, a Scope may only have a final out expression that has evaluatesToValue() return true.
-In which case the scope itself will do the same, allowing you to chain final out expressions.
-
-needsSemicolonAfterStatement() is also used by the statement parser.
-A scope normally doesn't need a trailing semicolon, but if it evaluates to a value,
-it behaving like a statement which doesn't becomes weird. To avoid fooling yourself,
-a scope returning a value gets the same treatment as any other expression.
-Note: This function is by no means pure. It will log a warning if it returns true from a Scope.
-That warning will explain why you need a semicolon after the scope, but will be emitted every time.
-
-As a final note and TODO for myself: Do I need two methods? ...or would just one suffice, as they both:
- - return true by default
- - return false for normal scopes
- - return true for scopes that return something
-
-** Functions and defs
-When parsing defs, the function signature syntax is used, meaning you can have parameter lists and special return kinds.
-This code is all located in parsing/FunctionSignatureParser.cpp
-This parsing code is also used when parsing def function types and normal function types, as well as def function expressions and normal function expressions.
-Therefore weather or not you can parse compile time parameters is parameterized. A function type without def can't take compile time parameters.
-The same goes for weather or not you can eat an equals sign, which can't be done in types, where the equals sign signifies the split between type and expression.
-The def parser uses the function type parser to parse its return info even when it doesn't have parameters. There is thus no difference between an empty parameter list and not having one at all.
-The type parser also uses it, which makes perfect sense as the entry point is called parseFunctionType and returns a FunctionType.
-Although the FunctionType is a type, it is located in FunctionSignature.hpp, for dubious reasons.
 ** Identifiers
 The _ identifier is turned into an identifier with length 0 by the lexer.
 This can be problematic as by no means all identifiers can be underscores.
 In the future I might make some system where identifiers get assigned numbers from the lexer,
 but then you would need a bidirectional map for printing proper error messages.
-
+See github issue #4 to see if I ever did do this
 ** Namespaces, Namedefs and NameScopes
 A Namespace is anything that contains named definitions, so both a NameScopeExpression (global, unordered), and a normal Scope (ordered definitions and statements) count.
 Namedefs are definitions to NameScopeExpressions, a NameScope being one of such, import declarations being another option.
@@ -61,8 +28,10 @@ Note that this rule isn't always followed
 * Optimizations
 ** Strings as integers
 In the future we should definitely turn identifiers to indecies in a map, saving strings from moving about.
+Github issue #4
 ** Binary search for tokens
 We don't want to compare every word with all reserved words.
+Github issue #7
 ** The Concretable stuff
 It's n log n, which is good without having a vector in every single Concretable
 Doing it that way would be O(n) I think, but the memory fragmentation with the default allocation would be horrid
