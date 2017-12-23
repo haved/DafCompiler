@@ -76,30 +76,31 @@ TARGET_LINK_LIBRARIES(DafCompiler #The strictly necessary llvm linking
   )
 
 if(DAF_LINK_ALL_LLVM)
+  target_compile_definitions(DafCompiler PRIVATE DAF_LINK_ALL_LLVM)
   LLVM_MAP_COMPONENTS_TO_LIBNAMES(core) #llvm_libs irreader support   # passes target asmparser asmprinter codegen
   TARGET_LINK_LIBRARIES(DafCompiler ${llvm_libs})
 
-    TARGET_LINK_LIBRARIES(DafCompiler
-        LLVMXCoreCodeGen
-        LLVMSystemZCodeGen
-        LLVMSystemZAsmParser
-        LLVMSparcCodeGen
-        LLVMSparcAsmParser
-        LLVMPowerPCCodeGen
-        LLVMPowerPCAsmParser
-        LLVMNVPTXCodeGen
-        LLVMMSP430CodeGen
-        LLVMMipsCodeGen
-        LLVMMipsAsmParser
-        LLVMHexagonCodeGen
-        LLVMHexagonAsmParser
-        LLVMBPFCodeGen
-        LLVMARMCodeGen
-        LLVMARMAsmParser
-        LLVMAMDGPUCodeGen
-        LLVMAMDGPUAsmParser
+  TARGET_LINK_LIBRARIES(DafCompiler
+    LLVMXCoreCodeGen
+    LLVMSystemZCodeGen
+    LLVMSystemZAsmParser
+    LLVMSparcCodeGen
+    LLVMSparcAsmParser
+    LLVMPowerPCCodeGen
+    LLVMPowerPCAsmParser
+    LLVMNVPTXCodeGen
+    LLVMMSP430CodeGen
+    LLVMMipsCodeGen
+    LLVMMipsAsmParser
+    LLVMHexagonCodeGen
+    LLVMHexagonAsmParser
+    LLVMBPFCodeGen
+    LLVMARMCodeGen
+    LLVMARMAsmParser
+    LLVMAMDGPUCodeGen
+    LLVMAMDGPUAsmParser
 
-        LLVMAArch64CodeGen
-        LLVMAArch64AsmParser
-        )
+    LLVMAArch64CodeGen
+    LLVMAArch64AsmParser
+    )
 endif()

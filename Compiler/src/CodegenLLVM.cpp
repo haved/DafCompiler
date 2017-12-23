@@ -36,18 +36,18 @@ void outputCodegenToFile(CodegenLLVM& codegen, fs::path& outputFile) {
 	llvm::Module& module = codegen.Module();
 
 	auto targetTriple = llvm::sys::getDefaultTargetTriple();
-#ifdef DAF_DEBUG
-	LLVMInitializeX86TargetInfo();
-	LLVMInitializeX86Target();
-	LLVMInitializeX86TargetMC();
-	LLVMInitializeX86AsmParser();
-	LLVMInitializeX86AsmPrinter();
-#else
+#ifdef DAF_LINK_ALL_LLVM
 	llvm::InitializeAllTargetInfos();
 	llvm::InitializeAllTargets();
 	llvm::InitializeAllTargetMCs();
 	llvm::InitializeAllAsmParsers();
 	llvm::InitializeAllAsmPrinters();
+#else
+	LLVMInitializeX86TargetInfo();
+	LLVMInitializeX86Target();
+	LLVMInitializeX86TargetMC();
+	LLVMInitializeX86AsmParser();
+	LLVMInitializeX86AsmPrinter();
 #endif
 	std::string errorStr;
 	auto Target = llvm::TargetRegistry::lookupTarget(targetTriple, errorStr);
