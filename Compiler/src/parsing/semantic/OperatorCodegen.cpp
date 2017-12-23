@@ -60,28 +60,31 @@ EvaluatedExpression codegenBinaryOperatorNumerical(CodegenLLVM& codegen, Evaluat
 	bool floating = target_prim->isFloatingPoint();
 	bool isSigned = target_prim->isSigned();
 
+	llvm::Value* LHS_value = LHS_expr.getValue(codegen);
+	llvm::Value* RHS_value = RHS_expr.getValue(codegen);
+
 	switch(op) {
 	case InfixOperator::PLUS:
 		return EvaluatedExpression(floating
-								   ? codegen.Builder().CreateFAdd(LHS_expr.value, RHS_expr.value, "addtmp")
-								   : codegen.Builder().CreateAdd(LHS_expr.value, RHS_expr.value), target);
+								   ? codegen.Builder().CreateFAdd(LHS_value, RHS_value, "addtmp")
+								   : codegen.Builder().CreateAdd(LHS_value, RHS_value), false, target);
 	case InfixOperator::MINUS:
 		return EvaluatedExpression(floating
-								   ? codegen.Builder().CreateFSub(LHS_expr.value, RHS_expr.value, "minustmp")
-								   : codegen.Builder().CreateSub(LHS_expr.value, RHS_expr.value), target);
+								   ? codegen.Builder().CreateFSub(LHS_value, RHS_value, "minustmp")
+								   : codegen.Builder().CreateSub(LHS_value, RHS_value), false, target);
 	case InfixOperator::MULT:
 		return EvaluatedExpression(floating
-								   ? codegen.Builder().CreateFMul(LHS_expr.value, RHS_expr.value, "multtmp")
-								   : codegen.Builder().CreateMul(LHS_expr.value, RHS_expr.value), target);
+								   ? codegen.Builder().CreateFMul(LHS_value, RHS_value, "multtmp")
+								   : codegen.Builder().CreateMul(LHS_value, RHS_value), false, target);
 	case InfixOperator::DIVIDE:
 		return EvaluatedExpression(floating
-								   ? codegen.Builder().CreateFDiv(LHS_expr.value, RHS_expr.value, "divtmp")
+								   ? codegen.Builder().CreateFDiv(LHS_value, RHS_value, "divtmp")
 								   : isSigned
-								   ? codegen.Builder().CreateSDiv(LHS_expr.value, RHS_expr.value)
-								   : codegen.Builder().CreateUDiv(LHS_expr.value, RHS_expr.value), target);
+								   ? codegen.Builder().CreateSDiv(LHS_value, RHS_value)
+								   : codegen.Builder().CreateUDiv(LHS_value, RHS_value), false, target);
     default:
 		assert(false);
-		return EvaluatedExpression(nullptr, nullptr);
+		return EvaluatedExpression(nullptr, false, nullptr);
 	}
 
 	(void)range;
@@ -142,13 +145,14 @@ optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, Expres
 		if(!LHS_assign || !RHS_expr)
 			return boost::none;
 
-		codegen.Builder().CreateStore(RHS_expr->value, LHS_assign->value);
+		llvm::Value* address = LHS_assign->getPointerToValue(codegen);
+		llvm::Value* value = RHS_expr->getValue(codegen);
 
-		llvm::Value* ret = RHS_expr->value;
-		if(ptrReturn)
-			ret = LHS_assign->value;
+		codegen.Builder().CreateStore(value, address);
+
+		llvm::Value* ret = ptrReturn ? address : value;
 		const ExprTypeInfo* typInfo = &LHS->getTypeInfo();
-		return EvaluatedExpression(ret, typInfo);
+		return EvaluatedExpression(ret, ptrReturn, typInfo);
 	}
 	assert(false);
 	return boost::none;

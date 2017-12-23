@@ -17,7 +17,7 @@ protected:
 public:
 	Statement(const TextRange& range);
 	virtual ~Statement();
-	virtual void printSignature()=0;
+	virtual void printSignature()override =0;
 	const TextRange& getRange();
 
     virtual void addToMap(NamedDefinitionMap& map);

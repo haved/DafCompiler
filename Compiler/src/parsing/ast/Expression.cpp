@@ -38,6 +38,20 @@ ExprTypeInfo getNoneTypeInfo() {
 	return ExprTypeInfo(nullptr, ValueKind::ANONYMOUS);
 }
 
+llvm::Value* EvaluatedExpression::getValue(CodegenLLVM& codegen) {
+	return m_pointerToValue ? codegen.Builder().CreateLoad(m_value) : m_value;
+}
+
+llvm::Value* EvaluatedExpression::getPointerToValue(CodegenLLVM& codegen) {
+	(void) codegen;
+	assert(m_pointerToValue);
+	return m_value;
+}
+
+bool EvaluatedExpression::isPointerToValue() {
+	return m_pointerToValue;
+}
+
 void complainDefinitionNotLetOrDef(DefinitionKind kind, std::string& name, const TextRange& range) {
 	auto& out = logDaf(range, ERROR) << "expected a let or def, but '" << name << "' is a ";
 	printDefinitionKindName(kind, out) << std::endl;
@@ -177,6 +191,7 @@ ConcretableState FunctionParameterExpression::retryMakeConcreteInternal(Dependen
 	assert(param->getParameterKind() == ParameterKind::VALUE_PARAM);
 	ValueParameter* valParam = static_cast<ValueParameter*>(param);
 	m_typeInfo = valParam->getCallTypeInfo();
+	assert(isReferenceTypeInfo() == valParam->isReferenceParameter());
 	return ConcretableState::CONCRETE;
 }
 
@@ -195,11 +210,9 @@ optional<EvaluatedExpression> FunctionParameterExpression::codegenFuncParam(Code
 	llvm::Value* value = &(*argIterator); //C++, my dudes
 
 	bool isReferenceParameter = isReferenceTypeInfo();
-	assert(isReferenceParameter || !ptr);
-	if(isReferenceParameter && !ptr)
-		value = codegen.Builder().CreateLoad(value);
+	assert(implies(ptr, isReferenceParameter));
 
-	return EvaluatedExpression(value, &m_typeInfo);
+	return EvaluatedExpression(value, isReferenceParameter, &m_typeInfo);
 }
 
 optional<EvaluatedExpression> FunctionParameterExpression::codegenExpression(CodegenLLVM& codegen) {
@@ -226,7 +239,7 @@ ConcretableState IntegerConstantExpression::makeConcreteInternal(NamespaceStack&
 
 optional<EvaluatedExpression> IntegerConstantExpression::codegenExpression(CodegenLLVM& codegen) {
 	llvm::Value* value = llvm::ConstantInt::get(llvm::IntegerType::get(codegen.Context(), m_type->getBitCount()), m_integer, m_type->isSigned());
-	return EvaluatedExpression(value, &m_typeInfo);
+	return EvaluatedExpression(value, false, &m_typeInfo);
 }
 
 RealConstantExpression::RealConstantExpression(daf_largest_float real, LiteralKind realType, const TextRange& range) : Expression(range), m_real(real), m_type(literalKindToPrimitiveType(realType)) {
@@ -249,7 +262,7 @@ optional<EvaluatedExpression> RealConstantExpression::codegenExpression(CodegenL
 		real = llvm::APFloat(float(m_real));
 
 	llvm::Value* value = llvm::ConstantFP::get(codegen.Context(), real);
-	return EvaluatedExpression(value, &m_typeInfo);
+	return EvaluatedExpression(value, false, &m_typeInfo);
 }
 
 
@@ -299,121 +312,6 @@ optional<EvaluatedExpression> InfixOperatorExpression::codegenPointer(CodegenLLV
 	assert(allConcrete() << getConcretableState());
 	return codegenBinaryOperator(codegen, m_LHS.get(), m_op, m_RHS.get(), &m_typeInfo, true, getRange());
 }
-/*
-DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range) : Expression(range), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_LHS_dot(nullptr), m_LHS_target(nullptr), m_target(), m_done(false) {
-	assert(m_LHS);
-	assert(m_RHS.size() > 0); //We don't allow empty identifiers
-}
-
-void DotOperatorExpression::printSignature() {
-	m_LHS->printSignature();
-	std::cout << "." << m_RHS;
-}
-
-void DotOperatorExpression::printLocationAndText() {
-	getRange().printRangeTo(std::cout);
-	std::cout << ": ";
-	printSignature();
-}
-
-ExpressionKind DotOperatorExpression::getExpressionKind() const {
-	return ExpressionKind::DOT_OP;
-}
-
-
-ConcreteTypeAttempt DotOperatorExpression::tryGetConcreteType(DotOpDependencyList& depList) {
-	if(m_target)
-		return m_target.tryGetConcreteType(depList);
-	if(m_done)
-		return ConcreteTypeAttempt::failed(); //We're never going to get any better
-	depList.addUnresolvedDotOperator(DotOp(this));
-	return ConcreteTypeAttempt::tryLater();
-}
-
-void DotOperatorExpression::makeConcrete(NamespaceStack& ns_stack) {
-	DotOpDependencyList depList(this);
-	if(!prepareForResolving(ns_stack)) {
-		m_done = true;
-		return;
-	}
-	if(!tryResolve(depList))
-		ns_stack.addUnresolvedDotOperator(std::move(depList));
-}
-
-bool DotOperatorExpression::prepareForResolving(NamespaceStack& ns_stack) {
-	ExpressionKind kind = m_LHS->getExpressionKind();
-	if(kind == ExpressionKind::VARIABLE) {
-		m_LHS_target = static_cast<VariableExpression*>(m_LHS.get())->makeConcreteOrOtherDefinition(ns_stack);
-		return bool(m_LHS_target);
-	} else if(kind == ExpressionKind::DOT_OP) {
-		m_LHS_dot = static_cast<DotOperatorExpression*>(m_LHS.get());
-		return m_LHS_dot->prepareForResolving(ns_stack);
-	} else {
-		m_LHS->makeConcrete(ns_stack);
-		return true;
-	}
-}
-
-bool DotOperatorExpression::tryResolve(DotOpDependencyList& depList) {
-	if(m_done)
-		return true;
-	optional<Definition*> result = tryResolveOrOtherDefinition(depList);
-    if(!result)
-		return false;
-	Definition* resultDef = *result;
-	if(resultDef && !m_target)
-		complainDefinitionNotLetOrDef(resultDef->getDefinitionKind(), m_RHS, getRange());
-	return true;
-}
-
-optional<Definition*> DotOperatorExpression::tryResolveOrOtherDefinition(DotOpDependencyList& depList) {
-	assert(!m_done);
-	optional<Definition*> result = tryGetTargetDefinition(depList);
-	m_done = bool(result); //If it wasn't none, we're done
-	if(m_done && *result) {
-		DefinitionKind kind = (*result)->getDefinitionKind();
-		if(kind == DefinitionKind::LET || kind == DefinitionKind::DEF)
-			m_target = *result;
-	}
-	return result;
-}
-
-optional<Definition*> DotOperatorExpression::tryGetTargetDefinition(DotOpDependencyList& depList) {
-	assert(!m_done && !m_target && !(m_LHS_target && m_LHS_dot));
-	if(m_LHS_target) {
-		DefinitionKind kind = m_LHS_target->getDefinitionKind();
-		if(kind == DefinitionKind::NAMEDEF) {
-			ConcreteNameScope* namescope = static_cast<NamedefDefinition*>(m_LHS_target)->tryGetConcreteNameScope(depList);
-			if(!namescope)
-				return boost::none;
-			return namescope->getPubDefinitionFromName(m_RHS, getRange());
-		} else if(kind == DefinitionKind::LET || kind == DefinitionKind::DEF) {
-			m_LHS_target = nullptr;
-			return tryGetTargetDefinition(depList);
-		} else {
-			std::cerr << "TODO: DotOperatorExpression doesn't know what to do with a type LHS" << std::endl;
-			return nullptr;
-		}
-	} else if(m_LHS_dot) {
-		optional<Definition*> LHS_dot_target = m_LHS_dot->tryResolveOrOtherDefinition(depList);
-		if(LHS_dot_target && *LHS_dot_target) {
-			m_LHS_dot = nullptr;
-			m_LHS_target = *LHS_dot_target;
-			return tryGetTargetDefinition(depList);
-		}
-		return LHS_dot_target; //Pass both none and null on
-	} else {
-	    ConcreteTypeAttempt LHS_type = m_LHS->tryGetConcreteType(depList);
-		if(LHS_type.hasType()) {
-			std::cerr << "TODO: DotOperatorExpression doesn't know what to do with a type LHS" << std::endl;
-			return nullptr;
-		}
-		else if(LHS_type.isLostCause())
-			return nullptr;
-		return boost::none; //Try again
-	}
-}
-*/
 
 
 PrefixOperatorExpression::PrefixOperatorExpression(const PrefixOperator& op, int opLine, int opCol, std::unique_ptr<Expression>&& RHS) : Expression(TextRange(opLine, opCol, RHS->getRange())), m_op(op), m_RHS(std::move(RHS)) {
@@ -634,13 +532,14 @@ optional<EvaluatedExpression> FunctionCallExpression::codegenFunctionCall(Codege
 		ValueParameter* requiredValParam = static_cast<ValueParameter*>(required);
 
 		Expression* argExpression = m_args[i].m_expression.get();
-		optional<EvaluatedExpression> arg = requiredValParam->isReferenceParameter() ?
+		bool referenceParameter = requiredValParam->isReferenceParameter();
+		optional<EvaluatedExpression> arg = referenceParameter ?
 			argExpression->codegenPointer(codegen) : argExpression->codegenExpression(codegen);
 		if(!arg)
 			return boost::none;
 
 		assert(arg->typeInfo->type == requiredValParam->getCallTypeInfo().type && "TODO: Proper type comparison");
-		args.push_back(arg->value);
+		args.push_back(referenceParameter ? arg->getPointerToValue(codegen) : arg->getValue(codegen));
 	}
 
 	//Call the function with parameters
@@ -664,11 +563,9 @@ optional<EvaluatedExpression> FunctionCallExpression::codegenFunctionCall(Codege
 		}
 	}
 
-	assert(funcType->isReferenceReturn() || !pointer);
-	if(funcType->isReferenceReturn() && !pointer) {
-		returnVal = codegen.Builder().CreateLoad(returnVal);
-	}
-	return EvaluatedExpression(returnVal, &funcType->getReturnTypeInfo());
+	bool refReturn = funcType->isReferenceReturn();
+    assert(implies(pointer, refReturn));
+	return EvaluatedExpression(returnVal, refReturn, &funcType->getReturnTypeInfo());
 }
 
 optional<EvaluatedExpression> FunctionCallExpression::codegenExpression(CodegenLLVM& codegen) {

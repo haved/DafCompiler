@@ -4,17 +4,28 @@ from sys import argv, stdout, stderr
 from subprocess import Popen, run, TimeoutExpired, PIPE
 from os import remove
 
+release = False
 binary = "TestBuild/DafCompiler"
+
+opt = argv[1:]
+
+if len(opt) >= 1:
+    if(opt[0]=="-r"):
+        release = True
+        binary = "ReleaseBuild/DafCompiler"
+        opt=opt[1:]
+        print("Release run")
+
 
 def flush():
     stdout.flush()
     stderr.flush()
 
-if len(argv) != 2:
-    print("Expected exactly one parameter: Path of the daf file")
+if len(opt) != 1:
+    print("Usage: RunTest.py [-r] <daf file>")
     exit(1)
 
-inFile = argv[1]
+inFile = opt[0]
 outputObjectFile = "compiledDaf.o"
 dafMainCallerSrc = "dafMainCaller.cpp"
 dafMainCallerObj = "dafMainCaller.o"

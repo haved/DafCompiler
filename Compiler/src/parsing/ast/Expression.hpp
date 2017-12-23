@@ -15,6 +15,8 @@
 #include <boost/optional.hpp>
 #include <iosfwd>
 
+#define implies(a, b) (!a || b)
+
 using std::unique_ptr;
 using boost::optional;
 
@@ -38,12 +40,16 @@ struct ExprTypeInfo {
 ExprTypeInfo getNoneTypeInfo();
 
 struct EvaluatedExpression {
-	llvm::Value* value;
+	llvm::Value* m_value;
+	bool m_pointerToValue;
     const ExprTypeInfo* typeInfo; //!= null;
-	EvaluatedExpression(llvm::Value* value, const ExprTypeInfo* type) : value(value), typeInfo(type) {
+	EvaluatedExpression(llvm::Value* value, bool pointerToValue, const ExprTypeInfo* type) : m_value(value), m_pointerToValue(pointerToValue), typeInfo(type) {
 		assert(typeInfo);
 	}
 	inline bool isVoid() const { return typeInfo->isVoid(); }
+	llvm::Value* getValue(CodegenLLVM& codegen);
+	llvm::Value* getPointerToValue(CodegenLLVM& codegen);
+	bool isPointerToValue();
 };
 
 enum class ExpressionKind {

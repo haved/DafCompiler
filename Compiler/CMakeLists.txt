@@ -56,34 +56,42 @@ ADD_DEFINITIONS(${LLVM_DEFINITIONS})
 add_executable(DafCompiler ${MySources} ${MySourcesParsing} ${MySourcesParsingLexing} ${MySourcesParsingAst} ${MySourcesParsingSemantic} ${MySourcesInfo})
 target_include_directories(DafCompiler PUBLIC "${CMAKE_SOURCE_DIR}/src")
 
+TARGET_LINK_LIBRARIES(DafCompiler ${Boost_LIBRARIES})
+
 # Find the libraries that correspond to the LLVM components
 # that we wish to use
-LLVM_MAP_COMPONENTS_TO_LIBNAMES(llvm_libs core irreader support passes target asmparser asmprinter codegen)
-TARGET_LINK_LIBRARIES(DafCompiler ${Boost_LIBRARIES} ${llvm_libs})
+#LLVM_MAP_COMPONENTS_TO_LIBNAMES(core) #llvm_libs irreader support   # passes target asmparser asmprinter codegen
+#TARGET_LINK_LIBRARIES(DafCompiler ${llvm_libs})
 
-
-TARGET_LINK_LIBRARIES(DafCompiler ${Boost_LIBRARIES})
 TARGET_LINK_LIBRARIES(DafCompiler
-  LLVMXCoreCodeGen
-  LLVMSystemZCodeGen
-  LLVMSystemZAsmParser
-  LLVMSparcCodeGen
-  LLVMSparcAsmParser
-  LLVMPowerPCCodeGen
-  LLVMPowerPCAsmParser
-  LLVMNVPTXCodeGen
-  LLVMMSP430CodeGen
-  LLVMMipsCodeGen
-  LLVMMipsAsmParser
-  LLVMHexagonCodeGen
-  LLVMHexagonAsmParser
-  LLVMBPFCodeGen
-  LLVMARMCodeGen
-  LLVMARMAsmParser
-  LLVMAMDGPUCodeGen
-  LLVMAMDGPUAsmParser
-  LLVMAArch64CodeGen
-  LLVMAArch64AsmParser
   LLVMX86CodeGen
   LLVMX86AsmParser
   )
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    TARGET_LINK_LIBRARIES(DafCompiler
+        LLVMXCoreCodeGen
+        LLVMSystemZCodeGen
+        LLVMSystemZAsmParser
+        LLVMSparcCodeGen
+        LLVMSparcAsmParser
+        LLVMPowerPCCodeGen
+        LLVMPowerPCAsmParser
+        LLVMNVPTXCodeGen
+        LLVMMSP430CodeGen
+        LLVMMipsCodeGen
+        LLVMMipsAsmParser
+        LLVMHexagonCodeGen
+        LLVMHexagonAsmParser
+        LLVMBPFCodeGen
+        LLVMARMCodeGen
+        LLVMARMAsmParser
+        LLVMAMDGPUCodeGen
+        LLVMAMDGPUAsmParser
+
+        LLVMAArch64CodeGen
+        LLVMAArch64AsmParser
+        )
+else()
+    target_compile_definitions(DafCompiler PRIVATE DAF_DEBUG)
+endif()

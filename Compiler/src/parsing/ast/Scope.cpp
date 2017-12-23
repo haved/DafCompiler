@@ -84,7 +84,7 @@ optional<EvaluatedExpression> Scope::codegenExpression(CodegenLLVM& codegen) {
 	}
 	if(m_outExpression)
 		return m_outExpression->codegenExpression(codegen);
-	return EvaluatedExpression(nullptr, &m_typeInfo);
+	return EvaluatedExpression(nullptr, false, &m_typeInfo);
 }
 
 optional<EvaluatedExpression> Scope::codegenPointer(CodegenLLVM& codegen) {

@@ -130,7 +130,7 @@ void Let::localCodegen(CodegenLLVM& codegen) {
 		optional<EvaluatedExpression> opt_expr = m_expression->codegenPointer(codegen);
 		assert(opt_expr && "the pointer at which we're supposed to put the let is boost::none");
 		assert(opt_expr->typeInfo->type == m_typeInfo.type);
-		m_space = opt_expr->value;
+		m_space = opt_expr->getPointerToValue(codegen);
 	} else {
 		llvm::Function* func = codegen.Builder().GetInsertBlock()->getParent();
 		llvm::IRBuilder<> tmpB(&func->getEntryBlock(), func->getEntryBlock().begin());
@@ -143,7 +143,7 @@ void Let::localCodegen(CodegenLLVM& codegen) {
 			EvaluatedExpression expr = *opt_expr;
 
 			assert(expr.typeInfo->type == m_typeInfo.type);
-			codegen.Builder().CreateStore(expr.value, m_space);
+			codegen.Builder().CreateStore(expr.getValue(codegen), m_space);
 		}
 	}
 	//TODO: Uncertain and stuff
@@ -167,13 +167,13 @@ optional<EvaluatedExpression> Def::functionAccessCodegen(CodegenLLVM& codegen) {
 
 optional<EvaluatedExpression> Let::accessCodegen(CodegenLLVM& codegen) {
     assert(m_space);
-	return EvaluatedExpression(codegen.Builder().CreateLoad(m_space, m_name.c_str()), &m_typeInfo);
+	return EvaluatedExpression(codegen.Builder().CreateLoad(m_space, m_name.c_str()), false, &m_typeInfo);
 }
 
 optional<EvaluatedExpression> Let::pointerCodegen(CodegenLLVM& codegen) {
 	(void) codegen;
 	assert(m_space);
-	return EvaluatedExpression(m_space, &m_typeInfo);
+	return EvaluatedExpression(m_space, true, &m_typeInfo);
 }
 
 void Def::printSignature() {

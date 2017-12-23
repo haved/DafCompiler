@@ -434,7 +434,7 @@ ConcretableState FunctionExpression::retryMakeConcreteInternal(DependencyMap& de
 optional<EvaluatedExpression> FunctionExpression::codegenExplicitFunction(CodegenLLVM& codegen) {
 	assert(isFunctionType(m_typeInfo));
 	if(tryGetOrMakePrototype(codegen))
-		return EvaluatedExpression(nullptr, &m_typeInfo);
+		return EvaluatedExpression(nullptr, false, &m_typeInfo);
 	else
 		return boost::none;
 }
@@ -445,7 +445,7 @@ optional<EvaluatedExpression> FunctionExpression::codegenImplicitExpression(Code
 		return boost::none;
 
 	ExprTypeInfo* current = &m_typeInfo;
-	EvaluatedExpression evaluated(nullptr, &m_typeInfo);
+	EvaluatedExpression evaluated(nullptr, false, &m_typeInfo);
 	while(true) {
 		if(isFunctionType(*current)) {
 			assert(current->valueKind == ValueKind::ANONYMOUS);
@@ -458,14 +458,9 @@ optional<EvaluatedExpression> FunctionExpression::codegenImplicitExpression(Code
 
 			current = &funcType->getReturnTypeInfo();
 			llvm::Value* val = codegen.Builder().CreateCall(prototype);
-			evaluated = EvaluatedExpression(val, current);
+			evaluated = EvaluatedExpression(val, funcType->isReferenceReturn(), current);
 		} else {
-			bool givenPointer = evaluated.typeInfo->valueKind != ValueKind::ANONYMOUS;
-			assert(!reqPointer || givenPointer);
-			if(givenPointer && !reqPointer) {
-				llvm::Value* load = codegen.Builder().CreateLoad(evaluated.value);
-				evaluated = EvaluatedExpression(load, evaluated.typeInfo);
-			}
+		    assert(implies(reqPointer, evaluated.isPointerToValue()));
 			return evaluated;
 		}
 	}
@@ -554,7 +549,6 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 		if(returnsRef)
 			assert(isFunctionType(*eval.typeInfo));
 
-		bool givenRef = false;
 		while(returns && !isReturnCorrect(targetTypeInfo.type, targetTypeInfo.valueKind, *eval.typeInfo)) {
 			assert(isFunctionType(*eval.typeInfo));
 			FunctionType* func = castToFunctionType(eval.typeInfo->type);
@@ -563,20 +557,15 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 			llvm::Function* prototype = expression->tryGetOrMakePrototype(codegen);
 			assert(func->canBeCalledImplicitlyOnce());
 			llvm::Value* val = codegen.Builder().CreateCall(prototype);
-			eval = EvaluatedExpression(val, &func->getReturnTypeInfo());
-			givenRef = func->isReferenceReturn();
+			eval = EvaluatedExpression(val, func->isReferenceReturn(), &func->getReturnTypeInfo());
 		}
-
-		assert(!returnsRef || givenRef);
-		if(givenRef && !returnsRef)
-			eval = EvaluatedExpression(codegen.Builder().CreateLoad(eval.value), eval.typeInfo);
 	}
 
     if(m_prototype->getReturnType()->isVoidTy())
 		codegen.Builder().CreateRetVoid();
 	else {
 		assert(eval.typeInfo->type == targetTypeInfo.type);
-		codegen.Builder().CreateRet(eval.value);
+		codegen.Builder().CreateRet(returnsRef ? eval.getPointerToValue(codegen) : eval.getValue(codegen));
 	}
 
 	llvm::verifyFunction(*m_prototype);

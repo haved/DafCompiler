@@ -4,7 +4,12 @@
 #include "parsing/NameScopeParser.hpp"
 #include "CodegenLLVM.hpp"
 
-constexpr bool debug = true;
+constexpr bool debug =
+#ifdef DAF_DEBUG
+	true;
+#else
+	false;
+#endif
 
 using std::vector;
 

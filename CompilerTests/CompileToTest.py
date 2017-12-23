@@ -22,11 +22,20 @@ from os import makedirs, chdir
 buildDir = "TestBuild"
 cmakeRelative = "../../Compiler/"
 
+release = False;
+
 opt = argv[1:]
 
 if len(opt) > 0:
+    if(opt[0] == "-r"):
+        release = True;
+        buildDir = "ReleaseBuild" #new default name
+        opt = opt[1:];
+        print("Release build")
+
+if len(opt) > 0:
     if len(opt) < 2:
-        print("Error! Need to specify <build folder> <cmake dir relative to build folder> [other cmake settings]")
+        print("Error! Need to specify [-r] <build folder> <cmake dir relative to build folder> [other cmake settings]")
         exit(1)
     buildDir = opt[0]
     cmakeRelative = opt[1]
@@ -40,6 +49,10 @@ if hasLLD:
     linker="ld.lld"
 
 cmakeCallList = ["cmake", cmakeRelative]
+if release:
+    cmakeCallList += ["-DCMAKE_BUILD_TYPE=Release"]
+else:
+    cmakeCallList += ["-DCMAKE_BUILD_TYPE=Debug"]
 if len(linker) > 0:
     cmakeCallList += ["-DCMAKE_LINKER="+linker]
 if len(opt)>2:
@@ -54,7 +67,7 @@ if call(cmakeCallList) != 0:
     print(exec_name, "fatal error in cmake")
     exit(1)
 
-print(exec_name, "make command: ", " ".join(cmakeCallList))
+print(exec_name, "make command: ", " ".join(makeCommand))
 
 if call(makeCommand) != 0:
     print(exec_name, "fatal error in make")
