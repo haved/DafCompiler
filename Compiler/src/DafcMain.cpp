@@ -54,7 +54,8 @@ int main(int argc, const char** argv) {
 	llvm::llvm_shutdown(); //There will still be objects on the heap after this ;(
 	terminateIfErrors();
 
-	puts("Shutdown gracefully");
+	if(debug)
+		puts("DafCompiler: Shutdown gracefully");
 
 	return 0;
 }

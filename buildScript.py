@@ -3,9 +3,6 @@
 from sys import argv
 import os.path, os, subprocess, re
 
-printDafCompileOutput = False
-printDafRunOutput = True
-
 binaryName = "buildScript.py"
 def fatal_error(text, *arg):
     print("{}: FATAL_ERROR: {}".format(binaryName, text.format(*arg)))
@@ -37,7 +34,7 @@ def cleanupTmpFiles(options, silent=False):
 #List value means legal options, first item being default in debug
 knownOptions = {"-buildDir": "DebugBuild",
                 "-cmakeDir": "Compiler",
-                "-allLLVM": ["false", "true"],
+                "-onlyX86": ["true", "false"],
                 "W": ["pedantic","none","all"],
                 "O": ["none","0","1","2","s"],
                 "g": ["true", "false"],
@@ -52,10 +49,11 @@ knownOptions = {"-buildDir": "DebugBuild",
                 "-testDafOutput": "CompilerTests/Testing/dafOutput.o",
                 "-testCppFile": "CompilerTests/Testing/dafMainCaller.cpp",
                 "-testCppOutput": "CompilerTests/Testing/dafMainCaller.o",
-                "-testBinaryOutput": "CompilerTests/Testing/outputBinary"}
+                "-testBinaryOutput": "CompilerTests/Testing/outputBinary",
+                "-outputTesting": False}
 
 releaseDefaults = {"-buildDir": "ReleaseBuild",
-                   "-allLLVM": "true",
+                   "-onlyX86": "false",
                    "W": "all",
                    "O": "2",
                    "g": "false"}
@@ -151,7 +149,7 @@ def doCMake(options):
         fatal_error("Specified directory for CMakeLists.txt doesn't exist:", cmakeDir)
 
     cmakeCommand = ["cmake", cmakeDir]
-    cmakeCommand += ["-DDAF_LINK_ALL_LLVM:BOOL=" + options.getOption("-allLLVM")]
+    cmakeCommand += ["-DDAF_LINK_ONLY_x86:BOOL=" + options.getOption("-onlyX86")]
     cmakeCommand += ["-DDAF_DEBUG_MACRO:BOOL=" + ("false" if options.getOption("-release") else "true")]
     extraCppFlags = [options.getOption("-extraCppFlags")]
     O_opt = options.getOption("O")
@@ -244,14 +242,14 @@ def doTests(options):
         dafCompileCommand = [os.path.join(options.getOption("-buildDir"),"DafCompiler")]
         dafCompileCommand += [os.path.join(options.getOption("-testFolder"), file)]
         dafCompileCommand += ["-o", options.getOption("-testDafOutput")]
-        runCommand("DafCompiler on test {}".format(testString), dafCompileCommand, 10, printDafCompileOutput)
+        runCommand("DafCompiler on test {}".format(testString), dafCompileCommand, 10, options.getOption("-outputTesting"))
 
         linkCommand = ["g++", options.getOption("-testDafOutput"), options.getOption("-testCppOutput")]
         linkCommand += ["-o", options.getOption("-testBinaryOutput")]
         runCommand("Linking on test {}".format(testString), linkCommand, 10, True)
 
         runFileCommand = [options.getOption("-testBinaryOutput")]
-        runCommand("Running test {}".format(testString), runFileCommand, 10, printDafRunOutput)
+        runCommand("Running test {}".format(testString), runFileCommand, 10, options.getOption("-outputTesting"))
 
     info("All {} tests successful", len(filesToConsider))
     cleanupTmpFiles(options)
@@ -265,7 +263,7 @@ def printHelpMessage(knownOptions):
     -h --help                Print this help message.
     --buildDir <buildDir>    Specify the folder in which we build. Default: "{0}"
     --cmakeDir <cmakeDir>    Specify the folder where CMakeLists.txt is. Default: "{1}"
-    --allLLVM <true|false>   Link all LLVM targets, not just x86. Default: "{2}"
+    --onlyX86 <true|false>   Link LLVM with only x86 target. Default: "{2}"
     -W <none|all|pedentic>   Print out warnings? Default:"{3}"
     -O <s|0|1|2|none>        Optimization level. Default: "{4}"
     -g <true|false>          Build with -g? Default: "{5}"
@@ -282,6 +280,7 @@ def printHelpMessage(knownOptions):
     --testCppFile <testingCppFile>    Specify what C++ file is used to bootstrap daf code. Default: "{15}"
     --testCppOutput <testingCppO>     Specify where the C++ binary will be placed. Default:"{16}"
     --testBinaryOutput <binaryOutput> Specify where the binary will be put. Default: "{17}"
+    --outputTesting                   Print output from the compiler and the test programs. Default: "{18}"
     """.format(*default))
 
 if __name__ == "__main__":

@@ -55,7 +55,7 @@ FIND_PACKAGE( Boost 1.40 COMPONENTS system filesystem REQUIRED )
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 
 #Find LLVM
-FIND_PACKAGE(LLVM 3.9.0 REQUIRED CONFIG)
+FIND_PACKAGE(LLVM 5.0 REQUIRED CONFIG)
 MESSAGE(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 MESSAGE(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
@@ -66,20 +66,20 @@ add_executable(DafCompiler ${MySources} ${MySourcesParsing} ${MySourcesParsingLe
 target_include_directories(DafCompiler PUBLIC "${CMAKE_SOURCE_DIR}/src")
 
 if(DAF_DEBUG_MACRO)
+  if(NOT LLVM_BUILD_TYPE STREQUAL "Debug")
+	MESSAGE(FATAL_ERROR "Can't build a Debug build of the DafCompiler without a Debug build of LLVM, perhaps use the --release option")
+  endif()
   target_compile_definitions(DafCompiler PRIVATE DAF_DEBUG)
 endif()
 
 TARGET_LINK_LIBRARIES(DafCompiler ${Boost_LIBRARIES})
-TARGET_LINK_LIBRARIES(DafCompiler #The strictly necessary llvm linking
+TARGET_LINK_LIBRARIES(DafCompiler #The strictly necessary llvm linking on x86
   LLVMX86CodeGen
   LLVMX86AsmParser
   )
 
-if(DAF_LINK_ALL_LLVM)
-  target_compile_definitions(DafCompiler PRIVATE DAF_LINK_ALL_LLVM)
-  LLVM_MAP_COMPONENTS_TO_LIBNAMES(core) #llvm_libs irreader support   # passes target asmparser asmprinter codegen
-  TARGET_LINK_LIBRARIES(DafCompiler ${llvm_libs})
-
+if(NOT DAF_LINK_ONLY_x86)
+  target_compile_definitions(DafCompiler PRIVATE DAF_LINK_ONLY_x86)
   TARGET_LINK_LIBRARIES(DafCompiler
     LLVMXCoreCodeGen
     LLVMSystemZCodeGen
@@ -99,8 +99,13 @@ if(DAF_LINK_ALL_LLVM)
     LLVMARMAsmParser
     LLVMAMDGPUCodeGen
     LLVMAMDGPUAsmParser
-
     LLVMAArch64CodeGen
+    LLVMAArch64AsmParser
+	LLVMAArch64CodeGen
     LLVMAArch64AsmParser
     )
 endif()
+
+#LLVM_MAP_COMPONENTS_TO_LIBNAMES(core irreader support passes target asmparser asmprinter codegen)
+#TARGET_LINK_LIBRARIES(DafCompiler "${llvm_libs}")
+#TARGET_LINK_LIBRARIES(DafCompiler LLVM-5.0)
