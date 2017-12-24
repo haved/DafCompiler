@@ -2,29 +2,13 @@
 
 def printInt(a:i32) "printIntToC";
 
-def incByTwo(mut a:i32):i32 {
-	a=a+2;
-	a
-};
-
-def printThenSet(mut number:i32, too:i32) {
-	printInt(number);
-	number=too;
-};
-
 def getPtr(mut a:i32):mut i32=a;
+
+def getPtrRef := getPtr;
 
 def dafMain():i32 {
 	mut x := 6;
-	incByTwo(mut x);
-	mut y := 8;
-	printThenSet(mut x, y);
-	incByTwo(mut y);
-	printThenSet(mut y, x);
-	printInt(y);
-	printInt(incByTwo(mut x));
-	printInt(x+y);
+	getPtrRef(mut x)=getPtrRef(mut x)+getPtr(mut x);
 	printInt(x);
-	getPtr(mut x)=x+5;
-	x-15
+	x-12
 };

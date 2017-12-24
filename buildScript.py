@@ -149,8 +149,8 @@ def doCMake(options):
         fatal_error("Specified directory for CMakeLists.txt doesn't exist:", cmakeDir)
 
     cmakeCommand = ["cmake", cmakeDir]
-    cmakeCommand += ["-DDAF_LINK_ONLY_x86:BOOL=" + options.getOption("-onlyX86")]
-    cmakeCommand += ["-DDAF_DEBUG_MACRO:BOOL=" + ("false" if options.getOption("-release") else "true")]
+    cmakeCommand += ["-DDAF_TARGET_ONLY_x86:BOOL=" + options.getOption("-onlyX86")]
+    cmakeCommand += ["-DDAF_DEBUG_MACRO:String=" + ("false" if options.getOption("-release") else "true")]
     extraCppFlags = [options.getOption("-extraCppFlags")]
     O_opt = options.getOption("O")
     if O_opt != "none":
@@ -263,11 +263,11 @@ def printHelpMessage(knownOptions):
     -h --help                Print this help message.
     --buildDir <buildDir>    Specify the folder in which we build. Default: "{0}"
     --cmakeDir <cmakeDir>    Specify the folder where CMakeLists.txt is. Default: "{1}"
-    --onlyX86 <true|false>   Link LLVM with only x86 target. Default: "{2}"
+    --onlyX86 <true|false>   Build with only x86 target. Default: "{2}"
     -W <none|all|pedentic>   Print out warnings? Default:"{3}"
     -O <s|0|1|2|none>        Optimization level. Default: "{4}"
     -g <true|false>          Build with -g? Default: "{5}"
-    --release                Changes a bunch of defaults and disables #define DAF_DEBUG
+    --release                Changes a bunch of defaults and builds without #define DAF_DEBUG
     --extraCMakeArgs         <string with extra CMake parameters> Default: "{7}"
     --extraMakeArgs          <string with extra make parameters> Default: "{8}"
     --extraCppFlags          <string with extra compiler flags> Default: "{9}"

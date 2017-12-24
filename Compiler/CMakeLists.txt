@@ -11,8 +11,7 @@ set(DafCompiler_VERSION_MAJOR 1)
 # You might want to play with these:
 # CMAKE_CXX_COMPILER
 # CMAKE_LINKER
-# CMAKE_BUILD_TYPE #I don't know what this does, so I do debug/release stuff manually
-
+# CMAKE_BUILD_TYPE:String
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DAF_EXTRA_CXX_FLAGS}") #-Wall -Weffc++ -Wextra -pedantic -g -O2
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${DAF_EXTRA_LINK_FLAGS}")
@@ -78,8 +77,9 @@ TARGET_LINK_LIBRARIES(DafCompiler #The strictly necessary llvm linking on x86
   LLVMX86AsmParser
   )
 
-if(NOT DAF_LINK_ONLY_x86)
-  target_compile_definitions(DafCompiler PRIVATE DAF_LINK_ONLY_x86)
+if(DAF_TARGET_ONLY_x86)
+  target_compile_definitions(DafCompiler PRIVATE DAF_TARGET_ONLY_x86)
+else()
   TARGET_LINK_LIBRARIES(DafCompiler
     LLVMXCoreCodeGen
     LLVMSystemZCodeGen
@@ -99,10 +99,10 @@ if(NOT DAF_LINK_ONLY_x86)
     LLVMARMAsmParser
     LLVMAMDGPUCodeGen
     LLVMAMDGPUAsmParser
-    LLVMAArch64CodeGen
-    LLVMAArch64AsmParser
 	LLVMAArch64CodeGen
     LLVMAArch64AsmParser
+	LLVMLanaiAsmParser
+	LLVMLanaiCodeGen
     )
 endif()
 

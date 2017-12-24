@@ -35,7 +35,7 @@ It invokes cmake and make for you with sensible default parameters, as long as y
 ./buildScript.py --release --tests --testFilter TestFile.daf
 ```
 
-Looking through the `--help` of the build script gives you extra options, e.g. passing flags to make to use more threads
+Looking through the `--help` of the build script gives you extra options, e.g. passing flags to make to use more threads.
 
 ### Compiling your own daf
 The easiest way of running some daf of your own is to just write a file as a test, and tell the build script to test it and print all output (both from DafCompiler and the program you wrote).
