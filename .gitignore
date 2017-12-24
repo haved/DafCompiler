@@ -18,3 +18,4 @@
 /**/*.o
 DebugBuild/
 ReleaseBuild/
+MyTests/
