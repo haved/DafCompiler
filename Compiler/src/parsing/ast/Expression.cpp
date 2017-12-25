@@ -175,8 +175,8 @@ ConcretableState FunctionParameterExpression::makeConcreteInternal(NamespaceStac
 	assert(m_parameterIndex < params.size());
 
 	FunctionParameter* param = params[m_parameterIndex].get();
-	ConcretableState state = param->makeConcrete(ns_stack, depMap);
-	if(state == ConcretableState::TRY_LATER)
+	ConcretableState state = param->getConcretableState();
+    if(state == ConcretableState::TRY_LATER)
 		depMap.makeFirstDependentOnSecond(this, param);
     if(allConcrete() << state)
 		return retryMakeConcreteInternal(depMap);

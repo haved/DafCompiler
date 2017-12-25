@@ -180,38 +180,31 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 	auto conc = allConcrete();
 	auto lost = anyLost();
 
-	readyParameterLets();
-
-	for(auto& paramLet : m_parameter_lets) { //Responsibility of let to make parameter concrete
-		ConcretableState state = paramLet->makeConcrete(ns_stack, depMap);
+	auto makeChildConcrete = [&](Concretable* child) {
+		ConcretableState state = child->makeConcrete(ns_stack, depMap);
 		if(state == ConcretableState::TRY_LATER)
-			depMap.makeFirstDependentOnSecond(this, paramLet.get());
+			depMap.makeFirstDependentOnSecond(this, child);
 		conc = conc << state;
 		lost = lost << state;
-	}
+	};
 
 	for(auto& param:m_parameters)
-		assert(param->getConcretableState()!=ConcretableState::NEVER_TRIED);
+		makeChildConcrete(param.get());
 
-	if(m_givenReturnType) {
-		ConcretableState state = m_givenReturnType->getType()->makeConcrete(ns_stack, depMap);
-		if(state == ConcretableState::TRY_LATER)
-			depMap.makeFirstDependentOnSecond(this, m_givenReturnType->getType());
-		conc = conc << state;
-		lost = lost << state;
-	}
+	if(m_givenReturnType)
+		makeChildConcrete(m_givenReturnType->getType());
 
 	if(m_functionExpression && (*m_functionExpression)->getBody()) {
-		Expression* body = (*m_functionExpression)->getBody();
+		readyParameterLets();
+		for(auto& paramLet : m_parameter_lets)
+			makeChildConcrete(paramLet.get());
+
 		ns_stack.push(this);
+		Expression* body = (*m_functionExpression)->getBody();
 		if(hasReturn())
 			body->enableFunctionType();
-		ConcretableState state = body->makeConcrete(ns_stack, depMap);
+		makeChildConcrete(body);
 		ns_stack.pop();
-		if(state == ConcretableState::TRY_LATER)
-			depMap.makeFirstDependentOnSecond(this, body);
-		conc = conc << state;
-		lost = lost << state;
 	}
 
 	if(lost)
@@ -246,9 +239,6 @@ void complainReturnIsntCorrect(optional<ConcreteType*> requiredType, ValueKind r
 
 ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
-
-	for(auto& param:m_parameters)
-		assert(allConcrete() << param->getConcretableState());
 
 	if(hasReturn()) {
 	    ValueKind reqKind = returnKindToValueKind(m_givenReturnKind);
