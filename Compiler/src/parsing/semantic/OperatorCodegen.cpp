@@ -4,7 +4,7 @@
 #include "CodegenLLVM.hpp"
 
 EvaluatedExpression castPrimitiveToPrimitive(EvaluatedExpression& expr, PrimitiveType* from, PrimitiveType* to) {
-	assert(from == to); //TODO add primitive casting
+	assert(from == to && "TODO: Add primitive casting");
 	return expr;
 }
 

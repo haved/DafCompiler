@@ -177,7 +177,7 @@ void setTokenFromStringLiteral(Token& token, std::string&& text, int line, int c
 	token.line = line;
 	token.col = col;
 	token.endCol = endCol;
-	assert(line == endLine); //TODO: Support multiline tokens
+	assert(line == endLine); (void) endLine; //TODO: Support multiline tokens
 }
 
 bool mergeTokens(Token& first, const Token& second) {

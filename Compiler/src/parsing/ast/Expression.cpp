@@ -29,6 +29,7 @@ void printValueKind(ValueKind kind, std::ostream& out, bool printAnon) {
 			out << "anonymous value ";
 		break;
 	case ValueKind::MUT_LVALUE: out << "mut ";
+		//Fallthrough
 	case ValueKind::LVALUE: out << "let "; break;
 	default: assert(false); break;
 	}

@@ -47,6 +47,7 @@ ParameterModifier parseParameterModifier(Lexer& lexer) {
 	case DEF:
 		lexer.advance();
 	    assert(false && "We don't support DEF parameters in the parser");
+		//fallthrough
 	default:
 		return ParameterModifier::NONE;
 	}
@@ -132,7 +133,7 @@ unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowEatingEqualsSign e
 	//We have now eaten parameters
 	auto return_kind = ReturnKind::NO_RETURN;
 	bool ateEqualsSign = false;
-	optional<TypeReference> type = boost::none;
+	optional<TypeReference> type(boost::none);
 
 	//TODO: Almost as if I don't want to merge ':' and '='
 	if(lexer.currType() == DECLARE) {
@@ -165,7 +166,7 @@ unique_ptr<FunctionType> parseFunctionType(Lexer& lexer, AllowEatingEqualsSign e
 	return std::make_unique<FunctionType>(std::move(params), return_kind, std::move(type), range);
 }
 
-optional<std::string> tryParseForeignFunctionBody(Lexer& lexer, bool ateEquals, FunctionType& type) {
+optional<std::string> tryParseForeignFunctionBody(Lexer& lexer, bool ateEquals) {
 	if(!ateEquals && lexer.currType() == STRING_LITERAL) {
 		std::string output = std::move(lexer.getCurrentToken().text);
 		lexer.advance();
@@ -223,7 +224,7 @@ unique_ptr<FunctionExpression> parseFunctionExpression(Lexer& lexer, optional<Re
 	if(!type->addReturnKindModifier(defReturnKind))
 		return none_func_expr();
 
-	optional<std::string> foreign_function = tryParseForeignFunctionBody(lexer, ateEquals, *type);
+	optional<std::string> foreign_function = tryParseForeignFunctionBody(lexer, ateEquals);
 	if(foreign_function) {
 		TextRange range(lexer.getFile(), startLine, startCol, lexer.getPreviousToken());
 		return std::make_unique<FunctionExpression>(std::move(type), std::move(*foreign_function), range);

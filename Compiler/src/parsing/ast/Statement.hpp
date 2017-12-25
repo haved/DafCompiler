@@ -66,6 +66,7 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override {
 		(void) ns_stack, (void) depMap;
 		assert(!"TODO");
+		return ConcretableState::LOST_CAUSE;
 	}
 };
 
@@ -80,6 +81,7 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override {
 		(void) ns_stack, (void) depMap;
 		assert(!"TODO");
+		return ConcretableState::LOST_CAUSE;
 	}
 };
 
@@ -94,6 +96,7 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override {
 		(void) ns_stack, (void) depMap;
 		assert(!"TODO");
+		return ConcretableState::LOST_CAUSE;
 	}
 };
 
@@ -107,6 +110,7 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override {
 		(void) ns_stack, (void) depMap;
 		assert(!"TODO");
+		return ConcretableState::LOST_CAUSE;
 	}
 };
 
@@ -126,5 +130,6 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override {
 		(void) ns_stack, (void) depMap;
 		assert(!"TODO");
+		return ConcretableState::LOST_CAUSE;
 	}
 };

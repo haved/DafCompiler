@@ -252,7 +252,7 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 
 	if(hasReturn()) {
 	    ValueKind reqKind = returnKindToValueKind(m_givenReturnKind);
-		optional<ConcreteType*> reqType;
+		optional<ConcreteType*> reqType(boost::none);
 		if(m_givenReturnType)
 			reqType = m_givenReturnType->getType()->getConcreteType();
 
