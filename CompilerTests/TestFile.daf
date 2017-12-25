@@ -2,15 +2,6 @@
 
 def printInt(a:i32) "printIntToC";
 
-def getPtr(mut a:i32):mut i32=a;
-
-def getPtrRef:= getPtr;
-
-def finalGet := getPtrRef;
-
-def dafMain():i32 {
-	mut x := 6;
-	finalGet(mut x) = getPtrRef(mut x) + getPtr(mut x);
-	printInt(x);
-	x-12
+def dafMain:i32 {
+	0
 };

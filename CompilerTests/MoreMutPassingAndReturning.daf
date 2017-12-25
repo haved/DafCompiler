@@ -1,0 +1,45 @@
+def printInt(a:i32) "printIntToC";
+
+def getPtr2(mut a:i32):mut i32=a;
+
+def getPtrRef:= getPtr2;
+
+def finalGet := getPtrRef;
+
+def dafMain():i32 {
+	mut x := 6;
+	finalGet(mut x) = getPtrRef(mut x) + getPtr2(mut x);
+	printInt(x);
+	x-12 + dafMain2()
+};
+
+
+def here := 6;
+
+def stuff := here;
+
+def stuffBeHere(a:i32):=stuff+a;
+
+def gimmieStuff := stuffBeHere;
+
+def gimmiePlease(a:i32):i32 = gimmieStuff(a);
+
+def swap(mut a:i32, mut b:i32) {
+	let tmp := a;
+	a = b;
+	b = tmp;
+};
+
+def dafMain2():i32 {
+	mut x := gimmieStuff(7);
+	mut y := gimmieStuff(2);
+	//x is 13, y is 8
+	def getPtr(mut a:i32):mut = a;
+	swap(mut getPtr(mut x), mut y);
+	//x is 8, y is 13
+	x=x+6;
+	//x is 14, y is 13
+	swap(mut getPtr(mut y), mut getPtr(mut getPtr(mut getPtr(mut x))));
+	//y is 14, x is 13
+	y-x-1
+};
