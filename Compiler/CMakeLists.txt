@@ -2,11 +2,12 @@ cmake_minimum_required (VERSION 3.4.3)
 project (DafCompiler)
 set(DafCompiler_VERSION_MAJOR 1)
 
-# User specified:
-# DAF_DEBUG_MACRO:bool
-# DAF_LINK_ALL_LLVM:bool
-# DAF_EXTRA_CXX_FLAGS:String
-# DAF_EXTRA_LINK_FLAGS:String
+option(DAF_DEBUG_MACRO "Enable #define DAF_DEBUG_MACRO" ON)
+option(DAF_TARGET_ONLY_x86 "Ignore most LLVM targets" OFF)
+
+# User specified strings:
+# DAF_EXTRA_CXX_FLAGS:String //Default: ""
+# DAF_EXTRA_LINK_FLAGS:String //Default: ""
 #
 # You might want to play with these:
 # CMAKE_CXX_COMPILER
