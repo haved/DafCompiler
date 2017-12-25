@@ -14,16 +14,13 @@ option(DAF_TARGET_ONLY_x86 "Ignore most LLVM targets" OFF)
 # CMAKE_LINKER
 # CMAKE_BUILD_TYPE:String
 
-STRING(REGEX MATCH "Rel" RELEASE_REL CMAKE_BUILD_TYPE)
-IF(RELEASE_REL STREQUAL "Rel")
-	MESSAGE(INFO "Building with release build type removes asserts. Will give warnings.")
-	MESSAGE(INFO "Also, I set DAF_DEBUG_MACRO to false, to allow you to build with LLVM")
-	SET(DAF_DEBUG_MACRO FALSE)
-
+IF(CMAKE_BUILD_TYPE MATCHES "Rel")
+    MESSAGE(WARNING "Building with release build type removes asserts. Also, I set DAF_DEBUG_MACRO to false, to allow builds with LLVM Release")
+    SET(DAF_DEBUG_MACRO OFF)
 ENDIF()
 
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DAF_EXTRA_CXX_FLAGS}") #-Wall -Weffc++ -Wextra -pedantic -g -O2
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DAF_EXTRA_CXX_FLAGS}") #Examples: -Wall -Weffc++ -Wextra -pedantic -g -O2
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${DAF_EXTRA_LINK_FLAGS}")
 #if(UNIX)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
@@ -74,6 +71,7 @@ ADD_DEFINITIONS(${LLVM_DEFINITIONS})
 add_executable(DafCompiler ${MySources} ${MySourcesParsing} ${MySourcesParsingLexing} ${MySourcesParsingAst} ${MySourcesParsingSemantic} ${MySourcesInfo})
 target_include_directories(DafCompiler PUBLIC "${CMAKE_SOURCE_DIR}/src")
 
+MESSAGE(INFO " DAF_DEBUG_MACRO=${DAF_DEBUG_MACRO}")
 if(DAF_DEBUG_MACRO)
   if(NOT LLVM_BUILD_TYPE STREQUAL "Debug")
 	MESSAGE(FATAL_ERROR "Can't build a Debug build of the DafCompiler without a Debug build of LLVM, perhaps use the --release option")
@@ -87,6 +85,7 @@ TARGET_LINK_LIBRARIES(DafCompiler #The strictly necessary llvm linking on x86
   LLVMX86AsmParser
   )
 
+MESSAGE(INFO " DAF_TARGET_ONLY_x86=${DAF_TARGET_ONLY_x86}")
 if(DAF_TARGET_ONLY_x86)
   target_compile_definitions(DafCompiler PRIVATE DAF_TARGET_ONLY_x86)
 else()

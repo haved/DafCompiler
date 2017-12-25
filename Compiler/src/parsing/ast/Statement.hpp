@@ -63,11 +63,9 @@ public:
 	IfStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body, unique_ptr<Statement>&& else_body, const TextRange& range);
 	virtual void printSignature() override;
 
-	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override {
-		(void) ns_stack, (void) depMap;
-		assert(!"TODO");
-		return ConcretableState::LOST_CAUSE;
-	}
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+
+	virtual void codegenStatement(CodegenLLVM& codegen) override;
 };
 
 class WhileStatement : public Statement {

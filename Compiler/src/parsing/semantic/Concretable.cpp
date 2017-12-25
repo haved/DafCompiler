@@ -65,6 +65,7 @@ void Concretable::silentlyUpdateToLostCause() {
 }
 
 void Concretable::printConcretableInfo(std::ostream& out, int tab, bool printRange) {
+	(void) printRange;
     while(tab--)
 		out << ' ';
     printSignature();
@@ -75,7 +76,7 @@ ConcretableDepNode::ConcretableDepNode() : dependentOnThis(), dependentOnCount(0
 DependencyMap::DependencyMap() : m_graph(), m_anyLostCauses(false) {}
 
 void DependencyMap::makeFirstDependentOnSecond(Concretable* first, Concretable* second) {
-	assert(first != second);
+	assert(first != second && first && second);
 
 	ConcretableState firstState = first->getConcretableState();
 	ConcretableState secondState = second->getConcretableState();
@@ -88,6 +89,12 @@ void DependencyMap::makeFirstDependentOnSecond(Concretable* first, Concretable* 
 
 	A.dependentOnCount++;
 	B.dependentOnThis.push_back(first);
+}
+
+void DependencyMap::markSecondAsDependencyIfUnfinished(Concretable* A, Concretable* B) {
+	assert(B);
+	if(B->getConcretableState() == ConcretableState::TRY_LATER)
+		makeFirstDependentOnSecond(A, B);
 }
 
 void DependencyMap::markAsSolved(Concretable* solved) {

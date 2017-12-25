@@ -47,6 +47,7 @@ private:
 public:
 	DependencyMap();
     void makeFirstDependentOnSecond(Concretable* A, Concretable* B);
+	void markSecondAsDependencyIfUnfinished(Concretable* A, Concretable* B);
 	void markAsSolved(Concretable* solved);
 	void markAsLostCause(Concretable* lostCause);
 	bool nodeHasDependencies(Concretable* c);

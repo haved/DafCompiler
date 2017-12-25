@@ -97,6 +97,36 @@ void IfStatement::printSignature() {
 	}
 }
 
+ConcretableState IfStatement::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+
+	auto conc = allConcrete();
+	auto lost = anyLost();
+
+	auto tryRequire = [&](Concretable* obj) {
+		if(!obj) return;
+		ConcretableState state = obj->makeConcrete(ns_stack, depMap);
+		depMap.markSecondAsDependencyIfUnfinished(this, obj);
+		conc = conc << state;
+		lost = lost << state;
+	};
+
+	assert(m_condition);
+	tryRequire(m_condition.get());
+	tryRequire(m_body.get());
+	tryRequire(m_else_body.get());
+
+	if(conc)
+		return retryMakeConcreteInternal(depMap);
+	if(lost)
+		return ConcretableState::LOST_CAUSE;
+	return ConcretableState::TRY_LATER;
+}
+
+void IfStatement::codegenStatement(CodegenLLVM& codegen) {
+	
+}
+
+
 WhileStatement::WhileStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body, const TextRange& range)
 	: Statement(range), m_condition(std::move(condition)), m_body(std::move(body)) {
 	assert(m_condition);

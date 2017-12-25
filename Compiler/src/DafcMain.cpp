@@ -15,7 +15,7 @@ using std::vector;
 
 int main(int argc, const char** argv) {
 	FileRegistry files = parseCommandArguments(argc, argv);
-	constexpr if(debug)
+	if constexpr(debug)
 		files.printFiles();
 	terminateIfErrors(); //File duplicates are errors
 
@@ -47,14 +47,14 @@ int main(int argc, const char** argv) {
 	doCodegen(codegen, files);
 	terminateIfErrors();
 
-	constexpr if(debug)
+	if constexpr(debug)
 		codegen.Module().dump();
 
 	outputCodegenToFile(codegen, files.getOutput());
 	llvm::llvm_shutdown(); //There will still be objects on the heap after this ;(
 	terminateIfErrors();
 
-	constexpr if(debug)
+	if constexpr(debug)
 		puts("DafCompiler: Shutdown gracefully");
 
 	return 0;

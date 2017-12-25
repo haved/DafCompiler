@@ -268,10 +268,11 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 			while(!isReturnCorrect(reqType, reqKind, bodyTypeInfo)) {
 			    if(isFunctionType(bodyTypeInfo)) {
 				    FunctionType* function = castToFunctionType(bodyTypeInfo.type);
-					optional<ExprTypeInfo> func_return = function->getReturnTypeInfo();
-					if(func_return)
+					optional<ExprTypeInfo> func_return = function->getImplicitCallReturnTypeInfo();
+					if(func_return) {
 						bodyTypeInfo = *func_return;
-					continue;
+						continue;
+					}
 				}
 
 				complainReturnIsntCorrect(reqType, reqKind, bodyTypeInfo, getRange());
@@ -448,8 +449,7 @@ optional<EvaluatedExpression> FunctionExpression::codegenImplicitExpression(Code
 	EvaluatedExpression evaluated(nullptr, false, &m_typeInfo);
 	while(true) {
 		if(isFunctionType(*current)) {
-			assert(current->valueKind == ValueKind::ANONYMOUS);
-			FunctionType* funcType = castToFunctionType(current->type);
+		    FunctionType* funcType = castToFunctionType(current->type);
 		    FunctionExpression* func = funcType->getFunctionExpression();
 			assert(func && "a function type requires an expression for now");
 			llvm::Function* prototype = func->tryGetOrMakePrototype(codegen);
@@ -543,7 +543,7 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 	}
 
 	EvaluatedExpression eval = *firstEval;
-	if(evalIsPointer) {
+	if(evalIsPointer) { //We return a reference and eval is a reference
 		assert(isReturnCorrect(targetTypeInfo.type, targetTypeInfo.valueKind, *eval.typeInfo));
 	} else {
 		if(returnsRef)

@@ -4,11 +4,11 @@ def printInt(a:i32) "printIntToC";
 
 def getPtr(mut a:i32):mut i32=a;
 
-def getPtrRef := getPtr;
+def getPtrRef :mut i32= getPtr;
 
 def dafMain():i32 {
 	mut x := 6;
-	getPtrRef(mut x)=getPtrRef(mut x)+getPtr(mut x);
+	//getPtrRef=2;
 	printInt(x);
 	x-12
 };

@@ -191,7 +191,7 @@ def doMake(options):
 
 def compileDafCaller(options):
     compileCommand = ["g++", "-c", options.getOption("-testCppFile"),
-                      "-o", options.getOption("-testCppOutput"), "-std=c++17", "-Wall", "-Wextra"]
+                      "-o", options.getOption("-testCppOutput"), "-std=c++14", "-Wall", "-Wextra", "-g"]
 
     info("Running command: {}", "   ".join(compileCommand))
 
