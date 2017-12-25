@@ -4,7 +4,7 @@ set(DafCompiler_VERSION_MAJOR 1)
 
 # User specified:
 # DAF_DEBUG_MACRO:bool
-# DAF_LINK_ALL_LLVM:bool
+# DAF_TARGET_ONLY_x86:bool
 # DAF_EXTRA_CXX_FLAGS:String
 # DAF_EXTRA_LINK_FLAGS:String
 #
@@ -12,6 +12,15 @@ set(DafCompiler_VERSION_MAJOR 1)
 # CMAKE_CXX_COMPILER
 # CMAKE_LINKER
 # CMAKE_BUILD_TYPE:String
+
+STRING(REGEX MATCH "Rel" RELEASE_REL CMAKE_BUILD_TYPE)
+IF(RELEASE_REL STREQUAL "Rel")
+	MESSAGE(INFO "Building with release build type removes asserts. Will give warnings.")
+	MESSAGE(INFO "Also, I set DAF_DEBUG_MACRO to false, to allow you to build with LLVM")
+	SET(DAF_DEBUG_MACRO FALSE)
+
+ENDIF()
+
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DAF_EXTRA_CXX_FLAGS}") #-Wall -Weffc++ -Wextra -pedantic -g -O2
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${DAF_EXTRA_LINK_FLAGS}")
