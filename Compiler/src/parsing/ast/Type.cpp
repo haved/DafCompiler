@@ -107,26 +107,26 @@ llvm::Type* PrimitiveType::codegenType(CodegenLLVM& codegen) {
 }
 
 
-PrimitiveType primitiveTypes[] = {
-	PrimitiveType(LiteralKind::U8, U8_TOKEN, false, Signed::No, 8),
-	PrimitiveType(LiteralKind::I8, U8_TOKEN, false, Signed::Yes, 8),
-	PrimitiveType(LiteralKind::U16, U16_TOKEN, false, Signed::No, 16),
+PrimitiveType primitiveTypes[] = {           //FLOAT
+	PrimitiveType(LiteralKind::U8, U8_TOKEN,   false, Signed::No,  8),
+	PrimitiveType(LiteralKind::I8, U8_TOKEN,   false, Signed::Yes, 8),
+	PrimitiveType(LiteralKind::U16, U16_TOKEN, false, Signed::No,  16),
 	PrimitiveType(LiteralKind::I16, I16_TOKEN, false, Signed::Yes, 16),
-	PrimitiveType(LiteralKind::U32, U32_TOKEN, false, Signed::No, 32),
+	PrimitiveType(LiteralKind::U32, U32_TOKEN, false, Signed::No,  32),
 	PrimitiveType(LiteralKind::I32, I32_TOKEN, false, Signed::Yes, 32),
-	PrimitiveType(LiteralKind::U64, U64_TOKEN, false, Signed::No, 64),
+	PrimitiveType(LiteralKind::U64, U64_TOKEN, false, Signed::No,  64),
 	PrimitiveType(LiteralKind::I64, I64_TOKEN, false, Signed::Yes, 64),
-	PrimitiveType(LiteralKind::F32, F32_TOKEN, true, Signed::NA, 32),
-	PrimitiveType(LiteralKind::F64, F64_TOKEN, true, Signed::NA, 64),
-	PrimitiveType(LiteralKind::BOOL, BOOLEAN, false, Signed::No, 1),
-	PrimitiveType(LiteralKind::USIZE, USIZE, false, Signed::No, USIZE_BIT_COUNT),
-	PrimitiveType(LiteralKind::ISIZE, ISIZE, false, Signed::Yes, ISIZE_BIT_COUNT),
-	PrimitiveType(LiteralKind::CHAR, CHAR, false, Signed::No, CHAR_BIT_COUNT),
+	PrimitiveType(LiteralKind::F32, F32_TOKEN, true,  Signed::NA,  32),
+	PrimitiveType(LiteralKind::F64, F64_TOKEN, true,  Signed::NA,  64),
+	PrimitiveType(LiteralKind::BOOL, BOOLEAN,  false, Signed::No,  1),
+	PrimitiveType(LiteralKind::USIZE, USIZE,   false, Signed::No,  USIZE_BIT_COUNT),
+	PrimitiveType(LiteralKind::ISIZE, ISIZE,   false, Signed::Yes, ISIZE_BIT_COUNT),
+	PrimitiveType(LiteralKind::CHAR, CHAR,     false, Signed::No,  CHAR_BIT_COUNT),
 };
 
 int PrimitiveTypeCount = sizeof(primitiveTypes)/sizeof(*primitiveTypes);
 
-//Optimize: use a map
+//@Optimize: use a map
 PrimitiveType* tokenTypeToPrimitiveType(TokenType type) {
 	for(int i = 0; i < PrimitiveTypeCount; i++) {
 		if(primitiveTypes[i].getTokenType() == type)
@@ -135,7 +135,7 @@ PrimitiveType* tokenTypeToPrimitiveType(TokenType type) {
 	return nullptr;
 }
 
-//Optimize: Use a map
+//@Optimize: Use a map
 PrimitiveType* literalKindToPrimitiveType(LiteralKind kind) {
 	for(int i = 0; i < PrimitiveTypeCount; i++) {
 		if(primitiveTypes[i].getLiteralKind() == kind)

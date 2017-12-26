@@ -1,5 +1,6 @@
 #include "parsing/semantic/TypeConversion.hpp"
 #include "parsing/ast/FunctionSignature.hpp"
+#include "CodegenLLVM.hpp"
 #include "DafLogger.hpp"
 
 bool canConvertTypeFromTo(ExprTypeInfo A, ExprTypeInfo B, bool explicitCast) {
@@ -52,3 +53,38 @@ void complainThatTypeCantBeConverted(ExprTypeInfo A, ExprTypeInfo B, const TextR
     out << "'" << std::endl;
 }
 
+optional<EvaluatedExpression> codegenTypeConversion(CodegenLLVM& codegen, optional<EvaluatedExpression> eval_opt, ExprTypeInfo target) {
+	if(!eval_opt)
+		return boost::none;
+	EvaluatedExpression& eval = *eval_opt;
+
+	//@Optimize: A slow assert
+	assert(canConvertTypeFromTo(*eval.typeInfo, target));
+
+	const ExprTypeInfo& A_ti = *eval.typeInfo;
+	ConcreteType* A_t = A_ti.type;
+	ConcreteType* B_t = target.type;
+
+	if(A_t == B_t) //We wouldn't be here if delta ValueKind was positive
+		return eval;
+
+	if(isFunctionType(A_t)) {
+		FunctionType* func = castToFunctionType(A_t);
+		assert(func->canBeCalledImplicitlyOnce());
+		FunctionExpression* funcExpr = func->getFunctionExpression();
+		assert(funcExpr);
+		optional<EvaluatedExpression> newEval = funcExpr->codegenOneImplicitCall(codegen);
+		return codegenTypeConversion(codegen, newEval, target);
+	}
+
+	ConcreteTypeKind A_k = A_t->getConcreteTypeKind();
+	ConcreteTypeKind B_k = B_t->getConcreteTypeKind();
+
+	if(A_k == ConcreteTypeKind::PRIMITIVE) {
+		assert(B_k == ConcreteTypeKind::PRIMITIVE);
+		
+	}
+
+	assert(false && "We are supposedly able to convert these types");
+	return boost::none;
+}

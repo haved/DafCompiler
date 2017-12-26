@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 3.4.3)
 project (DafCompiler)
 set(DafCompiler_VERSION_MAJOR 1)
 
-option(DAF_DEBUG_MACRO "Enable #define DAF_DEBUG_MACRO" ON)
+option(DAF_DEBUG_MACRO "Enable #define DAF_DEBUG_MACRO" OFF)
 option(DAF_TARGET_ONLY_x86 "Ignore most LLVM targets" OFF)
 
 # User specified strings:
@@ -15,8 +15,11 @@ option(DAF_TARGET_ONLY_x86 "Ignore most LLVM targets" OFF)
 # CMAKE_BUILD_TYPE:String
 
 IF(CMAKE_BUILD_TYPE MATCHES "Rel")
-    MESSAGE(WARNING "Building with release build type removes asserts. Also, I set DAF_DEBUG_MACRO to false, to allow builds with LLVM Release")
-    SET(DAF_DEBUG_MACRO OFF)
+    MESSAGE(WARNING "Using CMAKE_BUILD_TYPE to build Release removes asserts. Will give many warnings")
+ENDIF()
+IF(CMAKE_BUILD_TYPE MATCHES "Debug")
+  MESSAGE(WARNING, "Using CMAKE_BUILD_TYPE to build Debug is frowned upon, but I'll enable DAF_DEBUG_MACRO")
+  SET(DAF_DEBUG_MACRO ON)
 ENDIF()
 
 

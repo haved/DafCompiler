@@ -424,30 +424,22 @@ optional<EvaluatedExpression> FunctionExpression::codegenExplicitFunction(Codege
 		return boost::none;
 }
 
+optional<EvaluatedExpression> FunctionExpression::codegenOneImplicitCall(CodegenLLVM& codegen) {
+	assert(isFunctionType(m_typeInfo));
+	llvm::Function* prototype = tryGetOrMakePrototype(codegen);
+	if(!prototype)
+		return boost::none;
+	return EvaluatedExpression(codegen.Builder().CreateCall(prototype),
+							   m_type->isReferenceReturn(), &m_type->getReturnTypeInfo());
+}
+
 optional<EvaluatedExpression> FunctionExpression::codegenImplicitExpression(CodegenLLVM& codegen, bool reqPointer) {
     assert(m_type->getImplicitCallReturnTypeInfo());
-	if(!tryGetOrMakePrototype(codegen))
-		return boost::none;
+	optional<EvaluatedExpression> eval_opt = codegenTypeConversion(codegen, codegenExplicitFunction(codegen),
+																   *m_type->getImplicitCallReturnTypeInfo());
 
-	ExprTypeInfo* current = &m_typeInfo;
-	EvaluatedExpression evaluated(nullptr, false, &m_typeInfo);
-	while(true) {
-		if(isFunctionType(*current)) {
-		    FunctionType* funcType = castToFunctionType(current->type);
-		    FunctionExpression* func = funcType->getFunctionExpression();
-			assert(func && "a function type requires an expression for now");
-			llvm::Function* prototype = func->tryGetOrMakePrototype(codegen);
-			if(!prototype)
-				return boost::none;
-
-			current = &funcType->getReturnTypeInfo();
-			llvm::Value* val = codegen.Builder().CreateCall(prototype);
-			evaluated = EvaluatedExpression(val, funcType->isReferenceReturn(), current);
-		} else {
-		    assert(implies(reqPointer, evaluated.isPointerToValue()));
-			return evaluated;
-		}
-	}
+	assert(!eval_opt || implies(reqPointer, eval_opt->isPointerToValue()));
+    return eval_opt;
 }
 
 optional<EvaluatedExpression> FunctionExpression::codegenExpression(CodegenLLVM& codegen) {

@@ -4,8 +4,8 @@
 
 bool canConvertTypeFromTo(ExprTypeInfo A, ExprTypeInfo B, bool explicitCast=false);
 
-void complainThatTypeCantBeConverted(ExprTypeInfo A, ExprTypeInfo B, TextRange& range);
+void complainThatTypeCantBeConverted(ExprTypeInfo A, ExprTypeInfo B, const TextRange& range);
 
 //will convert a value to a value and, a reference to a reference
-EvaluatedExpression codegenTypeConversion(EvaluatedExpression& eval, ExprTypeInfo target);
+optional<EvaluatedExpression> codegenTypeConversion(CodegenLLVM& codegen, optional<EvaluatedExpression> eval, ExprTypeInfo target);
 
