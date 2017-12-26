@@ -18,7 +18,7 @@ IF(CMAKE_BUILD_TYPE MATCHES "Rel")
     MESSAGE(WARNING "Using CMAKE_BUILD_TYPE to build Release removes asserts. Will give many warnings")
 ENDIF()
 IF(CMAKE_BUILD_TYPE MATCHES "Debug")
-  MESSAGE(WARNING, "Using CMAKE_BUILD_TYPE to build Debug is frowned upon, but I'll enable DAF_DEBUG_MACRO")
+  MESSAGE(WARNING "Using CMAKE_BUILD_TYPE to build Debug is frowned upon, but I'll enable DAF_DEBUG_MACRO")
   SET(DAF_DEBUG_MACRO ON)
 ENDIF()
 
