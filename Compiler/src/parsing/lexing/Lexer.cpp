@@ -12,7 +12,10 @@
 Lexer::Lexer(RegisteredFile file) : m_file(file), infile(),
 										   tokens(), currentToken(0), line(0), col(0), currentChar(' '), lookaheadChar(' ') {
 	infile.open(file.get().m_inputFile.string()); //For the time being, there is no text processing
-	if(infile)
+	if(!infile.is_open()) {
+		logDaf(file, FATAL_ERROR) << "Error opening file: " << std::endl;
+		terminateIfErrors();
+	}
 	line = 1; //Says where the current char is
 	col = FIRST_CHAR_COL-2; //First char is col 0
 	advanceChar(); //To set look-ahead char

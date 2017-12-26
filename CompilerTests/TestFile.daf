@@ -17,5 +17,5 @@ def dafMain:i32 {
 	mut x:i32=0;
 	x = 0;
 	rec(6, mut x);
-	x
+	x-7
 };
