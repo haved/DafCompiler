@@ -35,6 +35,10 @@ void printValueKind(ValueKind kind, std::ostream& out, bool printAnon) {
 	}
 }
 
+bool isReferenceValueKind(ValueKind kind) {
+	return kind != ValueKind::ANONYMOUS;
+}
+
 ExprTypeInfo getNoneTypeInfo() {
 	return ExprTypeInfo(nullptr, ValueKind::ANONYMOUS);
 }
@@ -239,7 +243,7 @@ ConcretableState IntegerConstantExpression::makeConcreteInternal(NamespaceStack&
 }
 
 optional<EvaluatedExpression> IntegerConstantExpression::codegenExpression(CodegenLLVM& codegen) {
-	llvm::Value* value = llvm::ConstantInt::get(llvm::IntegerType::get(codegen.Context(), m_type->getBitCount()), m_integer, m_type->isSigned());
+	llvm::Value* value = llvm::ConstantInt::get(m_type->codegenType(codegen), m_integer, m_type->isSigned());
 	return EvaluatedExpression(value, false, &m_typeInfo);
 }
 

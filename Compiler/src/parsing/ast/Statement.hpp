@@ -64,6 +64,7 @@ public:
 	virtual void printSignature() override;
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 
 	virtual void codegenStatement(CodegenLLVM& codegen) override;
 };

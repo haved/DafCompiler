@@ -1,6 +1,7 @@
 #include "parsing/ast/Statement.hpp"
 #include "parsing/semantic/ConcretableHelp.hpp"
 #include "CodegenLLVM.hpp"
+#include "parsing/semantic/TypeConversion.hpp"
 #include <iostream>
 
 Statement::Statement(const TextRange& range) : m_range(range) {
@@ -76,7 +77,6 @@ void ExpressionStatement::codegenStatement(CodegenLLVM& codegen) {
 	m_expression->codegenExpression(codegen);
 }
 
-
 IfStatement::IfStatement(unique_ptr<Expression>&& condition, unique_ptr<Statement>&& body, unique_ptr<Statement>&& else_body, const TextRange& range)
 	: Statement(range), m_condition(std::move(condition)), m_body(std::move(body)), m_else_body(std::move(else_body)) {
 	assert(m_condition);
@@ -123,8 +123,19 @@ ConcretableState IfStatement::makeConcreteInternal(NamespaceStack& ns_stack, Dep
 	return ConcretableState::TRY_LATER;
 }
 
+ConcretableState IfStatement::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
+	ExprTypeInfo condTypeInfo = m_condition->getTypeInfo();
+	if(!canConvertTypeFromTo(condTypeInfo, getAnonBooleanTyI())) {
+		complainThatTypeCantBeConverted(condTypeInfo, getAnonBooleanTyI(), m_condition->getRange());
+		return ConcretableState::LOST_CAUSE;
+	}
+	return ConcretableState::CONCRETE;
+}
+
 void IfStatement::codegenStatement(CodegenLLVM& codegen) {
 	optional<EvaluatedExpression> cond = m_condition->codegenExpression(codegen);
+	cond = codegenTypeConversion(codegen, cond, getAnonBooleanTyI());
 	if(!cond)
 		return;
 
@@ -132,6 +143,7 @@ void IfStatement::codegenStatement(CodegenLLVM& codegen) {
 	llvm::BasicBlock* MergeBB = llvm::BasicBlock::Create(codegen.Context(), "merge");
 	llvm::BasicBlock* ThenBB = m_body ? llvm::BasicBlock::Create(codegen.Context(), "then") : MergeBB;
 	llvm::BasicBlock* ElseBB = m_else_body ? llvm::BasicBlock::Create(codegen.Context(), "else") : MergeBB;
+
 
 	codegen.Builder().CreateCondBr(cond->getValue(codegen), ThenBB, ElseBB);
 

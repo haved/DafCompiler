@@ -17,5 +17,15 @@ def dafMain:i32 {
 	mut x:i32=0;
 	x = 0;
 	//rec(6, mut x);
+	if 0
+		printInt(2);
+	else {
+		printInt(4);
+		if 1
+			printInt(7);
+		if 0 printInt(6);
+		else if 0 printInt(9);
+		else printInt(2);
+	}
 	x
 };
