@@ -19,10 +19,29 @@ bool complainIfNotPrimitive(ConcreteType* type, InfixOperator op, const std::str
 	return false;
 }
 
+bool isNumericalBinaryOpBoolean(InfixOperator op) {
+	switch(op) {
+	case InfixOperator::GREATER:
+	case InfixOperator::GREATER_OR_EQUAL:
+	case InfixOperator::LOWER:
+	case InfixOperator::LOWER_OR_EQUAL:
+	case InfixOperator::EQUALS:
+	case InfixOperator::NOT_EQUALS:
+		return true;
+	default: return false;
+	}
+}
+
 optional<ExprTypeInfo> getBinaryOpResultTypeNumerical(ConcreteType* LHS, InfixOperator op, ConcreteType* RHS, const TextRange& range) {
 	assert(LHS && RHS);
 	if(complainIfNotPrimitive(LHS, op, "LHS", range) | complainIfNotPrimitive(RHS, op, "RHS", range))
 		return boost::none;
+
+	if(isNumericalBinaryOpBoolean(op)) {
+	    //TODO: Warn about unsigned and signed comparisons
+		return ExprTypeInfo(literalKindToPrimitiveType(LiteralKind::BOOL), ValueKind::ANONYMOUS);
+	}
+
 	PrimitiveType* LHS_prim = static_cast<PrimitiveType*>(LHS);
 	PrimitiveType* RHS_prim = static_cast<PrimitiveType*>(RHS);
 

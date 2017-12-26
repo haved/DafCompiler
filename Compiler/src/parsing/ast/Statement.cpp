@@ -1,5 +1,6 @@
 #include "parsing/ast/Statement.hpp"
 #include "parsing/semantic/ConcretableHelp.hpp"
+#include "CodegenLLVM.hpp"
 #include <iostream>
 
 Statement::Statement(const TextRange& range) : m_range(range) {
@@ -123,7 +124,33 @@ ConcretableState IfStatement::makeConcreteInternal(NamespaceStack& ns_stack, Dep
 }
 
 void IfStatement::codegenStatement(CodegenLLVM& codegen) {
-	
+	optional<EvaluatedExpression> cond = m_condition->codegenExpression(codegen);
+	if(!cond)
+		return;
+
+	llvm::Function* func = codegen.Builder().GetInsertBlock()->getParent();
+	llvm::BasicBlock* MergeBB = llvm::BasicBlock::Create(codegen.Context(), "merge");
+	llvm::BasicBlock* ThenBB = m_body ? llvm::BasicBlock::Create(codegen.Context(), "then") : MergeBB;
+	llvm::BasicBlock* ElseBB = m_else_body ? llvm::BasicBlock::Create(codegen.Context(), "else") : MergeBB;
+
+	codegen.Builder().CreateCondBr(cond->getValue(codegen), ThenBB, ElseBB);
+
+	if(m_body) {
+		func->getBasicBlockList().push_back(ThenBB);
+		codegen.Builder().SetInsertPoint(ThenBB);
+		m_body->codegenStatement(codegen);
+		codegen.Builder().CreateBr(MergeBB);
+	}
+
+	if(m_else_body) {
+		func->getBasicBlockList().push_back(ElseBB);
+		codegen.Builder().SetInsertPoint(ElseBB);
+		m_else_body->codegenStatement(codegen);
+		codegen.Builder().CreateBr(MergeBB);
+	}
+
+	func->getBasicBlockList().push_back(MergeBB);
+	codegen.Builder().SetInsertPoint(MergeBB);
 }
 
 

@@ -116,7 +116,11 @@ bool setTokenFromOwnWord(Token& token, int line, int startCol, int endCol) {
 	token.line = line;
 	token.col = startCol;
 	token.endCol = endCol;
-	//Optimize: This atrocity
+	//TODO: @Optimize: This atrocity.
+	//Suggestion:
+	//static std::map<std::string, TokenType>* stringToTokenTypeMap;
+	//if(!stringToTokenTypeMap) { ... }
+	//if(stringToTokenTypeMap->find(token.text)) { ... return true; }
 	for(unsigned int tokenType = 0; tokenType < sizeof(TOKEN_TEXT)/sizeof(char*); tokenType++) {
 		if(token.text==TOKEN_TEXT[tokenType]) {
 			token.type = static_cast<TokenType>(tokenType);

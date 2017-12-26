@@ -44,7 +44,7 @@ struct EvaluatedExpression {
 	bool m_pointerToValue;
     const ExprTypeInfo* typeInfo; //!= null;
 	EvaluatedExpression(llvm::Value* value, bool pointerToValue, const ExprTypeInfo* type) : m_value(value), m_pointerToValue(pointerToValue), typeInfo(type) {
-		assert(typeInfo);
+		assert(typeInfo && implies(pointerToValue, type));
 	}
 	inline bool isVoid() const { return typeInfo->isVoid(); }
 	llvm::Value* getValue(CodegenLLVM& codegen);

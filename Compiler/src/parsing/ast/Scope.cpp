@@ -41,11 +41,12 @@ ConcretableState Scope::makeConcreteInternal(NamespaceStack& ns_stack, Dependenc
 
 	for(auto it = m_statements.begin(); it != m_statements.end(); ++it) {
 	    scopeNs.addStatement(**it);
+	    //TODO: We risk statements having dependencies and still being TRY_LATER when codegen is done (?)
 		ConcretableState state = (*it)->makeConcrete(ns_stack, depMap);
-	    concrete = concrete << state;
+		//	    concrete = concrete << state;
 		lost = lost << state;
-		if(state == ConcretableState::TRY_LATER)
-			depMap.makeFirstDependentOnSecond(this, it->get());
+		//if(state == ConcretableState::TRY_LATER)
+		//	depMap.makeFirstDependentOnSecond(this, it->get());
 	}
 
 	if(m_outExpression) {
@@ -80,6 +81,7 @@ ConcretableState Scope::retryMakeConcreteInternal(DependencyMap& depMap) {
 
 optional<EvaluatedExpression> Scope::codegenExpression(CodegenLLVM& codegen) {
 	for(auto it = m_statements.begin(); it != m_statements.end(); ++it) {
+		assert(allConcrete() << (*it)->getConcretableState());
 		(*it)->codegenStatement(codegen);
 	}
 	if(m_outExpression)
@@ -90,6 +92,7 @@ optional<EvaluatedExpression> Scope::codegenExpression(CodegenLLVM& codegen) {
 optional<EvaluatedExpression> Scope::codegenPointer(CodegenLLVM& codegen) {
 	assert(isReferenceTypeInfo() && m_outExpression);
 	for(auto it = m_statements.begin(); it != m_statements.end(); ++it) {
+		assert(allConcrete() << (*it)->getConcretableState());
 		(*it)->codegenStatement(codegen);
 	}
     return m_outExpression->codegenPointer(codegen);

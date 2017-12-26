@@ -4,6 +4,7 @@
 #include "CodegenLLVM.hpp"
 #include "info/DafSettings.hpp"
 #include "parsing/semantic/ConcretableHelp.hpp"
+#include "parsing/semantic/TypeConversion.hpp"
 
 #define len(TB) sizeof(TB)/sizeof(*TB)
 ReturnKind returnKindScores[] = {ReturnKind::NO_RETURN, ReturnKind::VALUE_RETURN,
@@ -226,15 +227,8 @@ bool isReturnCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKin
 
 void complainReturnIsntCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind,
 							   ExprTypeInfo& given, const TextRange& range) {
-	auto& out = logDaf(range, ERROR) << "Type of function body isn't sufficient with signature" << std::endl;
-	out << "\tgiven ";
-	printValueKind(given.valueKind, out);
-	given.type->printSignature();
-	out << " required ";
-	printValueKind(requiredKind, out, true);
-	if(requiredType)
-		(*requiredType)->printSignature();
-	out << std::endl;
+	ConcreteType* req = requiredType ? *requiredType : nullptr;
+    complainThatTypeCantBeConverted(given, ExprTypeInfo(req, requiredKind), range);
 }
 
 ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) {

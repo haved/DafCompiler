@@ -2,6 +2,20 @@
 
 def printInt(a:i32) "printIntToC";
 
+def rec(a:i32, mut x:i32) {
+	x=x+1;
+	if(a) {
+		printInt(a);
+		rec(a-1, mut x);
+	} else {
+		printInt(444);
+	}
+	printInt(12345);
+};
+
 def dafMain:i32 {
-	0
+	mut x:i32=0;
+	x = 0;
+	rec(6, mut x);
+	x
 };
