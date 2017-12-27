@@ -6,6 +6,7 @@
 #include "parsing/ast/FunctionSignature.hpp"
 #include "parsing/semantic/OperatorCodegen.hpp"
 #include "parsing/semantic/ConcretableHelp.hpp"
+#include "parsing/semantic/TypeConversion.hpp"
 #include "CodegenLLVM.hpp"
 #include "DafLogger.hpp"
 #include <iostream>
@@ -488,7 +489,8 @@ ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap
 	if(functionTypeAllowed()) {
 		m_typeInfo = returnTypeGotten;
 	} else if(isFunctionType(returnTypeGotten)) {
-		optional<ExprTypeInfo> implicit = funcType->getImplicitCallReturnTypeInfo();
+		FunctionType* retFuncType = castToFunctionType(returnTypeGotten.type);
+		optional<ExprTypeInfo> implicit = retFuncType->getImplicitCallReturnTypeInfo();
 		if(!implicit) {
 			logDaf(getRange(), ERROR) << "not enough parameters supplied to call all functions" << std::endl;
 			return ConcretableState::LOST_CAUSE;
@@ -555,22 +557,11 @@ optional<EvaluatedExpression> FunctionCallExpression::codegenFunctionCall(Codege
 		return boost::none;
 	llvm::Value* returnVal = codegen.Builder().CreateCall(prototype, args);
 
-	//If we can't return a function, implicitly call the return until it's no longer a function
-	if(!functionTypeAllowed()) {
-		while(isFunctionType(funcType->getReturnTypeInfo())) {
-			funcType = castToFunctionType(funcType->getReturnTypeInfo().type);
-			FunctionExpression* funcExpr = funcType->getFunctionExpression();
-		    assert(funcExpr && "can only call function types with expressions");
-			llvm::Function* prototype = funcExpr->tryGetOrMakePrototype(codegen);
-			if(!prototype)
-				return boost::none;
-			returnVal = codegen.Builder().CreateCall(prototype);
-		}
-	}
+    EvaluatedExpression val(returnVal, funcType->isReferenceReturn(), &funcType->getReturnTypeInfo());
+	val = *codegenTypeConversion(codegen, val, m_typeInfo);
 
-	bool refReturn = funcType->isReferenceReturn();
-    assert(implies(pointer, refReturn));
-	return EvaluatedExpression(returnVal, refReturn, &funcType->getReturnTypeInfo());
+    assert(implies(pointer, val.isPointerToValue()));
+	return val;
 }
 
 optional<EvaluatedExpression> FunctionCallExpression::codegenExpression(CodegenLLVM& codegen) {

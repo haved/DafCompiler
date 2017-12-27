@@ -1,0 +1,9 @@
+
+def printInt(a:i32) "printIntToC";
+
+def otherFunc := 5;
+def func(a:i32) := otherFunc;
+
+def dafMain:i32 {
+	func(4)-5
+};
