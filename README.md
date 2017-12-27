@@ -1,16 +1,20 @@
 ## The Daf Compiler
-Daf is a staticly typed multi-paradigm programming language designed to make software writing easier. Without header files, and lots of opportunities for kool meta-programming.
+Daf is a statically typed systems programming language for projects of all sizes, with lots of opportunities for cool meta-programming (Eventually).
+It's by no means complete, and if you take a look at the commit log you'll probably see the most basic of features added just yesterday.
+I should probably have some kind of example code to show, but all previous attempts became outdated very quickly. Its grammar is as volatile as my memory of it.
+Also, expect the compiler to assert false here and there.
 
 ### Repository structure
  - Compiler: The C++ project for the compiler, using LLVM, Boost and CMake
  - CompilerTests: A folder with a bunch of daf files you'll try to compile
-  - By no means advanced tests. Will only report compiler errors
- - DafLinker: The dafln python script for linking and parsing Linkfiles
- - DafParser: An old java program for parsing outdated, simple daf, and turning it into broken C++
- - Specs: contains markdown files for remembering stuff
+   - By no means advanced tests. Will only report compiler errors
+ - Specs: contains org mode files for remembering stuff
  - Tools: contains things link an emacs mode for daf
-Keep in mind that daf changes very quickly at this point, and that files may be outdated. Last cleaned 2017-12-23
-
+ - Probably belongs in the depths of VC
+   - DafLinker: The dafln python script for linking and parsing Linkfiles
+   - DafParser: An old java program for parsing outdated, simple daf, and turning it into broken C++
+Most attempts at documenting the Compiler are too old to document the current compiler.  
+Last cleanup was 2017-12-27, with this very commit.
 
 ### Building
 **Dependencies**

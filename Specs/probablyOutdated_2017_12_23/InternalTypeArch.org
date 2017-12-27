@@ -1,3 +1,0 @@
-The different kinds of types: (all of which can be explicitly written)
-
-

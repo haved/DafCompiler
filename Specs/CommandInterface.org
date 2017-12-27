@@ -16,7 +16,6 @@ The Linkfile will also include the output binary itself at the end.
 The purpose of the Linkfile is to find all object files and libraries needed to link the final executable.
 You can append extra statements to the linkfile with -L"statement" that will be put at the top.
 There aren't any official linkfile parsing rules, but some kind of priority thing might be needed.
-If you don't include any source paths, the current working directory is included.
 ** Help page
 #+BEGIN_SRC 
 The dafc help page
@@ -30,3 +29,4 @@ Options:
 -L <statement>            Includes the given statement in the link file
 -h --help                 Prints this help screen
 #+END_SRC
+If you don't include any source paths, the current working directory is included.

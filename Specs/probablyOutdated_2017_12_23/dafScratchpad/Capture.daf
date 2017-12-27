@@ -1,8 +1,0 @@
-
-def main {
-	mut a := 6;
-	def something := a++;
-
-	print(something); //Side effects
-	
-};
