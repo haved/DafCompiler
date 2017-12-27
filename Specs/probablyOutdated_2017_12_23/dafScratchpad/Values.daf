@@ -1,0 +1,26 @@
+
+def main {
+	//Anonymous
+	5;
+	a+b;
+	func();
+
+	//Lvalue (possibly mutable)
+	a
+	@x
+	x[7];
+	refFunc()
+
+	def x := a+4;
+	let value := x; //Invokes x with value as output
+
+	def func(a:i32) {
+		mut tmp := a;
+		a++;
+		a>0?a:-a //Sets output to whatever the result of this is, using the move ctor if applicable
+	};
+
+	let y := func(x); //Invokes func with y as output
+
+	
+};

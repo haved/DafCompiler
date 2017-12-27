@@ -1,0 +1,113 @@
+
+def malloc:(size:usize):[?]u8; //Foreign
+
+def daf_array_alloc(T):=(size:usize):[]mut T {
+	let array := malloc(usize.size_of + size*T.size_of);
+	
+};
+
+typedef UncrtPrt(T) := class {
+	mut m_ptr : &mut T;
+	def _ := ctor(ptr : &mut T):This {
+		m_ptr = ptr;
+	}
+
+	def initialize(move this:This, move t:T):= {
+		//TODO: Tell compiler @m_ptr is uncertain		
+		@m_ptr = t; //Now it's certain
+		m_ptr
+	};
+
+	def initialize(move this:This, def val():T):= {
+		//TODO: Tell compiler @m_ptr is uncertain
+		@m_ptr = val;
+		m_ptr
+	};
+};
+
+def get_uncrt_ptr:=(uncrt a:int):UncrtPtr(:int) {
+	UncrtPtr(&a as &mut int) //or something
+};
+
+def useUncrtPointer:=() {
+	let mut x:int;
+	let b:=get_uncrt_ptr(uncrt x);
+	let c = move b.initalize(5); //We can no longer use b
+	
+};*/
+
+/*
+def get_uncrt_ptr:=(uncrt a:int):&uncrt int {
+	&uncrt a
+};
+
+def make_crt(move a:&uncrt int, def value:():int):= with a as &mut int { @a = value; a }
+
+def use_uncrt_ptr:=() {
+	let mut x:int;
+	let b:&uncrt int =get_uncrt_ptr(uncrt x);
+	let c:&mut int=make_crt(b, '5);
+};
+
+//Combined draft:
+
+typedef UncrtPtr(T) := class {
+	m_ptr :&mut T;
+
+	def _ := ctor(own uncrt a:T):This {
+		//TODO: Pretende a is certain
+		m_ptr = &mut a;
+	};
+
+	def _ := ctor(a:&mut T):This m_ptr = a;
+
+	def initialize dtor(mut this:This, def value:T):&mut T = { //This removes the default destructor
+		//TODO: Pretend a is uncertain
+		@m_ptr = value;
+		m_ptr
+	};
+
+	def initialize dtor(mut this:This, move value:T):=initialize('value);
+}
+
+def allocate(T) : UncrtPtr(:T) = UncrtPtr(malloc(T.size) as &mut T);
+
+def test := () {
+	let myInt := allocate(:int).initialize(8);
+	let mut other : int;
+	let other_ptr := UncrtPtr(own uncrt other);
+	//Now I can't use other
+	//other = 5;
+	//This 5 would be assumed uncertain by our class, as its destructor never called (not that ints usually have destrcutors)
+	let other_useable_ptr := other_ptr.initialize(20);
+	//That was a destructor, so other_ptr is no longer useable, but other is no longer uncertain either
+	//We could not just let the UncrtPtr be destructed, as that would mean it's uncrt parameter is uncrt by the end of the scope (not allowed!)
+};
+
+//So uncrt pointers need not be part of the compiler. 'own' on the other hand...
+//TODO: Think about 'own'
+
+//What about making array memebers and pointer targets temporarily uncertain?
+
+def tmp_uncrt(letters:[]mut char, ptr:&mut char) {
+	def once letter := letters[5];
+	move letter; //Way of destructing with default destructor
+	//While this is uncrt nothing else can be done with letters
+	letter = #char "g";
+	//Amazing
+	//Alternative way: Have the array give you an abstraction that takes ownership of the array and also lets you do uncrt stuff
+
+	ptr = #char "5"; //All is well and good
+	def once otherLetter = @ptr;
+	move otherLetter;
+	otherLetter = #char "?";
+	//Same for pointers as arrays. Def once has uncertainty rules.
+	//The def once does not have a memory overhead when referencing a dereference.
+	//It needs to be marked 'once' however to prevent changing index.
+};
+
+//Pointers are not supposed to be safe, so they are not that big an issue.
+//The problem is that arrays are by no means a special construct.
+
+//TODO: Think about def 'once' as well
+

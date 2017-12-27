@@ -1,0 +1,32 @@
+// Daf should let you write stuff easily. Abstractions should be easy to use without any added friction.
+
+pub typedef To(T) := trait {
+	pub def to:def(this:Impl, T):T;
+};
+
+pub typedef ToMut(T) := trait with To(T) {
+	pub def to:def(T):mut T;
+};
+
+pub typedef Box(T) := class with ToMut(T) {
+	m_ptr:&mut T;
+
+	pub def _(def constrcutor(uncrt T)):ctor This {//ctor means def mut _ := output
+		m_ptr = malloc(T.size_of);
+		constructor(@m_ptr as uncrt);
+	};
+
+	pub def _(dtor this:This) { //dtor means mut
+		free(m_ptr);
+	};
+
+	pub def mut to:=@m_ptr;
+	pub def mut 
+};
+
+pub def giveMeABox(val:int):= Box(int)(val);
+
+pub def use_Box:=() {
+	let mut a := giveMeABox(40);
+	a.
+};

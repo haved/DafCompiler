@@ -1,0 +1,40 @@
+typedef TextRange := class {
+	m_line, m_col, m_endLine, m_endCol : int;
+	//Default ctor if no else is specified.
+};
+
+typedef Expression := class {
+	prot m_range : TextRange;
+
+	prot def _ := (range:TextRange) ctor This {
+		 m_range = range;
+	};
+	pub def range := m_range;
+
+};
+
+typedef VariableExpression := class with m_expr:Expression {
+	m_name : string;
+	m_tagret : Optional(&Expression);
+
+	pub def _:=(move name:string, target:&Expression, range:TextRange) {
+		m_name = name; //Moves, using move ctor and default dtor
+		m_target = None;
+		m_expr.=(range); //Calls the ctor for Expression
+	}
+
+	pub def printSingature:=(this:This) {
+		print(m_name);
+	};
+};
+
+typedef IntegerLiteralExpression := class with m_expr:Expression {
+	m_value : u64;
+
+	pub def _:=(m_value:value
+};
+
+typedef ExpressionEnum := enum with Expression {
+	VarExp with VariableExpression;
+	
+};

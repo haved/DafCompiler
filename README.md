@@ -9,8 +9,8 @@ Also, expect the compiler to assert false here and there.
  - CompilerTests: A folder with a bunch of daf files you'll try to compile
    - By no means advanced tests. Will only report compiler errors
  - Specs: contains org mode files for remembering stuff
- - Tools: contains things link an emacs mode for daf
- - Probably belongs in the depths of VC
+ - Tools: contains things like an emacs mode for daf
+ - Probably belongs in the depths of VC:
    - DafLinker: The dafln python script for linking and parsing Linkfiles
    - DafParser: An old java program for parsing outdated, simple daf, and turning it into broken C++
 Most attempts at documenting the Compiler are too old to document the current compiler.  

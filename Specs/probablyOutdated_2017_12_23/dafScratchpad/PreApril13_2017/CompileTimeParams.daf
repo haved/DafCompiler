@@ -1,0 +1,21 @@
+
+typedef Defer(def freer) := class {
+	def _ := ctor():This {};
+	def _ := dtor(mut this:This) {
+		freer; //Evaluate a def
+	};
+};
+
+pub def main := () {
+	def myAllocation1 := def(a:i32) := malloc(a); //Type def():&mut void
+	def myAllocation2(b:i32) := malloc(b); //Type &mut void
+
+	let a := myAllocation1(20);
+	let b := myAllocation2(30); //Whenever using a def to a def, it will recursivly move down to an expression unless you quote it. Quoting it will in theory pack it into more and more defs, but thats only in the compiler
+	let a_keepr := Defer(  def := free(a)  );
+	let b_keepr := Defer(  def := free(b)  );
+
+	a[19] = '\0';
+
+	//Defering happening here because of destructors
+};

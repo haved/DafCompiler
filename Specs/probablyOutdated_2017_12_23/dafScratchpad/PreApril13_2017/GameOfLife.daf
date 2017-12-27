@@ -1,0 +1,38 @@
+//Daf implementation of Conways Game of Life
+
+namedef _ := import("daf.io");
+
+
+def negForNumber(prompt:&char): Optional(:int) = {
+	let mut i := 0;
+	while true {
+	    let inp := input(prompt);
+	    if(inp.equals("q"))
+			return None;
+		if(tryParseInt(mut i, inp))
+		    return i;
+		println("ERROR: Enter a valid integer or 'q'");
+	}
+};
+
+with(T) Optional(T) as {
+	 def mut getOr(this:This, def or):T= match this {
+	 	 None => or,
+		 Some(x) => x
+	 };
+};
+
+//Problem is return. It's sort of a goto, so doesn't really work that well in a functional seting
+//We want to be able to 'return' from a def, but also control an outer scope from a def
+def main:=() {
+	println("Welcome to game of life.");
+	let mut width  := negForNumber("Enter board width: " ).getOr(def:={return;}); //This is just plain sad );
+	let mut height := negForNumber("Enter board height: ").getOr(def:={return;});
+
+	if width < 5 || height < 5 {
+	   print("The board is tiny, mate. Aborting!");
+	   return;
+	}
+	
+	
+};

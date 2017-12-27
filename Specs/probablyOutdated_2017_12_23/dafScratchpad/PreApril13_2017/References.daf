@@ -1,0 +1,30 @@
+//This is a file for detailing references in daf. It uses both functions and macros, and macros who'll be compiled to functions etc.
+
+def use:=() {
+	let mut myVal := 20;
+	def myValRef := myVal;
+	print(myValRef);
+	def mut mytMyValRef := myVal;
+	def myValRefMut2 :mut= myVal; //To maintain compatability with functions
+
+	def five := 5;
+	//We can't def let five := 5, because 5 istn't let anywhere
+};
+
+typedef Contains(T) := class {
+	pub thing:T;
+	def getThing(this:This):=thing;
+	def mut getThingMut:=():mut= {
+		return thing; //This'll not assign thing to output, as output is a pointer
+	};
+};
+
+def useClass := () {
+	let a : Contains(int);
+	a.thing = 20;
+	a.getThing();
+	a.getThingMut()++;
+	def mut a_ref : mut Contains(int) = { //As long as you have one of the muts, it's good
+		output = &mut a; //Hehehe
+	};
+};

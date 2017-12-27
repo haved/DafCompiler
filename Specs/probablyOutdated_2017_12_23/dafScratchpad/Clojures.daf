@@ -1,0 +1,18 @@
+
+def main {
+	mut a := 6;
+
+	//These are all equivelant
+	def func() := a++;
+	def func2  := def  := a++;
+	def func3():= def():= a++;
+
+	//You don't need empty parameter lists
+	func;
+	func2;
+	func3;
+
+	//a is now 9
+
+	
+};

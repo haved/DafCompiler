@@ -1,0 +1,22 @@
+
+def simple {
+	print("Eyo");
+};
+
+def max(a:i32, b:i32):i32 := a>b?a:b;
+
+def main {
+	simple();
+	simple;
+	let a := 5;
+	mut b := a+6;
+	def c := a+b;
+	def mut d := a;
+	let ptr := &mut b;
+	def mut e := @ptr;
+
+	print(max(a, b));
+	typedef int:i32;
+	def noe : int = 60u8;
+	
+};

@@ -1,0 +1,83 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//NO: This file is borked. This def move stuff is not good
+
+
+
+
+
+
+
+def thinkingAtSchool := () {
+	def a := 5; //This is sort of a constructor
+	let b := a;
+	
+};
+
+def letsThink := () {
+
+	typedef SS := class {
+		pub mut array : [10]char;
+		pub def _:(other:This):This = #default;
+	};
+	def a := SS{{'1', '2', '3', '4'}};
+	let b := a; //Copy ctor is never called
+	let func := (a:SS):SS {
+		a
+	};
+	let c := func(b); //We do a copy ctor, but only once
+
+
+};
+
+
+
+
+
+def main := () {
+	mut x:=String("Test");
+	def x_ref := x;
+	x_ref.size(); //Legal
+	let x_ptr := &x; //x_ref wouldn't work
+
+	def a := 5+4;
+	//let a_ptr := &a; //Nope
+	func(a); //Fine
+
+	def move newString := String("New");
+	//Only possible for movable values as output
+
+	def move getString := {
+		let a:=String("a");
+		mut b:=String("b");
+		b=a.concat(b);
+		b.append(a);
+		a
+	}; //This works because evaluating to a let defined inside a scope, is about the same as a functions return value;
+
+	let otherString := String(getString);
+
+	def something := 5;
+	def someFunc  := () := 5;
+	def something2 := someFunc(); //Should be identical to something
+
+	def take := (move a:String):String {
+		return move a; //this initializes the output with the move ctor with a;
+	};
+
+	def take := (move a:String):String {
+		a
+	};
+};

@@ -1,0 +1,86 @@
+#+TITlE: Keywords in daf and their purpose
+
+Daf contains a multitude of keywords with non-obvious semantics, and when I describe the language myself,
+I often use words with different meanings in different programming languages.
+This document will serve as a dictionary of sorts, with lots of daf examples.
+Certain words have multiple meanings, but will only have one entry
+
+* Definitions
+All top level constructs in daf are definitions. The =def= is just one of these.
+Global definitions are those who exist in name-scopes,
+while local definitions exist in regular scopes.
+Only the global definitions can be accessed from anywhere in the name-scope,
+or even outside it using the =pub= keyword:
+** pub
+Definitions can be prefixed with =pub= to be accessible outside of their name-scope.
+See: Scope->Name-scope
+An imported file is represented as a name-scope, so to make definitions accessible
+across files, the =pub= keyword mut be used.
+** def
+** let
+** mut
+** once
+** with
+** typedef
+** namedef
+** linkfile
+* Expressions
+** literal
+** variable
+** with
+** scope
+See the scope section for juicy scope details
+* Statements
+** expression scope
+** definition scope
+** if
+** for
+** while
+** return
+
+* Scope
+First things first, there are three types of scopes.
+ - Name-scopes are only parsed in a namedef, and can only contain definitions (but they can be public o.o)
+ - Type-scopes are used in class, trait and functionality definitions, and can contain members as well as definitions
+ - Expression-scopes, or just 'scopes', are blocks of statements, and the most common kind of scope.
+** Scope
+*** Returning things
+*** final output expression
+** Name-scope
+** Type-scope
+* Types
+** class
+** trait
+** or-types
+** pointer
+
+* Functions, aliases & parameters
+** function definition
+** function type
+** compile time function / alias
+** parameter
+** argument
+** reference
+** 'own'
+The keyword 'own' is used to give ownership of a variable to another variable.
+This effectively prevents you from using the variable until the owner dies.
+The compiler forbids owners outliving their property.
+Location: own is written before a parameter in a parameter list.
+Ownership is useful when making abstractions as you get more control.
+Without own, you only get control of a reference in a function body.
+With own, you can keep sole control for as long as your abstraction lives.
+
+#+BEGIN_SRC daf
+typedef Owner(T) := class {
+	m_ptr : &mut T;
+
+	def _ := ctor(own mut ref:T) {
+		m_ptr = &mut ref;
+	};
+
+	def mut _ := @T;
+};
+#+END_SRC
+** 'uncrt'
+** 'move'
+** compile-time parameter
