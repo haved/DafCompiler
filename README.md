@@ -13,6 +13,7 @@ Also, expect the compiler to assert false here and there.
  - Probably belongs in the depths of VC:
    - DafLinker: The dafln python script for linking and parsing Linkfiles
    - DafParser: An old java program for parsing outdated, simple daf, and turning it into broken C++
+
 Most attempts at documenting the Compiler are too old to document the current compiler.  
 Last cleanup was 2017-12-27, with this very commit.
 
