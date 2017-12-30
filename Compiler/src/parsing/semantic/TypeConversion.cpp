@@ -3,58 +3,66 @@
 #include "CodegenLLVM.hpp"
 #include "DafLogger.hpp"
 
-bool canConvertFunctionTypeTo(FunctionType* func, ExprTypeInfo B, bool explicitCast) {
+CastPossible canConvertFunctionTypeTo(FunctionType* func, ExprTypeInfo B) {
 	assert(func && B.type);
 	if(!func->canBeCalledImplicitlyOnce())
-		return false;
-	return canConvertTypeFromTo(func->getReturnTypeInfo(), B, explicitCast); //TODO: @FixMe: Potential for infinite loop
+	    return CastPossible::IMPOSSIBLE;
+	return canConvertTypeFromTo(func->getReturnTypeInfo(), B); //TODO: @FixMe: Potential for infinite loop
 }
 
-bool canConvertFromPrimitive(PrimitiveType* from, ExprTypeInfo to, bool explicitCast) {
+CastPossible canConvertFromPrimitive(PrimitiveType* from, ExprTypeInfo to) {
 	assert(from && to.type && !isReferenceValueKind(to.valueKind));
 	ConcreteType* B_t = to.type;
 	ConcreteTypeKind B_k = B_t->getConcreteTypeKind();
 	if(B_k != ConcreteTypeKind::PRIMITIVE) {
 		assert(false && "TODO: Casting from primitives to non-primitives");
-		return false;
+		return CastPossible::IMPOSSIBLE;
 	}
 
 	PrimitiveType* to_prim = castToPrimitveType(to.type);
-	if(to_prim->getBitCount() > from->getBitCount())
-		return explicitCast;
-    if(!to_prim->isFloatingPoint() && from->isFloatingPoint())
-		return explicitCast;
-	return true;
+	if(from->isFloatingPoint() && !to_prim->isFloatingPoint())
+		return CastPossible::EXPLICITLY; //float to int
+	if(to_prim->getBitCount() == 1)
+		return CastPossible::IMPLICITLY; //'truncate' to bool is implicit
+	if(from->getBitCount() > to_prim->getBitCount())
+		return CastPossible::EXPLICITLY; //truncating is otherwise banned
+	return CastPossible::IMPOSSIBLE;
 }
 
-bool canConvertTypeFromTo(ExprTypeInfo A, ExprTypeInfo B, bool explicitCast) {
+CastPossible canConvertTypeFromTo(ExprTypeInfo A, ExprTypeInfo B) {
 	ConcreteType *A_t = A.type, *B_t = B.type;
 	assert(A_t&&B_t);
 
 	if(B_t == getVoidType())
-		return true;
+		return CastPossible::IMPLICITLY;
 	if(A_t == getVoidType())
-		return false;
+		return CastPossible::IMPOSSIBLE;
 
 	if(A_t == B_t)
-		return getValueKindScore(A.valueKind) >= getValueKindScore(B.valueKind);
+		return getValueKindScore(A.valueKind) >= getValueKindScore(B.valueKind) ?
+			CastPossible::IMPLICITLY : CastPossible::IMPOSSIBLE;
 
 	if(isFunctionType(A))
-		return canConvertFunctionTypeTo(castToFunctionType(A_t), B, explicitCast);
+		return canConvertFunctionTypeTo(castToFunctionType(A_t), B);
 
 	if(isReferenceValueKind(B.valueKind)) //No way of getting a reference beyond the point
-		return false;
+		return CastPossible::IMPOSSIBLE;
 
 	ConcreteTypeKind A_k = A_t->getConcreteTypeKind();
 	if(A_k == ConcreteTypeKind::PRIMITIVE)
-		return canConvertFromPrimitive(castToPrimitveType(A_t), B, explicitCast);
+		return canConvertFromPrimitive(castToPrimitveType(A_t), B);
 
-	return false;
+	return CastPossible::IMPOSSIBLE;
 }
 
-void complainThatTypeCantBeConverted(ExprTypeInfo A, ExprTypeInfo B, const TextRange& range) {
-	auto& out = logDaf(range, ERROR) << "no conversion exists from '";
-	printValueKind(A.valueKind, out);
+void complainThatTypeCantBeConverted(ExprTypeInfo A, ExprTypeInfo B, CastPossible poss, const TextRange& range) {
+	auto& out = logDaf(range, ERROR);
+	if(poss == CastPossible::IMPOSSIBLE)
+		out << "no type conversion exists from ";
+	else if(poss == CastPossible::EXPLICITLY)
+		out << "no implicit type conversion exists from '";
+	else assert(false);
+	printValueKind(A.valueKind, out, true);
 	A.type->printSignature();
 	out << "' to '";
 	printValueKind(B.valueKind, out, true);
@@ -118,7 +126,7 @@ optional<EvaluatedExpression> codegenTypeConversion(CodegenLLVM& codegen, option
 	ConcreteType* A_t = A_ti.type;
 	ConcreteType* B_t = target.type;
 
-	assert(canConvertTypeFromTo(*eval.typeInfo, target, true)); //@Optimize slow assert
+	assert(canConvertTypeFromTo(*eval.typeInfo, target) != CastPossible::IMPOSSIBLE); //@Optimize slow assert
 
 	if(B_t == getVoidType())
 		return EvaluatedExpression(nullptr, false, &target);

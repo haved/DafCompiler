@@ -226,9 +226,9 @@ bool isReturnCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKin
 }
 
 void complainReturnIsntCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind,
-							   ExprTypeInfo& given, const TextRange& range) {
+							   ExprTypeInfo& given, CastPossible poss, const TextRange& range) {
 	ConcreteType* req = requiredType ? *requiredType : nullptr;
-    complainThatTypeCantBeConverted(given, ExprTypeInfo(req, requiredKind), range);
+    complainThatTypeCantBeConverted(given, ExprTypeInfo(req, requiredKind), poss, range);
 }
 
 ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) {
@@ -259,7 +259,8 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 					}
 				}
 
-				complainReturnIsntCorrect(reqType, reqKind, bodyTypeInfo, getRange());
+				//TODO: Support casting parameter
+				complainReturnIsntCorrect(reqType, reqKind, bodyTypeInfo, CastPossible::IMPOSSIBLE, getRange());
 				return ConcretableState::LOST_CAUSE;
 			}
 
@@ -507,41 +508,20 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 		letParam->localCodegen(codegen);
 	}
 
-	bool returns = m_type->hasReturn();
-	bool returnsRef = m_type->isReferenceReturn();
 	bool refBody = body->isReferenceTypeInfo();
-
-	bool evalIsPointer = returnsRef && refBody;
-	optional<EvaluatedExpression> firstEval = evalIsPointer ? body->codegenPointer(codegen) : body->codegenExpression(codegen);
-	if(!firstEval) {
+	optional<EvaluatedExpression> firstEval = refBody ? body->codegenPointer(codegen) : body->codegenExpression(codegen);
+	optional<EvaluatedExpression> finalEval = codegenTypeConversion(codegen, *firstEval, targetTypeInfo);
+	if(!finalEval) {
 		m_broken_prototype = true;
 		return;
 	}
 
-	EvaluatedExpression eval = *firstEval;
-	if(evalIsPointer) { //We return a reference and eval is a reference
-		assert(isReturnCorrect(targetTypeInfo.type, targetTypeInfo.valueKind, *eval.typeInfo));
-	} else {
-		if(returnsRef)
-			assert(isFunctionType(*eval.typeInfo));
-
-		while(returns && !isReturnCorrect(targetTypeInfo.type, targetTypeInfo.valueKind, *eval.typeInfo)) {
-			assert(isFunctionType(*eval.typeInfo));
-			FunctionType* func = castToFunctionType(eval.typeInfo->type);
-			FunctionExpression* expression = func->getFunctionExpression();
-		    assert(expression && "We sorta assume a FunctionType has an expression");
-			llvm::Function* prototype = expression->tryGetOrMakePrototype(codegen);
-			assert(func->canBeCalledImplicitlyOnce());
-			llvm::Value* val = codegen.Builder().CreateCall(prototype);
-			eval = EvaluatedExpression(val, func->isReferenceReturn(), &func->getReturnTypeInfo());
-		}
-	}
-
+	bool returnsRef = m_type->isReferenceReturn();
+	assert(finalEval->typeInfo->type == targetTypeInfo.type && implies(returnsRef, finalEval->isPointerToValue()));
     if(m_prototype->getReturnType()->isVoidTy())
 		codegen.Builder().CreateRetVoid();
 	else {
-		assert(eval.typeInfo->type == targetTypeInfo.type);
-		codegen.Builder().CreateRet(returnsRef ? eval.getPointerToValue(codegen) : eval.getValue(codegen));
+		codegen.Builder().CreateRet(returnsRef ? finalEval->getPointerToValue(codegen) : finalEval->getValue(codegen));
 	}
 
 	llvm::verifyFunction(*m_prototype);
