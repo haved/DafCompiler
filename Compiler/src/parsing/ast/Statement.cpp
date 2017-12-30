@@ -126,7 +126,7 @@ ConcretableState IfStatement::makeConcreteInternal(NamespaceStack& ns_stack, Dep
 ConcretableState IfStatement::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
 	ExprTypeInfo condTypeInfo = m_condition->getTypeInfo();
-	if(!canConvertTypeFromTo(condTypeInfo, getAnonBooleanTyI())) {
+	if(!canConvertTypeFromTo(condTypeInfo, getAnonBooleanTyI(), false)) {
 		complainThatTypeCantBeConverted(condTypeInfo, getAnonBooleanTyI(), m_condition->getRange());
 		return ConcretableState::LOST_CAUSE;
 	}

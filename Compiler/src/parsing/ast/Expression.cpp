@@ -311,12 +311,12 @@ ConcretableState InfixOperatorExpression::retryMakeConcreteInternal(DependencyMa
 
 optional<EvaluatedExpression> InfixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
 	assert(allConcrete() << getConcretableState());
-	return codegenBinaryOperator(codegen, m_LHS.get(), m_op, m_RHS.get(), &m_typeInfo, false, getRange());
+	return codegenBinaryOperator(codegen, m_LHS.get(), m_op, m_RHS.get(), m_typeInfo, false, getRange());
 }
 
 optional<EvaluatedExpression> InfixOperatorExpression::codegenPointer(CodegenLLVM& codegen) {
 	assert(allConcrete() << getConcretableState());
-	return codegenBinaryOperator(codegen, m_LHS.get(), m_op, m_RHS.get(), &m_typeInfo, true, getRange());
+	return codegenBinaryOperator(codegen, m_LHS.get(), m_op, m_RHS.get(), m_typeInfo, true, getRange());
 }
 
 

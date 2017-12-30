@@ -2,7 +2,7 @@
 #include "parsing/ast/Type.hpp"
 #include "parsing/ast/Expression.hpp"
 
-bool canConvertTypeFromTo(ExprTypeInfo A, ExprTypeInfo B, bool explicitCast=false);
+bool canConvertTypeFromTo(ExprTypeInfo A, ExprTypeInfo B, bool explicitCast);
 
 void complainThatTypeCantBeConverted(ExprTypeInfo A, ExprTypeInfo B, const TextRange& range);
 

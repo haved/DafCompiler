@@ -144,6 +144,12 @@ PrimitiveType* literalKindToPrimitiveType(LiteralKind kind) {
 	return nullptr;
 }
 
+PrimitiveType* castToPrimitveType(ConcreteType* type) {
+	assert(type && type->getConcreteTypeKind() == ConcreteTypeKind::PRIMITIVE);
+	return static_cast<PrimitiveType*>(type);
+}
+
+
 ConcreteTypeUse::ConcreteTypeUse(ConcreteType* type, const TextRange& range) : Type(range), m_type(type) {
 	assert(m_type);
 }

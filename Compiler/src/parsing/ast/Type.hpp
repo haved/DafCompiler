@@ -109,6 +109,7 @@ public:
 
 PrimitiveType* tokenTypeToPrimitiveType(TokenType type);
 PrimitiveType* literalKindToPrimitiveType(LiteralKind kind);
+PrimitiveType* castToPrimitveType(ConcreteType* type);
 
 class ConcreteTypeUse : public Type {
 private:

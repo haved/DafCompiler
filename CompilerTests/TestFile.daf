@@ -2,7 +2,9 @@
 
 def printInt(a:i32) "printIntToC";
 
+def testFunc := 6;
+
 def dafMain:i32 {
-	printInt(1234);
+	printInt(testFunc);
 	0
 };
