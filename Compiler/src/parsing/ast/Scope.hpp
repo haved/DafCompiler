@@ -23,7 +23,6 @@ public:
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 
 	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
-	virtual optional<EvaluatedExpression> codegenPointer(CodegenLLVM& codegen) override;
 };
 
 class ScopeNamespace : public Namespace {

@@ -44,18 +44,28 @@ ExprTypeInfo getNoneTypeInfo() {
 	return ExprTypeInfo(nullptr, ValueKind::ANONYMOUS);
 }
 
+EvaluatedExpression::EvaluatedExpression(llvm::Value* value, bool pointerToValue, const ExprTypeInfo* type) :
+	m_value(value), typeInfo(type) {
+	assert(typeInfo->type);
+	assert(pointerToValue == isReference());
+}
+
+bool EvaluatedExpression::isVoid() const {
+	return typeInfo->type == getVoidType();
+}
+
 llvm::Value* EvaluatedExpression::getValue(CodegenLLVM& codegen) {
-	return m_pointerToValue ? codegen.Builder().CreateLoad(m_value) : m_value;
+	return isReference() ? codegen.Builder().CreateLoad(m_value) : m_value;
 }
 
 llvm::Value* EvaluatedExpression::getPointerToValue(CodegenLLVM& codegen) {
 	(void) codegen;
-	assert(m_pointerToValue);
+	assert(isReference());
 	return m_value;
 }
 
-bool EvaluatedExpression::isPointerToValue() {
-	return m_pointerToValue;
+bool EvaluatedExpression::isReference() {
+    return isReferenceValueKind(typeInfo->valueKind);
 }
 
 void complainDefinitionNotLetOrDef(DefinitionKind kind, std::string& name, const TextRange& range) {
@@ -148,18 +158,6 @@ optional<EvaluatedExpression> VariableExpression::codegenExpression(CodegenLLVM&
 	}
 }
 
-optional<EvaluatedExpression> VariableExpression::codegenPointer(CodegenLLVM& codegen) {
-    assert(m_target && isReferenceTypeInfo());
-
-	if(m_target.isDef()) {
-		assert(!functionTypeAllowed()); //There is no way to return a def's function and also be reference return
-		return m_target.getDef()->implicitPointerCodegen(codegen);
-	} else {
-		assert(m_target.isLet());
-	    return m_target.getLet()->pointerCodegen(codegen);
-	}
-}
-
 FunctionParameterExpression::FunctionParameterExpression(FunctionType* funcType, unsigned paramIndex, const TextRange& range) :
 	Expression(range), m_funcType(funcType), m_parameterIndex(paramIndex) {
 	assert(m_funcType && m_funcType->getFunctionExpression());
@@ -201,8 +199,8 @@ ConcretableState FunctionParameterExpression::retryMakeConcreteInternal(Dependen
 	return ConcretableState::CONCRETE;
 }
 
-optional<EvaluatedExpression> FunctionParameterExpression::codegenFuncParam(CodegenLLVM& codegen, bool ptr) {
-	FunctionExpression* expr = m_funcType->getFunctionExpression();
+optional<EvaluatedExpression> FunctionParameterExpression::codegenExpression(CodegenLLVM& codegen) {
+    FunctionExpression* expr = m_funcType->getFunctionExpression();
 	assert(expr);
 	llvm::Function* prototype = expr->tryGetOrMakePrototype(codegen);
 	if(!prototype)
@@ -216,17 +214,7 @@ optional<EvaluatedExpression> FunctionParameterExpression::codegenFuncParam(Code
 	llvm::Value* value = &(*argIterator); //C++, my dudes
 
 	bool isReferenceParameter = isReferenceTypeInfo();
-	assert(implies(ptr, isReferenceParameter));
-
 	return EvaluatedExpression(value, isReferenceParameter, &m_typeInfo);
-}
-
-optional<EvaluatedExpression> FunctionParameterExpression::codegenExpression(CodegenLLVM& codegen) {
-    return codegenFuncParam(codegen, false);
-}
-
-optional<EvaluatedExpression> FunctionParameterExpression::codegenPointer(CodegenLLVM& codegen) {
-    return codegenFuncParam(codegen, true);
 }
 
 IntegerConstantExpression::IntegerConstantExpression(daf_largest_uint integer, LiteralKind integerType, const TextRange& range) : Expression(range), m_integer(integer), m_type(literalKindToPrimitiveType(integerType)) {
@@ -311,14 +299,8 @@ ConcretableState InfixOperatorExpression::retryMakeConcreteInternal(DependencyMa
 
 optional<EvaluatedExpression> InfixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
 	assert(allConcrete() << getConcretableState());
-	return codegenBinaryOperator(codegen, m_LHS.get(), m_op, m_RHS.get(), m_typeInfo, false, getRange());
+	return codegenBinaryOperator(codegen, m_LHS.get(), m_op, m_RHS.get(), m_typeInfo, getRange());
 }
-
-optional<EvaluatedExpression> InfixOperatorExpression::codegenPointer(CodegenLLVM& codegen) {
-	assert(allConcrete() << getConcretableState());
-	return codegenBinaryOperator(codegen, m_LHS.get(), m_op, m_RHS.get(), m_typeInfo, true, getRange());
-}
-
 
 PrefixOperatorExpression::PrefixOperatorExpression(const PrefixOperator& op, int opLine, int opCol, std::unique_ptr<Expression>&& RHS) : Expression(TextRange(opLine, opCol, RHS->getRange())), m_op(op), m_RHS(std::move(RHS)) {
 	assert(m_RHS);
@@ -503,7 +485,7 @@ ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap
 	return ConcretableState::CONCRETE;
 }
 
-optional<EvaluatedExpression> FunctionCallExpression::codegenFunctionCall(CodegenLLVM& codegen, bool pointer) {
+optional<EvaluatedExpression> FunctionCallExpression::codegenExpression(CodegenLLVM& codegen) {
     optional<EvaluatedExpression> function = m_function->codegenExpression(codegen);
 	if(!function)
 		return boost::none;
@@ -540,8 +522,7 @@ optional<EvaluatedExpression> FunctionCallExpression::codegenFunctionCall(Codege
 
 		Expression* argExpression = m_args[i].m_expression.get();
 		bool referenceParameter = requiredValParam->isReferenceParameter();
-		optional<EvaluatedExpression> arg = referenceParameter ?
-			argExpression->codegenPointer(codegen) : argExpression->codegenExpression(codegen);
+		optional<EvaluatedExpression> arg = argExpression->codegenExpression(codegen);
 		if(!arg)
 			return boost::none;
 
@@ -560,17 +541,7 @@ optional<EvaluatedExpression> FunctionCallExpression::codegenFunctionCall(Codege
     EvaluatedExpression val(returnVal, funcType->isReferenceReturn(), &funcType->getReturnTypeInfo());
 	val = *codegenTypeConversion(codegen, val, m_typeInfo);
 
-    assert(implies(pointer, val.isPointerToValue()));
-	return val;
-}
-
-optional<EvaluatedExpression> FunctionCallExpression::codegenExpression(CodegenLLVM& codegen) {
-    return codegenFunctionCall(codegen, false);
-}
-
-optional<EvaluatedExpression> FunctionCallExpression::codegenPointer(CodegenLLVM& codegen) {
-	assert(isReferenceTypeInfo());
-	return codegenFunctionCall(codegen, true);
+    return val;
 }
 
 

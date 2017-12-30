@@ -107,7 +107,6 @@ public:
 
 	optional<EvaluatedExpression> codegenExplicitFunction(CodegenLLVM& codegen);
 	optional<EvaluatedExpression> codegenOneImplicitCall(CodegenLLVM& codegen);
-	optional<EvaluatedExpression> codegenImplicitExpression(CodegenLLVM& codegen, bool pointer);
+	optional<EvaluatedExpression> codegenImplicitExpression(CodegenLLVM& codegen);
 	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
-	virtual optional<EvaluatedExpression> codegenPointer(CodegenLLVM& codegen) override;
 };

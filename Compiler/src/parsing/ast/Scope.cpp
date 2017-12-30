@@ -89,15 +89,6 @@ optional<EvaluatedExpression> Scope::codegenExpression(CodegenLLVM& codegen) {
 	return EvaluatedExpression(nullptr, false, &m_typeInfo);
 }
 
-optional<EvaluatedExpression> Scope::codegenPointer(CodegenLLVM& codegen) {
-	assert(isReferenceTypeInfo() && m_outExpression);
-	for(auto it = m_statements.begin(); it != m_statements.end(); ++it) {
-		assert(allConcrete() << (*it)->getConcretableState());
-		(*it)->codegenStatement(codegen);
-	}
-    return m_outExpression->codegenPointer(codegen);
-}
-
 ScopeNamespace::ScopeNamespace() : m_definitionMap() {}
 
 void ScopeNamespace::addStatement(Statement& statement) {

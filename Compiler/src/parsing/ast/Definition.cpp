@@ -78,6 +78,9 @@ ConcretableState Let::retryMakeConcreteInternal(DependencyMap& depMap) {
 			if(given != type)
 				assert(false && "ERROR: Differing type from expression and given type in let TODO");
 		}
+		if(m_stealSpaceFromTarget) {
+			assert(isReferenceValueKind(m_expression->getTypeInfo().valueKind));
+		}
 	} else {
 		assert(m_givenType);
 		type = m_givenType.getType()->getConcreteType();
@@ -127,7 +130,7 @@ void Let::localCodegen(CodegenLLVM& codegen) {
 	llvm::Type* type = m_typeInfo.type->codegenType(codegen);
 	assert(type);
 	if(m_stealSpaceFromTarget) {
-		optional<EvaluatedExpression> opt_expr = m_expression->codegenPointer(codegen);
+		optional<EvaluatedExpression> opt_expr = m_expression->codegenExpression(codegen);
 		assert(opt_expr && "the pointer at which we're supposed to put the let is boost::none");
 		assert(opt_expr->typeInfo->type == m_typeInfo.type);
 		m_space = opt_expr->getPointerToValue(codegen);
@@ -152,12 +155,7 @@ void Let::localCodegen(CodegenLLVM& codegen) {
 
 optional<EvaluatedExpression> Def::implicitAccessCodegen(CodegenLLVM& codegen) {
     assert(allowsImplicitAccess());
-	return m_functionExpression->codegenImplicitExpression(codegen, false);
-}
-
-optional<EvaluatedExpression> Def::implicitPointerCodegen(CodegenLLVM& codegen) {
-	assert(allowsImplicitAccess());
-	return m_functionExpression->codegenImplicitExpression(codegen, true);
+	return m_functionExpression->codegenImplicitExpression(codegen);
 }
 
 //For when you return the function and don't call it
@@ -166,11 +164,6 @@ optional<EvaluatedExpression> Def::functionAccessCodegen(CodegenLLVM& codegen) {
 }
 
 optional<EvaluatedExpression> Let::accessCodegen(CodegenLLVM& codegen) {
-    assert(m_space);
-	return EvaluatedExpression(codegen.Builder().CreateLoad(m_space, m_name.c_str()), false, &m_typeInfo);
-}
-
-optional<EvaluatedExpression> Let::pointerCodegen(CodegenLLVM& codegen) {
 	(void) codegen;
 	assert(m_space);
 	return EvaluatedExpression(m_space, true, &m_typeInfo);

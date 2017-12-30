@@ -102,7 +102,6 @@ optional<ExprTypeInfo> getBinaryOpResultType(const ExprTypeInfo& LHS, InfixOpera
 	if(isOpNumerical(op))
 		return getBinaryOpResultTypeNumerical(LHS.type, op, RHS.type, range);
 	else if(op == InfixOperator::ASSIGN) {
-
 		ExprTypeInfo AnonLHS(LHS.type, ValueKind::ANONYMOUS);
 		CastPossible RHS_to_LHS_poss = canConvertTypeFromTo(RHS, AnonLHS);
 		if(RHS_to_LHS_poss != CastPossible::IMPLICITLY) {
@@ -160,9 +159,8 @@ EvaluatedExpression codegenBinaryOperatorNumerical(CodegenLLVM& codegen, Evaluat
 	}
 }
 
-optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, Expression* LHS, InfixOperator op, Expression* RHS, const ExprTypeInfo& target, bool ptrReturn, const TextRange& range) {
+optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, Expression* LHS, InfixOperator op, Expression* RHS, const ExprTypeInfo& target, const TextRange& range) {
 	if(isOpNumerical(op)) {
-		assert(!ptrReturn);
 	    optional<EvaluatedExpression> LHS_expr = LHS->codegenExpression(codegen);
 		optional<EvaluatedExpression> RHS_expr = RHS->codegenExpression(codegen);
 		if(LHS_expr && RHS_expr)
@@ -170,7 +168,7 @@ optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, Expres
 		return boost::none;
 	}
 	else if(op == InfixOperator::ASSIGN) {
-		optional<EvaluatedExpression> LHS_assign = LHS->codegenPointer(codegen);
+		optional<EvaluatedExpression> LHS_assign = LHS->codegenExpression(codegen);
 		optional<EvaluatedExpression> RHS_expr = RHS->codegenExpression(codegen);
 	    ExprTypeInfo AnonLHS(target.type, ValueKind::ANONYMOUS);
 		optional<EvaluatedExpression> RHS_correctType = codegenTypeConversion(codegen, RHS_expr, AnonLHS);

@@ -434,12 +434,10 @@ optional<EvaluatedExpression> FunctionExpression::codegenOneImplicitCall(Codegen
 							   m_type->isReferenceReturn(), &m_type->getReturnTypeInfo());
 }
 
-optional<EvaluatedExpression> FunctionExpression::codegenImplicitExpression(CodegenLLVM& codegen, bool reqPointer) {
+optional<EvaluatedExpression> FunctionExpression::codegenImplicitExpression(CodegenLLVM& codegen) {
     assert(m_type->getImplicitCallReturnTypeInfo());
 	optional<EvaluatedExpression> eval_opt = codegenTypeConversion(codegen, codegenExplicitFunction(codegen),
 																   *m_type->getImplicitCallReturnTypeInfo());
-
-	assert(!eval_opt || implies(reqPointer, eval_opt->isPointerToValue()));
     return eval_opt;
 }
 
@@ -447,12 +445,7 @@ optional<EvaluatedExpression> FunctionExpression::codegenExpression(CodegenLLVM&
 	if(functionTypeAllowed()) {
 		return codegenExplicitFunction(codegen);
 	}
-	return codegenImplicitExpression(codegen, false);
-}
-
-optional<EvaluatedExpression> FunctionExpression::codegenPointer(CodegenLLVM& codegen) {
-	assert(!functionTypeAllowed()); //Never tell an expression it can be a function and then try get its pointer
-	return codegenImplicitExpression(codegen, true);
+	return codegenImplicitExpression(codegen);
 }
 
 std::string anon_function_name("anon_function");
@@ -508,8 +501,7 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 		letParam->localCodegen(codegen);
 	}
 
-	bool refBody = body->isReferenceTypeInfo();
-	optional<EvaluatedExpression> firstEval = refBody ? body->codegenPointer(codegen) : body->codegenExpression(codegen);
+	optional<EvaluatedExpression> firstEval = body->codegenExpression(codegen);
 	optional<EvaluatedExpression> finalEval = codegenTypeConversion(codegen, *firstEval, targetTypeInfo);
 	if(!finalEval) {
 		m_broken_prototype = true;
@@ -517,7 +509,7 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 	}
 
 	bool returnsRef = m_type->isReferenceReturn();
-	assert(finalEval->typeInfo->type == targetTypeInfo.type && implies(returnsRef, finalEval->isPointerToValue()));
+	assert(finalEval->typeInfo->type == targetTypeInfo.type);
     if(m_prototype->getReturnType()->isVoidTy())
 		codegen.Builder().CreateRetVoid();
 	else {
