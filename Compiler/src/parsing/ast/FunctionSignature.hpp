@@ -105,8 +105,6 @@ public:
 
 	llvm::Function* tryGetOrMakePrototype(CodegenLLVM& codegen);
 
-	optional<EvaluatedExpression> codegenExplicitFunction(CodegenLLVM& codegen);
-	optional<EvaluatedExpression> codegenOneImplicitCall(CodegenLLVM& codegen);
-	optional<EvaluatedExpression> codegenImplicitExpression(CodegenLLVM& codegen);
+    optional<EvaluatedExpression> codegenOneImplicitCall(CodegenLLVM& codegen);
 	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
 };

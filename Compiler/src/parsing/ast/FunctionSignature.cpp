@@ -69,7 +69,7 @@ FunctionType::FunctionType(param_list&& parameters, ReturnKind givenKind,
 	m_functionExpression(boost::none),
 	m_returnTypeInfo(getNoneTypeInfo()),
 	m_implicitCallReturnTypeInfo(boost::none),
-	m_parameter_lets(),
+    m_parameter_lets(),
 	m_parameter_map() {
     if(!hasReturn())
 		assert(!m_givenReturnType);
@@ -202,8 +202,6 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 
 		ns_stack.push(this);
 		Expression* body = (*m_functionExpression)->getBody();
-		if(hasReturn())
-			body->enableFunctionType();
 		makeChildConcrete(body);
 		ns_stack.pop();
 	}
@@ -252,9 +250,9 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 			while(!isReturnCorrect(reqType, reqKind, bodyTypeInfo)) {
 			    if(isFunctionType(bodyTypeInfo)) {
 				    FunctionType* function = castToFunctionType(bodyTypeInfo.type);
-					optional<ExprTypeInfo> func_return = function->getImplicitCallReturnTypeInfo();
-					if(func_return) {
-						bodyTypeInfo = *func_return;
+					if(function->canBeCalledImplicitlyOnce()) {
+						ExprTypeInfo& func_return = function->getReturnTypeInfo();
+						bodyTypeInfo = func_return;
 						continue;
 					}
 				}
@@ -267,18 +265,17 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 			m_returnTypeInfo = bodyTypeInfo;
 			degradeValueKind(m_returnTypeInfo.valueKind, reqKind);
 
-			if(canBeCalledImplicitlyOnce()) {
-				if(isFunctionType(m_returnTypeInfo))
-					m_implicitCallReturnTypeInfo = castToFunctionType(m_returnTypeInfo.type)->getImplicitCallReturnTypeInfo();
-				else
-					m_implicitCallReturnTypeInfo = m_returnTypeInfo;
-			}
-
 		} else {
 			assert(reqType);
 			m_returnTypeInfo = ExprTypeInfo(*reqType, reqKind);
-			if(canBeCalledImplicitlyOnce())
+		}
+
+		if(canBeCalledImplicitlyOnce()) {
+			if(isFunctionType(m_returnTypeInfo)) {
+				m_implicitCallReturnTypeInfo = castToFunctionType(m_returnTypeInfo.type)->getImplicitCallReturnTypeInfo();
+			} else {
 				m_implicitCallReturnTypeInfo = m_returnTypeInfo;
+			}
 		}
 	} else { //The point of no return
 		m_returnTypeInfo = ExprTypeInfo(getVoidType(), ValueKind::ANONYMOUS);
@@ -404,25 +401,8 @@ ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_sta
 
 ConcretableState FunctionExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
-	if(functionTypeAllowed()) {
-		m_typeInfo = ExprTypeInfo(m_type.get(), ValueKind::ANONYMOUS);
-	} else {
-		optional<ExprTypeInfo> implicitType = m_type->getImplicitCallReturnTypeInfo();
-		if(!implicitType) {
-			logDaf(getRange(), ERROR) << "expected implicitly callable function, but this isn't it" << std::endl;
-			return ConcretableState::LOST_CAUSE;
-		}
-		m_typeInfo = *implicitType;
-	}
+	m_typeInfo = ExprTypeInfo(m_type.get(), ValueKind::ANONYMOUS);
 	return ConcretableState::CONCRETE;
-}
-
-optional<EvaluatedExpression> FunctionExpression::codegenExplicitFunction(CodegenLLVM& codegen) {
-	assert(isFunctionType(m_typeInfo));
-	if(tryGetOrMakePrototype(codegen))
-		return EvaluatedExpression(nullptr, false, &m_typeInfo);
-	else
-		return boost::none;
 }
 
 optional<EvaluatedExpression> FunctionExpression::codegenOneImplicitCall(CodegenLLVM& codegen) {
@@ -434,18 +414,12 @@ optional<EvaluatedExpression> FunctionExpression::codegenOneImplicitCall(Codegen
 							   m_type->isReferenceReturn(), &m_type->getReturnTypeInfo());
 }
 
-optional<EvaluatedExpression> FunctionExpression::codegenImplicitExpression(CodegenLLVM& codegen) {
-    assert(m_type->getImplicitCallReturnTypeInfo());
-	optional<EvaluatedExpression> eval_opt = codegenTypeConversion(codegen, codegenExplicitFunction(codegen),
-																   *m_type->getImplicitCallReturnTypeInfo());
-    return eval_opt;
-}
-
 optional<EvaluatedExpression> FunctionExpression::codegenExpression(CodegenLLVM& codegen) {
-	if(functionTypeAllowed()) {
-		return codegenExplicitFunction(codegen);
-	}
-	return codegenImplicitExpression(codegen);
+	assert(isFunctionType(m_typeInfo));
+	if(tryGetOrMakePrototype(codegen))
+		return EvaluatedExpression(nullptr, false, &m_typeInfo);
+	else
+		return boost::none;
 }
 
 std::string anon_function_name("anon_function");

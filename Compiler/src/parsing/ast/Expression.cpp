@@ -73,19 +73,11 @@ void complainDefinitionNotLetOrDef(DefinitionKind kind, std::string& name, const
 	printDefinitionKindName(kind, out) << std::endl;
 }
 
-Expression::Expression(const TextRange& range) : Concretable(), m_range(range), m_typeInfo(nullptr, ValueKind::ANONYMOUS), m_allowFunctionType(false) {}
+Expression::Expression(const TextRange& range) : Concretable(), m_range(range), m_typeInfo(nullptr, ValueKind::ANONYMOUS) {}
 Expression::~Expression() {}
 const TextRange& Expression::getRange() { return m_range; }
 bool Expression::isStatement() { return false; }
 bool Expression::evaluatesToValue() const { return true; }
-
-void Expression::enableFunctionType() {
-	m_allowFunctionType = true;
-}
-
-bool Expression::functionTypeAllowed() {
-	return m_allowFunctionType;
-}
 
 const ExprTypeInfo& Expression::getTypeInfo() const {
 	assert(getConcretableState() == ConcretableState::CONCRETE && m_typeInfo.type);
@@ -135,23 +127,14 @@ ConcretableState VariableExpression::makeConcreteInternal(NamespaceStack& ns_sta
 ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& depNode) {
 	(void) depNode;
     assert(m_target && m_target.getDefinition()->getConcretableState() == ConcretableState::CONCRETE);
-	optional<const ExprTypeInfo*> targetTypeInfo = m_target.getTypeInfo(functionTypeAllowed());
-	if(!targetTypeInfo) {
-		logDaf(getRange(), ERROR) << "can't get implicit value of '" << m_name << "'" << std::endl;
-		return ConcretableState::LOST_CAUSE;
-	}
-
-	m_typeInfo = **targetTypeInfo;
+	m_typeInfo = m_target.getTypeInfo();
 	return ConcretableState::CONCRETE;
 }
 
 optional<EvaluatedExpression> VariableExpression::codegenExpression(CodegenLLVM& codegen) {
     assert(m_target);
-
 	if(m_target.isDef()) {
-		if(functionTypeAllowed())
-			return m_target.getDef()->functionAccessCodegen(codegen);
-		return m_target.getDef()->implicitAccessCodegen(codegen);
+		return m_target.getDef()->functionAccessCodegen(codegen);
 	} else {
 		assert(m_target.isLet());
 		return m_target.getLet()->accessCodegen(codegen);
@@ -396,8 +379,6 @@ void FunctionCallExpression::printSignature() {
 }
 
 ConcretableState FunctionCallExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-
-    m_function->enableFunctionType();
     ConcretableState state = m_function->makeConcrete(ns_stack, depMap);
     auto conc = allConcrete() << state;
 	auto lost = anyLost() << state;
@@ -467,20 +448,7 @@ ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap
 			return ConcretableState::LOST_CAUSE;
 	}
 
-	const ExprTypeInfo& returnTypeGotten = funcType->getReturnTypeInfo();
-	if(functionTypeAllowed()) {
-		m_typeInfo = returnTypeGotten;
-	} else if(isFunctionType(returnTypeGotten)) {
-		FunctionType* retFuncType = castToFunctionType(returnTypeGotten.type);
-		optional<ExprTypeInfo> implicit = retFuncType->getImplicitCallReturnTypeInfo();
-		if(!implicit) {
-			logDaf(getRange(), ERROR) << "not enough parameters supplied to call all functions" << std::endl;
-			return ConcretableState::LOST_CAUSE;
-		}
-		m_typeInfo = *implicit;
-	} else {
-		m_typeInfo = returnTypeGotten;
-	}
+	m_typeInfo = funcType->getReturnTypeInfo();
 
 	return ConcretableState::CONCRETE;
 }

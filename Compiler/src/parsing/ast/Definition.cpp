@@ -34,7 +34,6 @@ void Let::addToMap(NamedDefinitionMap& map) {
 }
 
 ConcretableState Def::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	m_functionExpression->enableFunctionType();
 	ConcretableState state = m_functionExpression->makeConcrete(ns_stack, depMap);
 
     if(allConcrete() << state)
@@ -90,16 +89,8 @@ ConcretableState Let::retryMakeConcreteInternal(DependencyMap& depMap) {
 	return ConcretableState::CONCRETE;
 }
 
-bool Def::allowsImplicitAccess() {
-    return !!m_functionExpression->getFunctionType()->getImplicitCallReturnTypeInfo();
-}
-
-const optional<ExprTypeInfo>& Def::getImplicitAccessTypeInfo() {
-	return m_functionExpression->getFunctionType()->getImplicitCallReturnTypeInfo();
-}
-
 const ExprTypeInfo& Def::getFunctionExpressionTypeInfo() {
-	return m_functionExpression->getTypeInfo(); //A FunctionExpression in a def is allowed to return itself
+	return m_functionExpression->getTypeInfo();
 }
 
 const ExprTypeInfo& Let::getTypeInfo() const {
@@ -151,11 +142,6 @@ void Let::localCodegen(CodegenLLVM& codegen) {
 	}
 	//TODO: Uncertain and stuff
 	//TODO: Destructors and stuff
-}
-
-optional<EvaluatedExpression> Def::implicitAccessCodegen(CodegenLLVM& codegen) {
-    assert(allowsImplicitAccess());
-	return m_functionExpression->codegenImplicitExpression(codegen);
 }
 
 //For when you return the function and don't call it

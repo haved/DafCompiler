@@ -60,13 +60,11 @@ public:
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
 	bool allowsImplicitAccess();
-	const optional<ExprTypeInfo>& getImplicitAccessTypeInfo();
 	const ExprTypeInfo& getFunctionExpressionTypeInfo();
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 	virtual void localCodegen(CodegenLLVM& codegen) override;
 
-	optional<EvaluatedExpression> implicitAccessCodegen(CodegenLLVM& codegen);
 	optional<EvaluatedExpression> functionAccessCodegen(CodegenLLVM& codegen);
 
 	virtual void printSignature() override;
