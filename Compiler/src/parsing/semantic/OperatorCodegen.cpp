@@ -102,15 +102,18 @@ optional<ExprTypeInfo> getBinaryOpResultType(const ExprTypeInfo& LHS, InfixOpera
 	if(isOpNumerical(op))
 		return getBinaryOpResultTypeNumerical(LHS.type, op, RHS.type, range);
 	else if(op == InfixOperator::ASSIGN) {
-		if(LHS.type != RHS.type) {
-			logDaf(range, ERROR) << "left and right hand side of assignment are of different types" << std::endl;
-			return boost::none;
+
+		ExprTypeInfo AnonLHS(LHS.type, ValueKind::ANONYMOUS);
+		CastPossible RHS_to_LHS_poss = canConvertTypeFromTo(RHS, AnonLHS);
+		if(RHS_to_LHS_poss != CastPossible::IMPLICITLY) {
+			complainThatTypeCantBeConverted(RHS, AnonLHS, RHS_to_LHS_poss, range);
+		    return boost::none;
 		}
 		if(LHS.valueKind != ValueKind::MUT_LVALUE) {
 			logDaf(range, ERROR) << "left hand side of assignment isn't a mutable lvalue" << std::endl;
 			return boost::none;
 		}
-		return LHS;
+		return LHS; //The MUT_LVALUE
 	}
 	assert(false && "Unknown binary operator, not yet implemented");
     return boost::none;
@@ -159,6 +162,7 @@ EvaluatedExpression codegenBinaryOperatorNumerical(CodegenLLVM& codegen, Evaluat
 
 optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, Expression* LHS, InfixOperator op, Expression* RHS, const ExprTypeInfo& target, bool ptrReturn, const TextRange& range) {
 	if(isOpNumerical(op)) {
+		assert(!ptrReturn);
 	    optional<EvaluatedExpression> LHS_expr = LHS->codegenExpression(codegen);
 		optional<EvaluatedExpression> RHS_expr = RHS->codegenExpression(codegen);
 		if(LHS_expr && RHS_expr)
@@ -166,19 +170,19 @@ optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, Expres
 		return boost::none;
 	}
 	else if(op == InfixOperator::ASSIGN) {
-		optional<EvaluatedExpression> LHS_assign = LHS->codegenPointer(codegen); //mutable
+		optional<EvaluatedExpression> LHS_assign = LHS->codegenPointer(codegen);
 		optional<EvaluatedExpression> RHS_expr = RHS->codegenExpression(codegen);
-		if(!LHS_assign || !RHS_expr)
+	    ExprTypeInfo AnonLHS(target.type, ValueKind::ANONYMOUS);
+		optional<EvaluatedExpression> RHS_correctType = codegenTypeConversion(codegen, RHS_expr, AnonLHS);
+		if(!LHS_assign || !RHS_correctType)
 			return boost::none;
 
 		llvm::Value* address = LHS_assign->getPointerToValue(codegen);
-		llvm::Value* value = RHS_expr->getValue(codegen);
+		llvm::Value* value = RHS_correctType->getValue(codegen);
 
 		codegen.Builder().CreateStore(value, address);
 
-		llvm::Value* ret = ptrReturn ? address : value;
-		const ExprTypeInfo* typInfo = &LHS->getTypeInfo();
-		return EvaluatedExpression(ret, ptrReturn, typInfo);
+		return EvaluatedExpression(address, true, &target);
 	}
 	assert(false);
 	return boost::none;

@@ -25,7 +25,7 @@ CastPossible canConvertFromPrimitive(PrimitiveType* from, ExprTypeInfo to) {
 	if(to_prim->getBitCount() == 1)
 		return CastPossible::IMPLICITLY; //'truncate' to bool is implicit
 	if(from->getBitCount() > to_prim->getBitCount())
-		return CastPossible::EXPLICITLY; //truncating is otherwise banned
+		return CastPossible::EXPLICITLY; //truncating is otherwise explicit
 	return CastPossible::IMPOSSIBLE;
 }
 
@@ -132,7 +132,8 @@ optional<EvaluatedExpression> codegenTypeConversion(CodegenLLVM& codegen, option
 		return EvaluatedExpression(nullptr, false, &target);
 	if(A_t == B_t) {
 		assert(getValueKindScore(A_ti.valueKind) >= getValueKindScore(target.valueKind));
-		return eval;
+		bool ref = isReferenceValueKind(target.valueKind);
+		return EvaluatedExpression(ref ? eval.getPointerToValue(codegen) : eval.getValue(codegen), ref, &target);
 	}
 
 	if(isFunctionType(A_t))
