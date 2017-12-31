@@ -109,7 +109,7 @@ llvm::Type* PrimitiveType::codegenType(CodegenLLVM& codegen) {
 
 PrimitiveType primitiveTypes[] = {           //FLOAT
 	PrimitiveType(LiteralKind::U8, U8_TOKEN,   false, Signed::No,  8),
-	PrimitiveType(LiteralKind::I8, U8_TOKEN,   false, Signed::Yes, 8),
+	PrimitiveType(LiteralKind::I8, I8_TOKEN,   false, Signed::Yes, 8),
 	PrimitiveType(LiteralKind::U16, U16_TOKEN, false, Signed::No,  16),
 	PrimitiveType(LiteralKind::I16, I16_TOKEN, false, Signed::Yes, 16),
 	PrimitiveType(LiteralKind::U32, U32_TOKEN, false, Signed::No,  32),

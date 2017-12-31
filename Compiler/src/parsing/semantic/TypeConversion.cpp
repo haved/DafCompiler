@@ -26,7 +26,7 @@ CastPossible canConvertFromPrimitive(PrimitiveType* from, ExprTypeInfo to) {
 		return CastPossible::IMPLICITLY; //'truncate' to bool is implicit
 	if(from->getBitCount() > to_prim->getBitCount())
 		return CastPossible::EXPLICITLY; //truncating is otherwise explicit
-	return CastPossible::IMPOSSIBLE;
+	return CastPossible::IMPLICITLY;
 }
 
 CastPossible canConvertTypeFromTo(ExprTypeInfo A, ExprTypeInfo B) {
@@ -58,7 +58,7 @@ CastPossible canConvertTypeFromTo(ExprTypeInfo A, ExprTypeInfo B) {
 void complainThatTypeCantBeConverted(ExprTypeInfo A, ExprTypeInfo B, CastPossible poss, const TextRange& range) {
 	auto& out = logDaf(range, ERROR);
 	if(poss == CastPossible::IMPOSSIBLE)
-		out << "no type conversion exists from ";
+		out << "no type conversion exists from '";
 	else if(poss == CastPossible::EXPLICITLY)
 		out << "no implicit type conversion exists from '";
 	else assert(false);

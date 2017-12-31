@@ -2,11 +2,27 @@
 
 def printInt(a:i32) "printIntToC";
 
-def testFunc := 6;
+//def testFunc := 6i8;
+
+def test(a:i8):= 6i8;
 
 def dafMain:i32 {
-	if 4 {
-		printInt(testFunc);
-	}
+/*	mut global:=13i8;
+	def gimmie0 := {
+		testFunc-6i8
+	};
+	global = gimmie0();
+	mut x := testFunc;
+	def testFunc2:= {
+		global = global + 1i8;
+		printInt(global);
+		testFunc
+	};
+	def testFunc3(a:i8):i32=testFunc2+a;
+	mut y:i32= def:=20i16;
+	if y {
+		y=y-testFunc3(global);
+		printInt(y);
+	}*/
 	0
 };

@@ -213,14 +213,10 @@ ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, De
 	return ConcretableState::TRY_LATER;
 }
 
-bool isReturnCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind, const ExprTypeInfo& given) {
-	if(getValueKindScore(requiredKind) > getValueKindScore(given.valueKind))
-		return false;
-    if(requiredType && *requiredType != given.type) {
-		std::cout << "TODO: Compare types properly" << std::endl;
-		return false;
-	}
-    return true;
+CastPossible isReturnCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind, const ExprTypeInfo& given) {
+	if(requiredType)
+		return canConvertTypeFromTo(given, ExprTypeInfo(*requiredType, requiredKind));
+	return getValueKindScore(requiredKind) <= getValueKindScore(given.valueKind) ? CastPossible::IMPLICITLY : CastPossible::IMPOSSIBLE;
 }
 
 void complainReturnIsntCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind,
@@ -247,24 +243,21 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 				return ConcretableState::LOST_CAUSE;
 			}
 
-			//TODO: Support casting
-			while(!isReturnCorrect(reqType, reqKind, bodyTypeInfo)) {
-			    if(isFunctionType(bodyTypeInfo)) {
-				    FunctionType* function = castToFunctionType(bodyTypeInfo.type);
-					if(function->canBeCalledImplicitlyOnce()) {
-						ExprTypeInfo& func_return = function->getReturnTypeInfo();
-						bodyTypeInfo = func_return;
-						continue;
-					}
-				}
-
-				complainReturnIsntCorrect(reqType, reqKind, bodyTypeInfo, CastPossible::IMPOSSIBLE, getRange());
+			CastPossible returnPoss = isReturnCorrect(reqType, reqKind, bodyTypeInfo);
+			if(returnPoss != CastPossible::IMPLICITLY) {
+				complainReturnIsntCorrect(reqType, reqKind, bodyTypeInfo, returnPoss, body->getRange());
 				return ConcretableState::LOST_CAUSE;
 			}
 
-			m_returnTypeInfo = bodyTypeInfo;
-			degradeValueKind(m_returnTypeInfo.valueKind, reqKind);
-
+			if(reqType) {
+				m_returnTypeInfo = ExprTypeInfo(*reqType, reqKind);
+			} else {
+				optional<const ExprTypeInfo*> implicit = getNonFunctionTypeInfo(bodyTypeInfo, body->getRange());
+				if(!implicit)
+					return ConcretableState::LOST_CAUSE;
+				m_returnTypeInfo = **implicit;
+				degradeValueKind(m_returnTypeInfo.valueKind, reqKind);
+			}
 		} else {
 			assert(reqType);
 			m_returnTypeInfo = ExprTypeInfo(*reqType, reqKind);
