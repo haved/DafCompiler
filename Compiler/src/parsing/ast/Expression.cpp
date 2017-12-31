@@ -177,8 +177,7 @@ ConcretableState FunctionParameterExpression::retryMakeConcreteInternal(Dependen
 	FunctionParameter* param = params[m_parameterIndex].get();
 	assert(param->getParameterKind() == ParameterKind::VALUE_PARAM);
 	ValueParameter* valParam = static_cast<ValueParameter*>(param);
-	m_typeInfo = valParam->getCallTypeInfo();
-	assert(valParam->isReferenceParameter() == (m_typeInfo.valueKind != ValueKind::ANONYMOUS));
+	m_typeInfo = valParam->getTypeInfo();
 	return ConcretableState::CONCRETE;
 }
 
@@ -490,11 +489,11 @@ optional<EvaluatedExpression> FunctionCallExpression::codegenExpression(CodegenL
 
 		Expression* argExpression = m_args[i].m_expression.get();
 		bool referenceParameter = requiredValParam->isReferenceParameter();
-		optional<EvaluatedExpression> arg = argExpression->codegenExpression(codegen);
+		optional<EvaluatedExpression> arg =
+			requiredValParam->codegenCastToCorrectType(codegen, argExpression->codegenExpression(codegen));
 		if(!arg)
 			return boost::none;
 
-		assert(arg->typeInfo->type == requiredValParam->getCallTypeInfo().type && "TODO: Proper type comparison");
 		args.push_back(referenceParameter ? arg->getPointerToValue(codegen) : arg->getValue(codegen));
 	}
 

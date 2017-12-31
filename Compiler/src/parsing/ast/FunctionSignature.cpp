@@ -247,6 +247,7 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 				return ConcretableState::LOST_CAUSE;
 			}
 
+			//TODO: Support casting
 			while(!isReturnCorrect(reqType, reqKind, bodyTypeInfo)) {
 			    if(isFunctionType(bodyTypeInfo)) {
 				    FunctionType* function = castToFunctionType(bodyTypeInfo.type);
@@ -257,7 +258,6 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 					}
 				}
 
-				//TODO: Support casting parameter
 				complainReturnIsntCorrect(reqType, reqKind, bodyTypeInfo, CastPossible::IMPOSSIBLE, getRange());
 				return ConcretableState::LOST_CAUSE;
 			}
@@ -302,7 +302,7 @@ llvm::FunctionType* FunctionType::codegenFunctionType(CodegenLLVM& codegen) {
 	for(auto& param : m_parameters) {
 	    assert(param->getParameterKind() == ParameterKind::VALUE_PARAM && "We only support value params");
 		ValueParameter* valParam = static_cast<ValueParameter*>(param.get());
-		llvm::Type* type = valParam->getType()->codegenType(codegen);
+		llvm::Type* type = valParam->getTypeInfo().type->codegenType(codegen);
 		if(valParam->isReferenceParameter())
 			type = llvm::PointerType::getUnqual(type);
 		argumentTypes.push_back(type);

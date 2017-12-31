@@ -3,6 +3,7 @@
 #include "parsing/ast/Expression.hpp"
 #include "parsing/ast/FunctionSignature.hpp"
 #include "parsing/semantic/ConcretableHelp.hpp"
+#include "parsing/semantic/TypeConversion.hpp"
 
 FunctionParameter::FunctionParameter(std::string&& name, const TextRange& range) : m_name(std::move(name)), m_range(range) {} //An empty name is allowed
 
@@ -35,7 +36,7 @@ void printParameterModifier(ParameterModifier modif) {
 	}
 }
 
-ValueParameter::ValueParameter(ParameterModifier modif, std::string&& name, TypeReference&& type, const TextRange& range) : FunctionParameter(std::move(name), range), m_modif(modif), m_type(std::move(type)), m_callTypeInfo(nullptr, ValueKind::ANONYMOUS) {
+ValueParameter::ValueParameter(ParameterModifier modif, std::string&& name, TypeReference&& type, const TextRange& range) : FunctionParameter(std::move(name), range), m_modif(modif), m_type(std::move(type)), m_typeInfo(nullptr, ValueKind::ANONYMOUS) {
 	assert(m_type);
 	//We allow m_name to be underscore
 }
@@ -83,46 +84,41 @@ ConcretableState ValueParameter::makeConcreteInternal(NamespaceStack& ns_stack, 
 
 ConcretableState ValueParameter::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
-	m_callTypeInfo = ExprTypeInfo(m_type.getConcreteType(), parameterModifierToArgValueKind(m_modif));
+	m_typeInfo = ExprTypeInfo(m_type.getConcreteType(), parameterModifierToArgValueKind(m_modif));
 	return ConcretableState::CONCRETE;
 }
 
-const ExprTypeInfo& ValueParameter::getCallTypeInfo() const {
+const ExprTypeInfo& ValueParameter::getTypeInfo() const {
 	assert(allConcrete() << getConcretableState());
-	return m_callTypeInfo;
-}
-
-ConcreteType* ValueParameter::getType() const {
-	assert(allConcrete() << getConcretableState());
-	return m_callTypeInfo.type;
+	return m_typeInfo;
 }
 
 bool ValueParameter::isReferenceParameter() const {
 	assert(allConcrete() << getConcretableState());
-	return m_callTypeInfo.valueKind != ValueKind::ANONYMOUS;
+	return m_typeInfo.valueKind != ValueKind::ANONYMOUS;
 }
 
 bool ValueParameter::acceptsOrComplain(FunctionCallArgument& arg) {
 	assert(allConcrete() << getConcretableState() << arg.m_expression->getConcretableState());
-	const ExprTypeInfo& argTypeInfo = arg.m_expression->getTypeInfo();
-    if(getValueKindScore(m_callTypeInfo.valueKind) > getValueKindScore(argTypeInfo.valueKind)) {
-		auto& out = logDaf(arg.m_range, ERROR) << "function argument doesn't fit parameter modifier: ";
-	    printParameterModifier(m_modif);
-		out << std::endl;
+	const ExprTypeInfo& givenTypeInfo = arg.m_expression->getTypeInfo();
+
+	CastPossible poss = canConvertTypeFromTo(givenTypeInfo, m_typeInfo);
+	if(poss != CastPossible::IMPLICITLY) {
+		complainThatTypeCantBeConverted(givenTypeInfo, m_typeInfo, poss, arg.m_range);
 		return false;
 	}
 
-	bool requireMutOnArg = m_callTypeInfo.valueKind == ValueKind::MUT_LVALUE;
+	bool requireMutOnArg = m_typeInfo.valueKind == ValueKind::MUT_LVALUE;
 	if(requireMutOnArg && !arg.m_mutableReference) {
-		logDaf(arg.m_range, ERROR) << "expected argument to be mut" << std::endl;
+		logDaf(arg.m_range, ERROR) << "expected argument to be prefixed with mut" << std::endl;
 		return false;
 	}
 
-	if(argTypeInfo.type != m_callTypeInfo.type) {
-		logDaf(arg.m_range, ERROR) << "TODO: Compare types properly, cause these pointers are different" << std::endl;
-		return false;
-	}
 	return true;
+}
+
+optional<EvaluatedExpression> ValueParameter::codegenCastToCorrectType(CodegenLLVM& codegen, optional<EvaluatedExpression> eval) {
+	return codegenTypeConversion(codegen, eval, m_typeInfo);
 }
 
 ValueParameterTypeInferred::ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName, const TextRange& range) : FunctionParameter(std::move(name), range), m_modif(modif), m_typeName(std::move(typeName)) {

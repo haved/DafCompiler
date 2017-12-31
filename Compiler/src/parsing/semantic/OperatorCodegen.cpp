@@ -1,5 +1,6 @@
 #include "parsing/semantic/OperatorCodegen.hpp"
 #include "parsing/semantic/TypeConversion.hpp"
+#include "parsing/ast/FunctionSignature.hpp"
 #include "parsing/lexing/Token.hpp"
 #include "DafLogger.hpp"
 #include "CodegenLLVM.hpp"
@@ -57,13 +58,20 @@ bool isComparsion(InfixOperator op) {
 	}
 }
 
-optional<ExprTypeInfo> getBinaryOpResultTypeNumerical(ConcreteType* LHS, InfixOperator op, ConcreteType* RHS, const TextRange& range) {
-	assert(LHS && RHS);
-	if(complainIfNotPrimitive(LHS, op, "LHS", range) | complainIfNotPrimitive(RHS, op, "RHS", range))
+optional<ExprTypeInfo> getBinaryOpResultTypeNumerical(const ExprTypeInfo& LHS_given, InfixOperator op, const ExprTypeInfo& RHS_given, const TextRange& range) {
+	optional<const ExprTypeInfo*> LHS_ptr = getNonFunctionTypeInfo(LHS_given, range);
+	optional<const ExprTypeInfo*> RHS_ptr = getNonFunctionTypeInfo(RHS_given, range);
+	if(!LHS_ptr || ! RHS_ptr)
 		return boost::none;
 
-	PrimitiveType* LHS_prim = castToPrimitveType(LHS);
-	PrimitiveType* RHS_prim = castToPrimitveType(RHS);
+	const ExprTypeInfo& LHS = **LHS_ptr;
+	const ExprTypeInfo& RHS = **RHS_ptr;
+
+	if(complainIfNotPrimitive(LHS.type, op, "LHS", range) | complainIfNotPrimitive(RHS.type, op, "RHS", range))
+		return boost::none;
+
+	PrimitiveType* LHS_prim = castToPrimitveType(LHS.type);
+	PrimitiveType* RHS_prim = castToPrimitveType(RHS.type);
 
 	if(isNumericalBinaryOpBoolean(op)) {
 	    if(isComparsion(op) && LHS_prim->isSigned() != RHS_prim->isSigned())
@@ -100,19 +108,23 @@ bool isOpNumerical(InfixOperator op) {
 
 optional<ExprTypeInfo> getBinaryOpResultType(const ExprTypeInfo& LHS, InfixOperator op, const ExprTypeInfo& RHS, const TextRange& range) {
 	if(isOpNumerical(op))
-		return getBinaryOpResultTypeNumerical(LHS.type, op, RHS.type, range);
+		return getBinaryOpResultTypeNumerical(LHS, op, RHS, range);
 	else if(op == InfixOperator::ASSIGN) {
-		ExprTypeInfo AnonLHS(LHS.type, ValueKind::ANONYMOUS);
+		optional<const ExprTypeInfo*> implicitType = getNonFunctionTypeInfo(LHS, range);
+		if(!implicitType)
+			return boost::none;
+		const ExprTypeInfo& LHS_actual = **implicitType;
+		ExprTypeInfo AnonLHS(LHS_actual.type, ValueKind::ANONYMOUS);
 		CastPossible RHS_to_LHS_poss = canConvertTypeFromTo(RHS, AnonLHS);
 		if(RHS_to_LHS_poss != CastPossible::IMPLICITLY) {
 			complainThatTypeCantBeConverted(RHS, AnonLHS, RHS_to_LHS_poss, range);
 		    return boost::none;
 		}
-		if(LHS.valueKind != ValueKind::MUT_LVALUE) {
+		if(LHS_actual.valueKind != ValueKind::MUT_LVALUE) {
 			logDaf(range, ERROR) << "left hand side of assignment isn't a mutable lvalue" << std::endl;
 			return boost::none;
 		}
-		return LHS; //The MUT_LVALUE
+		return LHS_actual; //The MUT_LVALUE
 	}
 	assert(false && "Unknown binary operator, not yet implemented");
     return boost::none;
@@ -169,13 +181,14 @@ optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, Expres
 	}
 	else if(op == InfixOperator::ASSIGN) {
 		optional<EvaluatedExpression> LHS_assign = LHS->codegenExpression(codegen);
+	    optional<EvaluatedExpression> LHS_correctType = codegenTypeConversion(codegen, LHS_assign, target);
 		optional<EvaluatedExpression> RHS_expr = RHS->codegenExpression(codegen);
-	    ExprTypeInfo AnonLHS(target.type, ValueKind::ANONYMOUS);
-		optional<EvaluatedExpression> RHS_correctType = codegenTypeConversion(codegen, RHS_expr, AnonLHS);
+	    ExprTypeInfo AnonTarget(target.type, ValueKind::ANONYMOUS);
+		optional<EvaluatedExpression> RHS_correctType = codegenTypeConversion(codegen, RHS_expr, AnonTarget);
 		if(!LHS_assign || !RHS_correctType)
 			return boost::none;
 
-		llvm::Value* address = LHS_assign->getPointerToValue(codegen);
+		llvm::Value* address = LHS_correctType->getPointerToValue(codegen);
 		llvm::Value* value = RHS_correctType->getValue(codegen);
 
 		codegen.Builder().CreateStore(value, address);

@@ -39,7 +39,7 @@ private:
     ParameterModifier m_modif;
 	TypeReference m_type;
 
-	ExprTypeInfo m_callTypeInfo;
+	ExprTypeInfo m_typeInfo;
 public:
 	ValueParameter(ParameterModifier modif, std::string&& name, TypeReference&& type, const TextRange& range);
 	virtual void printSignature() override;
@@ -50,10 +50,10 @@ public:
     virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 
-	const ExprTypeInfo& getCallTypeInfo() const;
-	ConcreteType* getType() const;
+	const ExprTypeInfo& getTypeInfo() const;
 	bool isReferenceParameter() const;
 	bool acceptsOrComplain(FunctionCallArgument& arg);
+	optional<EvaluatedExpression> codegenCastToCorrectType(CodegenLLVM& codegen, optional<EvaluatedExpression> eval);
 };
 
 // move a:$T

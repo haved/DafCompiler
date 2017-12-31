@@ -1,5 +1,6 @@
 #include "parsing/ast/Definition.hpp"
 #include "parsing/semantic/ConcretableHelp.hpp"
+#include "parsing/semantic/TypeConversion.hpp"
 #include "DafLogger.hpp"
 #include "CodegenLLVM.hpp"
 #include <iostream>
@@ -69,22 +70,40 @@ ConcretableState Let::makeConcreteInternal(NamespaceStack& ns_stack, DependencyM
 
 ConcretableState Let::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
-	ConcreteType* type;
-    if(m_expression) {
-		type = m_expression->getTypeInfo().type;
-		if(m_givenType) {
-			ConcreteType* given = m_givenType.getType()->getConcreteType();
-			if(given != type)
-				assert(false && "ERROR: Differing type from expression and given type in let TODO");
+
+	ConcreteType* type = nullptr;
+	if(m_givenType) {
+		type = m_givenType.getType()->getConcreteType();
+		//TODO: Ask the type if it is possible to make a value of it
+		if(isFunctionType(type)) {
+			auto& out = logDaf(getRange(), ERROR) << "illegal type for let: ";
+			type->printSignature();
+			out << std::endl;
 		}
+	}
+
+    if(m_expression) {
+		if(type) {
+		    ExprTypeInfo AnonGiven(type, ValueKind::ANONYMOUS);
+			CastPossible poss = canConvertTypeFromTo(m_expression->getTypeInfo(), AnonGiven);
+			if(poss != CastPossible::IMPLICITLY) {
+			    complainThatTypeCantBeConverted(m_expression->getTypeInfo(), AnonGiven, poss, getRange());
+				return ConcretableState::LOST_CAUSE;
+			}
+		}
+		else {
+			optional<const ExprTypeInfo*> exprTypeInfo = getNonFunctionTypeInfo(m_expression->getTypeInfo(), m_expression->getRange());
+			if(!exprTypeInfo)
+				return ConcretableState::LOST_CAUSE;
+			type = (*exprTypeInfo)->type;
+		}
+
 		if(m_stealSpaceFromTarget) {
 			assert(isReferenceValueKind(m_expression->getTypeInfo().valueKind));
 		}
-	} else {
-		assert(m_givenType);
-		type = m_givenType.getType()->getConcreteType();
 	}
 
+	assert(type);
 	m_typeInfo = ExprTypeInfo(type, m_mut ? ValueKind::MUT_LVALUE : ValueKind::LVALUE);
 	return ConcretableState::CONCRETE;
 }
@@ -108,6 +127,7 @@ void Def::localCodegen(CodegenLLVM& codegen) {
 void Let::globalCodegen(CodegenLLVM& codegen) {
 	(void) codegen;
 	llvm::Type* type = m_typeInfo.type->codegenType(codegen);
+	assert(type);
 	bool isConstant = !m_mut;
 	llvm::Constant* init = nullptr;
 	//	if(m_expression)
@@ -122,6 +142,7 @@ void Let::localCodegen(CodegenLLVM& codegen) {
 	assert(type);
 	if(m_stealSpaceFromTarget) {
 		optional<EvaluatedExpression> opt_expr = m_expression->codegenExpression(codegen);
+		opt_expr = codegenTypeConversion(codegen, opt_expr, m_typeInfo);
 		assert(opt_expr && "the pointer at which we're supposed to put the let is boost::none");
 		assert(opt_expr->typeInfo->type == m_typeInfo.type);
 		m_space = opt_expr->getPointerToValue(codegen);
@@ -132,6 +153,8 @@ void Let::localCodegen(CodegenLLVM& codegen) {
 
 		if(m_expression) {
 			optional<EvaluatedExpression> opt_expr = m_expression->codegenExpression(codegen);
+			ExprTypeInfo AnonLHS(m_typeInfo.type, ValueKind::ANONYMOUS);
+			opt_expr = codegenTypeConversion(codegen, opt_expr, AnonLHS);
 			if(!opt_expr)
 				return;
 			EvaluatedExpression expr = *opt_expr;

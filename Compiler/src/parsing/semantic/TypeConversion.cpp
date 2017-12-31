@@ -71,6 +71,22 @@ void complainThatTypeCantBeConverted(ExprTypeInfo A, ExprTypeInfo B, CastPossibl
     out << "'" << std::endl;
 }
 
+optional<const ExprTypeInfo*> getNonFunctionTypeInfo(const ExprTypeInfo& A, const TextRange& range) {
+	assert(A.type);
+	if(isFunctionType(A)) {
+		optional<ExprTypeInfo>& implicit = castToFunctionType(A.type)->getImplicitCallReturnTypeInfo();
+		if(!implicit) {
+			auto& out = logDaf(range, ERROR) << "expected a non-function type, not ";
+			A.type->printSignature();
+			out << std::endl;
+			return boost::none;
+		}
+		return &*implicit;
+	}
+
+	return &A;
+}
+
 optional<EvaluatedExpression> codegenFunctionTypeConversion(CodegenLLVM& codegen, FunctionType* func, const ExprTypeInfo& target) {
 	assert(func->canBeCalledImplicitlyOnce());
 	FunctionExpression* funcExpr = func->getFunctionExpression();
