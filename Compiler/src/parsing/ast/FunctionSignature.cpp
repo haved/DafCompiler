@@ -220,7 +220,7 @@ CastPossible isReturnCorrect(optional<ConcreteType*> requiredType, ValueKind req
 }
 
 void complainReturnIsntCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind,
-							   ExprTypeInfo& given, CastPossible poss, const TextRange& range) {
+							   const ExprTypeInfo& given, CastPossible poss, const TextRange& range) {
 	ConcreteType* req = requiredType ? *requiredType : nullptr;
     complainThatTypeCantBeConverted(given, ExprTypeInfo(req, requiredKind), poss, range);
 }
@@ -239,23 +239,27 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 			ExprTypeInfo bodyTypeInfo = body->getTypeInfo();
 
 			if(bodyTypeInfo.isVoid()) {
-				logDaf(getRange(), ERROR) << "a function with a return can't return void" << std::endl;
+				logDaf(getRange(), ERROR) << "function with a return has void body" << std::endl;
 				return ConcretableState::LOST_CAUSE;
 			}
 
-			CastPossible returnPoss = isReturnCorrect(reqType, reqKind, bodyTypeInfo);
-			if(returnPoss != CastPossible::IMPLICITLY) {
-				complainReturnIsntCorrect(reqType, reqKind, bodyTypeInfo, returnPoss, body->getRange());
+			CastPossible returnPoss;
+			while((returnPoss = isReturnCorrect(reqType, reqKind, bodyTypeInfo)) != CastPossible::IMPLICITLY) {
+				if(isFunctionType(bodyTypeInfo)) {
+					FunctionType* func = castToFunctionType(bodyTypeInfo.type);
+					if(func->canBeCalledImplicitlyOnce()) {
+						bodyTypeInfo = func->getReturnTypeInfo();
+						continue;
+					}
+				}
+				complainReturnIsntCorrect(reqType, reqKind, body->getTypeInfo(), returnPoss, body->getRange());
 				return ConcretableState::LOST_CAUSE;
 			}
 
 			if(reqType) {
 				m_returnTypeInfo = ExprTypeInfo(*reqType, reqKind);
 			} else {
-				optional<const ExprTypeInfo*> implicit = getNonFunctionTypeInfo(bodyTypeInfo, body->getRange());
-				if(!implicit)
-					return ConcretableState::LOST_CAUSE;
-				m_returnTypeInfo = **implicit;
+				m_returnTypeInfo = bodyTypeInfo;
 				degradeValueKind(m_returnTypeInfo.valueKind, reqKind);
 			}
 		} else {
