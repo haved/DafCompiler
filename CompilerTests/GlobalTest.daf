@@ -1,0 +1,7 @@
+
+mut global:i32=9;
+
+def dafMain():i32 {
+	global = 5;
+	global-5
+};

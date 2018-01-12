@@ -4,10 +4,9 @@ def printInt(a:i32) "printIntToC";
 
 def testFunc := 6i8;
 
-//mut global:=13i8;
+mut global:=13i8;
 
 def dafMain:i32 {
-	mut global := 5i8;
 	def gimmie0 := {
 		testFunc-6i8
 	};

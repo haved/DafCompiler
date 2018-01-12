@@ -134,7 +134,9 @@ void Let::globalCodegen(CodegenLLVM& codegen) {
 	//	init = m_expression->codegenExpression(codegen).value; //TODO: We need a builder for this?
 
 	//TODO: @Leak @FixMe
-    m_space = new llvm::GlobalVariable(type, isConstant, llvm::GlobalValue::ExternalLinkage, init, m_name);
+	auto global = new llvm::GlobalVariable(codegen.Module(), type, isConstant, llvm::GlobalValue::CommonLinkage, init, m_name);
+	global->setAlignment(4);
+	m_space = global;
 }
 
 void Let::localCodegen(CodegenLLVM& codegen) {
