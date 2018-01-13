@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cstdio>
 
+int global;
+
 extern "C" {
 	int dafMain();
 
