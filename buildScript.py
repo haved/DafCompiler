@@ -2,6 +2,7 @@
 
 from sys import argv
 import os.path, os, subprocess, re
+from shutil import rmtree
 
 binaryName = "buildScript.py"
 def fatal_error(text, *arg):
@@ -20,15 +21,24 @@ def expectText(name, text, target):
 
 def cleanupTmpFiles(options, silent=False):
     remove = [options.getOption("-testDafOutput"), options.getOption("-testCppOutput"), options.getOption("-testBinaryOutput")]
-    if not silent:
-        info("Removing {}, {} and {}", *remove)
     for file in remove:
         try:
-            os.remove(file)
+            if os.path.isfile(file):
+                if not silent:
+                    info("Removing {}", file)
+                os.remove(file)
         except FileNotFoundError as e:
-            if not silent:
-                info("File didn't exist: {}", file)
+            info("File didn't exist: {}", file)
 
+def cleanupBuildDirs(options):
+    dirs = [options.getOption("-buildDir"), knownOptions["-buildDir"], releaseDefaults["-buildDir"]]
+    for folder in dirs:
+        try:
+            if os.path.isdir(folder):
+                info("Removing {}", folder)
+                rmtree(folder)
+        except FileNotFoundError as e:
+            info("Error while removing folder {}", folder)
 
 #Key is option, value is default in debug
 #List value means legal options, first item being default in debug
@@ -50,7 +60,9 @@ knownOptions = {"-buildDir": "DebugBuild",
                 "-testCppFile": "CompilerTests/Testing/dafMainCaller.cpp",
                 "-testCppOutput": "CompilerTests/Testing/dafMainCaller.o",
                 "-testBinaryOutput": "CompilerTests/Testing/outputBinary",
-                "-outputTesting": False}
+                "-outputTesting": False,
+                "-ignoreCompile": False,
+                "-clean": False}
 
 releaseDefaults = {"-buildDir": "ReleaseBuild",
                    "-onlyX86": "false",
@@ -124,13 +136,26 @@ def main():
     parseCommandOptions(options, argv[1:])
     options.fillInDefaults()
 
-    doCMake(options)
-    doMake(options)
+    clean = options.getOption("-clean")
+    compile = not options.getOption("-ignoreCompile")
+    test = options.getOption("-tests")
 
-    if options.getOption("-tests"):
+    if clean:
+        cleanupTmpFiles(options)
+        cleanupBuildDirs(options)
+        info("Cleaned up")
+        exit(0)
+
+    if compile:
+        doCMake(options)
+        doMake(options)
+
+    if test:
         compileDafCaller(options)
         doTests(options)
 
+    if not compile and not test:
+        warning("Neither testing not compiling, will do nothing")
 
 def tryDo(lamb):
     try:
@@ -252,7 +277,7 @@ def doTests(options):
         runCommand("Running test {}".format(testString), runFileCommand, 10, options.getOption("-outputTesting"))
 
     info("All {} tests successful", len(filesToConsider))
-    cleanupTmpFiles(options)
+    cleanupTmpFiles(options, silent=True)
 
 def printHelpMessage(knownOptions):
     default = [val for key,val in knownOptions.items()]
@@ -273,6 +298,7 @@ def printHelpMessage(knownOptions):
     --extraCppFlags          <string with extra compiler flags> Default: "{9}"
     --extraLinkerFlags       <string with extra linker flags> Default: "{10}"
 
+    --ignoreCompile                   Use --buildDir just to find an already built executable
     --tests                           Enables testing of the newly compiled binary (if we got so far)
     --testFolder <testFolder>         Where to look for tests. Default: "{12}"
     --testFilter <testFilter>         Only test files that fit the given regex. Default: "{13}"
@@ -281,6 +307,8 @@ def printHelpMessage(knownOptions):
     --testCppOutput <testingCppO>     Specify where the C++ binary will be placed. Default:"{16}"
     --testBinaryOutput <binaryOutput> Specify where the binary will be put. Default: "{17}"
     --outputTesting                   Print output from the compiler and the test programs. Default: "{18}"
+
+    --clean                           Do nothing but removing build directories
     """.format(*default))
 
 if __name__ == "__main__":
