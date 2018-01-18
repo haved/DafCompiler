@@ -11,8 +11,9 @@ enum class CastPossible {
 CastPossible canConvertTypeFromTo(ExprTypeInfo A, ExprTypeInfo B);
 
 void complainThatTypeCantBeConverted(ExprTypeInfo A, ExprTypeInfo B, CastPossible poss, const TextRange& range);
+void complainThatTypeCantBeConverted(ExprTypeInfo A, optional<ConcreteType*> reqType, ValueKind reqKind, CastPossible poss, const TextRange& range);
 
-optional<const ExprTypeInfo*> getNonFunctionTypeInfo(const ExprTypeInfo& A, const TextRange& range);
+optional<const ExprTypeInfo*> getPossibleConversion(const ExprTypeInfo& from, optional<ConcreteTypeKind> typeKind, optional<ValueKind> valueKind, CastPossible poss, const TextRange& range);
 
 //will convert a value to a value and, a reference to a reference
 optional<EvaluatedExpression> codegenTypeConversion(CodegenLLVM& codegen, optional<EvaluatedExpression> eval, const ExprTypeInfo& target);

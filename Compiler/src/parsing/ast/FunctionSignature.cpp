@@ -221,8 +221,7 @@ CastPossible isReturnCorrect(optional<ConcreteType*> requiredType, ValueKind req
 
 void complainReturnIsntCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind,
 							   const ExprTypeInfo& given, CastPossible poss, const TextRange& range) {
-	ConcreteType* req = requiredType ? *requiredType : nullptr;
-    complainThatTypeCantBeConverted(given, ExprTypeInfo(req, requiredKind), poss, range);
+    complainThatTypeCantBeConverted(given, requiredType, requiredKind, poss, range);
 }
 
 ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) {

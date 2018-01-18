@@ -21,6 +21,15 @@ ConcretableState Type::retryMakeConcreteInternal(DependencyMap& depMap) {
 	return ConcretableState::CONCRETE;
 }
 
+void printConcreteTypeKind(ConcreteTypeKind kind, std::ostream& out) {
+    switch(kind) {
+	case ConcreteTypeKind::FUNCTION: out << "function"; break;
+	case ConcreteTypeKind::PRIMITIVE: out << "primitive"; break;
+	case ConcreteTypeKind::VOID: out << "void"; break;
+	default: assert(false); break;
+	}
+}
+
 llvm::Type* ConcreteType::codegenType(CodegenLLVM& codegen) {
 	std::cerr << "TODO: codegen type" << std::endl;
     return llvm::Type::getVoidTy(codegen.Context());

@@ -9,6 +9,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <iosfwd>
 
 #include <boost/optional.hpp>
 using boost::optional;
@@ -35,6 +36,8 @@ enum class ConcreteTypeKind {
 	PRIMITIVE,
 	VOID
 };
+
+void printConcreteTypeKind(ConcreteTypeKind kind, std::ostream& out);
 
 class ConcreteType {
 public:
