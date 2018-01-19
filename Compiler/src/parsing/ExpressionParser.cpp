@@ -40,16 +40,8 @@ unique_ptr<Expression> parseRealNumberExpression(Lexer& lexer) {
 	return unique_ptr<Expression>(new RealConstantExpression(token.real, token.literalKind, TextRange(lexer.getFile(), token)));
 }
 
-bool shouldParseFunction(Lexer& lexer) {
-	(void) lexer;
-	return false;
-}
-
 unique_ptr<Expression> parseParenthesies(Lexer& lexer) {
 	lexer.advance(); //Eat '('
-
-	if(shouldParseFunction(lexer))
-		return parseFunctionExpression(lexer);
 
 	unique_ptr<Expression> expr = parseExpression(lexer);
 	if(!expr || !lexer.expectToken(RIGHT_PAREN)) {
