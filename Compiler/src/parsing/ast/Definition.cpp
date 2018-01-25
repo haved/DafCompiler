@@ -92,7 +92,7 @@ ConcretableState Let::retryMakeConcreteInternal(DependencyMap& depMap) {
 			}
 		}
 		else {
-			optional<const ExprTypeInfo*> exprTypeInfo = getNonFunctionTypeInfo(m_expression->getTypeInfo(), m_expression->getRange());
+			optional<const ExprTypeInfo*> exprTypeInfo = getNonFunctionType(m_expression->getTypeInfo(), m_expression->getRange());
 			if(!exprTypeInfo)
 				return ConcretableState::LOST_CAUSE;
 			type = (*exprTypeInfo)->type;

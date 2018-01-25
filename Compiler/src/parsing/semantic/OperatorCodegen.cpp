@@ -78,8 +78,8 @@ bool isBinaryOpNumerical(InfixOperator op) {
 
 optional<ExprTypeInfo> getBinaryOpNumericalResultType(const ExprTypeInfo& LHS_given, InfixOperator op, const ExprTypeInfo& RHS_given, const TextRange& range) {
 	assert(isBinaryOpNumerical(op));
-	optional<const ExprTypeInfo*> LHS_ptr = getNonFunctionTypeInfo(LHS_given, range);
-	optional<const ExprTypeInfo*> RHS_ptr = getNonFunctionTypeInfo(RHS_given, range);
+	optional<const ExprTypeInfo*> LHS_ptr = getPossibleConversion(LHS_given, ConcreteTypeKind::PRIMITIVE, ValueKind::ANONYMOUS, CastPossible::IMPLICITLY, range);
+	optional<const ExprTypeInfo*> RHS_ptr = getPossibleConversion(RHS_given, ConcreteTypeKind::PRIMITIVE, ValueKind::ANONYMOUS, CastPossible::IMPLICITLY, range);
 	if(!LHS_ptr || ! RHS_ptr)
 		return boost::none;
 
@@ -87,7 +87,7 @@ optional<ExprTypeInfo> getBinaryOpNumericalResultType(const ExprTypeInfo& LHS_gi
 	const ExprTypeInfo& RHS = **RHS_ptr;
 
 	if(complainIfNotPrimitive(LHS.type, op, "LHS", range) | complainIfNotPrimitive(RHS.type, op, "RHS", range))
-		return boost::none;
+	    assert(false);
 
 	PrimitiveType* LHS_prim = castToPrimitveType(LHS.type);
 	PrimitiveType* RHS_prim = castToPrimitveType(RHS.type);
@@ -103,7 +103,7 @@ optional<ExprTypeInfo> getBinaryOpNumericalResultType(const ExprTypeInfo& LHS_gi
 }
 
 optional<ExprTypeInfo> getAssignmentOpResultType(const ExprTypeInfo& LHS, const ExprTypeInfo& RHS, const TextRange& range) {
-	optional<const ExprTypeInfo*> implicitType = getNonFunctionTypeInfo(LHS, range);
+	optional<const ExprTypeInfo*> implicitType = getPossibleConversion(LHS, boost::none, ValueKind::MUT_LVALUE, CastPossible::IMPLICITLY, range);
 	if(!implicitType)
 		return boost::none;
 	const ExprTypeInfo& LHS_actual = **implicitType;

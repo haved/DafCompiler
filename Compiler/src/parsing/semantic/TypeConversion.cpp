@@ -75,7 +75,7 @@ void complainThatTypeCantBeConverted(ExprTypeInfo A, optional<ConcreteType*> req
     out << "'" << std::endl;
 }
 
-optional<const ExprTypeInfo*> getPossibleConversion(const ExprTypeInfo& from, optional<ConcreteTypeKind> typeKindWanted, optional<ValueKind> valueKindWanted, CastPossible poss, const TextRange& range) {
+optional<const ExprTypeInfo*> getPossibleConversion(const ExprTypeInfo& from, optional<ConcreteTypeKind> typeKindWanted, ValueKind valueKindWanted, CastPossible poss, const TextRange& range) {
 	(void) poss;
 
 	const ExprTypeInfo* ret = &from;
@@ -84,7 +84,7 @@ optional<const ExprTypeInfo*> getPossibleConversion(const ExprTypeInfo& from, op
     do {
 	    ConcreteTypeKind typeKind = ret->type->getConcreteTypeKind();
 		ValueKind valueKind = ret->valueKind;
-	    if((!valueKindWanted   || *valueKindWanted == valueKind)
+	    if((getValueKindScore(valueKind) >= getValueKindScore(valueKindWanted))
 		   && (!typeKindWanted ||  *typeKindWanted == typeKind)) {
 		    return ret;
 		}
@@ -107,11 +107,25 @@ optional<const ExprTypeInfo*> getPossibleConversion(const ExprTypeInfo& from, op
 	printValueKind(from.valueKind, out, true);
 	from.type->printSignature();
 	out << "' to '";
-	if(valueKindWanted)
-		printValueKind(*valueKindWanted, out, true);
+	printValueKind(valueKindWanted, out, false); //don't print anonymous
 	if(typeKindWanted)
 		printConcreteTypeKind(*typeKindWanted, out);
 	out << "'" << std::endl;
+	return boost::none;
+}
+
+optional<const ExprTypeInfo*> getNonFunctionType(const ExprTypeInfo& from, const TextRange& range) {
+	if(!isFunctionType(from))
+		return &from;
+
+	FunctionType* func = castToFunctionType(from.type);
+	optional<ExprTypeInfo>& implicit = func->getImplicitCallReturnTypeInfo();
+	if(implicit)
+		return &*implicit;
+
+	auto& out = logDaf(range, ERROR) << "no implicit calling possible for ";
+	func->printSignature();
+	out << std::endl;
 	return boost::none;
 }
 
