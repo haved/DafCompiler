@@ -81,7 +81,7 @@ optional<const ExprTypeInfo*> getPossibleConversion(const ExprTypeInfo& from, op
 	const ExprTypeInfo* ret = &from;
 	bool wouldHaveBeenPossibleExplicitly = false;
 
-    do {
+    for(;;) {
 	    ConcreteTypeKind typeKind = ret->type->getConcreteTypeKind();
 		ValueKind valueKind = ret->valueKind;
 	    if((getValueKindScore(valueKind) >= getValueKindScore(valueKindWanted))
@@ -97,7 +97,11 @@ optional<const ExprTypeInfo*> getPossibleConversion(const ExprTypeInfo& from, op
 				continue;
 			}
 		}
-	} while(false); //Don't @ me
+
+		break;
+	}
+
+	assert(implies(wouldHaveBeenPossibleExplicitly, poss != CastPossible::EXPLICITLY));
 
 	auto& out = logDaf(range, ERROR);
 	if(wouldHaveBeenPossibleExplicitly)
