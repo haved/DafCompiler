@@ -124,24 +124,20 @@ unique_ptr<Expression> parsePrimary(Lexer& lexer) {
 unique_ptr<Expression> mergeExpressionsWithOp(unique_ptr<Expression>&& LHS, InfixOperator infixOp, unique_ptr<Expression>&& RHS) {
 	if(!LHS || !RHS)
 		return none_exp();
-	//TODO: Re-add dot op
-	/*
 	if(infixOp == InfixOperator::CLASS_ACCESS) {
 		if(RHS->getExpressionKind() != ExpressionKind::VARIABLE) {
 			logDaf(RHS->getRange(), ERROR) << "expected an identifier to the right of '.'" << std::endl;
 			return none_exp();
 		}
 		TextRange RHS_range(RHS->getRange());
-		TextRange range(LHS->getRange(), RHS_range);
 		unique_ptr<VariableExpression>variable(static_cast<VariableExpression*>(RHS.release()));
 		std::string identifier = std::move(*variable).reapIdentifier(); //Yuck
 		if(identifier.size() == 0) {
 			logDaf(RHS_range, ERROR) << "expected a proper identifier after dot operator" << std::endl;
 			return none_exp();
 		}
-		return std::make_unique<DotOperatorExpression>(std::move(LHS), std::move(identifier), range);
+		return std::make_unique<DotOperatorExpression>(std::move(LHS), std::move(identifier), RHS_range);
 	}
-	*/
 
 	return std::make_unique<InfixOperatorExpression>(std::move(LHS), infixOp, std::move(RHS));
 }

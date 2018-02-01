@@ -191,30 +191,26 @@ public:
 	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
 };
 
-/*
 class DotOperatorExpression : public Expression {
 private:
 	unique_ptr<Expression> m_LHS;
 	std::string m_RHS;
-	DotOperatorExpression* m_LHS_dot;
-	Definition* m_LHS_target;
-	DefOrLet m_target;
-	bool m_done;
+	TextRange m_RHS_range;
+
+	Definition* m_map;
 public:
-	DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& range);
+	DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& RHS_range);
 	DotOperatorExpression(const DotOperatorExpression& other) = delete;
 	DotOperatorExpression& operator=(const DotOperatorExpression& other) = delete;
-	~DotOperatorExpression()=default;
 	virtual void printSignature() override;
-	void printLocationAndText();
 	virtual ExpressionKind getExpressionKind() const override;
 
+	void allowNamespace();
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
-	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 
-	virtual EvaluatedExpression codegenExpression(CodegenLLVM& codegen) override;
+	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
 };
-*/
 
 class PrefixOperatorExpression : public Expression {
 private:

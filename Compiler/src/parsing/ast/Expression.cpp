@@ -284,6 +284,41 @@ optional<EvaluatedExpression> InfixOperatorExpression::codegenExpression(Codegen
 	return codegenBinaryOperator(codegen, m_LHS.get(), m_op, m_RHS.get(), m_typeInfo, getRange());
 }
 
+
+DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& RHS_range) : Expression(TextRange(LHS->getRange(), RHS_range)), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_RHS_range(RHS_range), m_map(nullptr) {
+	assert(m_LHS && m_RHS.size());
+}
+
+void DotOperatorExpression::printSignature() {
+	m_LHS->printSignature();
+	std::cout << "." << m_RHS;
+}
+
+ExpressionKind DotOperatorExpression::getExpressionKind() const {
+	return ExpressionKind::DOT_OP;
+}
+
+ConcretableState DotOperatorExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	auto conc = allConcrete();
+	auto lost = anyLost();
+
+	ExpressionKind LHSKind = m_LHS->getExpressionKind();
+	if(LHSKind == ExpressionKind::VARIABLE) {
+	    auto variable = static_cast<VariableExpression*>(m_LHS.get());
+		variable->allowNamespace();
+	} else if(LHSKind == ExpressionKind::DOT_OP) {
+		auto dotOp = static_cast<DotOperatorExpression*>(m_LHS.get());
+		dotOp->allowNamespace();
+	}
+
+    ConcretableState state = m_LHS->makeConcrete(ns_stack, depMap);
+	conc <<= state;
+	lost <<= state;
+	if(tryLater(state))
+		depMap.makeFirstDependentOnSecond(this, m_LHS.get());
+}
+
+
 PrefixOperatorExpression::PrefixOperatorExpression(const PrefixOperator& op, int opLine, int opCol, std::unique_ptr<Expression>&& RHS) : Expression(TextRange(opLine, opCol, RHS->getRange())), m_op(op), m_RHS(std::move(RHS)) {
 	assert(m_RHS);
 }
