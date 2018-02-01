@@ -57,7 +57,6 @@ enum class ExpressionKind {
 	REAL_LITERAL,
 	STRING_LITERAL,
 	INFIX_OP,
-	DOT_OP,
 	PREFIX_OP,
 	POSTFIX_CREMENT,
 	FUNCTION_CALL,
@@ -96,15 +95,24 @@ public:
 
 class VariableExpression : public Expression {
 private:
+    unique_ptr<Expression> m_LHS; //Can be null
 	std::string m_name;
-	DefOrLet m_target;
+	TextRange m_name_range;
+
+	bool m_namespaceTargetAllowed;
+
+	Definition* m_map;
+	Definition* m_target;
+	optional<DefOrLet> m_defOrLet;
 public:
 	VariableExpression(const std::string& name, const TextRange& range);
+	VariableExpression(unique_ptr<Expression>&& m_LHS, const std::string& name, const TextRange& RHS_range);
 	std::string&& reapIdentifier() &&;
 
 	virtual void printSignature() override;
-	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::VARIABLE; }
+	virtual ExpressionKind getExpressionKind() const override;
 
+	void allowNamespaceTarget();
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 
@@ -187,27 +195,6 @@ public:
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
-
-	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
-};
-
-class DotOperatorExpression : public Expression {
-private:
-	unique_ptr<Expression> m_LHS;
-	std::string m_RHS;
-	TextRange m_RHS_range;
-
-	Definition* m_map;
-public:
-	DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& RHS_range);
-	DotOperatorExpression(const DotOperatorExpression& other) = delete;
-	DotOperatorExpression& operator=(const DotOperatorExpression& other) = delete;
-	virtual void printSignature() override;
-	virtual ExpressionKind getExpressionKind() const override;
-
-	void allowNamespace();
-	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
-	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 
 	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
 };

@@ -93,51 +93,75 @@ ConcretableState Expression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	return ConcretableState::CONCRETE;
 }
 
-VariableExpression::VariableExpression(const std::string& name, const TextRange& range) : Expression(range), m_name(name), m_target() {}
+VariableExpression::VariableExpression(const std::string& name, const TextRange& range) : Expression(range), m_LHS(), m_name(name), m_name_range(range), m_namespaceTargetAllowed(false), m_map(), m_target(), m_defOrLet() {
+	assert(m_name.size() != 0);
+}
 
-std::string&& VariableExpression::reapIdentifier() && {
-	return std::move(m_name);
+VariableExpression::VariableExpression(unique_ptr<Expression>&& LHS, const std::string& name, const TextRange& RHS_range) : Expression(TextRange(LHS->getRange(), RHS_range)), m_LHS(std::move(LHS)), m_name(name), m_name_range(RHS_range), m_namespaceTargetAllowed(false), m_map(), m_target(), m_defOrLet() {
+	assert(m_LHS && m_name.size() != 0);
 }
 
 void VariableExpression::printSignature() {
+	if(m_LHS) {
+		m_LHS->printSignature();
+		std::cout << ".";
+	}
 	std::cout << m_name;
 }
 
-ConcretableState VariableExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	Definition* target = ns_stack.getDefinitionFromName(m_name, getRange());
-	if(!target)
-		return ConcretableState::LOST_CAUSE;
+ExpressionKind VariableExpression::getExpressionKind() const {
+	return ExpressionKind::VARIABLE;
+}
 
-	DefinitionKind kind = target->getDefinitionKind();
-	if(kind != DefinitionKind::LET && kind != DefinitionKind::DEF) {
-		complainDefinitionNotLetOrDef(kind, m_name, getRange());
-		return ConcretableState::LOST_CAUSE;
+void VariableExpression::allowNamespaceTarget() {
+	m_namespaceTargetAllowed = true;
+}
+
+ConcretableState VariableExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+
+	ConcretableState state = ConcretableState::LOST_CAUSE;
+
+	if(m_LHS) {
+	    if(m_LHS->getExpressionKind() == ExpressionKind::VARIABLE)
+			static_cast<VariableExpression*>(m_LHS.get())->allowNamespaceTarget();
+		state = m_LHS->makeConcrete(ns_stack, depMap);
+	}
+	else {
+		m_target = ns_stack.getDefinitionFromName(m_name, getRange());
+		if(!m_target)
+			return ConcretableState::LOST_CAUSE;
+		state = m_target->getConcretableState();
 	}
 
-	m_target = target;
-	ConcretableState state = target->getConcretableState();
 	if(allConcrete() << state)
 		return retryMakeConcreteInternal(depMap);
 	if(anyLost() << state)
 		return ConcretableState::LOST_CAUSE;
-	depMap.makeFirstDependentOnSecond(this, target);
+	depMap.makeFirstDependentOnSecond(this, m_target);
 	return ConcretableState::TRY_LATER;
 }
 
 ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& depNode) {
 	(void) depNode;
-    assert(m_target && m_target.getDefinition()->getConcretableState() == ConcretableState::CONCRETE);
-	m_typeInfo = m_target.getTypeInfo();
+    if(m_LHS) {
+		if(m_LHS->getExpressionKind() == ExpressionKind::VARIABLE)
+			m_map = static_cast<VariableExpression*>(m_LHS.get())->m_target;
+		else {
+			ExprTypeInfo& type = m_LHS->getTypeInfo();
+		}
+	} else {
+
+	}
 	return ConcretableState::CONCRETE;
 }
 
 optional<EvaluatedExpression> VariableExpression::codegenExpression(CodegenLLVM& codegen) {
-    assert(m_target);
-	if(m_target.isDef()) {
-		return m_target.getDef()->functionAccessCodegen(codegen);
+    assert(m_defOrLet);
+	if(m_defOrLet->isDef()) {
+		return m_defOrLet->getDef()->functionAccessCodegen(codegen);
 	} else {
-		assert(m_target.isLet());
-		return m_target.getLet()->accessCodegen(codegen);
+		assert(m_defOrLet->isLet());
+		return m_defOrLet->getLet()->accessCodegen(codegen);
 	}
 }
 
@@ -282,40 +306,6 @@ ConcretableState InfixOperatorExpression::retryMakeConcreteInternal(DependencyMa
 optional<EvaluatedExpression> InfixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
 	assert(allConcrete() << getConcretableState());
 	return codegenBinaryOperator(codegen, m_LHS.get(), m_op, m_RHS.get(), m_typeInfo, getRange());
-}
-
-
-DotOperatorExpression::DotOperatorExpression(unique_ptr<Expression>&& LHS, std::string&& RHS, const TextRange& RHS_range) : Expression(TextRange(LHS->getRange(), RHS_range)), m_LHS(std::move(LHS)), m_RHS(std::move(RHS)), m_RHS_range(RHS_range), m_map(nullptr) {
-	assert(m_LHS && m_RHS.size());
-}
-
-void DotOperatorExpression::printSignature() {
-	m_LHS->printSignature();
-	std::cout << "." << m_RHS;
-}
-
-ExpressionKind DotOperatorExpression::getExpressionKind() const {
-	return ExpressionKind::DOT_OP;
-}
-
-ConcretableState DotOperatorExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	auto conc = allConcrete();
-	auto lost = anyLost();
-
-	ExpressionKind LHSKind = m_LHS->getExpressionKind();
-	if(LHSKind == ExpressionKind::VARIABLE) {
-	    auto variable = static_cast<VariableExpression*>(m_LHS.get());
-		variable->allowNamespace();
-	} else if(LHSKind == ExpressionKind::DOT_OP) {
-		auto dotOp = static_cast<DotOperatorExpression*>(m_LHS.get());
-		dotOp->allowNamespace();
-	}
-
-    ConcretableState state = m_LHS->makeConcrete(ns_stack, depMap);
-	conc <<= state;
-	lost <<= state;
-	if(tryLater(state))
-		depMap.makeFirstDependentOnSecond(this, m_LHS.get());
 }
 
 

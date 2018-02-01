@@ -34,4 +34,3 @@ public:
 	const ExprTypeInfo& getTypeInfo();
 	operator bool() const;
 };
-
