@@ -141,16 +141,40 @@ ConcretableState VariableExpression::makeConcreteInternal(NamespaceStack& ns_sta
 	return ConcretableState::TRY_LATER;
 }
 
+ConcreteNameScope* typeToConcreteNameScope(const ExprTypeInfo& typeInfo) {
+	assert(false);
+	return nullptr; //Ah well. We'll have to make a new class, as type access has mutability modifiers,
+	//Not to mention this-stuff
+}
+
+ConcreteNameScope* definitionToConcreteNameScope(Definition* definition) {
+	assert(allConcrete() << definition->getConcretableState());
+    DefinitionKind kind = definition->getDefinitionKind();
+	if(kind == DefinitionKind::NAMEDEF) {
+		return static_cast<NamedefDefinition*>(definition)->getConcreteNameScope();
+	}
+	assert(false); //TODO: Access type
+}
+
 ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& depNode) {
 	(void) depNode;
     if(m_LHS) {
-		if(m_LHS->getExpressionKind() == ExpressionKind::VARIABLE)
-			m_map = static_cast<VariableExpression*>(m_LHS.get())->m_target;
-		else {
-			ExprTypeInfo& type = m_LHS->getTypeInfo();
+		if(m_LHS->getExpressionKind() == ExpressionKind::VARIABLE) {
+			Definition* myMap = static_cast<VariableExpression*>(m_LHS.get())->m_target;
+			m_map = definitionToConcreteNameScope(myMap);
 		}
-	} else {
+		else {
+			const ExprTypeInfo& type = m_LHS->getTypeInfo();
+			assert(false); //TODO
+		}
 
+		m_target = m_map->tryGetDefinitionFromName(m_name);
+		if(!m_target) {
+			logDaf(getRange(), ERROR) << "" << std::endl;
+		}
+
+	} else {
+		
 	}
 	return ConcretableState::CONCRETE;
 }

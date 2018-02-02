@@ -93,6 +93,8 @@ public:
 	}
 };
 
+class ConcreteNameScope;
+
 class VariableExpression : public Expression {
 private:
     unique_ptr<Expression> m_LHS; //Can be null
@@ -101,7 +103,7 @@ private:
 
 	bool m_namespaceTargetAllowed;
 
-	Definition* m_map;
+    ConcreteNameScope* m_map;
 	Definition* m_target;
 	optional<DefOrLet> m_defOrLet;
 public:
