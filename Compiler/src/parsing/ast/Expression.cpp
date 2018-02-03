@@ -117,6 +117,7 @@ bool VariableExpression::tryGiveLHS(unique_ptr<Expression>&& LHS) {
     if(m_LHS)
 		return false;
 	m_LHS = std::move(LHS);
+	m_range = TextRange(m_LHS->getRange(), m_range);
 	return true;
 }
 
