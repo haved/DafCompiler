@@ -1,35 +1,22 @@
 // -*- compile-command: "cd .. && time ./buildScript.py --tests --testFilter TestFile.daf --outputTesting" -*-
 
-def printInt(a:i32) "printIntToC";
-
-/*def testFunc := 6i8;
-
-mut global:=13i8;
-
-def dafMain:i32 {
-	def gimmie0 := {
-		testFunc-6i8
+namedef IO := {
+	pub def printInt(a:i32) "printIntToC";
+	pub namedef NotReallyIO := {
+		pub def makeItDouble:=makeItDoubleInternal;
+		def makeItDoubleInternal(mut a:i32) {a=a*2;};
 	};
-	global = gimmie0();
-	mut x := testFunc;
-	def testFunc2:= {
-		testFunc
-	};
-	def testFunc3(a:i8):i32=testFunc2+a;
-	mut y:i32= def:=20i16;
-	//def mut y_ref := y;
-	if y {
-		y=y-testFunc3(global);
-		printInt(y);
-	}
-	y-14
+	pub namedef IO_loop := IO;
 };
 
-*/
+namedef IO_alias := IO;
 
-def dafMain:i32 {
-	mut a:=5;
+def dafMain():i32 {
+	mut a := 6;
+	IO.printInt(a);
+	IO_alias.IO_loop.IO_loop.NotReallyIO.makeItDouble(mut a);
+	IO.NotReallyIO.makeItDouble(mut a);
+	def printInt := IO.printInt;
 	printInt(a);
-	a = a + 6;
-	a-11
+	a-24
 };
