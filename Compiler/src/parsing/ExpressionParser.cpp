@@ -129,14 +129,12 @@ unique_ptr<Expression> mergeExpressionsWithOp(unique_ptr<Expression>&& LHS, Infi
 			logDaf(RHS->getRange(), ERROR) << "expected an identifier to the right of '.'" << std::endl;
 			return none_exp();
 		}
-		TextRange RHS_range(RHS->getRange());
-		unique_ptr<VariableExpression>variable(static_cast<VariableExpression*>(RHS.release()));
-		std::string identifier = std::move(*variable).reapIdentifier(); //Yuck
-		if(identifier.size() == 0) {
-			logDaf(RHS_range, ERROR) << "expected a proper identifier after dot operator" << std::endl;
+	    unique_ptr<VariableExpression>variable(static_cast<VariableExpression*>(RHS.release()));
+		if(!variable->tryGiveLHS(std::move(LHS))) {
+			logDaf(variable->getRange(), ERROR) << "expected a lone identifier to the right of '.'" << std::endl;
 			return none_exp();
 		}
-		return std::make_unique<DotOperatorExpression>(std::move(LHS), std::move(identifier), RHS_range);
+		return variable;
 	}
 
 	return std::make_unique<InfixOperatorExpression>(std::move(LHS), infixOp, std::move(RHS));

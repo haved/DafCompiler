@@ -113,6 +113,13 @@ ExpressionKind VariableExpression::getExpressionKind() const {
 	return ExpressionKind::VARIABLE;
 }
 
+bool VariableExpression::tryGiveLHS(unique_ptr<Expression>&& LHS) {
+    if(m_LHS)
+		return false;
+	m_LHS = std::move(LHS);
+	return true;
+}
+
 void VariableExpression::allowNamespaceTarget() {
 	m_namespaceTargetAllowed = true;
 }
@@ -156,27 +163,32 @@ ConcreteNameScope* definitionToConcreteNameScope(Definition* definition) {
 	assert(false); //TODO: Access type
 }
 
-ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& depNode) {
-	(void) depNode;
-    if(m_LHS) {
-		if(m_LHS->getExpressionKind() == ExpressionKind::VARIABLE) {
-			Definition* myMap = static_cast<VariableExpression*>(m_LHS.get())->m_target;
-			m_map = definitionToConcreteNameScope(myMap);
-		}
-		else {
-			const ExprTypeInfo& type = m_LHS->getTypeInfo();
-			assert(false); //TODO
-		}
-
-		m_target = m_map->tryGetDefinitionFromName(m_name);
-		if(!m_target) {
-			logDaf(getRange(), ERROR) << "" << std::endl;
-		}
-
-	} else {
-		
+ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
+	if(m_target) {
+	    
+		return ConcretableState::CONCRETE;
 	}
-	return ConcretableState::CONCRETE;
+
+    assert(m_LHS);
+	if(m_LHS->getExpressionKind() == ExpressionKind::VARIABLE) {
+		Definition* myMap = static_cast<VariableExpression*>(m_LHS.get())->m_target;
+		m_map = definitionToConcreteNameScope(myMap);
+	}
+	else {
+		const ExprTypeInfo& type = m_LHS->getTypeInfo();
+		m_map = typeToConcreteNameScope(type);
+	}
+
+	m_target = m_map->getPubDefinitionFromName(m_name, getRange());
+	if(!m_target)
+		return ConcretableState::LOST_CAUSE;
+	ConcretableState state = m_target->getConcretableState();
+	if(anyLost() << state)
+		return ConcretableState::LOST_CAUSE;
+	if(allConcrete() << state)
+		return retryMakeConcreteInternal(depMap);
+	depMap.makeFirstDependentOnSecond(this, m_target);
+	return ConcretableState::TRY_LATER;
 }
 
 optional<EvaluatedExpression> VariableExpression::codegenExpression(CodegenLLVM& codegen) {

@@ -109,10 +109,11 @@ private:
 public:
 	VariableExpression(const std::string& name, const TextRange& range);
 	VariableExpression(unique_ptr<Expression>&& m_LHS, const std::string& name, const TextRange& RHS_range);
-	std::string&& reapIdentifier() &&;
 
 	virtual void printSignature() override;
 	virtual ExpressionKind getExpressionKind() const override;
+
+	bool tryGiveLHS(unique_ptr<Expression>&& LHS);
 
 	void allowNamespaceTarget();
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
