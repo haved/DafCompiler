@@ -109,6 +109,8 @@ private:
 public:
 	VariableExpression(const std::string& name, const TextRange& range);
 	VariableExpression(unique_ptr<Expression>&& m_LHS, const std::string& name, const TextRange& RHS_range);
+	VariableExpression(VariableExpression& other)=delete;
+	VariableExpression& operator=(VariableExpression& other);
 
 	virtual void printSignature() override;
 	virtual ExpressionKind getExpressionKind() const override;

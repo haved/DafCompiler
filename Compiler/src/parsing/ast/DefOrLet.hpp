@@ -34,3 +34,5 @@ public:
 	const ExprTypeInfo& getTypeInfo();
 	operator bool() const;
 };
+
+bool isDefOrLet(Definition* definition);

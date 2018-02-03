@@ -166,7 +166,15 @@ ConcreteNameScope* definitionToConcreteNameScope(Definition* definition) {
 
 ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	if(m_target) {
-	    
+	    if(isDefOrLet(m_target)) {
+			m_defOrLet = DefOrLet(m_target);
+			m_typeInfo = m_defOrLet->getTypeInfo();
+		}
+		else if(!m_namespaceTargetAllowed) {
+			complainDefinitionNotLetOrDef(m_target->getDefinitionKind(), m_name, m_name_range);
+			return ConcretableState::LOST_CAUSE;
+		}
+		//What's scary is that m_typeInfo can be none now, but only if our owner told us namespaceTargetAllowed
 		return ConcretableState::CONCRETE;
 	}
 
@@ -180,7 +188,7 @@ ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& de
 		m_map = typeToConcreteNameScope(type);
 	}
 
-	m_target = m_map->getPubDefinitionFromName(m_name, getRange());
+	m_target = m_map->getPubDefinitionFromName(m_name, m_name_range);
 	if(!m_target)
 		return ConcretableState::LOST_CAUSE;
 	ConcretableState state = m_target->getConcretableState();

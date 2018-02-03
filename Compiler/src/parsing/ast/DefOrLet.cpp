@@ -66,3 +66,8 @@ const ExprTypeInfo& DefOrLet::getTypeInfo() {
 DefOrLet::operator bool() const {
 	return isSet();
 }
+
+bool isDefOrLet(Definition* definition) {
+	DefinitionKind kind = definition->getDefinitionKind();
+	return kind == DefinitionKind::LET || kind == DefinitionKind::DEF;
+}
