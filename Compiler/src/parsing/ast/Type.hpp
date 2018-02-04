@@ -44,7 +44,7 @@ public:
 	ConcreteType()=default;
 	virtual ~ConcreteType()=default;
 	virtual void printSignature()=0;
-	virtual ConcreteTypeKind getConcreteTypeKind()=0;
+	virtual ConcreteTypeKind getConcreteTypeKind() const =0;
 
 	//TODO: =0
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen);
@@ -99,7 +99,7 @@ private:
 public:
 	PrimitiveType(LiteralKind literalKind, TokenType token, bool floatingPoint, Signed isSigned, int bitCount);
 	virtual void printSignature() override;
-	virtual ConcreteTypeKind getConcreteTypeKind() override { return ConcreteTypeKind::PRIMITIVE; }
+	virtual ConcreteTypeKind getConcreteTypeKind() const override { return ConcreteTypeKind::PRIMITIVE; }
 
 	LiteralKind getLiteralKind();
 	TokenType getTokenType();
@@ -130,7 +130,7 @@ public:
 class VoidType : public ConcreteType {
 public:
 	virtual void printSignature() override;
-    virtual ConcreteTypeKind getConcreteTypeKind() override { return ConcreteTypeKind::VOID; }
+    virtual ConcreteTypeKind getConcreteTypeKind() const override { return ConcreteTypeKind::VOID; }
 
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 };

@@ -31,9 +31,9 @@ ValueKind returnKindToValueKind(ReturnKind kind) {
 	}
 }
 
-void degradeValueKind(ValueKind& self, ValueKind target) {
-	if(getValueKindScore(self) > getValueKindScore(target))
-		self = target;
+void degradeValueKind(ExprTypeInfo& self, ValueKind target) {
+	if(getValueKindScore(self.valueKind) > getValueKindScore(target))
+		self = ExprTypeInfo(self.type, target);
 }
 
 void printReturnKind(ReturnKind kind, std::ostream& out) {
@@ -46,11 +46,11 @@ void printReturnKind(ReturnKind kind, std::ostream& out) {
 
 bool isFunctionType(const ExprTypeInfo& typeInfo) {
     bool result = isFunctionType(typeInfo.type);
-	assert(!result || typeInfo.valueKind==ValueKind::ANONYMOUS);
+	assert(implies(result, typeInfo.valueKind==ValueKind::ANONYMOUS));
 	return result;
 }
 
-bool isFunctionType(ConcreteType* type) {
+bool isFunctionType(const ConcreteType* type) {
 	assert(type);
 	return type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION;
 }
@@ -107,7 +107,7 @@ ConcreteType* FunctionType::getConcreteType() {
 	return this;
 }
 
-ConcreteTypeKind FunctionType::getConcreteTypeKind() {
+ConcreteTypeKind FunctionType::getConcreteTypeKind() const {
 	return ConcreteTypeKind::FUNCTION;
 }
 
@@ -259,7 +259,7 @@ ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) 
 				m_returnTypeInfo = ExprTypeInfo(*reqType, reqKind);
 			} else {
 				m_returnTypeInfo = bodyTypeInfo;
-				degradeValueKind(m_returnTypeInfo.valueKind, reqKind);
+				degradeValueKind(m_returnTypeInfo, reqKind);
 			}
 		} else {
 			assert(reqType);

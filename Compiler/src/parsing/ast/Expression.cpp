@@ -13,61 +13,6 @@
 
 using boost::none;
 
-//A larger score can be converted to a lower score
-int getValueKindScore(ValueKind kind) {
-	switch(kind) {
-	case ValueKind::ANONYMOUS: return 0;
-	case ValueKind::LVALUE: return 1;
-	case ValueKind::MUT_LVALUE: return 2;
-	default: assert(false); return -1;
-	}
-}
-
-void printValueKind(ValueKind kind, std::ostream& out, bool printAnon) {
-	switch(kind) {
-	case ValueKind::ANONYMOUS:
-		if(printAnon)
-			out << "anonymous value ";
-		break;
-	case ValueKind::MUT_LVALUE: out << "mut ";
-		//Fallthrough
-	case ValueKind::LVALUE: out << "let "; break;
-	default: assert(false); break;
-	}
-}
-
-bool isReferenceValueKind(ValueKind kind) {
-	return kind != ValueKind::ANONYMOUS;
-}
-
-ExprTypeInfo getNoneTypeInfo() {
-	return ExprTypeInfo(nullptr, ValueKind::ANONYMOUS);
-}
-
-EvaluatedExpression::EvaluatedExpression(llvm::Value* value, bool pointerToValue, const ExprTypeInfo* type) :
-	m_value(value), typeInfo(type) {
-	assert(typeInfo->type);
-	assert(pointerToValue == isReference());
-}
-
-bool EvaluatedExpression::isVoid() const {
-	return typeInfo->type == getVoidType();
-}
-
-llvm::Value* EvaluatedExpression::getValue(CodegenLLVM& codegen) {
-	return isReference() ? codegen.Builder().CreateLoad(m_value) : m_value;
-}
-
-llvm::Value* EvaluatedExpression::getPointerToValue(CodegenLLVM& codegen) {
-	(void) codegen;
-	assert(isReference());
-	return m_value;
-}
-
-bool EvaluatedExpression::isReference() {
-    return isReferenceValueKind(typeInfo->valueKind);
-}
-
 void complainDefinitionNotLetOrDef(DefinitionKind kind, std::string& name, const TextRange& range) {
 	auto& out = logDaf(range, ERROR) << "expected a let or def, but '" << name << "' is a ";
 	printDefinitionKindName(kind, out) << std::endl;

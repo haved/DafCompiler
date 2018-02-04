@@ -45,7 +45,7 @@ public:
 	~FunctionType();
 
 	virtual ConcreteType* getConcreteType() override;
-	virtual ConcreteTypeKind getConcreteTypeKind() override;
+	virtual ConcreteTypeKind getConcreteTypeKind() const override;
 	virtual void printSignature() override;
 
 	bool addReturnKindModifier(ReturnKind kind);
@@ -70,7 +70,7 @@ public:
 };
 
 bool isFunctionType(const ExprTypeInfo& typeInfo);
-bool isFunctionType(ConcreteType* type);
+bool isFunctionType(const ConcreteType* type);
 FunctionType* castToFunctionType(ConcreteType* type);
 
 

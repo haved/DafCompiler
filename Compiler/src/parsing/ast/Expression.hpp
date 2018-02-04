@@ -1,12 +1,12 @@
 #pragma once
 
 #include "parsing/ast/TextRange.hpp"
-#include "parsing/ast/Type.hpp"
-#include "info/PrimitiveSizes.hpp"
-#include "parsing/ast/Operator.hpp"
-#include "parsing/ast/DefOrLet.hpp"
+#include "parsing/ast/ExprTypeInfo.hpp"
 #include "parsing/semantic/NamespaceStack.hpp"
 #include "parsing/semantic/Concretable.hpp"
+#include "parsing/ast/DefOrLet.hpp"
+#include "info/PrimitiveSizes.hpp"
+#include "parsing/ast/Operator.hpp"
 #include "CodegenLLVMForward.hpp"
 #include "DafLogger.hpp"
 #include <string>
@@ -19,36 +19,6 @@
 
 using std::unique_ptr;
 using boost::optional;
-
-enum class ValueKind {
-	MUT_LVALUE,
-	LVALUE,
-	ANONYMOUS
-};
-
-int getValueKindScore(ValueKind kind); //Higher can be converted to lower
-void printValueKind(ValueKind kind, std::ostream& out, bool printAnon = false);
-bool isReferenceValueKind(ValueKind kind);
-
-struct ExprTypeInfo {
-	ConcreteType* type;
-	ValueKind valueKind;
-	ExprTypeInfo(ConcreteType* type, ValueKind kind) : type(type), valueKind(kind) {}
-	inline bool equals(const ExprTypeInfo& other) const
-	{ return type == other.type && valueKind == other.valueKind; }
-	inline bool isVoid() const { return type == getVoidType(); }
-};
-ExprTypeInfo getNoneTypeInfo();
-
-struct EvaluatedExpression {
-	llvm::Value* m_value;
-    const ExprTypeInfo* typeInfo; //!= null;
-	EvaluatedExpression(llvm::Value* value, bool pointerToValue, const ExprTypeInfo* type);
-	inline bool isVoid() const;
-	llvm::Value* getValue(CodegenLLVM& codegen);
-	llvm::Value* getPointerToValue(CodegenLLVM& codegen);
-	bool isReference();
-};
 
 enum class ExpressionKind {
 	VARIABLE,
