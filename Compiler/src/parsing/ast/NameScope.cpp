@@ -104,9 +104,9 @@ void NameScope::codegen(CodegenLLVM& codegen) {
 }
 
 
-NameScopeReference::NameScopeReference(std::string&& name, const TextRange& range) : NameScopeExpression(range), m_name(std::move(name)), m_target(nullptr) {}
-
-NameScopeReference::~NameScopeReference() {}
+NameScopeReference::NameScopeReference(std::string&& name, const TextRange& range) : NameScopeExpression(range), m_LHS(nullptr), m_name(std::move(name)), m_name_range(range), m_typeTargetAllowed(false), m_map(), m_target(), m_namedef_target() {
+	assert(m_name.size() != 0);
+}
 
 void NameScopeReference::printSignature() {
 	std::cout << m_name;
@@ -114,6 +114,13 @@ void NameScopeReference::printSignature() {
 
 NameScopeExpressionKind NameScopeReference::getNameScopeExpressionKind() {
 	return NameScopeExpressionKind::IDENTIFIER;
+}
+
+bool NameScopeReference::tryGiveLHS(unique_ptr<NameScopeExpression>&& LHS) {
+	if(m_LHS)
+		return false;
+	m_LHS = std::move(LHS);
+	m_range = TextRange(LHS->getRange(), m_range);
 }
 
 ConcretableState NameScopeReference::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {

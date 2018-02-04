@@ -58,43 +58,28 @@ public:
 
 class NameScopeReference : public NameScopeExpression {
 private:
+	unique_ptr<NameScopeExpression> m_LHS; //Can be null
 	std::string m_name;
-	NamedefDefinition* m_target;
+	TextRange m_name_range;
+
+	bool m_typeTargetAllowed;
+
+	ConcreteNameScope* m_map;
+	Definition* m_target;
+	optional<NamedefDefinition*> m_namedef_target;
 public:
 	NameScopeReference(std::string&& name, const TextRange& range);
-	NameScopeReference(const NameScopeReference& other) = delete;
-	NameScopeReference& operator=(const NameScopeReference& other) = delete;
-	~NameScopeReference();
+	NameScopeReference(const NameScopeReference& other)=delete;
+	NameScopeReference& operator=(const NameScopeReference& other)=delete;
+
 	virtual void printSignature() override;
 	virtual NameScopeExpressionKind getNameScopeExpressionKind() override;
 
+	bool tryGiveLHS(unique_ptr<Expression>&& LHS);
+
+	void allowTypeTarget();
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcreteNameScope* getConcreteNameScope() override;
 };
 
-/*
-class NameScopeDotOperator : public NameScopeExpression {
-	unique_ptr<NameScopeExpression> m_LHS;
-	std::string m_RHS;
-	Definition* m_LHS_target;
-	NameScopeDotOperator* m_LHS_dot;
-    NamedefDefinition* m_target;
-	bool m_resolved;
-public:
-	NameScopeDotOperator(unique_ptr<NameScopeExpression>&& LHS, std::string&& RHS, const TextRange& range);
-	NameScopeDotOperator(const NameScopeDotOperator& other)=delete;
-	NameScopeDotOperator& operator=(const NameScopeDotOperator& other)=delete;
-	~NameScopeDotOperator() = default;
-	virtual void printSignature() override;
-	void printLocationAndText();
-	virtual NameScopeExpressionKind getNameScopeExpressionKind() override;
-	virtual ConcreteNameScope* tryGetConcreteNameScope(DotOpDependencyList& depList) override;
-
-	virtual void makeConcrete(NamespaceStack& ns_stack) override;
-	bool tryResolve(DotOpDependencyList& depList);
-private:
-	bool prepareForResolving(NamespaceStack& ns_stack);
-	optional<Definition*> tryResolveOrOtherDefinition(DotOpDependencyList& depList);
-	optional<Definition*> tryGetTargetDefinition(DotOpDependencyList& depList);
-};*/
 

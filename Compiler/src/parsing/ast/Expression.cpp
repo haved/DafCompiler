@@ -42,10 +42,6 @@ VariableExpression::VariableExpression(const std::string& name, const TextRange&
 	assert(m_name.size() != 0);
 }
 
-VariableExpression::VariableExpression(unique_ptr<Expression>&& LHS, const std::string& name, const TextRange& RHS_range) : Expression(TextRange(LHS->getRange(), RHS_range)), m_LHS(std::move(LHS)), m_name(name), m_name_range(RHS_range), m_namespaceTargetAllowed(false), m_map(), m_target(), m_defOrLet() {
-	assert(m_LHS && m_name.size() != 0);
-}
-
 void VariableExpression::printSignature() {
 	if(m_LHS) {
 		m_LHS->printSignature();

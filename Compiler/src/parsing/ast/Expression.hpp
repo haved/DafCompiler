@@ -78,9 +78,8 @@ private:
 	optional<DefOrLet> m_defOrLet;
 public:
 	VariableExpression(const std::string& name, const TextRange& range);
-	VariableExpression(unique_ptr<Expression>&& m_LHS, const std::string& name, const TextRange& RHS_range);
 	VariableExpression(VariableExpression& other)=delete;
-	VariableExpression& operator=(VariableExpression& other);
+	VariableExpression& operator=(VariableExpression& other)=delete;
 
 	virtual void printSignature() override;
 	virtual ExpressionKind getExpressionKind() const override;

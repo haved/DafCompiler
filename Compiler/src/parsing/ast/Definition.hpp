@@ -129,8 +129,9 @@ enum class NameScopeExpressionKind;
 
 class NameScopeExpression : public Concretable {
 private:
-	TextRange m_range;
 	int m_blockLevel=0;
+protected:
+	TextRange m_range;
 public:
 	NameScopeExpression(const TextRange& range);
 	virtual ~NameScopeExpression();
