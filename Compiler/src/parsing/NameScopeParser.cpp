@@ -91,16 +91,14 @@ unique_ptr<NameScopeExpression> parseNameScopeExpression(Lexer& lexer) {
 	if(!side)
 		return side;
 
-	//TODO: Re-add dot op
-	/*
 	while(lexer.currType() == CLASS_ACCESS) {
 	    lexer.advance(); //Eat '.'
 		if(!lexer.expectProperIdentifier())
 			return null_nse();
-		side = std::make_unique<NameScopeDotOperator>(std::move(side), std::string(lexer.getCurrentToken().text), TextRange(side->getRange(), lexer.getCurrentToken()));
+		std::string name(lexer.getCurrentToken().text);
+	    side = std::make_unique<NameScopeReference>(std::move(side), std::move(name), TextRange(lexer.getFile(), lexer.getCurrentToken()));
 		lexer.advance(); //Eat identifier
 	}
-	*/
 
 	return side;
 }

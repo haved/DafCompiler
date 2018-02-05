@@ -69,13 +69,12 @@ private:
 	optional<NamedefDefinition*> m_namedef_target;
 public:
 	NameScopeReference(std::string&& name, const TextRange& range);
+	NameScopeReference(unique_ptr<NameScopeExpression>&& LHS, std::string&& name, const TextRange& range);
 	NameScopeReference(const NameScopeReference& other)=delete;
 	NameScopeReference& operator=(const NameScopeReference& other)=delete;
 
 	virtual void printSignature() override;
 	virtual NameScopeExpressionKind getNameScopeExpressionKind() override;
-
-	bool tryGiveLHS(unique_ptr<Expression>&& LHS);
 
 	void allowTypeTarget();
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
