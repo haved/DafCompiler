@@ -67,42 +67,28 @@ void VariableExpression::allowNamespaceTarget() {
 }
 
 ConcretableState VariableExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-
-	ConcretableState state = ConcretableState::LOST_CAUSE;
+	Concretable* stateSource;
 
 	if(m_LHS) {
 	    if(m_LHS->getExpressionKind() == ExpressionKind::VARIABLE)
 			static_cast<VariableExpression*>(m_LHS.get())->allowNamespaceTarget();
-		state = m_LHS->makeConcrete(ns_stack, depMap);
+		m_LHS->makeConcrete(ns_stack, depMap);
+		stateSource = m_LHS.get();
 	}
 	else {
 		m_target = ns_stack.getDefinitionFromName(m_name, getRange());
 		if(!m_target)
 			return ConcretableState::LOST_CAUSE;
-		state = m_target->getConcretableState();
+		stateSource = m_target;
 	}
 
+	ConcretableState state = stateSource->getConcretableState();
 	if(allConcrete() << state)
 		return retryMakeConcreteInternal(depMap);
 	if(anyLost() << state)
 		return ConcretableState::LOST_CAUSE;
-	depMap.makeFirstDependentOnSecond(this, m_target);
+	depMap.makeFirstDependentOnSecond(this, stateSource);
 	return ConcretableState::TRY_LATER;
-}
-
-ConcreteNameScope* typeToConcreteNameScope(const ExprTypeInfo& typeInfo) {
-	assert(false);
-	return nullptr; //Ah well. We'll have to make a new class, as type access has mutability modifiers,
-	//Not to mention this-stuff
-}
-
-ConcreteNameScope* definitionToConcreteNameScope(Definition* definition) {
-	assert(allConcrete() << definition->getConcretableState());
-    DefinitionKind kind = definition->getDefinitionKind();
-	if(kind == DefinitionKind::NAMEDEF) {
-		return static_cast<NamedefDefinition*>(definition)->getConcreteNameScope();
-	}
-	assert(false); //TODO: Access type
 }
 
 ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
@@ -122,11 +108,11 @@ ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& de
     assert(m_LHS);
 	if(m_LHS->getExpressionKind() == ExpressionKind::VARIABLE) {
 		Definition* myMap = static_cast<VariableExpression*>(m_LHS.get())->m_target;
-		m_map = definitionToConcreteNameScope(myMap);
+		m_map = definitionToConcreteNameScope(myMap); //Defined in NameScope
 	}
 	else {
 		const ExprTypeInfo& type = m_LHS->getTypeInfo();
-		m_map = typeToConcreteNameScope(type);
+		m_map = typeToConcreteNameScope(type); //Defined in NameScope
 	}
 
 	m_target = m_map->getPubDefinitionFromName(m_name, m_name_range);

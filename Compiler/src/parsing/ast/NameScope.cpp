@@ -121,29 +121,78 @@ NameScopeExpressionKind NameScopeReference::getNameScopeExpressionKind() {
 }
 
 ConcretableState NameScopeReference::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	Definition* target = ns_stack.getDefinitionFromName(m_name, getRange());
-	if(!target)
-		return ConcretableState::LOST_CAUSE;
-	DefinitionKind kind = target->getDefinitionKind();
-	if(kind != DefinitionKind::NAMEDEF) {
-		auto& out = logDaf(getRange(), ERROR) << "expected namedef; " << m_name << "is a ";
-		printDefinitionKindName(kind, out) << std::endl;
-		return ConcretableState::LOST_CAUSE;
+
+	Concretable* stateSource;
+
+	if(m_LHS) {
+		if(m_LHS->getNameScopeExpressionKind() == NameScopeExpressionKind::IDENTIFIER)
+			static_cast<NameScopeReference*>(m_LHS.get())->allowTypeTarget();
+		m_LHS->makeConcrete(ns_stack, depMap);
+		stateSource = m_LHS.get();
+	} else {
+		m_target = ns_stack.getDefinitionFromName(m_name, m_name_range);
+		if(!m_target)
+			return ConcretableState::LOST_CAUSE;
+		stateSource = m_target;
 	}
 
-	m_target = static_cast<NamedefDefinition*>(target);
-	ConcretableState state = m_target->getConcretableState();
-
+	ConcretableState state = stateSource->getConcretableState();
 	if(allConcrete() << state)
 		return retryMakeConcreteInternal(depMap);
 	if(anyLost() << state)
 		return ConcretableState::LOST_CAUSE;
+	depMap.makeFirstDependentOnSecond(this, stateSource);
+	return ConcretableState::TRY_LATER;
+}
+
+ConcreteNameScope* typeToConcreteNameScope(const ExprTypeInfo& typeInfo) {
+	assert(false);
+	return nullptr; //Ah well. We'll have to make a new class, as type access has mutability modifiers,
+	//Not to mention this-stuff
+}
+
+ConcreteNameScope* definitionToConcreteNameScope(Definition* definition) {
+	assert(allConcrete() << definition->getConcretableState());
+    DefinitionKind kind = definition->getDefinitionKind();
+	if(kind == DefinitionKind::NAMEDEF) {
+		return static_cast<NamedefDefinition*>(definition)->getConcreteNameScope();
+	}
+	assert(false); //TODO: Access type
+}
+
+ConcretableState NameScopeReference::retryMakeConcreteInternal(DependencyMap& depMap) {
+	if(m_target) {
+		if(m_target->getDefinitionKind() == DefinitionKind::NAMEDEF) {
+			m_namedef_target = static_cast<NamedefDefinition*>(m_target);
+		} else if(!m_typeTargetAllowed) {
+			complainDefinitionIsNotNamedef(m_target, m_name, m_name_range);
+			return ConcretableState::LOST_CAUSE;
+		}
+		return ConcretableState::CONCRETE;
+	}
+
+	assert(m_LHS);
+	//If our LHS is an identifier, then we open up for it being a NameScopeExpression, an expression or a type
+	if(m_LHS->getNameScopeExpressionKind() == NameScopeExpressionKind::IDENTIFIER) {
+		Definition* myMap = static_cast<NameScopeReference*>(m_LHS.get())->m_target;
+		m_map = definitionToConcreteNameScope(myMap);
+	} else {
+		m_map = m_LHS->getConcreteNameScope();
+	}
+
+	m_target = m_map->getPubDefinitionFromName(m_name, m_name_range);
+	ConcretableState state = m_target->getConcretableState();
+	if(anyLost() << state)
+		return ConcretableState::LOST_CAUSE;
+	if(allConcrete() << state)
+		return retryMakeConcreteInternal(depMap);
 	depMap.makeFirstDependentOnSecond(this, m_target);
 	return ConcretableState::TRY_LATER;
 }
 
 ConcreteNameScope* NameScopeReference::getConcreteNameScope() {
-	return m_target->getConcreteNameScope();
+	assert(m_namedef_target && !m_typeTargetAllowed);
+	return (*m_namedef_target)->getConcreteNameScope();
 }
 
 /*

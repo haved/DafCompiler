@@ -20,7 +20,7 @@ using boost::optional;
 //To avoid recursive including, the NameScopeExpression class is in Definition.hpp
 
 enum class NameScopeExpressionKind {
-	NAME_SCOPE, IDENTIFIER, DOT_OP
+	NAME_SCOPE, IDENTIFIER
 };
 
 class ConcreteNameScope : public Namespace {
@@ -56,6 +56,9 @@ public:
 	virtual void codegen(CodegenLLVM& codegen) override;
 };
 
+ConcreteNameScope* typeToConcreteNameScope(const ExprTypeInfo& typeInfo);
+ConcreteNameScope* definitionToConcreteNameScope(Definition* definition);
+
 class NameScopeReference : public NameScopeExpression {
 private:
 	unique_ptr<NameScopeExpression> m_LHS; //Can be null
@@ -78,6 +81,8 @@ public:
 
 	void allowTypeTarget();
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
+
 	virtual ConcreteNameScope* getConcreteNameScope() override;
 };
 
