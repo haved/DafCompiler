@@ -1,6 +1,22 @@
 // -*- compile-command: "cd .. && time ./buildScript.py --tests --testFilter TestFile.daf --outputTesting" -*-
 
+def dafMain():i32 {
+	mut a := 6;
+	IO_aliasTwo.printInt(a);
+	IO_alias.IO_loop.IO_loop.NotReallyIO_alias.makeItDouble(mut a);
+	namedef yetAnotherAlias := IO_aliasTwo.NotReallyIO_alias;
+	yetAnotherAlias.makeItDouble(mut a);
+	def printInt := IO.printInt;
+	printInt(a);
+	a-24
+};
+
+namedef IO_aliasTwo := IO.IO_loop;
+
 namedef IO := {
+
+	pub namedef NotReallyIO_alias := IO_alias.NotReallyIO;
+
 	pub def printInt(a:i32) "printIntToC";
 	pub namedef NotReallyIO := {
 		pub def makeItDouble:=makeItDoubleInternal;
@@ -9,14 +25,6 @@ namedef IO := {
 	pub namedef IO_loop := IO;
 };
 
+
 namedef IO_alias := IO;
 
-def dafMain():i32 {
-	mut a := 6;
-	IO.printInt(a);
-	IO_alias.IO_loop.IO_loop.NotReallyIO.makeItDouble(mut a);
-	IO.NotReallyIO.makeItDouble(mut a);
-	def printInt := IO.printInt;
-	printInt(a);
-	a-24
-};

@@ -120,6 +120,10 @@ NameScopeExpressionKind NameScopeReference::getNameScopeExpressionKind() {
 	return NameScopeExpressionKind::IDENTIFIER;
 }
 
+void NameScopeReference::allowTypeTarget() {
+	m_typeTargetAllowed = true;
+}
+
 ConcretableState NameScopeReference::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 
 	Concretable* stateSource;
