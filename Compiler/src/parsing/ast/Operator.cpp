@@ -20,7 +20,6 @@ PrefixOperator PREFIX_OPERATOR_INSTANCES[] = {
 	//All normal Prefix are 100
 	PrefixOperator(PLUS, 100), PrefixOperator(MINUS, 100),
 	PrefixOperator(REF, 100), PrefixOperator(MUT_REF, 100),
-	PrefixOperator(SHARED_PTR, 100), PrefixOperator(UNIQUE_PTR, 100),
 	PrefixOperator(DEREFERENCE, 100), PrefixOperator(NOT, 100),
 	PrefixOperator(PLUS_PLUS, 100, true), PrefixOperator(MINUS_MINUS, 100, true),
 	PrefixOperator(SIZE_OF, 100)

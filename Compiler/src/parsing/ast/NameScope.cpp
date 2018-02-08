@@ -150,6 +150,7 @@ ConcretableState NameScopeReference::makeConcreteInternal(NamespaceStack& ns_sta
 }
 
 ConcreteNameScope* typeToConcreteNameScope(const ExprTypeInfo& typeInfo) {
+	(void) typeInfo;
 	assert(false);
 	return nullptr; //Ah well. We'll have to make a new class, as type access has mutability modifiers,
 	//Not to mention this-stuff

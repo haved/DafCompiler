@@ -16,8 +16,6 @@ const char* TOKEN_TEXT[] = {
 	"i8", "u8", "i16", "u16", "i32", "u32",
 	"i64", "u64", "usize", "isize", "bool", "f32", "f64",
 
-	//	"shared", "unique", "new", "delete",
-
 	"size_of", "type_of", "length_of"
 
 	"true", "false", "null"
@@ -40,8 +38,6 @@ const char* COMPOSITE_TOKENS[] = {
 	":=", "::",
 	"<<", ">>", ">>>", "&&", "||",
 	"==", "!=", ">=", "<=", "++", "--",
-
-	"&mut", "&move", "&unique", "&shared"
 };
 
 const char* TEXT_TOKENS[] = {
@@ -65,8 +61,6 @@ TokenMerge TOKEN_MERGES[] = {
 	TokenMerge(PLUS, PLUS, PLUS_PLUS), TokenMerge(MINUS, MINUS, MINUS_MINUS),
 
 	TokenMerge(REF, MUT, MUT_REF)
-	//, TokenMerge(REF, MOVE, MOVE_REF),
-	//TokenMerge(REF, UNIQUE, UNIQUE_PTR), TokenMerge(REF, SHARED, SHARED_PTR)
 };
 
 const char* getTokenTypeText(const TokenType& type) {
@@ -184,10 +178,12 @@ void setTokenFromStringLiteral(Token& token, std::string&& text, int line, int c
 	assert(line == endLine); (void) endLine; //TODO: Support multiline tokens
 }
 
+#define len(x) sizeof(x)/sizeof(*x)
+
 bool mergeTokens(Token& first, const Token& second) {
-	if(first.line != second.line || first.endCol != second.col) //You can't put a comment inside a token
+	if(first.line != second.line || first.endCol != second.col) //Must be no space between
 		return false;
-	for(unsigned int i = 0; i < sizeof(TOKEN_MERGES)/sizeof(*TOKEN_MERGES); i++) {
+	for(unsigned int i = 0; i < len(TOKEN_MERGES); i++) {
 		TokenMerge& merg = TOKEN_MERGES[i];
 		if(merg.first == first.type && merg.second == second.type) {
 			first.type = merg.result;

@@ -63,8 +63,7 @@ public:
 	void printSignature() override;
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
-	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
-	virtual ConcreteType* getConcreteType() override;
+    virtual ConcreteType* getConcreteType() override;
 };
 
 class PointerType : public Type {
@@ -74,6 +73,8 @@ private:
 	ConcreteType* m_concreteType;
 public:
 	PointerType(bool mut, TypeReference&& type, const TextRange& range);
+	PointerType(const PointerType& other)=delete;
+	PointerType& operator=(const PointerType& other)=delete;
 	virtual void printSignature() override;
     virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
@@ -122,6 +123,8 @@ private:
 	ConcreteType* m_target;
 	ConcretePointerType(bool mut, ConcreteType* target);
 public:
+	ConcretePointerType(const ConcretePointerType& other)=delete;
+	ConcretePointerType& operator=(const ConcretePointerType& other)=delete;
 	virtual void printSignature() override;
 	virtual ConcreteTypeKind getConcreteTypeKind() const override;
     virtual bool hasSize() override;

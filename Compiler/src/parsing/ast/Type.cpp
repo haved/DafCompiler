@@ -72,7 +72,7 @@ ConcreteType* AliasForType::getConcreteType() {
 	return m_target->getConcreteType();
 }
 
-PointerType::PointerType(bool mut, TypeReference&& targetType, const TextRange& range) : Type(range), m_mut(mut), m_targetType(std::move(targetType)) {
+PointerType::PointerType(bool mut, TypeReference&& targetType, const TextRange& range) : Type(range), m_mut(mut), m_targetType(std::move(targetType)), m_concreteType() {
 	assert(m_targetType);
 }
 
@@ -95,11 +95,17 @@ ConcretableState PointerType::makeConcreteInternal(NamespaceStack& ns_stack, Dep
 }
 
 ConcretableState PointerType::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
 	ConcreteType* concreteTarget = m_targetType.getConcreteType();
 	assert(concreteTarget);
 	m_concreteType = ConcretePointerType::toConcreteType(m_mut, concreteTarget);
 	return ConcretableState::CONCRETE;
 }
+
+ConcreteType* PointerType::getConcreteType() {
+	return m_concreteType;
+}
+
 
 ConcreteTypeUse::ConcreteTypeUse(ConcreteType* type, const TextRange& range) : Type(range), m_type(type) {
 	assert(m_type);

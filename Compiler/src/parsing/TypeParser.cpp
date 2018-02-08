@@ -31,12 +31,25 @@ TypeReference parsePrimitive(Lexer& lexer) {
 	return TypeReference(std::make_unique<ConcreteTypeUse>(primitive, TextRange(lexer.getFile(), lexer.getPreviousToken())));
 }
 
+TypeReference parsePointerType(Lexer& lexer) {
+	bool mut = lexer.currType() == MUT_REF;
+	assert(mut || lexer.currType() == REF);
+    TextRange start(lexer.getFile(), lexer.getCurrentToken());
+	lexer.advance(); //Eat '&'
+	TypeReference target = parseType(lexer);
+	if(!target)
+		return TypeReference();
+	return TypeReference(std::make_unique<PointerType>(mut, std::move(target), TextRange(start, lexer.getPreviousToken())));
+}
+
 TypeReference parseType(Lexer& lexer) {
 	switch(lexer.currType()) {
 	case LEFT_PAREN:
 		return parseFunctionType(lexer);
 	case DEF:
 		return parseFunctionType(lexer);
+	case REF:
+		return parsePointerType(lexer);
 	case IDENTIFIER:
 		return parseAliasForType(lexer);
 	default:
