@@ -76,6 +76,7 @@ public:
 	PointerType(bool mut, TypeReference&& type, const TextRange& range);
 	virtual void printSignature() override;
     virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 	virtual ConcreteType* getConcreteType() override;
 };
 
@@ -94,6 +95,7 @@ public:
 
 enum class ConcreteTypeKind {
 	FUNCTION,
+	POINTER,
 	PRIMITIVE,
 	VOID
 };
@@ -116,16 +118,18 @@ public:
 
 class ConcretePointerType : public ConcreteType {
 private:
-	bool mut;
+	bool m_mut;
 	ConcreteType* m_target;
 	ConcretePointerType(bool mut, ConcreteType* target);
 public:
 	virtual void printSignature() override;
+	virtual ConcreteTypeKind getConcreteTypeKind() const override;
     virtual bool hasSize() override;
-	virtual llvm::Type* codegenType(CodegenLLVM& codegen);
+
+	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 
 	static ConcretePointerType* toConcreteType(bool mut, ConcreteType* type);
-}
+};
 
 enum class Signed {
 	Yes, No, NA

@@ -9,6 +9,7 @@
 #include "CodegenLLVM.hpp"
 #include <iostream>
 #include <map>
+#include <algorithm>
 
 Type::Type(const TextRange& range) : m_range(range) {}
 
@@ -120,6 +121,7 @@ ConcreteType* ConcreteTypeUse::getConcreteType() {
 void printConcreteTypeKind(ConcreteTypeKind kind, std::ostream& out) {
     switch(kind) {
 	case ConcreteTypeKind::FUNCTION: out << "function"; break;
+	case ConcreteTypeKind::POINTER: out << "pointer"; break;
 	case ConcreteTypeKind::PRIMITIVE: out << "primitive"; break;
 	case ConcreteTypeKind::VOID: out << "void"; break;
 	default: assert(false); break;
@@ -133,6 +135,46 @@ bool ConcreteType::hasSize() {
 llvm::Type* ConcreteType::codegenType(CodegenLLVM& codegen) {
 	std::cerr << "TODO: codegen type" << std::endl;
     return llvm::Type::getVoidTy(codegen.Context());
+}
+
+ConcretePointerType::ConcretePointerType(bool mut, ConcreteType* target) : m_mut(mut), m_target(target) {
+	assert(m_target);
+}
+
+void ConcretePointerType::printSignature() {
+	auto& out = std::cout << "& ";
+	if(m_mut)
+		out << "mut ";
+	m_target->printSignature();
+}
+
+ConcreteTypeKind ConcretePointerType::getConcreteTypeKind() const {
+	return ConcreteTypeKind::POINTER;
+}
+
+bool ConcretePointerType::hasSize() {
+	return m_target->hasSize();
+}
+
+llvm::Type* ConcretePointerType::codegenType(CodegenLLVM& codegen) {
+	llvm::Type* targetType = m_target->codegenType(codegen);
+	if(!targetType)
+		return nullptr;
+	return llvm::PointerType::getUnqual(targetType);
+}
+
+
+//@Optimize: unordered_map?
+std::map<std::pair<bool, ConcreteType*>, unique_ptr<ConcretePointerType> > PointerToTypeMap;
+
+ConcretePointerType* ConcretePointerType::toConcreteType(bool mut, ConcreteType* type) {
+	std::pair<bool, ConcreteType*> key{mut, type};
+    auto find = PointerToTypeMap.find(key);
+	if(find != PointerToTypeMap.end())
+		return find->second.get();
+	ConcretePointerType* result = new ConcretePointerType(mut, type);
+	PointerToTypeMap.insert({key, unique_ptr<ConcretePointerType>(result)});
+	return result;
 }
 
 
