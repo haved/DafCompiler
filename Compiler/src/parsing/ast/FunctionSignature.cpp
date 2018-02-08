@@ -304,18 +304,26 @@ llvm::FunctionType* FunctionType::codegenFunctionType(CodegenLLVM& codegen) {
 		argumentTypes.push_back(type);
 	}
 
-	llvm::Type* returnType = m_returnTypeInfo.type->codegenType(codegen);
-	if(!returnType)
-		return nullptr;
+	llvm::Type* returnType = nullptr;
+	if(m_returnTypeInfo.type->hasSize()) {
+	    returnType = m_returnTypeInfo.type->codegenType(codegen);
+		if(!returnType)
+			return nullptr;
 
-	if(isReferenceReturn())
-		returnType = llvm::PointerType::getUnqual(returnType);
+		if(isReferenceReturn())
+			returnType = llvm::PointerType::getUnqual(returnType);
+	} else
+		returnType = llvm::Type::getVoidTy(codegen.Context());
 
 	return llvm::FunctionType::get(returnType, argumentTypes, false);
 }
 
+bool FunctionType::hasSize() {
+	return false; //TODO: Closures have size
+}
+
 llvm::Type* FunctionType::codegenType(CodegenLLVM& codegen) {
-	return llvm::Type::getVoidTy(codegen.Context()); //TODO: Closures have size
+	return codegenFunctionType(codegen);
 }
 
 

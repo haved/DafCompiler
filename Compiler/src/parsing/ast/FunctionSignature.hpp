@@ -66,6 +66,7 @@ public:
 	optional<ExprTypeInfo>& getImplicitCallReturnTypeInfo();
 
 	llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen);
+	virtual bool hasSize() override;
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 };
 

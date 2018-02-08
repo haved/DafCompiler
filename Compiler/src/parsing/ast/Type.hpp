@@ -31,25 +31,6 @@ public:
     virtual ConcreteType* getConcreteType()=0;
 };
 
-enum class ConcreteTypeKind {
-	FUNCTION,
-	PRIMITIVE,
-	VOID
-};
-
-void printConcreteTypeKind(ConcreteTypeKind kind, std::ostream& out);
-
-class ConcreteType {
-public:
-	ConcreteType()=default;
-	virtual ~ConcreteType()=default;
-	virtual void printSignature()=0;
-	virtual ConcreteTypeKind getConcreteTypeKind() const =0;
-
-	//TODO: =0
-	virtual llvm::Type* codegenType(CodegenLLVM& codegen);
-};
-
 class TypeReference {
 private:
 	unique_ptr<Type> m_type;
@@ -82,8 +63,69 @@ public:
 	void printSignature() override;
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 	virtual ConcreteType* getConcreteType() override;
 };
+
+class PointerType : public Type {
+private:
+	bool m_mut;
+	TypeReference m_targetType;
+	ConcreteType* m_concreteType;
+public:
+	PointerType(bool mut, TypeReference&& type, const TextRange& range);
+	virtual void printSignature() override;
+    virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcreteType* getConcreteType() override;
+};
+
+class ConcreteTypeUse : public Type {
+private:
+	ConcreteType* m_type;
+public:
+	ConcreteTypeUse(ConcreteType* type, const TextRange& range);
+	ConcreteTypeUse(const ConcreteTypeUse& other) = delete;
+	ConcreteTypeUse& operator = (const ConcreteTypeUse& other) = delete;
+	~ConcreteTypeUse() = default;
+	virtual void printSignature() override;
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcreteType* getConcreteType() override;
+};
+
+enum class ConcreteTypeKind {
+	FUNCTION,
+	PRIMITIVE,
+	VOID
+};
+
+void printConcreteTypeKind(ConcreteTypeKind kind, std::ostream& out);
+
+class ConcreteType {
+public:
+	ConcreteType()=default;
+	virtual ~ConcreteType()=default;
+	virtual void printSignature()=0;
+	virtual ConcreteTypeKind getConcreteTypeKind() const =0;
+
+	//Means we actually pass the parameter and return something other than void
+	//TODO: =0
+	virtual bool hasSize();
+	//TODO: =0
+	virtual llvm::Type* codegenType(CodegenLLVM& codegen);
+};
+
+class ConcretePointerType : public ConcreteType {
+private:
+	bool mut;
+	ConcreteType* m_target;
+	ConcretePointerType(bool mut, ConcreteType* target);
+public:
+	virtual void printSignature() override;
+    virtual bool hasSize() override;
+	virtual llvm::Type* codegenType(CodegenLLVM& codegen);
+
+	static ConcretePointerType* toConcreteType(bool mut, ConcreteType* type);
+}
 
 enum class Signed {
 	Yes, No, NA
@@ -107,6 +149,7 @@ public:
 	bool isSigned();
 	int getBitCount();
 
+	virtual bool hasSize() override;
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 };
 
@@ -114,24 +157,12 @@ PrimitiveType* tokenTypeToPrimitiveType(TokenType type);
 PrimitiveType* literalKindToPrimitiveType(LiteralKind kind);
 PrimitiveType* castToPrimitveType(ConcreteType* type);
 
-class ConcreteTypeUse : public Type {
-private:
-	ConcreteType* m_type;
-public:
-	ConcreteTypeUse(ConcreteType* type, const TextRange& range);
-	ConcreteTypeUse(const ConcreteTypeUse& other) = delete;
-	ConcreteTypeUse& operator = (const ConcreteTypeUse& other) = delete;
-	~ConcreteTypeUse() = default;
-	virtual void printSignature() override;
-	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
-	virtual ConcreteType* getConcreteType() override;
-};
-
 class VoidType : public ConcreteType {
 public:
 	virtual void printSignature() override;
     virtual ConcreteTypeKind getConcreteTypeKind() const override { return ConcreteTypeKind::VOID; }
 
+	virtual bool hasSize() override;
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 };
 

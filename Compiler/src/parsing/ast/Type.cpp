@@ -21,20 +21,6 @@ ConcretableState Type::retryMakeConcreteInternal(DependencyMap& depMap) {
 	return ConcretableState::CONCRETE;
 }
 
-void printConcreteTypeKind(ConcreteTypeKind kind, std::ostream& out) {
-    switch(kind) {
-	case ConcreteTypeKind::FUNCTION: out << "function"; break;
-	case ConcreteTypeKind::PRIMITIVE: out << "primitive"; break;
-	case ConcreteTypeKind::VOID: out << "void"; break;
-	default: assert(false); break;
-	}
-}
-
-llvm::Type* ConcreteType::codegenType(CodegenLLVM& codegen) {
-	std::cerr << "TODO: codegen type" << std::endl;
-    return llvm::Type::getVoidTy(codegen.Context());
-}
-
 TypeReference::TypeReference() : m_type() {}
 
 TypeReference::TypeReference(unique_ptr<Type>&& type) : m_type(std::move(type)) {}
@@ -85,6 +71,71 @@ ConcreteType* AliasForType::getConcreteType() {
 	return m_target->getConcreteType();
 }
 
+PointerType::PointerType(bool mut, TypeReference&& targetType, const TextRange& range) : Type(range), m_mut(mut), m_targetType(std::move(targetType)) {
+	assert(m_targetType);
+}
+
+void PointerType::printSignature() {
+	auto& out = std::cout << "&";
+	if(m_mut)
+		out << "mut";
+	out << " ";
+	m_targetType.printSignature();
+}
+
+ConcretableState PointerType::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	ConcretableState state = m_targetType.getType()->makeConcrete(ns_stack, depMap);
+    if(allConcrete() << state)
+		return retryMakeConcreteInternal(depMap);
+	if(anyLost() << state)
+		return ConcretableState::LOST_CAUSE;
+	depMap.makeFirstDependentOnSecond(this, m_targetType.getType());
+	return ConcretableState::TRY_LATER;
+}
+
+ConcretableState PointerType::retryMakeConcreteInternal(DependencyMap& depMap) {
+	ConcreteType* concreteTarget = m_targetType.getConcreteType();
+	assert(concreteTarget);
+	m_concreteType = ConcretePointerType::toConcreteType(m_mut, concreteTarget);
+	return ConcretableState::CONCRETE;
+}
+
+ConcreteTypeUse::ConcreteTypeUse(ConcreteType* type, const TextRange& range) : Type(range), m_type(type) {
+	assert(m_type);
+}
+
+void ConcreteTypeUse::printSignature() {
+	m_type->printSignature();
+}
+
+ConcretableState ConcreteTypeUse::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	(void) ns_stack, (void) depMap;
+	return ConcretableState::CONCRETE;
+}
+
+ConcreteType* ConcreteTypeUse::getConcreteType() {
+	return m_type;
+}
+
+void printConcreteTypeKind(ConcreteTypeKind kind, std::ostream& out) {
+    switch(kind) {
+	case ConcreteTypeKind::FUNCTION: out << "function"; break;
+	case ConcreteTypeKind::PRIMITIVE: out << "primitive"; break;
+	case ConcreteTypeKind::VOID: out << "void"; break;
+	default: assert(false); break;
+	}
+}
+
+bool ConcreteType::hasSize() {
+	return true;
+}
+
+llvm::Type* ConcreteType::codegenType(CodegenLLVM& codegen) {
+	std::cerr << "TODO: codegen type" << std::endl;
+    return llvm::Type::getVoidTy(codegen.Context());
+}
+
+
 PrimitiveType::PrimitiveType(LiteralKind literalKind, TokenType token, bool floatingPoint, Signed isSigned, int bitCount) : m_literalKind(literalKind), m_token(token), m_floatingPoint(floatingPoint), m_signed(isSigned == Signed::Yes), m_bitCount(bitCount) {}
 
 void PrimitiveType::printSignature() {
@@ -109,6 +160,10 @@ bool PrimitiveType::isSigned() {
 
 int PrimitiveType::getBitCount() {
 	return m_bitCount;
+}
+
+bool PrimitiveType::hasSize() {
+	return true;
 }
 
 llvm::Type* PrimitiveType::codegenType(CodegenLLVM& codegen) {
@@ -158,28 +213,14 @@ PrimitiveType* castToPrimitveType(ConcreteType* type) {
 	return static_cast<PrimitiveType*>(type);
 }
 
-
-ConcreteTypeUse::ConcreteTypeUse(ConcreteType* type, const TextRange& range) : Type(range), m_type(type) {
-	assert(m_type);
-}
-
-void ConcreteTypeUse::printSignature() {
-	m_type->printSignature();
-}
-
-ConcretableState ConcreteTypeUse::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	(void) ns_stack, (void) depMap;
-	return ConcretableState::CONCRETE;
-}
-
-ConcreteType* ConcreteTypeUse::getConcreteType() {
-	return m_type;
-}
-
 VoidType voidType;
 
 void VoidType::printSignature() {
 	std::cout << "void";
+}
+
+bool VoidType::hasSize() {
+	return false;
 }
 
 llvm::Type* VoidType::codegenType(CodegenLLVM& codegen) {
