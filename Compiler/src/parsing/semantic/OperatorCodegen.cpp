@@ -200,9 +200,32 @@ optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, Expres
 }
 
 
+optional<ExprTypeInfo> getPointerToOperatorType(bool mut, const ExprTypeInfo& RHS, const TextRange& range) {
+	int valKindScore = getValueKindScore(RHS.valueKind);
+    if(valKindScore < getValueKindScore(ValueKind::LVALUE)) {
+		logDaf(range, ERROR) << "Can't get pointer to anonymous value" << std::endl;
+		return boost::none;
+	}
+	if(mut && valKindScore < getValueKindScore(ValueKind::MUT_LVALUE)) {
+		logDaf(range, ERROR) << "Can't get mutable pointer to non-mutable value" << std::endl;
+		return boost::none;
+	}
+
+	ConcreteType* target_type = RHS.type;
+	ConcreteType* pointer_type = ConcretePointerType::toConcreteType(mut, target_type);
+	return ExprTypeInfo(pointer_type, ValueKind::ANONYMOUS);
+}
+
+optional<ExprTypeInfo> getDereferenceOperatorType(const ExprTypeInfo& RHS, const TextRange& range) {
+	ConcreteType* type = RHS.type;
+	
+}
+
 optional<ExprTypeInfo> getPrefixOperatorType(const PrefixOperator& op, const ExprTypeInfo& RHS, const TextRange& range) {
 	switch(op.tokenType) {
-	case MUT_REF: break;
+	case MUT_REF: return getPointerToOperatorType(true,  RHS, range);
+	case     REF: return getPointerToOperatorType(false, RHS, range);
+	case DEREFERENCE: return getDereferenceOperatorType(RHS, range);
 	default: break;
 	}
 	assert(false && "TODO: Prefix operator not implemented");
