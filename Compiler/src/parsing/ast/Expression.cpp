@@ -268,11 +268,10 @@ ConcretableState InfixOperatorExpression::makeConcreteInternal(NamespaceStack& n
 ConcretableState InfixOperatorExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
 	optional<ExprTypeInfo> info = getBinaryOpResultType(m_LHS->getTypeInfo(), m_op, m_RHS->getTypeInfo(), getRange());
-	if(info) {
-		m_typeInfo = *info;
-		return ConcretableState::CONCRETE;
-	}
-	return ConcretableState::LOST_CAUSE;
+	if(!info) {
+		return ConcretableState::LOST_CAUSE;
+	m_typeInfo = *info;
+	return ConcretableState::CONCRETE;
 }
 
 optional<EvaluatedExpression> InfixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
@@ -302,14 +301,15 @@ ConcretableState PrefixOperatorExpression::makeConcreteInternal(NamespaceStack& 
 
 ConcretableState PrefixOperatorExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
-	std::cerr << "Not added prefix operators yet" << std::endl;
-	return ConcretableState::LOST_CAUSE;
+	optional<ExprTypeInfo> resultTypeInfo = getPrefixOperatorType(m_op, m_RHS->getTypeInfo(), getRange());
+	if(!resultTypeInfo)
+		return ConcretableState::LOST_CAUSE;
+	m_typeInfo = *resultTypeInfo;
+    return ConcretableState::CONCRETE;
 }
 
 optional<EvaluatedExpression> PrefixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
-	(void) codegen;
-	std::cerr << "TODO: prefix operator expression codegen" << std::endl;
-	return boost::none;
+    return codegenPrefixOperator(codegen, m_op, m_RHS.get(), m_typeInfo, getRange());
 }
 
 PostfixCrementExpression::PostfixCrementExpression(std::unique_ptr<Expression>&& LHS, bool decrement, int opLine, int opEndCol) : Expression(TextRange(LHS->getRange(), opLine, opEndCol)), m_decrement(decrement), m_LHS(std::move(LHS)) {

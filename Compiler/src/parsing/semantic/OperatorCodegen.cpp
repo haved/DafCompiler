@@ -198,3 +198,13 @@ optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, Expres
 	assert(false);
 	return boost::none;
 }
+
+
+optional<ExprTypeInfo> getPrefixOperatorType(const PrefixOperator& op, const ExprTypeInfo& RHS, const TextRange& range) {
+	switch(op.tokenType) {
+	case MUT_REF: break;
+	default: break;
+	}
+	assert(false && "TODO: Prefix operator not implemented");
+	return boost::none;
+}
