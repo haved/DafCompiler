@@ -162,6 +162,10 @@ bool ConcretePointerType::hasSize() {
 	return m_target->hasSize();
 }
 
+ExprTypeInfo ConcretePointerType::getDerefResultExprTypeInfo() {
+	return ExprTypeInfo(m_target, m_mut ? ValueKind::MUT_LVALUE : ValueKind::LVALUE);
+}
+
 llvm::Type* ConcretePointerType::codegenType(CodegenLLVM& codegen) {
 	llvm::Type* targetType = m_target->codegenType(codegen);
 	if(!targetType)

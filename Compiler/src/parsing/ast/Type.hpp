@@ -117,6 +117,8 @@ public:
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen);
 };
 
+struct ExprTypeInfo;
+
 class ConcretePointerType : public ConcreteType {
 private:
 	bool m_mut;
@@ -128,6 +130,8 @@ public:
 	virtual void printSignature() override;
 	virtual ConcreteTypeKind getConcreteTypeKind() const override;
     virtual bool hasSize() override;
+
+	ExprTypeInfo getDerefResultExprTypeInfo();
 
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 

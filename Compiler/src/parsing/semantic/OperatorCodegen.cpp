@@ -201,24 +201,26 @@ optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, Expres
 
 
 optional<ExprTypeInfo> getPointerToOperatorType(bool mut, const ExprTypeInfo& RHS, const TextRange& range) {
-	int valKindScore = getValueKindScore(RHS.valueKind);
-    if(valKindScore < getValueKindScore(ValueKind::LVALUE)) {
-		logDaf(range, ERROR) << "Can't get pointer to anonymous value" << std::endl;
-		return boost::none;
-	}
-	if(mut && valKindScore < getValueKindScore(ValueKind::MUT_LVALUE)) {
-		logDaf(range, ERROR) << "Can't get mutable pointer to non-mutable value" << std::endl;
-		return boost::none;
-	}
+	ValueKind targetValueKind = mut ? ValueKind::MUT_LVALUE : ValueKind::LVALUE;
+	optional<const ExprTypeInfo*> targetTypeInfo = getPossibleConversion(RHS, boost::none, targetValueKind, CastPossible::IMPLICITLY, range);
 
-	ConcreteType* target_type = RHS.type;
+	if(!targetTypeInfo)
+		return boost::none;
+
+	ConcreteType* target_type = (*targetTypeInfo)->type;
 	ConcreteType* pointer_type = ConcretePointerType::toConcreteType(mut, target_type);
 	return ExprTypeInfo(pointer_type, ValueKind::ANONYMOUS);
 }
 
 optional<ExprTypeInfo> getDereferenceOperatorType(const ExprTypeInfo& RHS, const TextRange& range) {
-	ConcreteType* type = RHS.type;
-	
+    optional<const ExprTypeInfo*> targetTypeInfo = getPossibleConversion(RHS, ConcreteTypeKind::POINTER, ValueKind::ANONYMOUS, CastPossible::IMPLICITLY, range);
+
+	if(!targetTypeInfo)
+	    return boost::none;
+
+	ConcretePointerType* pointer_type = static_cast<ConcretePointerType*>((*targetTypeInfo)->type);
+	ExprTypeInfo derefTypeInfo = pointer_type->getDerefResultExprTypeInfo();
+	return derefTypeInfo;
 }
 
 optional<ExprTypeInfo> getPrefixOperatorType(const PrefixOperator& op, const ExprTypeInfo& RHS, const TextRange& range) {
@@ -229,5 +231,25 @@ optional<ExprTypeInfo> getPrefixOperatorType(const PrefixOperator& op, const Exp
 	default: break;
 	}
 	assert(false && "TODO: Prefix operator not implemented");
+	return boost::none;
+}
+
+optional<EvaluatedExpression> codegenPointerToOperator(CodegenLLVM& codegen, bool mut, Expression* RHS, const ExprTypeInfo& target, const TextRange& range) {
+	optional<EvaluatedExpression> RHS_eval = RHS->codegenExpression(codegen);
+	if(!RHS_eval)
+		return boost::none;
+
+	
+}
+
+optional<EvaluatedExpression> codegenPrefixOperator(CodegenLLVM& codegen, const PrefixOperator& op, Expression* RHS, const ExprTypeInfo& target, const TextRange& range) {
+	assert(RHS);
+	switch(op.tokenType) {
+	case MUT_REF: return codegenPointerToOperator(codegen, true,  RHS, range);
+	case     REF: return codegenPointerToOperator(codegen, false, RHS, range);
+	case DEREFERENCE: 
+	default: break;
+	}
+	assert(false);
 	return boost::none;
 }
