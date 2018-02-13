@@ -1,6 +1,18 @@
 // -*- compile-command: "cd .. && time ./buildScript.py --tests --testFilter TestFile.daf --outputTesting" -*-
 
+def printInt(a:i32) "printIntToC";
+
 def dafMain:i32 {
 	let a:i32=4;
-	mut b:&i32;
+	mut b:=7;
+	mut a_ptr := &a;
+	let b_ptr := &mut b;
+	(@b_ptr) = b+1;
+	let x := (@a_ptr);
+	printInt(@b_ptr);
+	a_ptr = &b; //Haha lies
+	printInt(@a_ptr);
+	printInt(x);
+	let a_ptr_ptr := &a_ptr;
+	@@a_ptr_ptr-a-a
 };

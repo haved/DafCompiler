@@ -235,6 +235,7 @@ optional<ExprTypeInfo> getPrefixOpResultType(const PrefixOperator& op, const Exp
 }
 
 optional<EvaluatedExpression> codegenPointerToOperator(CodegenLLVM& codegen, bool mut, Expression* RHS, const ExprTypeInfo& target) {
+	(void) mut;
 	assert(target.type->getConcreteTypeKind() == ConcreteTypeKind::POINTER);
     ExprTypeInfo derefTarget = static_cast<ConcretePointerType*>(target.type)->getDerefResultExprTypeInfo();
 
@@ -243,7 +244,22 @@ optional<EvaluatedExpression> codegenPointerToOperator(CodegenLLVM& codegen, boo
 	if(!derefEvalExpr)
 		return boost::none;
 
-	return EvaluatedExpression(codegen.Builder().Create&target);
+	return EvaluatedExpression(derefEvalExpr->getPointerToValue(codegen), false, &target);
+}
+
+optional<EvaluatedExpression> codegenDereferenceOperator(CodegenLLVM& codegen, Expression* RHS, const ExprTypeInfo& target) {
+
+	assert(RHS->getTypeInfo().type->getConcreteTypeKind() == ConcreteTypeKind::POINTER);
+	ConcretePointerType* pointer_type = static_cast<ConcretePointerType*>(RHS->getTypeInfo().type);
+	ExprTypeInfo pointerTypeInfo(pointer_type, ValueKind::ANONYMOUS);
+
+	optional<EvaluatedExpression> RHS_eval = RHS->codegenExpression(codegen);
+	optional<EvaluatedExpression> pointer_eval = codegenTypeConversion(codegen, RHS_eval, pointerTypeInfo);
+
+	if(!pointer_eval)
+		return boost::none;
+
+	return EvaluatedExpression(pointer_eval->getValue(codegen), true, &target);
 }
 
 optional<EvaluatedExpression> codegenPrefixOperator(CodegenLLVM& codegen, const PrefixOperator& op, Expression* RHS, const ExprTypeInfo& target) {
@@ -251,7 +267,7 @@ optional<EvaluatedExpression> codegenPrefixOperator(CodegenLLVM& codegen, const 
 	switch(op.tokenType) {
 	case MUT_REF: return codegenPointerToOperator(codegen, true,  RHS, target);
 	case     REF: return codegenPointerToOperator(codegen, false, RHS, target);
-	case DEREFERENCE: 
+	case DEREFERENCE: return codegenDereferenceOperator(codegen, RHS, target);
 	default: break;
 	}
 	assert(false);
