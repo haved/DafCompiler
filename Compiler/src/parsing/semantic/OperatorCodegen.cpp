@@ -223,7 +223,7 @@ optional<ExprTypeInfo> getDereferenceOperatorType(const ExprTypeInfo& RHS, const
 	return derefTypeInfo;
 }
 
-optional<ExprTypeInfo> getPrefixOperatorType(const PrefixOperator& op, const ExprTypeInfo& RHS, const TextRange& range) {
+optional<ExprTypeInfo> getPrefixOpResultType(const PrefixOperator& op, const ExprTypeInfo& RHS, const TextRange& range) {
 	switch(op.tokenType) {
 	case MUT_REF: return getPointerToOperatorType(true,  RHS, range);
 	case     REF: return getPointerToOperatorType(false, RHS, range);
@@ -234,19 +234,23 @@ optional<ExprTypeInfo> getPrefixOperatorType(const PrefixOperator& op, const Exp
 	return boost::none;
 }
 
-optional<EvaluatedExpression> codegenPointerToOperator(CodegenLLVM& codegen, bool mut, Expression* RHS, const ExprTypeInfo& target, const TextRange& range) {
+optional<EvaluatedExpression> codegenPointerToOperator(CodegenLLVM& codegen, bool mut, Expression* RHS, const ExprTypeInfo& target) {
+	assert(target.type->getConcreteTypeKind() == ConcreteTypeKind::POINTER);
+    ExprTypeInfo derefTarget = static_cast<ConcretePointerType*>(target.type)->getDerefResultExprTypeInfo();
+
 	optional<EvaluatedExpression> RHS_eval = RHS->codegenExpression(codegen);
-	if(!RHS_eval)
+	optional<EvaluatedExpression> derefEvalExpr = codegenTypeConversion(codegen, RHS_eval, derefTarget);
+	if(!derefEvalExpr)
 		return boost::none;
 
-	
+	return EvaluatedExpression(codegen.Builder().Create&target);
 }
 
-optional<EvaluatedExpression> codegenPrefixOperator(CodegenLLVM& codegen, const PrefixOperator& op, Expression* RHS, const ExprTypeInfo& target, const TextRange& range) {
+optional<EvaluatedExpression> codegenPrefixOperator(CodegenLLVM& codegen, const PrefixOperator& op, Expression* RHS, const ExprTypeInfo& target) {
 	assert(RHS);
 	switch(op.tokenType) {
-	case MUT_REF: return codegenPointerToOperator(codegen, true,  RHS, range);
-	case     REF: return codegenPointerToOperator(codegen, false, RHS, range);
+	case MUT_REF: return codegenPointerToOperator(codegen, true,  RHS, target);
+	case     REF: return codegenPointerToOperator(codegen, false, RHS, target);
 	case DEREFERENCE: 
 	default: break;
 	}

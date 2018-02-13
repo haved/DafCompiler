@@ -14,8 +14,8 @@ optional<ExprTypeInfo> getBinaryOpResultType(const ExprTypeInfo& LHS, InfixOpera
 
 optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, Expression* LHS, InfixOperator op, Expression* RHS, const ExprTypeInfo& target, const TextRange& range);
 
-optional<ExprTypeInfo> getPrefixOperatorType(const PrefixOperator& op, const ExprTypeInfo& RHS, const TextRange& range);
+optional<ExprTypeInfo> getPrefixOpResultType(const PrefixOperator& op, const ExprTypeInfo& RHS, const TextRange& range);
 
-optional<ExprTypeInfo> codegenPrefixOperator(CodegenLLVM& codegen, const PrefixOperator& op, Expression* RHS, const ExprTypeInfo& target, const TextRange& range);
+optional<EvaluatedExpression> codegenPrefixOperator(CodegenLLVM& codegen, const PrefixOperator& op, Expression* RHS, const ExprTypeInfo& target);
 
 

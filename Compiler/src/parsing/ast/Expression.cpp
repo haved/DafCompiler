@@ -268,7 +268,7 @@ ConcretableState InfixOperatorExpression::makeConcreteInternal(NamespaceStack& n
 ConcretableState InfixOperatorExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
 	optional<ExprTypeInfo> info = getBinaryOpResultType(m_LHS->getTypeInfo(), m_op, m_RHS->getTypeInfo(), getRange());
-	if(!info) {
+	if(!info)
 		return ConcretableState::LOST_CAUSE;
 	m_typeInfo = *info;
 	return ConcretableState::CONCRETE;
@@ -301,7 +301,7 @@ ConcretableState PrefixOperatorExpression::makeConcreteInternal(NamespaceStack& 
 
 ConcretableState PrefixOperatorExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
-	optional<ExprTypeInfo> resultTypeInfo = getPrefixOperatorType(m_op, m_RHS->getTypeInfo(), getRange());
+	optional<ExprTypeInfo> resultTypeInfo = getPrefixOpResultType(m_op, m_RHS->getTypeInfo(), getRange());
 	if(!resultTypeInfo)
 		return ConcretableState::LOST_CAUSE;
 	m_typeInfo = *resultTypeInfo;
@@ -309,7 +309,7 @@ ConcretableState PrefixOperatorExpression::retryMakeConcreteInternal(DependencyM
 }
 
 optional<EvaluatedExpression> PrefixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
-    return codegenPrefixOperator(codegen, m_op, m_RHS.get(), m_typeInfo, getRange());
+    return codegenPrefixOperator(codegen, m_op, m_RHS.get(), m_typeInfo);
 }
 
 PostfixCrementExpression::PostfixCrementExpression(std::unique_ptr<Expression>&& LHS, bool decrement, int opLine, int opEndCol) : Expression(TextRange(LHS->getRange(), opLine, opEndCol)), m_decrement(decrement), m_LHS(std::move(LHS)) {
