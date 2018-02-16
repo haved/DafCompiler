@@ -1,3 +1,5 @@
+#pragma once
+
 #include "CodegenLLVMForward.hpp"
 #include "parsing/ast/Type.hpp"
 

@@ -2,6 +2,7 @@
 
 #include "parsing/ast/TextRange.hpp"
 #include "parsing/ast/ExprTypeInfo.hpp"
+#include "parsing/semantic/ConcreteType.hpp"
 #include "parsing/semantic/NamespaceStack.hpp"
 #include "parsing/semantic/Concretable.hpp"
 #include "parsing/ast/DefOrLet.hpp"

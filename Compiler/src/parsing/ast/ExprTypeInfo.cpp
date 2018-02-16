@@ -1,4 +1,5 @@
 #include "parsing/ast/ExprTypeInfo.hpp"
+#include "parsing/semantic/ConcreteType.hpp"
 #include "CodegenLLVM.hpp"
 
 //A larger score can be converted to a lower score
