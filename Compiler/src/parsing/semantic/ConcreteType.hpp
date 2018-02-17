@@ -11,6 +11,10 @@ enum class ConcreteTypeKind {
 
 void printConcreteTypeKind(ConcreteTypeKind kind, std::ostream& out);
 
+enum class ValueKind;
+enum class CastPossible;
+struct ExprTypeInfo;
+struct EvaluatedExpression;
 class ConcreteType {
 public:
 	ConcreteType()=default;
@@ -22,7 +26,8 @@ public:
 	//TODO: =0
 	virtual bool hasSize();
 	//TODO: =0
-	//virtual CastPossible canConvertTo(ExprTypeInfo& B);
+	virtual CastPossible canConvertTo(ValueKind fromKind, ExprTypeInfo& B);
+	virtual optional<EvaluatedExpression> codegenTypeConversion(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target);
 	//TODO: =0
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen);
 };
@@ -40,8 +45,10 @@ public:
 	virtual void printSignature() override;
 	virtual ConcreteTypeKind getConcreteTypeKind() const override;
     virtual bool hasSize() override;
-
 	ExprTypeInfo getDerefResultExprTypeInfo();
+
+	virtual CastPossible canConvertTo(ValueKind fromKind, ExprTypeInfo& target) override;
+	virtual optional<EvaluatedExpression> codegenTypeConversion(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) override;
 
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 

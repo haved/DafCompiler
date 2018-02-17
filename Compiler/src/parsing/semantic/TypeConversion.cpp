@@ -191,6 +191,10 @@ optional<EvaluatedExpression> codegenTypeConversion(CodegenLLVM& codegen, option
 
 	assert(canConvertTypeFromTo(*eval.typeInfo, *target) != CastPossible::IMPOSSIBLE); //@Optimize slow assert
 
+    optional<EvaluatedExpression> typeGivenEval = eval.typeInfo->type->codegenTypeConversion(codegen, eval, target);
+	if(typeGivenEval)
+		return typeGivenEval;
+
 	if(B_t == getVoidType())
 		return EvaluatedExpression(nullptr, false, target);
 	if(A_t == B_t) {
