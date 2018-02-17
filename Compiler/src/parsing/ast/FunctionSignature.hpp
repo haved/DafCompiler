@@ -26,17 +26,18 @@ using parameter_let_list = std::vector<unique_ptr<Let> >;
 
 class FunctionType {
 private:
+	TextRange m_range;
 	param_list m_parameters;
 	ReturnKind m_givenReturnKind;
 	optional<TypeReference> m_givenReturnType;
-
 public:
 	FunctionType(param_list&& parameters, ReturnKind givenReturnKind,
 				 optional<TypeReference> givenReturnType, TextRange& range);
-
 	void printSignature();
-
 	bool addReturnKindModifier(ReturnKind kind);
+	bool hasReturn();
+
+	param_list& getParameters();
 };
 
 class FunctionExpression : public Expression, public ConcreteType, public Namespace {

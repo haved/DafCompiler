@@ -43,41 +43,17 @@ void printReturnKind(ReturnKind kind, std::ostream& out) {
 		out << "mut ";
 }
 
-
-bool isFunctionType(const ExprTypeInfo& typeInfo) {
-    bool result = isFunctionType(typeInfo.type);
-	assert(implies(result, typeInfo.valueKind==ValueKind::ANONYMOUS));
-	return result;
-}
-
-bool isFunctionType(const ConcreteType* type) {
-	assert(type);
-	return type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION;
-}
-
-FunctionType* castToFunctionType(ConcreteType* type) {
-	assert(isFunctionType(type));
-	return static_cast<FunctionType*>(type);
-}
-
 FunctionType::FunctionType(param_list&& parameters, ReturnKind givenKind,
 						   optional<TypeReference> givenType, TextRange& range) :
-	Type(range),
+	m_range(range),
 	m_parameters(std::move(parameters)),
 	m_givenReturnKind(givenKind),
-	m_givenReturnType(std::move(givenType)),
-	m_functionExpression(boost::none),
-	m_returnTypeInfo(getNoneTypeInfo()),
-	m_implicitCallReturnTypeInfo(boost::none),
-    m_parameter_lets(),
-	m_parameter_map() {
+	m_givenReturnType(std::move(givenType)) {
     if(!hasReturn())
 		assert(!m_givenReturnType);
 	if(m_givenReturnType)
 		assert(m_givenReturnType->getType());
 }
-
-FunctionType::~FunctionType() {} //To allow forward declaration of unique_ptr<Let>
 
 void FunctionType::printSignature() {
 	auto& out = std::cout << '(';
@@ -95,35 +71,9 @@ void FunctionType::printSignature() {
 	}
 }
 
-bool FunctionType::makeConcreteNeverCalled() {
-	return getConcretableState() == ConcretableState::NEVER_TRIED;
-}
-
-bool FunctionType::isConcrete() {
-	return getConcretableState() == ConcretableState::CONCRETE;
-}
-
-ConcreteType* FunctionType::getConcreteType() {
-	return this;
-}
-
-ConcreteTypeKind FunctionType::getConcreteTypeKind() const {
-	return ConcreteTypeKind::FUNCTION;
-}
-
-void FunctionType::setFunctionExpression(FunctionExpression* expression) {
-	assert(expression && !m_functionExpression && makeConcreteNeverCalled());
-	m_functionExpression = expression;
-}
-
-FunctionExpression* FunctionType::getFunctionExpression() {
-	return m_functionExpression ? *m_functionExpression : nullptr;
-}
-
 bool FunctionType::addReturnKindModifier(ReturnKind kind) {
-    assert(makeConcreteNeverCalled());
 	if(!hasReturn() && kind != ReturnKind::NO_RETURN) {
-		logDaf(getRange(), ERROR) << "can't apply return modifiers to a function without a return" << std::endl;
+		logDaf(m_range, ERROR) << "can't apply return modifiers to a function without a return" << std::endl;
 		return false;
 	}
     int newScore = returnKindToScore(kind);
@@ -137,27 +87,11 @@ bool FunctionType::hasReturn() {
 	return m_givenReturnKind != ReturnKind::NO_RETURN;
 }
 
-bool FunctionType::isReferenceReturn() {
-	return returnKindToScore(m_givenReturnKind) >= returnKindToScore(ReturnKind::REF_RETURN);
-}
-
-bool FunctionType::canBeCalledImplicitlyOnce() {
-	return m_parameters.empty();
-}
-
 param_list& FunctionType::getParameters() {
 	return m_parameters;
 }
 
-parameter_let_list& FunctionType::getParameterLetList() {
-	return m_parameter_lets;
-}
-
-Definition* FunctionType::tryGetDefinitionFromName(const std::string& name) {
-    return m_parameter_map.tryGetDefinitionFromName(name);
-}
-
-bool FunctionType::readyParameterLets() {
+/*bool FunctionType::readyParameterLets() {
 	for(unsigned int i = 0; i < m_parameters.size(); i++) {
 		FunctionParameter* param = m_parameters[i].get();
 		assert(param->getParameterKind() == ParameterKind::VALUE_PARAM);
@@ -170,48 +104,8 @@ bool FunctionType::readyParameterLets() {
 	}
 	return true;
 }
+*/
 
-ConcretableState FunctionType::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	bool hasBody = m_functionExpression && (*m_functionExpression)->getBody();
-	if(hasReturn() && !hasBody && !m_givenReturnType) {
-		logDaf(getRange(), ERROR) << "Function has return, but no type was given" << std::endl;
-		return ConcretableState::LOST_CAUSE;
-	}
-
-	auto conc = allConcrete();
-	auto lost = anyLost();
-
-	auto makeChildConcrete = [&](Concretable* child) {
-		ConcretableState state = child->makeConcrete(ns_stack, depMap);
-		if(state == ConcretableState::TRY_LATER)
-			depMap.makeFirstDependentOnSecond(this, child);
-		conc = conc << state;
-		lost = lost << state;
-	};
-
-	for(auto& param:m_parameters)
-		makeChildConcrete(param.get());
-
-	if(m_givenReturnType)
-		makeChildConcrete(m_givenReturnType->getType());
-
-	if(m_functionExpression && (*m_functionExpression)->getBody()) {
-		readyParameterLets();
-		for(auto& paramLet : m_parameter_lets)
-			makeChildConcrete(paramLet.get());
-
-		ns_stack.push(this);
-		Expression* body = (*m_functionExpression)->getBody();
-		makeChildConcrete(body);
-		ns_stack.pop();
-	}
-
-	if(lost)
-		return ConcretableState::LOST_CAUSE;
-	if(conc)
-		return retryMakeConcreteInternal(depMap);
-	return ConcretableState::TRY_LATER;
-}
 
 CastPossible isReturnCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind, const ExprTypeInfo& given) {
 	if(requiredType)
