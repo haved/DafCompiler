@@ -1,4 +1,5 @@
 #include "parsing/ast/ExprTypeInfo.hpp"
+#include "parsing/ast/Expression.hpp"
 #include "parsing/semantic/ConcreteType.hpp"
 #include "CodegenLLVM.hpp"
 
@@ -50,8 +51,8 @@ ExprTypeInfo getNoneTypeInfo() {
 	return ExprTypeInfo(nullptr, ValueKind::ANONYMOUS);
 }
 
-EvaluatedExpression::EvaluatedExpression(llvm::Value* value, bool pointerToValue, const ExprTypeInfo* type) :
-	m_value(value), typeInfo(type) {
+EvaluatedExpression::EvaluatedExpression(llvm::Value* value, bool pointerToValue, ExprTypeInfo* typeInfo) :
+	m_value(value), typeInfo(typeInfo) {
 	assert(typeInfo->type);
 	assert(pointerToValue == isReference());
 }

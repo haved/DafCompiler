@@ -24,10 +24,11 @@ struct ExprTypeInfo {
 };
 ExprTypeInfo getNoneTypeInfo();
 
+class Expression;
 struct EvaluatedExpression {
 	llvm::Value* m_value;
     const ExprTypeInfo* typeInfo; //!= null;
-	EvaluatedExpression(llvm::Value* value, bool pointerToValue, const ExprTypeInfo* type);
+	EvaluatedExpression(llvm::Value* value, bool pointerToValue, ExprTypeInfo* typeInfo);
 	inline bool isVoid() const;
 	llvm::Value* getValue(CodegenLLVM& codegen);
 	llvm::Value* getPointerToValue(CodegenLLVM& codegen);

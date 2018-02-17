@@ -17,7 +17,7 @@ optional<const ExprTypeInfo*> getPossibleConversion(const ExprTypeInfo& from, op
 optional<const ExprTypeInfo*> getNonFunctionType(const ExprTypeInfo& from, const TextRange& range);
 
 //will convert a value to a value and, a reference to a reference
-optional<EvaluatedExpression> codegenTypeConversion(CodegenLLVM& codegen, optional<EvaluatedExpression> eval, const ExprTypeInfo& target);
+optional<EvaluatedExpression> codegenTypeConversion(CodegenLLVM& codegen, optional<EvaluatedExpression> eval, ExprTypeInfo* target);
 
 
-const ExprTypeInfo& getAnonBooleanTyI();
+ExprTypeInfo* getAnonBooleanTyI();

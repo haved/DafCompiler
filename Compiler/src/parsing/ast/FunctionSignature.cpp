@@ -473,7 +473,7 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 	llvm::BasicBlock* BB = llvm::BasicBlock::Create(codegen.Context(), "entry", m_prototype);
 	codegen.Builder().SetInsertPoint(BB);
 
-	ExprTypeInfo& targetTypeInfo = m_type->getReturnTypeInfo();
+	ExprTypeInfo* targetTypeInfo = &m_type->getReturnTypeInfo();
 
 	for(auto& letParam : m_type->getParameterLetList()) {
 		letParam->localCodegen(codegen);
@@ -487,7 +487,7 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 	}
 
 	bool returnsRef = m_type->isReferenceReturn();
-	assert(finalEval->typeInfo->type == targetTypeInfo.type);
+	assert(finalEval->typeInfo->type == targetTypeInfo->type);
     if(m_prototype->getReturnType()->isVoidTy())
 		codegen.Builder().CreateRetVoid();
 	else {

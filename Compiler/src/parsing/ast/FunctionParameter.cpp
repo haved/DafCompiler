@@ -118,7 +118,7 @@ bool ValueParameter::acceptsOrComplain(FunctionCallArgument& arg) {
 }
 
 optional<EvaluatedExpression> ValueParameter::codegenCastToCorrectType(CodegenLLVM& codegen, optional<EvaluatedExpression> eval) {
-	return codegenTypeConversion(codegen, eval, m_typeInfo);
+	return codegenTypeConversion(codegen, eval, &m_typeInfo);
 }
 
 ValueParameterTypeInferred::ValueParameterTypeInferred(ParameterModifier modif, std::string&& name, std::string&& typeName, const TextRange& range) : FunctionParameter(std::move(name), range), m_modif(modif), m_typeName(std::move(typeName)) {

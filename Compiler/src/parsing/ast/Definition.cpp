@@ -144,7 +144,7 @@ void Let::localCodegen(CodegenLLVM& codegen) {
 	assert(type);
 	if(m_stealSpaceFromTarget) {
 		optional<EvaluatedExpression> opt_expr = m_expression->codegenExpression(codegen);
-		opt_expr = codegenTypeConversion(codegen, opt_expr, m_typeInfo);
+		opt_expr = codegenTypeConversion(codegen, opt_expr, &m_typeInfo);
 		assert(opt_expr && "the pointer at which we're supposed to put the let is boost::none");
 		assert(opt_expr->typeInfo->type == m_typeInfo.type);
 		m_space = opt_expr->getPointerToValue(codegen);
@@ -156,7 +156,7 @@ void Let::localCodegen(CodegenLLVM& codegen) {
 		if(m_expression) {
 			optional<EvaluatedExpression> opt_expr = m_expression->codegenExpression(codegen);
 			ExprTypeInfo AnonLHS(m_typeInfo.type, ValueKind::ANONYMOUS);
-			opt_expr = codegenTypeConversion(codegen, opt_expr, AnonLHS);
+			opt_expr = codegenTypeConversion(codegen, opt_expr, &AnonLHS);
 			if(!opt_expr)
 				return;
 			EvaluatedExpression expr = *opt_expr;

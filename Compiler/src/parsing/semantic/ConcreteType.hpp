@@ -22,6 +22,8 @@ public:
 	//TODO: =0
 	virtual bool hasSize();
 	//TODO: =0
+	//virtual CastPossible canConvertTo(ExprTypeInfo& B);
+	//TODO: =0
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen);
 };
 

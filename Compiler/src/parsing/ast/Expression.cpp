@@ -276,7 +276,7 @@ ConcretableState InfixOperatorExpression::retryMakeConcreteInternal(DependencyMa
 
 optional<EvaluatedExpression> InfixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
 	assert(allConcrete() << getConcretableState());
-	return codegenBinaryOperator(codegen, m_LHS.get(), m_op, m_RHS.get(), m_typeInfo, getRange());
+	return codegenBinaryOperator(codegen, m_LHS.get(), m_op, m_RHS.get(), &m_typeInfo);
 }
 
 
@@ -309,7 +309,7 @@ ConcretableState PrefixOperatorExpression::retryMakeConcreteInternal(DependencyM
 }
 
 optional<EvaluatedExpression> PrefixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
-    return codegenPrefixOperator(codegen, m_op, m_RHS.get(), m_typeInfo);
+    return codegenPrefixOperator(codegen, m_op, m_RHS.get(), &m_typeInfo);
 }
 
 PostfixCrementExpression::PostfixCrementExpression(std::unique_ptr<Expression>&& LHS, bool decrement, int opLine, int opEndCol) : Expression(TextRange(LHS->getRange(), opLine, opEndCol)), m_decrement(decrement), m_LHS(std::move(LHS)) {
@@ -503,7 +503,7 @@ optional<EvaluatedExpression> FunctionCallExpression::codegenExpression(CodegenL
 	llvm::Value* returnVal = codegen.Builder().CreateCall(prototype, args);
 
     EvaluatedExpression val(returnVal, funcType->isReferenceReturn(), &funcType->getReturnTypeInfo());
-	val = *codegenTypeConversion(codegen, val, m_typeInfo);
+	val = *codegenTypeConversion(codegen, val, &m_typeInfo);
 
     return val;
 }

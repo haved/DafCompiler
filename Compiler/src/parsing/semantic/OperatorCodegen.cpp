@@ -95,7 +95,7 @@ optional<ExprTypeInfo> getBinaryOpNumericalResultType(const ExprTypeInfo& LHS_gi
 	if(isBinaryOpNumericalToBoolean(op)) {
 	    if(isOpComparsion(op) && LHS_prim->isSigned() != RHS_prim->isSigned())
 			logDaf(range, WARNING) << "comparsion between signed and unsigned types" << std::endl;
-		return getAnonBooleanTyI();
+		return *getAnonBooleanTyI();
 	}
 
 	PrimitiveType* common = findCommonPrimitiveType(LHS_prim, RHS_prim);
@@ -130,10 +130,8 @@ optional<ExprTypeInfo> getBinaryOpResultType(const ExprTypeInfo& LHS, InfixOpera
     return boost::none;
 }
 
-EvaluatedExpression codegenBinaryOperatorNumerical(CodegenLLVM& codegen, EvaluatedExpression& LHS, InfixOperator op, EvaluatedExpression& RHS, const ExprTypeInfo& target, const TextRange& range) {
-	(void)range;
-
-	PrimitiveType* target_prim = castToPrimitveType(target.type);
+EvaluatedExpression codegenBinaryOperatorNumerical(CodegenLLVM& codegen, EvaluatedExpression& LHS, InfixOperator op, EvaluatedExpression& RHS, ExprTypeInfo* target) {
+	PrimitiveType* target_prim = castToPrimitveType(target->type);
 
 	EvaluatedExpression LHS_expr = *codegenTypeConversion(codegen, LHS, target);
 	EvaluatedExpression RHS_expr = *codegenTypeConversion(codegen, RHS, target);
@@ -148,21 +146,21 @@ EvaluatedExpression codegenBinaryOperatorNumerical(CodegenLLVM& codegen, Evaluat
 	case InfixOperator::PLUS:
 		return EvaluatedExpression(floating
 								   ? codegen.Builder().CreateFAdd(LHS_value, RHS_value, "addtmp")
-								   : codegen.Builder().CreateAdd(LHS_value, RHS_value), false, &target);
+								   : codegen.Builder().CreateAdd(LHS_value, RHS_value), false, target);
 	case InfixOperator::MINUS:
 		return EvaluatedExpression(floating
 								   ? codegen.Builder().CreateFSub(LHS_value, RHS_value, "minustmp")
-								   : codegen.Builder().CreateSub(LHS_value, RHS_value), false, &target);
+								   : codegen.Builder().CreateSub(LHS_value, RHS_value), false, target);
 	case InfixOperator::MULT:
 		return EvaluatedExpression(floating
 								   ? codegen.Builder().CreateFMul(LHS_value, RHS_value, "multtmp")
-								   : codegen.Builder().CreateMul(LHS_value, RHS_value), false, &target);
+								   : codegen.Builder().CreateMul(LHS_value, RHS_value), false, target);
 	case InfixOperator::DIVIDE:
 		return EvaluatedExpression(floating
 								   ? codegen.Builder().CreateFDiv(LHS_value, RHS_value, "divtmp")
 								   : isSigned
 								   ? codegen.Builder().CreateSDiv(LHS_value, RHS_value)
-								   : codegen.Builder().CreateUDiv(LHS_value, RHS_value), false, &target);
+								   : codegen.Builder().CreateUDiv(LHS_value, RHS_value), false, target);
 	case InfixOperator::GREATER:
 		//return EvaluatedExpression(codegen.Builder().Create(), false, getAnonBooleanTyI());
     default:
@@ -171,20 +169,20 @@ EvaluatedExpression codegenBinaryOperatorNumerical(CodegenLLVM& codegen, Evaluat
 	}
 }
 
-optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, Expression* LHS, InfixOperator op, Expression* RHS, const ExprTypeInfo& target, const TextRange& range) {
+optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, Expression* LHS, InfixOperator op, Expression* RHS, ExprTypeInfo* target) {
 	if(isBinaryOpNumerical(op)) {
 	    optional<EvaluatedExpression> LHS_expr = LHS->codegenExpression(codegen);
 		optional<EvaluatedExpression> RHS_expr = RHS->codegenExpression(codegen);
 		if(LHS_expr && RHS_expr)
-			return codegenBinaryOperatorNumerical(codegen, *LHS_expr, op, *RHS_expr, target, range);
+			return codegenBinaryOperatorNumerical(codegen, *LHS_expr, op, *RHS_expr, target);
 		return boost::none;
 	}
 	else if(op == InfixOperator::ASSIGN) {
 		optional<EvaluatedExpression> LHS_assign = LHS->codegenExpression(codegen);
 	    optional<EvaluatedExpression> LHS_correctType = codegenTypeConversion(codegen, LHS_assign, target);
 		optional<EvaluatedExpression> RHS_expr = RHS->codegenExpression(codegen);
-	    ExprTypeInfo AnonTarget(target.type, ValueKind::ANONYMOUS);
-		optional<EvaluatedExpression> RHS_correctType = codegenTypeConversion(codegen, RHS_expr, AnonTarget);
+	    ExprTypeInfo AnonTarget(target->type, ValueKind::ANONYMOUS);
+		optional<EvaluatedExpression> RHS_correctType = codegenTypeConversion(codegen, RHS_expr, &AnonTarget);
 		if(!LHS_assign || !RHS_correctType)
 			return boost::none;
 
@@ -193,7 +191,7 @@ optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, Expres
 
 		codegen.Builder().CreateStore(value, address);
 
-		return EvaluatedExpression(address, true, &target);
+		return EvaluatedExpression(address, true, target);
 	}
 	assert(false);
 	return boost::none;
@@ -234,35 +232,34 @@ optional<ExprTypeInfo> getPrefixOpResultType(const PrefixOperator& op, const Exp
 	return boost::none;
 }
 
-optional<EvaluatedExpression> codegenPointerToOperator(CodegenLLVM& codegen, bool mut, Expression* RHS, const ExprTypeInfo& target) {
+optional<EvaluatedExpression> codegenPointerToOperator(CodegenLLVM& codegen, bool mut, Expression* RHS, ExprTypeInfo* target) {
 	(void) mut;
-	assert(target.type->getConcreteTypeKind() == ConcreteTypeKind::POINTER);
-    ExprTypeInfo derefTarget = static_cast<ConcretePointerType*>(target.type)->getDerefResultExprTypeInfo();
+	assert(target && target->type->getConcreteTypeKind() == ConcreteTypeKind::POINTER);
+    ExprTypeInfo derefTarget = static_cast<ConcretePointerType*>(target->type)->getDerefResultExprTypeInfo();
 
 	optional<EvaluatedExpression> RHS_eval = RHS->codegenExpression(codegen);
-	optional<EvaluatedExpression> derefEvalExpr = codegenTypeConversion(codegen, RHS_eval, derefTarget);
+	optional<EvaluatedExpression> derefEvalExpr = codegenTypeConversion(codegen, RHS_eval, &derefTarget);
 	if(!derefEvalExpr)
 		return boost::none;
 
-	return EvaluatedExpression(derefEvalExpr->getPointerToValue(codegen), false, &target);
+	return EvaluatedExpression(derefEvalExpr->getPointerToValue(codegen), false, target);
 }
 
-optional<EvaluatedExpression> codegenDereferenceOperator(CodegenLLVM& codegen, Expression* RHS, const ExprTypeInfo& target) {
-
+optional<EvaluatedExpression> codegenDereferenceOperator(CodegenLLVM& codegen, Expression* RHS, ExprTypeInfo* target) {
 	assert(RHS->getTypeInfo().type->getConcreteTypeKind() == ConcreteTypeKind::POINTER);
 	ConcretePointerType* pointer_type = static_cast<ConcretePointerType*>(RHS->getTypeInfo().type);
 	ExprTypeInfo pointerTypeInfo(pointer_type, ValueKind::ANONYMOUS);
 
 	optional<EvaluatedExpression> RHS_eval = RHS->codegenExpression(codegen);
-	optional<EvaluatedExpression> pointer_eval = codegenTypeConversion(codegen, RHS_eval, pointerTypeInfo);
+	optional<EvaluatedExpression> pointer_eval = codegenTypeConversion(codegen, RHS_eval, &pointerTypeInfo);
 
 	if(!pointer_eval)
 		return boost::none;
 
-	return EvaluatedExpression(pointer_eval->getValue(codegen), true, &target);
+	return EvaluatedExpression(pointer_eval->getValue(codegen), true, target);
 }
 
-optional<EvaluatedExpression> codegenPrefixOperator(CodegenLLVM& codegen, const PrefixOperator& op, Expression* RHS, const ExprTypeInfo& target) {
+optional<EvaluatedExpression> codegenPrefixOperator(CodegenLLVM& codegen, const PrefixOperator& op, Expression* RHS, ExprTypeInfo* target) {
 	assert(RHS);
 	switch(op.tokenType) {
 	case MUT_REF: return codegenPointerToOperator(codegen, true,  RHS, target);
