@@ -34,3 +34,5 @@ struct EvaluatedExpression {
 	llvm::Value* getPointerToValue(CodegenLLVM& codegen);
 	bool isReference();
 };
+
+EvaluatedExpression castEvaluatedExpression(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* to);

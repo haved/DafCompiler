@@ -35,12 +35,14 @@ CastPossible canConvertTypeFromTo(ExprTypeInfo A, ExprTypeInfo B) {
 
 	if(B_t == getVoidType())
 		return CastPossible::IMPLICITLY;
-	if(A_t == getVoidType())
-		return CastPossible::IMPOSSIBLE;
 
 	if(A_t == B_t)
 		return getValueKindScore(A.valueKind) >= getValueKindScore(B.valueKind) ?
 			CastPossible::IMPLICITLY : CastPossible::IMPOSSIBLE;
+
+	CastPossible givenFromType = A_t->canConvertTo(A.valueKind, B);
+	if(givenFromType != CastPossible::IMPOSSIBLE)
+		return givenFromType;
 
 	if(isFunctionType(A))
 		return canConvertFunctionTypeTo(castToFunctionType(A_t), B);
@@ -191,17 +193,14 @@ optional<EvaluatedExpression> codegenTypeConversion(CodegenLLVM& codegen, option
 
 	assert(canConvertTypeFromTo(*eval.typeInfo, *target) != CastPossible::IMPOSSIBLE); //@Optimize slow assert
 
-    optional<EvaluatedExpression> typeGivenEval = eval.typeInfo->type->codegenTypeConversion(codegen, eval, target);
-	if(typeGivenEval)
-		return typeGivenEval;
-
 	if(B_t == getVoidType())
 		return EvaluatedExpression(nullptr, false, target);
-	if(A_t == B_t) {
-		assert(getValueKindScore(A_ti.valueKind) >= getValueKindScore(target->valueKind));
-		bool ref = isReferenceValueKind(target->valueKind);
-		return EvaluatedExpression(ref ? eval.getPointerToValue(codegen) : eval.getValue(codegen), ref, target);
-	}
+	if(A_t == B_t)
+		return castEvaluatedExpression(codegen, eval, target);
+
+	optional<EvaluatedExpression> typeGivenEval = eval.typeInfo->type->codegenTypeConversion(codegen, eval, target);
+	if(typeGivenEval)
+		return typeGivenEval;
 
 	if(isFunctionType(A_t))
 		return codegenFunctionTypeConversion(codegen, castToFunctionType(A_t), target);

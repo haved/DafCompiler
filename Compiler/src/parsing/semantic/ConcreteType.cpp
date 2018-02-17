@@ -1,5 +1,6 @@
 #include "parsing/semantic/ConcreteType.hpp"
 #include "parsing/ast/ExprTypeInfo.hpp"
+#include "parsing/semantic/TypeConversion.hpp"
 #include "CodegenLLVM.hpp"
 #include <map>
 
@@ -15,6 +16,16 @@ void printConcreteTypeKind(ConcreteTypeKind kind, std::ostream& out) {
 
 bool ConcreteType::hasSize() {
 	return true;
+}
+
+CastPossible ConcreteType::canConvertTo(ValueKind fromKind, ExprTypeInfo& to) {
+	(void) fromKind; (void) to;
+	return CastPossible::IMPOSSIBLE;
+}
+
+optional<EvaluatedExpression> ConcreteType::codegenTypeConversion(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) {
+	(void) codegen; (void) from; (void) target;
+	return boost::none;
 }
 
 llvm::Type* ConcreteType::codegenType(CodegenLLVM& codegen) {
@@ -43,6 +54,23 @@ bool ConcretePointerType::hasSize() {
 
 ExprTypeInfo ConcretePointerType::getDerefResultExprTypeInfo() {
 	return ExprTypeInfo(m_target, m_mut ? ValueKind::MUT_LVALUE : ValueKind::LVALUE);
+}
+
+
+CastPossible ConcretePointerType::canConvertTo(ValueKind fromKind, ExprTypeInfo& target) {
+    if(target.type->getConcreteTypeKind() != ConcreteTypeKind::POINTER)
+		return CastPossible::IMPOSSIBLE;
+
+	ConcretePointerType* ptr_type = static_cast<ConcretePointerType*>(target.type);
+	if(ptr_type->m_target != m_target)
+		return CastPossible::IMPOSSIBLE;
+
+	return (getValueKindScore(fromKind) >= getValueKindScore(target.valueKind))
+		? CastPossible::IMPLICITLY : CastPossible::IMPOSSIBLE;
+}
+
+optional<EvaluatedExpression> ConcretePointerType::codegenTypeConversion(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) {
+	return castEvaluatedExpression(codegen, from, target);
 }
 
 llvm::Type* ConcretePointerType::codegenType(CodegenLLVM& codegen) {

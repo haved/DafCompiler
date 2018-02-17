@@ -74,3 +74,9 @@ llvm::Value* EvaluatedExpression::getPointerToValue(CodegenLLVM& codegen) {
 bool EvaluatedExpression::isReference() {
     return typeInfo->isReference();
 }
+
+EvaluatedExpression castEvaluatedExpression(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* to) {
+	assert(getValueKindScore(from.typeInfo->valueKind) >= getValueKindScore(to->valueKind));
+	bool ref = isReferenceValueKind(to->valueKind);
+	return EvaluatedExpression(ref ? from.getPointerToValue(codegen) : from.getValue(codegen), ref, to);
+}
