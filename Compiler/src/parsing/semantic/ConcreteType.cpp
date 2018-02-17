@@ -57,15 +57,18 @@ ExprTypeInfo ConcretePointerType::getDerefResultExprTypeInfo() {
 }
 
 
-CastPossible ConcretePointerType::canConvertTo(ValueKind fromKind, ExprTypeInfo& target) {
-    if(target.type->getConcreteTypeKind() != ConcreteTypeKind::POINTER)
+CastPossible ConcretePointerType::canConvertTo(ValueKind fromKind, ExprTypeInfo& to) {
+    if(to.type->getConcreteTypeKind() != ConcreteTypeKind::POINTER)
 		return CastPossible::IMPOSSIBLE;
 
-	ConcretePointerType* ptr_type = static_cast<ConcretePointerType*>(target.type);
-	if(ptr_type->m_target != m_target)
+	ConcretePointerType* to_ptr_type = static_cast<ConcretePointerType*>(to.type);
+	if(to_ptr_type->m_target != m_target)
 		return CastPossible::IMPOSSIBLE;
 
-	return (getValueKindScore(fromKind) >= getValueKindScore(target.valueKind))
+	if(to_ptr_type->m_mut && !m_mut)
+		return CastPossible::IMPOSSIBLE;
+
+	return (getValueKindScore(fromKind) >= getValueKindScore(to.valueKind))
 		? CastPossible::IMPLICITLY : CastPossible::IMPOSSIBLE;
 }
 
