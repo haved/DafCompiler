@@ -137,9 +137,9 @@ optional<EvaluatedExpression> VariableExpression::codegenExpression(CodegenLLVM&
 	}
 }
 
-FunctionParameterExpression::FunctionParameterExpression(FunctionType* funcType, unsigned paramIndex, const TextRange& range) :
-	Expression(range), m_funcType(funcType), m_parameterIndex(paramIndex) {
-	assert(m_funcType && m_funcType->getFunctionExpression());
+FunctionParameterExpression::FunctionParameterExpression(FunctionExpression* funcExpr, unsigned paramIndex, const TextRange& range) :
+	Expression(range), m_funcExpr(funcExpr), m_parameterIndex(paramIndex) {
+	assert(m_funcExpr);
 }
 
 ExpressionKind FunctionParameterExpression::getExpressionKind() const {
@@ -153,7 +153,7 @@ void FunctionParameterExpression::printSignature() {
 ConcretableState FunctionParameterExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 	(void) ns_stack;
 
-	param_list& params = m_funcType->getParameters();
+	param_list& params = m_funcExpr->getParameters();
 	assert(m_parameterIndex < params.size());
 
 	FunctionParameter* param = params[m_parameterIndex].get();

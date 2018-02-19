@@ -32,7 +32,7 @@ enum class ParameterModifier {
 };
 
 class Let;
-class FunctionType;
+class FunctionExpression;
 // uncrt a:int
 class ValueParameter : public FunctionParameter {
 private:
@@ -45,7 +45,7 @@ public:
 	virtual void printSignature() override;
 	virtual ParameterKind getParameterKind() const override;
 
-	unique_ptr<Let> makeLet(FunctionType* funcType, int paramIndex);
+	unique_ptr<Let> makeLet(FunctionExpression* func, int paramIndex);
 
     virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;

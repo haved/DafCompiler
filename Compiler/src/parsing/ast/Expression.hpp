@@ -94,13 +94,13 @@ public:
 	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
 };
 
-class FunctionType;
+class FunctionExpression;
 class FunctionParameterExpression : public Expression {
 private:
-	FunctionType* m_funcType;
+	FunctionExpression* m_funcExpr;
 	unsigned m_parameterIndex;
 public:
-	FunctionParameterExpression(FunctionType* m_funcType, unsigned parameterIndex, const TextRange& range);
+	FunctionParameterExpression(FunctionExpression* funcExpr, unsigned parameterIndex, const TextRange& range);
 	FunctionParameterExpression(const FunctionParameterExpression& other) = delete;
 	FunctionParameterExpression& operator=(const FunctionParameterExpression& other) = delete;
 

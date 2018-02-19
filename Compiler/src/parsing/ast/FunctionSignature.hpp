@@ -36,6 +36,7 @@ public:
 	void printSignature();
 	bool addReturnKindModifier(ReturnKind kind);
 	bool hasReturn();
+	bool hasReferenceReturn();
 
 	param_list& getParameters();
 };
@@ -64,7 +65,6 @@ public:
 	FunctionExpression(unique_ptr<FunctionType>&& type, std::string&& foreign_name, TextRange& range);
 	FunctionExpression(const FunctionExpression& other)=delete;
 	FunctionExpression& operator=(const FunctionExpression& other)=delete;
-	~FunctionExpression();
 
 	virtual ExpressionKind getExpressionKind() const override;
 	virtual ConcreteTypeKind getConcreteTypeKind() const override;
@@ -72,14 +72,14 @@ public:
 
 	void setFunctionName(std::string& name);
 
+	Expression* getBody();
 	bool hasReturn();
-	bool isReferenceReturn();
+	bool hasReferenceReturn();
 	bool canBeCalledImplicitlyOnce();
 	virtual bool hasSize() override;
-	Expression* getBody();
 
-	bool readyParameterLets();
 	param_list& getParameters();
+	bool readyParameterLets();
 	parameter_let_list& getParameterLetList();
 	virtual Definition* tryGetDefinitionFromName(const std::string& name) override;
 

@@ -88,26 +88,13 @@ bool FunctionType::hasReturn() {
 	return m_givenReturnKind != ReturnKind::NO_RETURN;
 }
 
-bool FunctionType::
+bool FunctionType::hasReferenceReturn() {
+	return hasReturn() && m_givenReturnKind != ReturnKind::VALUE_RETURN;
+}
 
 param_list& FunctionType::getParameters() {
 	return m_parameters;
 }
-
-/*bool FunctionType::readyParameterLets() {
-	for(unsigned int i = 0; i < m_parameters.size(); i++) {
-		FunctionParameter* param = m_parameters[i].get();
-		assert(param->getParameterKind() == ParameterKind::VALUE_PARAM);
-		ValueParameter* valParam = static_cast<ValueParameter*>(param);
-		unique_ptr<Let> paramLet = valParam->makeLet(this, i);
-		if(!paramLet)
-			return false;
-	    paramLet->addToMap(m_parameter_map);
-		m_parameter_lets.push_back(std::move(paramLet));
-	}
-	return true;
-}
-*/
 
 
 CastPossible isReturnCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind, const ExprTypeInfo& given) {
@@ -182,6 +169,10 @@ void FunctionExpression::setFunctionName(std::string& name) {
 		m_function_name = name;
 }
 
+Expression* FunctionExpression::getBody() {
+	return m_function_body ? m_function_body->get() : nullptr;
+}
+
 bool FunctionExpression::hasReturn() {
 	return m_type->hasReturn();
 }
@@ -190,12 +181,35 @@ bool FunctionExpression::hasReferenceReturn() {
 	return m_type->hasReferenceReturn();
 }
 
-Expression* FunctionExpression::getBody() {
-	return m_function_body ? m_function_body->get() : nullptr;
+bool FunctionExpression::canBeCalledImplicitlyOnce() {
+	return getParameters().empty();
 }
 
 bool FunctionExpression::hasSize() {
 	return false; //TODO: Closures have size
+}
+
+param_list& FunctionExpression::getParameters() {
+	return m_type->getParameters();
+}
+
+bool FunctionExpression::readyParameterLets() {
+	auto& params = getParameters();
+	for(unsigned int i = 0; i < params.size(); i++) {
+		FunctionParameter* param = params[i].get();
+		assert(param->getParameterKind() == ParameterKind::VALUE_PARAM);
+		ValueParameter* valParam = static_cast<ValueParameter*>(param);
+		unique_ptr<Let> paramLet = valParam->makeLet(this, i);
+		if(!paramLet)
+			return false;
+	    paramLet->addToMap(m_parameter_map);
+		m_parameter_lets.push_back(std::move(paramLet));
+	}
+	return true;
+}
+
+parameter_let_list& FunctionExpression::getParameterLetList() {
+	return m_parameter_lets;
 }
 
 ExprTypeInfo& FunctionExpression::getReturnTypeInfo() {

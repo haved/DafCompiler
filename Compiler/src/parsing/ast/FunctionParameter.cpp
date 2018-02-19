@@ -64,11 +64,11 @@ ValueKind parameterModifierToArgValueKind(ParameterModifier modif) {
 	}
 }
 
-unique_ptr<Let> ValueParameter::makeLet(FunctionType* funcType, int paramIndex) {
+unique_ptr<Let> ValueParameter::makeLet(FunctionExpression* func, int paramIndex) {
 	ValueKind kind = parameterModifierToArgValueKind(m_modif);
 	bool mut = kind == ValueKind::MUT_LVALUE;
 	bool ref = isReferenceParameter();
-	unique_ptr<Expression> expr = std::make_unique<FunctionParameterExpression>(funcType, paramIndex, m_range);
+	unique_ptr<Expression> expr = std::make_unique<FunctionParameterExpression>(func, paramIndex, m_range);
 	return std::make_unique<Let>(false, mut, std::string(m_name), TypeReference(), std::move(expr), m_range, ref);
 }
 
