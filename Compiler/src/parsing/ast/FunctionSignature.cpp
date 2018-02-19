@@ -3,6 +3,7 @@
 #include "DafLogger.hpp"
 #include "CodegenLLVM.hpp"
 #include "info/DafSettings.hpp"
+#include "parsing/semantic/ConcreteType.hpp"
 #include "parsing/semantic/ConcretableHelp.hpp"
 #include "parsing/semantic/TypeConversion.hpp"
 
@@ -87,6 +88,8 @@ bool FunctionType::hasReturn() {
 	return m_givenReturnKind != ReturnKind::NO_RETURN;
 }
 
+bool FunctionType::
+
 param_list& FunctionType::getParameters() {
 	return m_parameters;
 }
@@ -118,120 +121,22 @@ void complainReturnIsntCorrect(optional<ConcreteType*> requiredType, ValueKind r
     complainThatTypeCantBeConverted(given, requiredType, requiredKind, poss, range);
 }
 
-ConcretableState FunctionType::retryMakeConcreteInternal(DependencyMap& depMap) {
-	(void) depMap;
-
-	if(hasReturn()) {
-	    ValueKind reqKind = returnKindToValueKind(m_givenReturnKind);
-		optional<ConcreteType*> reqType(boost::none);
-		if(m_givenReturnType)
-			reqType = m_givenReturnType->getType()->getConcreteType();
-
-		if(m_functionExpression && (*m_functionExpression)->getBody()) {
-			Expression* body = (*m_functionExpression)->getBody();
-			ExprTypeInfo bodyTypeInfo = body->getTypeInfo();
-
-			if(bodyTypeInfo.isVoid()) {
-				logDaf(getRange(), ERROR) << "function with a return has void body" << std::endl;
-				return ConcretableState::LOST_CAUSE;
-			}
-
-			CastPossible returnPoss;
-			while((returnPoss = isReturnCorrect(reqType, reqKind, bodyTypeInfo)) != CastPossible::IMPLICITLY) {
-				if(isFunctionType(bodyTypeInfo)) {
-					FunctionType* func = castToFunctionType(bodyTypeInfo.type);
-					if(func->canBeCalledImplicitlyOnce()) {
-						bodyTypeInfo = func->getReturnTypeInfo();
-						continue;
-					}
-				}
-				complainReturnIsntCorrect(reqType, reqKind, body->getTypeInfo(), returnPoss, body->getRange());
-				return ConcretableState::LOST_CAUSE;
-			}
-
-			if(reqType) {
-				m_returnTypeInfo = ExprTypeInfo(*reqType, reqKind);
-			} else {
-				m_returnTypeInfo = bodyTypeInfo;
-				degradeValueKind(m_returnTypeInfo, reqKind);
-			}
-		} else {
-			assert(reqType);
-			m_returnTypeInfo = ExprTypeInfo(*reqType, reqKind);
-		}
-
-		if(canBeCalledImplicitlyOnce()) {
-			if(isFunctionType(m_returnTypeInfo)) {
-				m_implicitCallReturnTypeInfo = castToFunctionType(m_returnTypeInfo.type)->getImplicitCallReturnTypeInfo();
-			} else {
-				m_implicitCallReturnTypeInfo = m_returnTypeInfo;
-			}
-		}
-	} else { //The point of no return
-		m_returnTypeInfo = ExprTypeInfo(getVoidType(), ValueKind::ANONYMOUS);
-		if(canBeCalledImplicitlyOnce())
-			m_implicitCallReturnTypeInfo = m_returnTypeInfo;
-	} //And there's something in the air
-
-	return ConcretableState::CONCRETE;
-}
-
-ExprTypeInfo& FunctionType::getReturnTypeInfo() {
-	assert(isConcrete());
-	return m_returnTypeInfo;
-}
-
-optional<ExprTypeInfo>& FunctionType::getImplicitCallReturnTypeInfo() {
-	assert(isConcrete());
-	return m_implicitCallReturnTypeInfo;
-}
-
-llvm::FunctionType* FunctionType::codegenFunctionType(CodegenLLVM& codegen) {
-	assert(isConcrete());
-	std::vector<llvm::Type*> argumentTypes;
-	for(auto& param : m_parameters) {
-	    assert(param->getParameterKind() == ParameterKind::VALUE_PARAM && "We only support value params");
-		ValueParameter* valParam = static_cast<ValueParameter*>(param.get());
-		llvm::Type* type = valParam->getTypeInfo().type->codegenType(codegen);
-		if(valParam->isReferenceParameter())
-			type = llvm::PointerType::getUnqual(type);
-		argumentTypes.push_back(type);
-	}
-
-	llvm::Type* returnType = nullptr;
-	if(m_returnTypeInfo.type->hasSize()) {
-	    returnType = m_returnTypeInfo.type->codegenType(codegen);
-		if(!returnType)
-			return nullptr;
-
-		if(isReferenceReturn())
-			returnType = llvm::PointerType::getUnqual(returnType);
-	} else
-		returnType = llvm::Type::getVoidTy(codegen.Context());
-
-	return llvm::FunctionType::get(returnType, argumentTypes, false);
-}
-
-bool FunctionType::hasSize() {
-	return false; //TODO: Closures have size
-}
-
-llvm::Type* FunctionType::codegenType(CodegenLLVM& codegen) {
-	return codegenFunctionType(codegen);
-}
-
 
 FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& function_body,
 									   TextRange& range) :
 	Expression(range),
+	ConcreteType(),
 	m_type(std::move(type)),
 	m_function_body(std::move(function_body)),
 	m_function_name(boost::none),
+	m_parameter_lets(),
+	m_parameter_map(),
+	m_returnTypeInfo(getNoneTypeInfo()),
+	m_implicitCallReturnTypeInfo(boost::none),
 	m_broken_prototype(false),
 	m_filled_prototype(false),
 	m_prototype() {
-	assert(*m_function_body);
-	m_type->setFunctionExpression(this);
+	assert(m_type && *m_function_body);
 }
 
 FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, std::string&& foreign_name,
@@ -240,14 +145,18 @@ FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, std::str
 	m_type(std::move(type)),
 	m_function_body(boost::none),
 	m_function_name(foreign_name),
+	m_parameter_lets(),
+	m_parameter_map(),
+	m_returnTypeInfo(getNoneTypeInfo()),
+	m_implicitCallReturnTypeInfo(boost::none),
 	m_broken_prototype(false),
 	m_filled_prototype(false),
 	m_prototype() {
-	m_type->setFunctionExpression(this);
+	assert(m_type);
 }
 
-FunctionExpression::~FunctionExpression() {
-	//Hey there, we just need to define this destructor here to allow forward declaration of unique_ptr<Let>
+bool FunctionExpression::isConcrete() {
+	return allConcrete() << getConcretableState();
 }
 
 ExpressionKind FunctionExpression::getExpressionKind() const {
@@ -267,18 +176,67 @@ void FunctionExpression::printSignature() {
 		std::cout << "{Wut? A function with neither a name nor a body??}" << std::endl;
 }
 
-FunctionType* FunctionExpression::getFunctionType() {
-	return m_type.get();
+void FunctionExpression::setFunctionName(std::string& name) {
+	assert(!m_prototype && !m_broken_prototype);
+	if(!m_function_name)
+		m_function_name = name;
+}
+
+bool FunctionExpression::hasReturn() {
+	return m_type->hasReturn();
+}
+
+bool FunctionExpression::hasReferenceReturn() {
+	return m_type->hasReferenceReturn();
 }
 
 Expression* FunctionExpression::getBody() {
 	return m_function_body ? m_function_body->get() : nullptr;
 }
 
-void FunctionExpression::setFunctionName(std::string& name) {
-	if(!m_function_name)
-		m_function_name = name;
+bool FunctionExpression::hasSize() {
+	return false; //TODO: Closures have size
 }
+
+ExprTypeInfo& FunctionExpression::getReturnTypeInfo() {
+	assert(isConcrete());
+	return m_returnTypeInfo;
+}
+
+optional<ExprTypeInfo>& FunctionExpression::getImplicitCallReturnTypeInfo() {
+	assert(isConcrete());
+	return m_implicitCallReturnTypeInfo;
+}
+
+llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen, param_list& params, ExprTypeInfo& returnType) {
+	std::vector<llvm::Type*> argumentTypes;
+	for(auto& param : params) {
+	    assert(param->getParameterKind() == ParameterKind::VALUE_PARAM && "We only support value params");
+		ValueParameter* valParam = static_cast<ValueParameter*>(param.get());
+		llvm::Type* type = valParam->getTypeInfo().type->codegenType(codegen);
+		if(valParam->isReferenceParameter())
+			type = llvm::PointerType::getUnqual(type);
+		argumentTypes.push_back(type);
+	}
+
+	llvm::Type* returnTypeLLVM = nullptr;
+	if(returnType.type->hasSize()) {
+	    returnTypeLLVM = returnType.type->codegenType(codegen);
+		if(!returnTypeLLVM)
+			return nullptr;
+
+		if(returnType.isReference())
+			returnTypeLLVM = llvm::PointerType::getUnqual(returnTypeLLVM);
+	} else
+		returnTypeLLVM = llvm::Type::getVoidTy(codegen.Context());
+
+	return llvm::FunctionType::get(returnTypeLLVM, argumentTypes, false);
+}
+
+llvm::Type* FunctionExpression::codegenType(CodegenLLVM& codegen) {
+	return llvm::Type::getVoidTy(codegen.Context());
+}
+
 
 ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 	auto conc = allConcrete();

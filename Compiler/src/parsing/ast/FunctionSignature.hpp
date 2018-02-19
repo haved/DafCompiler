@@ -58,6 +58,7 @@ private:
 
 	void makePrototype(CodegenLLVM& codegen);
 	void fillPrototype(CodegenLLVM& codegen);
+	bool isConcrete();
 public:
 	FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& function_body, TextRange& range);
 	FunctionExpression(unique_ptr<FunctionType>&& type, std::string&& foreign_name, TextRange& range);
@@ -74,14 +75,13 @@ public:
 	bool hasReturn();
 	bool isReferenceReturn();
 	bool canBeCalledImplicitlyOnce();
+	virtual bool hasSize() override;
+	Expression* getBody();
+
+	bool readyParameterLets();
 	param_list& getParameters();
 	parameter_let_list& getParameterLetList();
 	virtual Definition* tryGetDefinitionFromName(const std::string& name) override;
-
-	bool readyParameterLets();
-	Expression* getBody();
-
-	virtual bool hasSize() override;
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
