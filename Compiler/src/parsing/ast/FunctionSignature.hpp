@@ -18,6 +18,8 @@ enum class ReturnKind {
 };
 
 ValueKind returnKindToValueKind(ReturnKind kind);
+bool isFunction(ConcreteType* type);
+bool isFunction(Expression* expression);
 
 class FunctionExpression;
 using param_list = std::vector<unique_ptr<FunctionParameter> >;
@@ -40,6 +42,9 @@ public:
 	ReturnKind getGivenReturnKind();
 	Type* tryGetGivenReturnType();
 };
+
+
+FunctionExpression* castToFunction(ConcreteType* type);
 
 class Let;
 using parameter_let_list = std::vector<unique_ptr<Let> >;
@@ -75,6 +80,7 @@ public:
 
 	void setFunctionName(std::string& name);
 
+	//TODO: Do we need this?
 	Expression* getBody();
 	bool hasReturn();
 	bool hasReferenceReturn();
@@ -97,5 +103,4 @@ public:
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 
 	llvm::Function* tryGetOrMakePrototype(CodegenLLVM& codegen);
-
 };

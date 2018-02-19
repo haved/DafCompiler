@@ -75,7 +75,7 @@ ConcretableState Let::retryMakeConcreteInternal(DependencyMap& depMap) {
 	if(m_givenType) {
 		type = m_givenType.getType()->getConcreteType();
 		//TODO: Ask the type if it is possible to make a value of it
-		if(isFunctionType(type)) {
+		if(isFunction(type)) {
 			auto& out = logDaf(getRange(), ERROR) << "illegal type for let: ";
 			type->printSignature();
 			out << std::endl;

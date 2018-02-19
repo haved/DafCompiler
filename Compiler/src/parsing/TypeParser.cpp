@@ -10,7 +10,7 @@ TypeReference parseAliasForType(Lexer& lexer) {
 		  std::string(lexer.getPreviousToken().text), TextRange(lexer.getFile(), lexer.getPreviousToken())  ));
 }
 
-TypeReference parseFunctionType(Lexer& lexer) {
+unique_ptr<FunctionType> parseFunctionType(Lexer& lexer) {
 	//This one is defined in FunctionSignatureParser.hpp
 	ReturnKind defReturnKind = ReturnKind::VALUE_RETURN;
 	if(lexer.currType() == DEF) {
@@ -21,7 +21,7 @@ TypeReference parseFunctionType(Lexer& lexer) {
 	auto functionType = parseFunctionType(lexer, AllowEatingEqualsSign::NO, &ateEquals);
 	assert(!ateEquals);
 	functionType->addReturnKindModifier(defReturnKind);
-	return TypeReference(std::move(functionType));
+	return functionType;
 }
 
 TypeReference parsePrimitive(Lexer& lexer) {
@@ -44,10 +44,10 @@ TypeReference parsePointerType(Lexer& lexer) {
 
 TypeReference parseType(Lexer& lexer) {
 	switch(lexer.currType()) {
-	case LEFT_PAREN:
+		/*case LEFT_PAREN:
 		return parseFunctionType(lexer);
 	case DEF:
-		return parseFunctionType(lexer);
+	return parseFunctionType(lexer);*/
 	case REF:
 		return parsePointerType(lexer);
 	case IDENTIFIER:

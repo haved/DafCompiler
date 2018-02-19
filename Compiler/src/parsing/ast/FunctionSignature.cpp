@@ -44,6 +44,14 @@ void printReturnKind(ReturnKind kind, std::ostream& out) {
 		out << "mut ";
 }
 
+bool isFunction(ConcreteType* type) {
+	return type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION;
+}
+
+bool isFunction(Expression* expression) {
+	return expression->getExpressionKind() == ExpressionKind::FUNCTION;
+}
+
 FunctionType::FunctionType(param_list&& parameters, ReturnKind givenKind,
 						   optional<TypeReference> givenType, TextRange& range) :
 	m_range(range),
@@ -108,6 +116,13 @@ Type* FunctionType::tryGetGivenReturnType() {
 
 
 
+FunctionExpression* castToFunction(ConcreteType* type) {
+	assert(type && type->getConcreteTypeKind() == ConcreteTypeKind::FUNCTION);
+	return static_cast<FunctionExpression*>(type);
+}
+
+
+
 FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& function_body,
 									   TextRange& range) :
 	Expression(range),
@@ -149,6 +164,10 @@ ExpressionKind FunctionExpression::getExpressionKind() const {
 	return ExpressionKind::FUNCTION;
 }
 
+ConcreteTypeKind FunctionExpression::getConcreteTypeKind() const {
+	return ConcreteTypeKind::FUNCTION;
+}
+
 void FunctionExpression::printSignature() {
 	m_type->printSignature();
 	if(m_function_body) {
@@ -169,6 +188,7 @@ void FunctionExpression::setFunctionName(std::string& name) {
 }
 
 Expression* FunctionExpression::getBody() {
+	assert(false && "we use FunctionExpression::getBody()");
 	return m_function_body ? m_function_body->get() : nullptr;
 }
 
@@ -209,6 +229,10 @@ bool FunctionExpression::readyParameterLets() {
 
 parameter_let_list& FunctionExpression::getParameterLetList() {
 	return m_parameter_lets;
+}
+
+Definition* FunctionExpression::tryGetDefinitionFromName(const std::string& name) {
+    return m_parameter_map.tryGetDefinitionFromName(name);
 }
 
 ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
@@ -254,8 +278,46 @@ void complainReturnIsntCorrect(optional<ConcreteType*> requiredType, ValueKind r
 }
 
 ConcretableState FunctionExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
     m_typeInfo = ExprTypeInfo(this, ValueKind::ANONYMOUS);
-    
+
+	if(hasReturn()) {
+		optional<ConcreteType*> givenType = boost::none;
+		if(m_type->tryGetGivenReturnType())
+			givenType = m_type->tryGetGivenReturnType()->getConcreteType();
+		ValueKind givenValueKind = returnKindToValueKind(m_type->getGivenReturnKind());
+
+	    if(m_function_body) {
+		    ExprTypeInfo bodyTypeInfo = (*m_function_body)->getTypeInfo();
+			CastPossible canReturn = isReturnCorrect(givenType, givenValueKind, bodyTypeInfo);
+			if(canReturn != CastPossible::IMPLICITLY) {
+				complainReturnIsntCorrect(givenType, givenValueKind, bodyTypeInfo, canReturn, getRange());
+				return ConcretableState::LOST_CAUSE;
+			}
+			if(!givenType)
+				givenType = bodyTypeInfo.type;
+			m_returnTypeInfo = ExprTypeInfo(*givenType, givenValueKind);
+		} else {
+			if(givenType) {
+				m_returnTypeInfo = ExprTypeInfo(*givenType, givenValueKind);
+			} else {
+				logDaf(getRange(), ERROR) << "can not do implicit return type in external function" << std::endl;
+				return ConcretableState::LOST_CAUSE;
+			}
+		}
+	} else { //Point of NO_RETURN
+		//And there's something in  THE  A I R
+		m_returnTypeInfo = ExprTypeInfo(getVoidType(), ValueKind::ANONYMOUS);
+	}
+
+	assert(m_returnTypeInfo.type);
+	if(canBeCalledImplicitlyOnce()) {
+		m_implicitCallReturnTypeInfo = m_returnTypeInfo;
+		ConcreteType* type = m_returnTypeInfo.type;
+		if(isFunction(type))
+			m_implicitCallReturnTypeInfo = static_cast<FunctionExpression*>(type)->getImplicitCallReturnTypeInfo();
+	}
+
 	return ConcretableState::CONCRETE;
 }
 

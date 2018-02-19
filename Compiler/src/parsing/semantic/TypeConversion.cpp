@@ -3,7 +3,7 @@
 #include "CodegenLLVM.hpp"
 #include "DafLogger.hpp"
 
-CastPossible canConvertFunctionTypeTo(FunctionType* func, ExprTypeInfo B) {
+CastPossible canConvertFunctionTypeTo(FunctionExpression* func, ExprTypeInfo B) {
 	assert(func && B.type);
 	if(!func->canBeCalledImplicitlyOnce())
 	    return CastPossible::IMPOSSIBLE;
@@ -44,8 +44,8 @@ CastPossible canConvertTypeFromTo(ExprTypeInfo A, ExprTypeInfo B) {
 	if(givenFromType != CastPossible::IMPOSSIBLE)
 		return givenFromType;
 
-	if(isFunctionType(A))
-		return canConvertFunctionTypeTo(castToFunctionType(A_t), B);
+	if(isFunction(A.type))
+		return canConvertFunctionTypeTo(castToFunction(A_t), B);
 
 	if(isReferenceValueKind(B.valueKind)) //No way of getting a reference beyond the point
 		return CastPossible::IMPOSSIBLE;
@@ -92,7 +92,7 @@ optional<const ExprTypeInfo*> getPossibleConversion(const ExprTypeInfo& from, op
 		}
 
 		if(typeKind == ConcreteTypeKind::FUNCTION) {
-			FunctionType* func = castToFunctionType(from.type);
+			FunctionExpression* func = castToFunction(from.type);
 			optional<ExprTypeInfo>& implicit = func->getImplicitCallReturnTypeInfo();
 			if(implicit) {
 				ret = &*implicit;
@@ -121,10 +121,10 @@ optional<const ExprTypeInfo*> getPossibleConversion(const ExprTypeInfo& from, op
 }
 
 optional<const ExprTypeInfo*> getNonFunctionType(const ExprTypeInfo& from, const TextRange& range) {
-	if(!isFunctionType(from))
+	if(!isFunction(from.type))
 		return &from;
 
-	FunctionType* func = castToFunctionType(from.type);
+	FunctionExpression* func = castToFunction(from.type);
 	optional<ExprTypeInfo>& implicit = func->getImplicitCallReturnTypeInfo();
 	if(implicit)
 		return &*implicit;
@@ -135,11 +135,9 @@ optional<const ExprTypeInfo*> getNonFunctionType(const ExprTypeInfo& from, const
 	return boost::none;
 }
 
-optional<EvaluatedExpression> codegenFunctionTypeConversion(CodegenLLVM& codegen, FunctionType* func, ExprTypeInfo* target) {
+optional<EvaluatedExpression> codegenFunctionTypeConversion(CodegenLLVM& codegen, FunctionExpression* func, ExprTypeInfo* target) {
 	assert(func->canBeCalledImplicitlyOnce());
-	FunctionExpression* funcExpr = func->getFunctionExpression();
-	assert(funcExpr && "Expect function types to have an expression");
-	optional<EvaluatedExpression> newEval = funcExpr->codegenOneImplicitCall(codegen);
+	optional<EvaluatedExpression> newEval = func->codegenOneImplicitCall(codegen);
 	return codegenTypeConversion(codegen, newEval, target);
 }
 
@@ -202,8 +200,8 @@ optional<EvaluatedExpression> codegenTypeConversion(CodegenLLVM& codegen, option
 	if(typeGivenEval)
 		return typeGivenEval;
 
-	if(isFunctionType(A_t))
-		return codegenFunctionTypeConversion(codegen, castToFunctionType(A_t), target);
+	if(isFunction(A_t))
+		return codegenFunctionTypeConversion(codegen, castToFunction(A_t), target);
 
 	assert(!isReferenceValueKind(target->valueKind)); //Nothing past this point gives references
 

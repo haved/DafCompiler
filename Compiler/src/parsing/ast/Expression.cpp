@@ -398,33 +398,33 @@ ConcretableState FunctionCallExpression::makeConcreteInternal(NamespaceStack& ns
 ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
 
-	ExprTypeInfo functionTypeInfo = m_function->getTypeInfo();
-	if(!isFunctionType(functionTypeInfo)) {
+	ConcreteType* functionType = m_function->getTypeInfo().type;
+	if(!isFunction(functionType)) {
 		logDaf(getRange(), ERROR) << "can't function call what isn't a function" << std::endl;
 		return ConcretableState::LOST_CAUSE;
 	}
 
-	FunctionType* funcType = castToFunctionType(functionTypeInfo.type);
+    FunctionExpression* func = castToFunction(functionType);
     const unsigned int givenParams = m_args.size();
 
     while(true) {
-		unsigned int funcParams = funcType->getParameters().size();
+		unsigned int funcParams = func->getParameters().size();
 	    if(funcParams == givenParams) {
 			break;
-		} else if(funcType->canBeCalledImplicitlyOnce()) {
-			ConcreteType* retType = funcType->getReturnTypeInfo().type;
-			if(!isFunctionType(retType)) {
+		} else if(func->canBeCalledImplicitlyOnce()) {
+			ConcreteType* retType = func->getReturnTypeInfo().type;
+			if(!isFunction(retType)) {
 				logDaf(getRange(), ERROR) << "given parameters when none were needed" << std::endl;
 				return ConcretableState::LOST_CAUSE;
 			}
-			funcType = castToFunctionType(retType);
+			func = castToFunction(retType);
 		} else {
 			logDaf(getRange(), ERROR) << "wrong number of parameters given, expected " << funcParams << " but got " << givenParams << std::endl;
 			return ConcretableState::LOST_CAUSE;
 		}
 	}
 
-	auto& reqParams = funcType->getParameters();
+	auto& reqParams = func->getParameters();
     assert(givenParams == reqParams.size());
 
 	for(unsigned int i = 0; i < givenParams; i++) {
@@ -441,7 +441,7 @@ ConcretableState FunctionCallExpression::retryMakeConcreteInternal(DependencyMap
 			return ConcretableState::LOST_CAUSE;
 	}
 
-	m_typeInfo = funcType->getReturnTypeInfo();
+	m_typeInfo = func->getReturnTypeInfo();
 
 	return ConcretableState::CONCRETE;
 }
@@ -451,27 +451,25 @@ optional<EvaluatedExpression> FunctionCallExpression::codegenExpression(CodegenL
 	if(!function)
 		return boost::none;
 
-    FunctionType* funcType = castToFunctionType(function->typeInfo->type);
+    FunctionExpression* func = castToFunction(function->typeInfo->type);
 	const unsigned int givenParams = m_args.size();
 
 	//Implicit calls until we can use our parameters
 
     while(true) {
-		unsigned int funcParams = funcType->getParameters().size();
+		unsigned int funcParams = func->getParameters().size();
 	    if(funcParams == givenParams) {
 			break;
 		}
-		assert(funcType->canBeCalledImplicitlyOnce());
-		FunctionExpression* funcExpr = funcType->getFunctionExpression();
-		assert(funcExpr && "can only call function expressions");
-		llvm::Function* prototype = funcExpr->tryGetOrMakePrototype(codegen);
+		assert(func->canBeCalledImplicitlyOnce());
+		llvm::Function* prototype = func->tryGetOrMakePrototype(codegen);
 		if(!prototype)
 			return boost::none;
 		codegen.Builder().CreateCall(prototype);
-		funcType = castToFunctionType(funcType->getReturnTypeInfo().type);
+		func = castToFunction(func->getReturnTypeInfo().type);
 	}
 
-	auto& reqParams = funcType->getParameters();
+	auto& reqParams = func->getParameters();
 	assert(givenParams == reqParams.size());
 
 	//Codegen arguments
@@ -492,14 +490,12 @@ optional<EvaluatedExpression> FunctionCallExpression::codegenExpression(CodegenL
 	}
 
 	//Call the function with parameters
-	FunctionExpression* funcExpr = funcType->getFunctionExpression();
-	assert(funcExpr && "can only call function expressions");
-	llvm::Function* prototype = funcExpr->tryGetOrMakePrototype(codegen);
+	llvm::Function* prototype = func->tryGetOrMakePrototype(codegen);
 	if(!prototype)
 		return boost::none;
 	llvm::Value* returnVal = codegen.Builder().CreateCall(prototype, args);
 
-    EvaluatedExpression val(returnVal, funcType->isReferenceReturn(), &funcType->getReturnTypeInfo());
+    EvaluatedExpression val(returnVal, func->hasReferenceReturn(), &func->getReturnTypeInfo());
 	val = *codegenTypeConversion(codegen, val, &m_typeInfo);
 
     return val;
