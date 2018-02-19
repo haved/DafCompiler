@@ -96,17 +96,16 @@ param_list& FunctionType::getParameters() {
 	return m_parameters;
 }
 
-
-CastPossible isReturnCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind, const ExprTypeInfo& given) {
-	if(requiredType)
-		return canConvertTypeFromTo(given, ExprTypeInfo(*requiredType, requiredKind));
-	return getValueKindScore(requiredKind) <= getValueKindScore(given.valueKind) ? CastPossible::IMPLICITLY : CastPossible::IMPOSSIBLE;
+ReturnKind FunctionType::getGivenReturnKind() {
+	return m_givenReturnKind;
 }
 
-void complainReturnIsntCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind,
-							   const ExprTypeInfo& given, CastPossible poss, const TextRange& range) {
-    complainThatTypeCantBeConverted(given, requiredType, requiredKind, poss, range);
+Type* FunctionType::tryGetGivenReturnType() {
+	if(m_givenReturnType)
+		return m_givenReturnType->getType();
+	return nullptr;
 }
+
 
 
 FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& function_body,
@@ -212,6 +211,54 @@ parameter_let_list& FunctionExpression::getParameterLetList() {
 	return m_parameter_lets;
 }
 
+ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	auto conc = allConcrete();
+	auto lost = anyLost();
+
+	auto makeConcreteOrDepend = [&](Concretable* concretable) {
+		ConcretableState state = concretable->makeConcrete(ns_stack, depMap);
+		conc <<= state;
+		lost <<= state;
+		if(tryLater(state))
+			depMap.makeFirstDependentOnSecond(this, concretable);
+	};
+
+	if(m_type->tryGetGivenReturnType())
+		makeConcreteOrDepend(m_type->tryGetGivenReturnType());
+
+	if(m_function_body) {
+		readyParameterLets();
+		for(auto& let : m_parameter_lets)
+			makeConcreteOrDepend(let.get());
+		ns_stack.push(this);
+	    makeConcreteOrDepend(m_function_body->get());
+		ns_stack.pop();
+	}
+
+	if(lost)
+		return ConcretableState::LOST_CAUSE;
+	if(conc)
+		return retryMakeConcreteInternal(depMap);
+	return ConcretableState::TRY_LATER;
+}
+
+CastPossible isReturnCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind, const ExprTypeInfo& given) {
+	if(requiredType)
+		return canConvertTypeFromTo(given, ExprTypeInfo(*requiredType, requiredKind));
+	return getValueKindScore(requiredKind) <= getValueKindScore(given.valueKind) ? CastPossible::IMPLICITLY : CastPossible::IMPOSSIBLE;
+}
+
+void complainReturnIsntCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind,
+							   const ExprTypeInfo& given, CastPossible poss, const TextRange& range) {
+    complainThatTypeCantBeConverted(given, requiredType, requiredKind, poss, range);
+}
+
+ConcretableState FunctionExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
+    m_typeInfo = ExprTypeInfo(this, ValueKind::ANONYMOUS);
+    
+	return ConcretableState::CONCRETE;
+}
+
 ExprTypeInfo& FunctionExpression::getReturnTypeInfo() {
 	assert(isConcrete());
 	return m_returnTypeInfo;
@@ -220,6 +267,25 @@ ExprTypeInfo& FunctionExpression::getReturnTypeInfo() {
 optional<ExprTypeInfo>& FunctionExpression::getImplicitCallReturnTypeInfo() {
 	assert(isConcrete());
 	return m_implicitCallReturnTypeInfo;
+}
+
+optional<EvaluatedExpression> FunctionExpression::codegenOneImplicitCall(CodegenLLVM& codegen) {
+	llvm::Function* prototype = tryGetOrMakePrototype(codegen);
+	if(!prototype)
+		return boost::none;
+	return EvaluatedExpression(codegen.Builder().CreateCall(prototype),
+							   m_returnTypeInfo.isReference(), &m_returnTypeInfo);
+}
+
+optional<EvaluatedExpression> FunctionExpression::codegenExpression(CodegenLLVM& codegen) {
+	if(tryGetOrMakePrototype(codegen))
+		return EvaluatedExpression(nullptr, false, &m_typeInfo);
+	else
+		return boost::none;
+}
+
+llvm::Type* FunctionExpression::codegenType(CodegenLLVM& codegen) {
+	return llvm::Type::getVoidTy(codegen.Context());
 }
 
 llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen, param_list& params, ExprTypeInfo& returnType) {
@@ -247,56 +313,22 @@ llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen, param_list& params
 	return llvm::FunctionType::get(returnTypeLLVM, argumentTypes, false);
 }
 
-llvm::Type* FunctionExpression::codegenType(CodegenLLVM& codegen) {
-	return llvm::Type::getVoidTy(codegen.Context());
-}
-
-
-ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	auto conc = allConcrete();
-	auto lost = anyLost();
-
-	ConcretableState state = m_type->makeConcrete(ns_stack, depMap);
-	if(state == ConcretableState::TRY_LATER)
-		depMap.makeFirstDependentOnSecond(this, m_type.get());
-	conc = conc << state;
-	lost = lost << state;
-
-	if(conc)
-		return retryMakeConcreteInternal(depMap);
-	if(lost)
-		return ConcretableState::LOST_CAUSE;
-	return ConcretableState::TRY_LATER;
-}
-
-ConcretableState FunctionExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
-	(void) depMap;
-	m_typeInfo = ExprTypeInfo(m_type.get(), ValueKind::ANONYMOUS);
-	return ConcretableState::CONCRETE;
-}
-
-optional<EvaluatedExpression> FunctionExpression::codegenOneImplicitCall(CodegenLLVM& codegen) {
-	assert(isFunctionType(m_typeInfo));
-	llvm::Function* prototype = tryGetOrMakePrototype(codegen);
-	if(!prototype)
-		return boost::none;
-	return EvaluatedExpression(codegen.Builder().CreateCall(prototype),
-							   m_type->isReferenceReturn(), &m_type->getReturnTypeInfo());
-}
-
-optional<EvaluatedExpression> FunctionExpression::codegenExpression(CodegenLLVM& codegen) {
-	assert(isFunctionType(m_typeInfo));
-	if(tryGetOrMakePrototype(codegen))
-		return EvaluatedExpression(nullptr, false, &m_typeInfo);
-	else
-		return boost::none;
+llvm::Function* FunctionExpression::tryGetOrMakePrototype(CodegenLLVM& codegen) {
+	for(;;) {
+		if(m_broken_prototype)
+			return nullptr;
+		if(m_prototype)
+			return m_prototype;
+		makePrototype(codegen);
+		assert(!!m_prototype != m_broken_prototype);
+	}
 }
 
 std::string anon_function_name("anon_function");
 void FunctionExpression::makePrototype(CodegenLLVM& codegen) {
 	assert(!m_prototype && !m_broken_prototype && !m_filled_prototype);
 
-	llvm::FunctionType* functionTypeLLVM = m_type->codegenFunctionType(codegen);
+	llvm::FunctionType* functionTypeLLVM = codegenFunctionType(codegen, getParameters(), m_returnTypeInfo);
 	if(!functionTypeLLVM) {
 		m_broken_prototype = true;
 		return;
@@ -319,17 +351,6 @@ void FunctionExpression::makePrototype(CodegenLLVM& codegen) {
 	}
 }
 
-llvm::Function* FunctionExpression::tryGetOrMakePrototype(CodegenLLVM& codegen) {
-	for(;;) {
-		if(m_broken_prototype)
-			return nullptr;
-		if(m_prototype)
-			return m_prototype;
-		makePrototype(codegen);
-		assert(!!m_prototype != m_broken_prototype);
-	}
-}
-
 void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 	assert(m_prototype && !m_broken_prototype && !m_filled_prototype && m_function_body);
 	Expression* body = m_function_body->get();
@@ -339,9 +360,9 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 	llvm::BasicBlock* BB = llvm::BasicBlock::Create(codegen.Context(), "entry", m_prototype);
 	codegen.Builder().SetInsertPoint(BB);
 
-	ExprTypeInfo* targetTypeInfo = &m_type->getReturnTypeInfo();
+	ExprTypeInfo* targetTypeInfo = &m_returnTypeInfo;
 
-	for(auto& letParam : m_type->getParameterLetList()) {
+	for(auto& letParam : getParameterLetList()) {
 		letParam->localCodegen(codegen);
 	}
 
@@ -352,7 +373,7 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 		return;
 	}
 
-	bool returnsRef = m_type->isReferenceReturn();
+	bool returnsRef = hasReferenceReturn();
 	assert(finalEval->typeInfo->type == targetTypeInfo->type);
     if(m_prototype->getReturnType()->isVoidTy())
 		codegen.Builder().CreateRetVoid();

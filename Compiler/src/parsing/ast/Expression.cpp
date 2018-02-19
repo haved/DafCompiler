@@ -157,19 +157,18 @@ ConcretableState FunctionParameterExpression::makeConcreteInternal(NamespaceStac
 	assert(m_parameterIndex < params.size());
 
 	FunctionParameter* param = params[m_parameterIndex].get();
-	ConcretableState state = param->getConcretableState();
-    if(state == ConcretableState::TRY_LATER)
-		depMap.makeFirstDependentOnSecond(this, param);
+	ConcretableState state = param->makeConcrete(ns_stack, depMap);
     if(allConcrete() << state)
 		return retryMakeConcreteInternal(depMap);
     if(anyLost() << state)
 		return ConcretableState::LOST_CAUSE;
+	depMap.makeFirstDependentOnSecond(this, param);
 	return ConcretableState::TRY_LATER;
 }
 
 ConcretableState FunctionParameterExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
-	param_list& params = m_funcType->getParameters();
+	param_list& params = m_funcExpr->getParameters();
 	FunctionParameter* param = params[m_parameterIndex].get();
 	assert(param->getParameterKind() == ParameterKind::VALUE_PARAM);
 	ValueParameter* valParam = static_cast<ValueParameter*>(param);
@@ -178,9 +177,7 @@ ConcretableState FunctionParameterExpression::retryMakeConcreteInternal(Dependen
 }
 
 optional<EvaluatedExpression> FunctionParameterExpression::codegenExpression(CodegenLLVM& codegen) {
-    FunctionExpression* expr = m_funcType->getFunctionExpression();
-	assert(expr);
-	llvm::Function* prototype = expr->tryGetOrMakePrototype(codegen);
+	llvm::Function* prototype = m_funcExpr->tryGetOrMakePrototype(codegen);
 	if(!prototype)
 		return boost::none;
 	assert(codegen.Builder().GetInsertBlock()->getParent() == prototype);

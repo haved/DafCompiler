@@ -21,8 +21,6 @@ ValueKind returnKindToValueKind(ReturnKind kind);
 
 class FunctionExpression;
 using param_list = std::vector<unique_ptr<FunctionParameter> >;
-class Let;
-using parameter_let_list = std::vector<unique_ptr<Let> >;
 
 class FunctionType {
 private:
@@ -39,8 +37,12 @@ public:
 	bool hasReferenceReturn();
 
 	param_list& getParameters();
+	ReturnKind getGivenReturnKind();
+	Type* tryGetGivenReturnType();
 };
 
+class Let;
+using parameter_let_list = std::vector<unique_ptr<Let> >;
 class FunctionExpression : public Expression, public ConcreteType, public Namespace {
 private:
 	unique_ptr<FunctionType> m_type;
@@ -57,6 +59,7 @@ private:
 	bool m_broken_prototype, m_filled_prototype;
 	llvm::Function* m_prototype;
 
+	bool readyParameterLets();
 	void makePrototype(CodegenLLVM& codegen);
 	void fillPrototype(CodegenLLVM& codegen);
 	bool isConcrete();
@@ -79,7 +82,6 @@ public:
 	virtual bool hasSize() override;
 
 	param_list& getParameters();
-	bool readyParameterLets();
 	parameter_let_list& getParameterLetList();
 	virtual Definition* tryGetDefinitionFromName(const std::string& name) override;
 
@@ -89,10 +91,11 @@ public:
 	ExprTypeInfo& getReturnTypeInfo();
 	optional<ExprTypeInfo>& getImplicitCallReturnTypeInfo();
 
+    optional<EvaluatedExpression> codegenOneImplicitCall(CodegenLLVM& codegen);
+	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
+
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 
 	llvm::Function* tryGetOrMakePrototype(CodegenLLVM& codegen);
 
-    optional<EvaluatedExpression> codegenOneImplicitCall(CodegenLLVM& codegen);
-	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
 };
