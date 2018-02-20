@@ -257,6 +257,9 @@ ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_sta
 		ns_stack.push(this);
 	    makeConcreteOrDepend(m_function_body->get());
 		ns_stack.pop();
+	} else {
+		for(auto& param : getParameters())
+			makeConcreteOrDepend(param.get());
 	}
 
 	if(lost)
@@ -382,7 +385,7 @@ llvm::Function* FunctionExpression::tryGetOrMakePrototype(CodegenLLVM& codegen) 
 		if(m_prototype)
 			return m_prototype;
 		makePrototype(codegen);
-		assert(!!m_prototype != m_broken_prototype);
+		assert(m_prototype || m_broken_prototype);
 	}
 }
 

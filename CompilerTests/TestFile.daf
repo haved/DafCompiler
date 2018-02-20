@@ -1,19 +1,7 @@
 // -*- compile-command: "cd .. && time ./buildScript.py --tests --testFilter TestFile.daf --outputTesting" -*-
 
-def printInt(a:i32) "printIntToC";
+//def printInt(a:i32) "printIntToC";
 
 def dafMain:i32 {
-	mut a := 5;
-	mut myPtr := &a;
-	printInt(@myPtr);
-	a = 6;
-	printInt(@myPtr);
-
-	mut b := 8;
-	let myMutPtr := &mut b;
-	@myMutPtr = 10;
-	printInt(b);
-
-	myPtr = myMutPtr;
-	@myMutPtr - @myPtr
+	4
 };

@@ -99,7 +99,8 @@ bool ValueParameter::isReferenceParameter() const {
 }
 
 bool ValueParameter::acceptsOrComplain(FunctionCallArgument& arg) {
-	assert(allConcrete() << getConcretableState() << arg.m_expression->getConcretableState());
+	assert(allConcrete() << getConcretableState());
+	assert(allConcrete() << arg.m_expression->getConcretableState());
 	const ExprTypeInfo& givenTypeInfo = arg.m_expression->getTypeInfo();
 
 	CastPossible poss = canConvertTypeFromTo(givenTypeInfo, m_typeInfo);
