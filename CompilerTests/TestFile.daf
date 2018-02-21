@@ -1,13 +1,11 @@
 // -*- compile-command: "cd .. && time ./buildScript.py --tests --testFilter TestFile.daf --outputTesting" -*-
 
-//def printInt(a:i32) "printIntToC";
-
-def addTwo(mut a:i32) {
-	a = a + 2;
-};
+def printInt(a:i32) "printIntToC";
+def printChar(c:u8) "printCharToC";
 
 def dafMain:i32 {
 	mut x := 6;
-	addTwo(mut x);
+	x = x + 2;
+
 	x - 8
 };

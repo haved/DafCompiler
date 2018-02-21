@@ -15,6 +15,10 @@ extern "C" {
 	void printIntToC(int i) {
 		printf("%i\n", i);
 	}
+
+	void printCharToC(char c) {
+		printf("%c", c);
+	}
 }
 
 int main() {

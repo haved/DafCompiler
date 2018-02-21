@@ -1,0 +1,27 @@
+
+def printInt(a:i32) "printIntToC";
+def printChar(c:u8) "printCharToC";
+
+def odd(a:i32) {
+	printChar(0b1001111u8);
+	printInt(a);
+	even(a-1);
+};
+
+def even(a:i32) {
+	printChar(0b1000101u8);
+	printInt(a);
+	if a
+		odd(a-1);
+};
+
+def dafMain:i32 {
+	mut x := 6;
+	x = x + 2;
+
+	odd(5);
+	even(4);
+	odd(5);
+
+	x - 8
+};
