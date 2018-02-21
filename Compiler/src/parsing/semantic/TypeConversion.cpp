@@ -196,7 +196,7 @@ optional<EvaluatedExpression> codegenTypeConversion(CodegenLLVM& codegen, option
 	if(A_t == B_t)
 		return castEvaluatedExpression(codegen, eval, target);
 
-	optional<EvaluatedExpression> typeGivenEval = eval.typeInfo->type->codegenTypeConversion(codegen, eval, target);
+	optional<EvaluatedExpression> typeGivenEval = eval.typeInfo->type->codegenTypeConversionTo(codegen, eval, target);
 	if(typeGivenEval)
 		return typeGivenEval;
 

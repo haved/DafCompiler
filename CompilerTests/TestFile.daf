@@ -3,5 +3,5 @@
 //def printInt(a:i32) "printIntToC";
 
 def dafMain:i32 {
-	4
+	4-4
 };

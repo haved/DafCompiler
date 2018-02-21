@@ -27,7 +27,7 @@ public:
 	virtual bool hasSize();
 	//TODO: =0
 	virtual CastPossible canConvertTo(ValueKind fromKind, ExprTypeInfo& B);
-	virtual optional<EvaluatedExpression> codegenTypeConversion(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target);
+	virtual optional<EvaluatedExpression> codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target);
 	//TODO: =0
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen);
 };
@@ -48,7 +48,7 @@ public:
 	ExprTypeInfo getDerefResultExprTypeInfo();
 
 	virtual CastPossible canConvertTo(ValueKind fromKind, ExprTypeInfo& target) override;
-	virtual optional<EvaluatedExpression> codegenTypeConversion(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) override;
+	virtual optional<EvaluatedExpression> codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) override;
 
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 

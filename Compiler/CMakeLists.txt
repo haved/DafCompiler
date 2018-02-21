@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 3.4.3)
 project (DafCompiler)
 set(DafCompiler_VERSION_MAJOR 1)
 
-option(DAF_DEBUG_MACRO "Enable #define DAF_DEBUG_MACRO" OFF)
+option(DAF_DEBUG_MACRO "Enable #define DAF_DEBUG_MACRO (Overridden by CMAKE_BUILD_TYPE)" OFF)
 option(DAF_TARGET_ONLY_x86 "Ignore most LLVM targets" OFF)
 
 # User specified strings:

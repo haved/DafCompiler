@@ -386,6 +386,8 @@ llvm::Function* FunctionExpression::tryGetOrMakePrototype(CodegenLLVM& codegen) 
 			return m_prototype;
 		makePrototype(codegen);
 		assert(m_prototype || m_broken_prototype);
+		if(m_broken_prototype && m_prototype)
+			m_prototype->deleteBody();
 	}
 }
 
@@ -425,6 +427,8 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 	llvm::BasicBlock* BB = llvm::BasicBlock::Create(codegen.Context(), "entry", m_prototype);
 	codegen.Builder().SetInsertPoint(BB);
 
+	m_filled_prototype = true; //In case of recursion
+
 	ExprTypeInfo* targetTypeInfo = &m_returnTypeInfo;
 
 	for(auto& letParam : getParameterLetList()) {
@@ -434,6 +438,9 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 	optional<EvaluatedExpression> firstEval = body->codegenExpression(codegen);
 	optional<EvaluatedExpression> finalEval = codegenTypeConversion(codegen, *firstEval, targetTypeInfo);
 	if(!finalEval) {
+#ifdef DAF_DEBUG
+		logDaf(getRange(), NOTE) << "The body of this function is a boost::none" << std::endl;
+#endif
 		m_broken_prototype = true;
 		return;
 	}
@@ -447,8 +454,6 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 	}
 
 	llvm::verifyFunction(*m_prototype);
-
-	m_filled_prototype = true;
 
 	if(oldInsertBlock)
 		codegen.Builder().SetInsertPoint(oldInsertBlock);

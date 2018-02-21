@@ -23,7 +23,7 @@ CastPossible ConcreteType::canConvertTo(ValueKind fromKind, ExprTypeInfo& to) {
 	return CastPossible::IMPOSSIBLE;
 }
 
-optional<EvaluatedExpression> ConcreteType::codegenTypeConversion(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) {
+optional<EvaluatedExpression> ConcreteType::codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) {
 	(void) codegen; (void) from; (void) target;
 	return boost::none;
 }
@@ -72,7 +72,7 @@ CastPossible ConcretePointerType::canConvertTo(ValueKind fromKind, ExprTypeInfo&
 		? CastPossible::IMPLICITLY : CastPossible::IMPOSSIBLE;
 }
 
-optional<EvaluatedExpression> ConcretePointerType::codegenTypeConversion(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) {
+optional<EvaluatedExpression> ConcretePointerType::codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) {
 	return castEvaluatedExpression(codegen, from, target);
 }
 
