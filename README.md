@@ -10,12 +10,9 @@ Also, expect the compiler to assert false here and there.
    - By no means advanced tests. Will only report compiler errors
  - Specs: contains org mode files for remembering stuff
  - Tools: contains things like an emacs mode for daf
- - Probably belongs in the depths of VC:
-   - DafLinker: The dafln python script for linking and parsing Linkfiles
-   - DafParser: An old java program for parsing outdated, simple daf, and turning it into broken C++
 
-Most attempts at documenting the Compiler are too old to document the current compiler.  
-Last cleanup was 2017-12-27, with this very commit.
+### Progress
+Check out my Trello board [here](https://trello.com/b/bXCZLvBz "Daf trello board").
 
 ### Building
 **Dependencies**
@@ -27,8 +24,15 @@ Start building llvm from source, following their instructions, but supply the `-
 See the document Specs/InstallingLLVMFromSource.org for details.  
 **NOTE:** If you don't need a debug build of the DafCompiler, just invoke the build script with --release
 
+##### Using buildScript.py
 The script `buildScript.py` lets you build and test run Debug or Release builds of the compiler.
 It invokes cmake and make for you with sensible default parameters, as long as you call the script from the root folder.
+##### Using an IDE
+The `CMakeLists.txt` file in Compiler/ can be opened by your favorite IDE. Here you can build both Debug and Release builds, with similar results to the buildScript.
+Do keep in mind that the buildScript doesn't use `CMAKE_BUILD_TYPE`, so whatever default compiler flags cmake has will be used instead.
+This might include ignoring assert macros in Release build, though, which will give unused parameter warnings, besides being really unsafe.  
+**NOTE:** CMakeLists.txt is set up to use the Debug build of LLVM if you pass `CMAKE_BUILD_TYPE=Debug`, requiring a debug build of LLVM.
+**Tip:** Want to build with IDE but still use the buildScript? pass `--ignoreCompile --buildDir <folder with binary>`
 
 #### Debug (Requires Debug LLVM build) and test all normal tests
 ```
