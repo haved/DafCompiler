@@ -19,7 +19,7 @@ Check out my Trello board [here](https://trello.com/b/bXCZLvBz "Daf trello board
 - Boost filesystem
 - LLVM 5.0.x
 
-If you want to build a debug build of the DafCompiler (extra output), you'll need a Debug build of llvm.
+If you want to build a debug build of the DafCompiler (extra output), you'll need a Debug build of LLVM.
 Start building llvm from source, following their instructions, but supply the `-DCMAKE_BUILD_TARGET=Debug` to cmake.
 See the document Specs/InstallingLLVMFromSource.org for details.  
 **NOTE:** If you don't need a debug build of the DafCompiler, just invoke the build script with --release
@@ -31,8 +31,8 @@ It invokes cmake and make for you with sensible default parameters, as long as y
 The `CMakeLists.txt` file in `Compiler/` can be opened by your favorite IDE. Here you can build both Debug and Release builds, with similar results to the build script.
 Do keep in mind that the build script doesn't use `CMAKE_BUILD_TYPE`, so whatever default compiler flags cmake has will be used instead.
 This might include ignoring assert macros in Release builds, which will give unused parameter warnings, besides being really unsafe.  
-**NOTE:** `CMakeLists.txt` is set up to use the Debug build of LLVM if you pass `CMAKE_BUILD_TYPE=Debug`, requiring a debug build of LLVM.  
-**Tip:** Want to build with IDE but still use the buildScript? pass `--ignoreCompile --buildDir <folder with binary>`
+**NOTE:** Also in an IDE will a Debug build require a Debug build of LLVM  
+**Tip:** Want to still use the buildScript for testing? pass `--ignoreCompile --buildDir <folder with binary>`
 
 #### Debug (Requires Debug LLVM build) and test all normal tests
 ```
