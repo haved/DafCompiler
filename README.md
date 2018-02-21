@@ -28,10 +28,10 @@ See the document Specs/InstallingLLVMFromSource.org for details.
 The script `buildScript.py` lets you build and test run Debug or Release builds of the compiler.
 It invokes cmake and make for you with sensible default parameters, as long as you call the script from the root folder.
 ##### Using an IDE
-The `CMakeLists.txt` file in Compiler/ can be opened by your favorite IDE. Here you can build both Debug and Release builds, with similar results to the buildScript.
-Do keep in mind that the buildScript doesn't use `CMAKE_BUILD_TYPE`, so whatever default compiler flags cmake has will be used instead.
-This might include ignoring assert macros in Release build, though, which will give unused parameter warnings, besides being really unsafe.  
-**NOTE:** CMakeLists.txt is set up to use the Debug build of LLVM if you pass `CMAKE_BUILD_TYPE=Debug`, requiring a debug build of LLVM.
+The `CMakeLists.txt` file in `Compiler/` can be opened by your favorite IDE. Here you can build both Debug and Release builds, with similar results to the build script.
+Do keep in mind that the build script doesn't use `CMAKE_BUILD_TYPE`, so whatever default compiler flags cmake has will be used instead.
+This might include ignoring assert macros in Release builds, which will give unused parameter warnings, besides being really unsafe.  
+**NOTE:** `CMakeLists.txt` is set up to use the Debug build of LLVM if you pass `CMAKE_BUILD_TYPE=Debug`, requiring a debug build of LLVM.  
 **Tip:** Want to build with IDE but still use the buildScript? pass `--ignoreCompile --buildDir <folder with binary>`
 
 #### Debug (Requires Debug LLVM build) and test all normal tests
