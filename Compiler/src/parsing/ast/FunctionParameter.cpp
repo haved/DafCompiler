@@ -67,7 +67,7 @@ ValueKind parameterModifierToArgValueKind(ParameterModifier modif) {
 unique_ptr<Let> ValueParameter::makeLet(FunctionExpression* func, int paramIndex) {
 	ValueKind kind = parameterModifierToArgValueKind(m_modif);
 	bool mut = kind == ValueKind::MUT_LVALUE;
-	bool ref = isReferenceParameter();
+	bool ref = isReferenceValueKind(kind);
 	unique_ptr<Expression> expr = std::make_unique<FunctionParameterExpression>(func, paramIndex, m_range);
 	return std::make_unique<Let>(false, mut, std::string(m_name), TypeReference(), std::move(expr), m_range, ref);
 }
@@ -94,8 +94,7 @@ const ExprTypeInfo& ValueParameter::getTypeInfo() const {
 }
 
 bool ValueParameter::isReferenceParameter() const {
-	assert(allConcrete() << getConcretableState());
-	return m_typeInfo.valueKind != ValueKind::ANONYMOUS;
+	return isReferenceValueKind(parameterModifierToArgValueKind(m_modif));
 }
 
 bool ValueParameter::acceptsOrComplain(FunctionCallArgument& arg) {

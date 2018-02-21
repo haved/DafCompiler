@@ -2,6 +2,12 @@
 
 //def printInt(a:i32) "printIntToC";
 
+def addTwo(mut a:i32) {
+	a = a + 2;
+};
+
 def dafMain:i32 {
-	4-4
+	mut x := 6;
+	addTwo(mut x);
+	x - 8
 };
