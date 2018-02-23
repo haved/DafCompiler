@@ -22,14 +22,11 @@ public:
 	virtual void printSignature()=0;
 	virtual ConcreteTypeKind getConcreteTypeKind() const =0;
 
-	//Means we actually pass the parameter and return something other than void
-	//TODO: =0
-	virtual bool hasSize();
-	//TODO: =0
-	virtual CastPossible canConvertTo(ValueKind fromKind, ExprTypeInfo& B);
-	virtual optional<EvaluatedExpression> codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target);
-	//TODO: =0
-	virtual llvm::Type* codegenType(CodegenLLVM& codegen);
+	virtual bool hasSize()=0;
+	//Assumed to be a different type
+	virtual CastPossible canConvertTo(ValueKind fromKind, ExprTypeInfo& B)=0;
+	virtual optional<EvaluatedExpression> codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target)=0;
+	virtual llvm::Type* codegenType(CodegenLLVM& codegen)=0;
 };
 
 struct ExprTypeInfo;
@@ -95,6 +92,10 @@ public:
     virtual ConcreteTypeKind getConcreteTypeKind() const override { return ConcreteTypeKind::VOID; }
 
 	virtual bool hasSize() override;
+
+	virtual CastPossible canConvertTo(ValueKind fromKind, ExprTypeInfo& target) override;
+	virtual optional<EvaluatedExpression> codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) override;
+
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 };
 

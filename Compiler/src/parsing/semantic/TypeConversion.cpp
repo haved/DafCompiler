@@ -3,17 +3,6 @@
 #include "CodegenLLVM.hpp"
 #include "DafLogger.hpp"
 
-CastPossible canConvertFunctionTypeTo(FunctionExpression* func, ExprTypeInfo B) {
-	assert(func && B.type);
-	if(!func->canBeCalledImplicitlyOnce())
-	    return CastPossible::IMPOSSIBLE;
-	return canConvertTypeFromTo(func->getReturnTypeInfo(), B); //TODO: @FixMe: Potential for infinite loop
-}
-
-CastPossible canConvertFromPrimitive(PrimitiveType* from, ExprTypeInfo to) {
-
-}
-
 CastPossible canConvertTypeFromTo(ExprTypeInfo A, ExprTypeInfo B) {
 	ConcreteType *A_t = A.type, *B_t = B.type;
 	assert(A_t&&B_t);
@@ -25,19 +14,7 @@ CastPossible canConvertTypeFromTo(ExprTypeInfo A, ExprTypeInfo B) {
 		return getValueKindScore(A.valueKind) >= getValueKindScore(B.valueKind) ?
 			CastPossible::IMPLICITLY : CastPossible::IMPOSSIBLE;
 
-	CastPossible givenFromType = A_t->canConvertTo(A.valueKind, B);
-	if(givenFromType != CastPossible::IMPOSSIBLE)
-		return givenFromType;
-
-	if(isFunction(A.type))
-		return canConvertFunctionTypeTo(castToFunction(A_t), B);
-
-	if(isReferenceValueKind(B.valueKind)) //No way of getting a reference beyond the point
-		return CastPossible::IMPOSSIBLE;
-
-	ConcreteTypeKind A_k = A_t->getConcreteTypeKind();
-
-	return CastPossible::IMPOSSIBLE;
+	return A_t->canConvertTo(A.valueKind, B);
 }
 
 void complainThatTypeCantBeConverted(ExprTypeInfo A, ExprTypeInfo B, CastPossible poss, const TextRange& range) {
@@ -118,83 +95,19 @@ optional<const ExprTypeInfo*> getNonFunctionType(const ExprTypeInfo& from, const
 	return boost::none;
 }
 
-optional<EvaluatedExpression> codegenFunctionTypeConversion(CodegenLLVM& codegen, FunctionExpression* func, ExprTypeInfo* target) {
-	assert(func->canBeCalledImplicitlyOnce());
-	optional<EvaluatedExpression> newEval = func->codegenOneImplicitCall(codegen);
-	return codegenTypeConversion(codegen, newEval, target);
-}
-
-optional<EvaluatedExpression> codegenPrimitiveToTypeConversion(CodegenLLVM& codegen, EvaluatedExpression& from, ExprTypeInfo* target) {
-	assert(from.typeInfo->type && from.typeInfo->type->getConcreteTypeKind() == ConcreteTypeKind::PRIMITIVE);
-	assert(target && target->type && !isReferenceValueKind(target->valueKind));
-
-	PrimitiveType* from_prim = castToPrimitveType(from.typeInfo->type);
-	ConcreteType* to = target->type;
-	ConcreteTypeKind to_k = to->getConcreteTypeKind();
-
-	assert(to_k == ConcreteTypeKind::PRIMITIVE);
-	PrimitiveType* to_prim = castToPrimitveType(to);
-
-    if(from_prim->isFloatingPoint() || to_prim->isFloatingPoint())
-		assert(false && "We don't support");
-	int fromBits = from_prim->getBitCount();
-	int toBits   =   to_prim->getBitCount();
-
-	llvm::Value* val = from.getValue(codegen);
-
-	if(fromBits != toBits) {
-		if(toBits == 1) {
-			llvm::Type* from_LLVM = from_prim->codegenType(codegen);
-			if(!from_LLVM)
-				return boost::none;
-			llvm::Value* zero = llvm::ConstantInt::get(from_LLVM, 0, false);
-			val = codegen.Builder().CreateICmpNE(val, zero);
-		} else {
-			llvm::Type* to_LLVM = to->codegenType(codegen);
-			if(!to_LLVM)
-				return boost::none;
-			bool SnotZ = from_prim->isSigned();
-			val = SnotZ ?
-				codegen.Builder().CreateSExtOrTrunc(val, to_LLVM):
-				codegen.Builder().CreateZExtOrTrunc(val, to_LLVM);
-		}
-	}
-
-	return EvaluatedExpression(val, false, target);
-}
-
 optional<EvaluatedExpression> codegenTypeConversion(CodegenLLVM& codegen, optional<EvaluatedExpression> eval_opt, ExprTypeInfo* target) {
 	assert(target);
 	if(!eval_opt)
 		return boost::none;
 	EvaluatedExpression& eval = *eval_opt;
-	const ExprTypeInfo& A_ti = *eval.typeInfo;
-	ConcreteType* A_t = A_ti.type;
-	ConcreteType* B_t = target->type;
-
-	assert(canConvertTypeFromTo(*eval.typeInfo, *target) != CastPossible::IMPOSSIBLE); //@Optimize slow assert
+	ConcreteType* A_t = eval.typeInfo->type, *B_t = target->type;
 
 	if(B_t == getVoidType())
 		return EvaluatedExpression(nullptr, false, target);
 	if(A_t == B_t)
-		return castEvaluatedExpression(codegen, eval, target);
+		return castEvaluatedExpression(codegen, eval, target); //Handles conversion from reference to value
 
-	optional<EvaluatedExpression> typeGivenEval = eval.typeInfo->type->codegenTypeConversionTo(codegen, eval, target);
-	if(typeGivenEval)
-		return typeGivenEval;
-
-	if(isFunction(A_t))
-		return codegenFunctionTypeConversion(codegen, castToFunction(A_t), target);
-
-	assert(!isReferenceValueKind(target->valueKind)); //Nothing past this point gives references
-
-	ConcreteTypeKind A_k = A_t->getConcreteTypeKind();
-
-	if(A_k == ConcreteTypeKind::PRIMITIVE)
-		return codegenPrimitiveToTypeConversion(codegen, eval, target);
-
-	assert(false && "We are supposedly able to convert these types");
-	return boost::none;
+	return eval.typeInfo->type->codegenTypeConversionTo(codegen, eval, target);
 }
 
 ExprTypeInfo* getAnonBooleanTyI() {

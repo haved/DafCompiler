@@ -200,6 +200,11 @@ bool FunctionExpression::hasReferenceReturn() {
 	return m_type->hasReferenceReturn();
 }
 
+//Used to check if we can be called without a parameter list
+//in which case we can have an implicit return type
+//this is then used by 
+//TODO: Depricate this, and maybe also m_implicitCallReturnTypeInfo can be done away with
+//Once we have a way for FunctionCalls to request a specific set of parameters, that is
 bool FunctionExpression::canBeCalledImplicitlyOnce() {
 	return getParameters().empty();
 }
@@ -349,8 +354,24 @@ optional<EvaluatedExpression> FunctionExpression::codegenExpression(CodegenLLVM&
 		return boost::none;
 }
 
+
+CastPossible FunctionExpression::canConvertTo(ValueKind fromKind, ExprTypeInfo& to) {
+	(void) fromKind; (void) to;
+	if(!canBeCalledImplicitlyOnce())
+	    return CastPossible::IMPOSSIBLE;
+	return canConvertTypeFromTo(getReturnTypeInfo(), to); //Could this cause an infinite loop? Nah..
+}
+
+optional<EvaluatedExpression> FunctionExpression::codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) {
+	(void) from; //TODO: Closures and stuff
+    assert(canBeCalledImplicitlyOnce());
+	optional<EvaluatedExpression> newEval = codegenOneImplicitCall(codegen);
+	return codegenTypeConversion(codegen, newEval, target);
+}
+
+
 llvm::Type* FunctionExpression::codegenType(CodegenLLVM& codegen) {
-	return llvm::Type::getVoidTy(codegen.Context());
+	return llvm::Type::getVoidTy(codegen.Context()); //TODO: Closures and stuff
 }
 
 llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen, param_list& params, ExprTypeInfo& returnType) {

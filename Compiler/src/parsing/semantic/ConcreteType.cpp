@@ -14,25 +14,6 @@ void printConcreteTypeKind(ConcreteTypeKind kind, std::ostream& out) {
 	}
 }
 
-bool ConcreteType::hasSize() {
-	return true;
-}
-
-CastPossible ConcreteType::canConvertTo(ValueKind fromKind, ExprTypeInfo& to) {
-	(void) fromKind; (void) to;
-	return CastPossible::IMPOSSIBLE;
-}
-
-optional<EvaluatedExpression> ConcreteType::codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) {
-	(void) codegen; (void) from; (void) target;
-	return boost::none;
-}
-
-llvm::Type* ConcreteType::codegenType(CodegenLLVM& codegen) {
-	std::cerr << "TODO: codegen type" << std::endl;
-    return llvm::Type::getVoidTy(codegen.Context());
-}
-
 ConcretePointerType::ConcretePointerType(bool mut, ConcreteType* target) : m_mut(mut), m_target(target) {
 	assert(m_target);
 }
@@ -129,6 +110,7 @@ bool PrimitiveType::hasSize() {
 }
 
 CastPossible PrimitiveType::canConvertTo(ValueKind fromKind, ExprTypeInfo& to) {
+	(void) fromKind;
     if(isReferenceValueKind(to.valueKind))
 		return CastPossible::IMPOSSIBLE;
 	ConcreteType* B_t = to.type;
@@ -149,7 +131,37 @@ CastPossible PrimitiveType::canConvertTo(ValueKind fromKind, ExprTypeInfo& to) {
 }
 
 optional<EvaluatedExpression> PrimitiveType::codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) {
-    
+	assert(target && !target->isReference());
+
+	ConcreteType* to = target->type;
+	PrimitiveType* to_prim = castToPrimitveType(to);
+
+    if(isFloatingPoint() || to_prim->isFloatingPoint())
+		assert(false && "We don't support");
+	int fromBits = getBitCount();
+	int toBits = to_prim->getBitCount();
+
+	llvm::Value* val = from.getValue(codegen);
+
+	if(fromBits != toBits) {
+		if(toBits == 1) {
+			llvm::Type* from_LLVM = codegenType(codegen);
+			if(!from_LLVM)
+				return boost::none;
+			llvm::Value* zero = llvm::ConstantInt::get(from_LLVM, 0, false);
+			val = codegen.Builder().CreateICmpNE(val, zero);
+		} else {
+			llvm::Type* to_LLVM = to->codegenType(codegen);
+			if(!to_LLVM)
+				return boost::none;
+			bool SnotZ = isSigned();
+			val = SnotZ ?
+				codegen.Builder().CreateSExtOrTrunc(val, to_LLVM):
+				codegen.Builder().CreateZExtOrTrunc(val, to_LLVM);
+		}
+	}
+
+	return EvaluatedExpression(val, false, target);
 }
 
 llvm::Type* PrimitiveType::codegenType(CodegenLLVM& codegen) {
@@ -207,6 +219,16 @@ void VoidType::printSignature() {
 
 bool VoidType::hasSize() {
 	return false;
+}
+
+CastPossible VoidType::canConvertTo(ValueKind fromKind, ExprTypeInfo& to) {
+	(void) fromKind; (void) to;
+	return CastPossible::IMPOSSIBLE;
+}
+
+optional<EvaluatedExpression> VoidType::codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) {
+	(void) codegen; (void) from; (void) target;
+	return boost::none;
 }
 
 llvm::Type* VoidType::codegenType(CodegenLLVM& codegen) {

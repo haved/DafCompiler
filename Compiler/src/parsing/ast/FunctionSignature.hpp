@@ -65,9 +65,9 @@ private:
 	llvm::Function* m_prototype;
 
 	bool readyParameterLets();
+	bool isConcrete();
 	void makePrototype(CodegenLLVM& codegen);
 	void fillPrototype(CodegenLLVM& codegen);
-	bool isConcrete();
 public:
 	FunctionExpression(unique_ptr<FunctionType>&& type, unique_ptr<Expression>&& function_body, TextRange& range);
 	FunctionExpression(unique_ptr<FunctionType>&& type, std::string&& foreign_name, TextRange& range);
@@ -84,6 +84,7 @@ public:
 	Expression* getBody();
 	bool hasReturn();
 	bool hasReferenceReturn();
+	//TODO: Depricate once a FunctionCall can ask for a target type
 	bool canBeCalledImplicitlyOnce();
 	virtual bool hasSize() override;
 
@@ -100,6 +101,8 @@ public:
     optional<EvaluatedExpression> codegenOneImplicitCall(CodegenLLVM& codegen);
 	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
 
+	virtual CastPossible canConvertTo(ValueKind fromKind, ExprTypeInfo& target) override;
+	virtual optional<EvaluatedExpression> codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) override;
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 
 	llvm::Function* tryGetOrMakePrototype(CodegenLLVM& codegen);
