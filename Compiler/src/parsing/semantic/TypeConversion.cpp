@@ -11,22 +11,7 @@ CastPossible canConvertFunctionTypeTo(FunctionExpression* func, ExprTypeInfo B) 
 }
 
 CastPossible canConvertFromPrimitive(PrimitiveType* from, ExprTypeInfo to) {
-	assert(from && to.type && !isReferenceValueKind(to.valueKind));
-	ConcreteType* B_t = to.type;
-	ConcreteTypeKind B_k = B_t->getConcreteTypeKind();
-	if(B_k != ConcreteTypeKind::PRIMITIVE) {
-		assert(false && "TODO: Casting from primitives to non-primitives");
-		return CastPossible::IMPOSSIBLE;
-	}
 
-	PrimitiveType* to_prim = castToPrimitveType(to.type);
-	if(from->isFloatingPoint() && !to_prim->isFloatingPoint())
-		return CastPossible::EXPLICITLY; //float to int
-	if(to_prim->getBitCount() == 1)
-		return CastPossible::IMPLICITLY; //'truncate' to bool is implicit
-	if(from->getBitCount() > to_prim->getBitCount())
-		return CastPossible::EXPLICITLY; //truncating is otherwise explicit
-	return CastPossible::IMPLICITLY;
 }
 
 CastPossible canConvertTypeFromTo(ExprTypeInfo A, ExprTypeInfo B) {
@@ -51,8 +36,6 @@ CastPossible canConvertTypeFromTo(ExprTypeInfo A, ExprTypeInfo B) {
 		return CastPossible::IMPOSSIBLE;
 
 	ConcreteTypeKind A_k = A_t->getConcreteTypeKind();
-	if(A_k == ConcreteTypeKind::PRIMITIVE)
-		return canConvertFromPrimitive(castToPrimitveType(A_t), B);
 
 	return CastPossible::IMPOSSIBLE;
 }

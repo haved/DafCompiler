@@ -128,6 +128,30 @@ bool PrimitiveType::hasSize() {
 	return true;
 }
 
+CastPossible PrimitiveType::canConvertTo(ValueKind fromKind, ExprTypeInfo& to) {
+    if(isReferenceValueKind(to.valueKind))
+		return CastPossible::IMPOSSIBLE;
+	ConcreteType* B_t = to.type;
+	ConcreteTypeKind B_k = B_t->getConcreteTypeKind();
+	if(B_k != ConcreteTypeKind::PRIMITIVE) {
+		assert(false && "TODO: Casting from primitives to non-primitives");
+		return CastPossible::IMPOSSIBLE;
+	}
+
+	PrimitiveType* to_prim = castToPrimitveType(to.type);
+	if(isFloatingPoint() && !to_prim->isFloatingPoint())
+		return CastPossible::EXPLICITLY; //float to int
+	if(to_prim->getBitCount() == 1)
+		return CastPossible::IMPLICITLY; //'truncate' to bool is implicit
+	if(getBitCount() > to_prim->getBitCount())
+		return CastPossible::EXPLICITLY; //truncating is otherwise explicit
+	return CastPossible::IMPLICITLY;
+}
+
+optional<EvaluatedExpression> PrimitiveType::codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) {
+    
+}
+
 llvm::Type* PrimitiveType::codegenType(CodegenLLVM& codegen) {
 	return llvm::Type::getIntNTy(codegen.Context(), m_bitCount);
 }

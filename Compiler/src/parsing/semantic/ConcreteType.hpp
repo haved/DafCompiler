@@ -78,6 +78,10 @@ public:
 	int getBitCount();
 
 	virtual bool hasSize() override;
+
+	virtual CastPossible canConvertTo(ValueKind fromKind, ExprTypeInfo& target) override;
+	virtual optional<EvaluatedExpression> codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) override;
+
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 };
 
