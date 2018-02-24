@@ -28,7 +28,7 @@ void complainThatTypeCantBeConverted(ExprTypeInfo A, optional<ConcreteType*> req
 	else if(poss == CastPossible::EXPLICITLY)
 		out << "no implicit type conversion exists from '";
 	else assert(false);
-	printValueKind(A.valueKind, out, true);
+	printValueKind(A.valueKind, out, false);
 	A.type->printSignature();
 	out << "' to '";
 	printValueKind(reqKind, out, true);
@@ -37,63 +37,26 @@ void complainThatTypeCantBeConverted(ExprTypeInfo A, optional<ConcreteType*> req
     out << "'" << std::endl;
 }
 
-optional<const ExprTypeInfo*> getPossibleConversion(const ExprTypeInfo& from, optional<ConcreteTypeKind> typeKindWanted, ValueKind valueKindWanted, CastPossible poss, const TextRange& range) {
-	(void) poss;
+optional<ExprTypeInfo> getPossibleConversion(const ExprTypeInfo& from, CTypeKindFilter filter, ValueKind kind, CastPossible rights) {
+	return from.type->getPossibleConversionTarget(from.valueKind, filter, kind, rights);
+}
 
-	const ExprTypeInfo* ret = &from;
-	bool wouldHaveBeenPossibleExplicitly = false;
 
-    for(;;) {
-	    ConcreteTypeKind typeKind = ret->type->getConcreteTypeKind();
-		ValueKind valueKind = ret->valueKind;
-	    if((getValueKindScore(valueKind) >= getValueKindScore(valueKindWanted))
-		   && (!typeKindWanted ||  *typeKindWanted == typeKind)) {
-		    return ret;
-		}
-
-		if(typeKind == ConcreteTypeKind::FUNCTION) {
-			FunctionExpression* func = castToFunction(from.type);
-			optional<ExprTypeInfo>& implicit = func->getImplicitCallReturnTypeInfo();
-			if(implicit) {
-				ret = &*implicit;
-				continue;
-			}
-		}
-
-		break;
-	}
-
-	assert(implies(wouldHaveBeenPossibleExplicitly, poss != CastPossible::EXPLICITLY));
-
+void complainNoConversionPossible(const ExprTypeInfo& from, CTypeKindFilter filter, ValueKind kind, CastPossible poss, const TextRange& range) {
 	auto& out = logDaf(range, ERROR);
-	if(wouldHaveBeenPossibleExplicitly)
-		out << "no implicit conversion exists from '";
-	else
-		out << "no conversion exists from '";
-	printValueKind(from.valueKind, out, true);
+	if(poss == CastPossible::IMPOSSIBLE)
+		out << "no type conversion exists from '";
+	else if(poss == CastPossible::EXPLICITLY)
+		out << "no implicit type conversion exists from '";
+	else assert(false);
+	printValueKind(from.valueKind, out, false);
 	from.type->printSignature();
 	out << "' to '";
-	printValueKind(valueKindWanted, out, false); //don't print anonymous
-	if(typeKindWanted)
-		printConcreteTypeKind(*typeKindWanted, out);
+	printValueKind(kind, out, true);
+	filter.printAllPosibilities(out);
 	out << "'" << std::endl;
-	return boost::none;
 }
 
-optional<const ExprTypeInfo*> getNonFunctionType(const ExprTypeInfo& from, const TextRange& range) {
-	if(!isFunction(from.type))
-		return &from;
-
-	FunctionExpression* func = castToFunction(from.type);
-	optional<ExprTypeInfo>& implicit = func->getImplicitCallReturnTypeInfo();
-	if(implicit)
-		return &*implicit;
-
-	auto& out = logDaf(range, ERROR) << "no implicit calling possible for ";
-	func->printSignature();
-	out << std::endl;
-	return boost::none;
-}
 
 optional<EvaluatedExpression> codegenTypeConversion(CodegenLLVM& codegen, optional<EvaluatedExpression> eval_opt, ExprTypeInfo* target) {
 	assert(target);

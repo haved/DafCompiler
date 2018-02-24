@@ -16,12 +16,18 @@ void printConcreteTypeKind(ConcreteTypeKind kind, std::ostream& out) {
 
 CTypeKindFilter::CTypeKindFilter(int filter) : filter(filter) {}
 CTypeKindFilter CTypeKindFilter::allowingNothing() {return 0;}
-CTypeKindFilter CTypeKindFilter::alsoAllowing(ConcreteTypeKind kind) const {return filter|(1<<(int)kind);}
+CTypeKindFilter CTypeKindFilter::alsoAllowing(ConcreteTypeKind kind) const {
+    int bitMask = 1 << (int)kind;
+	assert(bitMask);
+	return filter|bitMask;
+}
 CTypeKindFilter CTypeKindFilter::butDisallowing(ConcreteTypeKind kind) const {
 	return inversed().alsoAllowing(kind).inversed();}
 CTypeKindFilter CTypeKindFilter::ored(const CTypeKindFilter& other) const {return filter | other.filter;}
 CTypeKindFilter CTypeKindFilter::unioned(const CTypeKindFilter& other) const {return filter & other.filter;}
 CTypeKindFilter CTypeKindFilter::inversed() const {return ~filter;}
+bool CTypeKindFilter::allows(ConcreteTypeKind kind) {return filter & (1<<(int)kind); }
+bool CTypeKindFilter::allows(ConcreteType* type) { return allows(type->getConcreteTypeKind()); }
 
 ConcretePointerType::ConcretePointerType(bool mut, ConcreteType* target) : m_mut(mut), m_target(target) {
 	assert(m_target);
@@ -60,6 +66,11 @@ CastPossible ConcretePointerType::canConvertTo(ValueKind fromKind, ExprTypeInfo&
 
 	return (getValueKindScore(fromKind) >= getValueKindScore(to.valueKind))
 		? CastPossible::IMPLICITLY : CastPossible::IMPOSSIBLE;
+}
+
+optional<ExprTypeInfo> ConcretePointerType::getPossibleConversionTarget(ValueKind fromKind, CTypeKindFilter filter, ValueKind kind, CastPossible rights) {
+	(void) fromKind; (void) filter; (void) kind; (void) rights;
+    return boost::none; //TODO: Allow casting pointers to integers
 }
 
 optional<EvaluatedExpression> ConcretePointerType::codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) {
@@ -137,6 +148,11 @@ CastPossible PrimitiveType::canConvertTo(ValueKind fromKind, ExprTypeInfo& to) {
 	if(getBitCount() > to_prim->getBitCount())
 		return CastPossible::EXPLICITLY; //truncating is otherwise explicit
 	return CastPossible::IMPLICITLY;
+}
+
+optional<ExprTypeInfo> PrimitiveType::getPossibleConversionTarget(ValueKind fromKind, CTypeKindFilter filter, ValueKind kind, CastPossible rights) {
+	(void) fromKind; (void) filter; (void) kind; (void) rights;
+    return boost::none; //TODO: Allow casting primitves to pointer
 }
 
 optional<EvaluatedExpression> PrimitiveType::codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) {
@@ -234,6 +250,12 @@ CastPossible VoidType::canConvertTo(ValueKind fromKind, ExprTypeInfo& to) {
 	(void) fromKind; (void) to;
 	return CastPossible::IMPOSSIBLE;
 }
+
+optional<ExprTypeInfo> VoidType::getPossibleConversionTarget(ValueKind fromKind, CTypeKindFilter filter, ValueKind kind, CastPossible rights) {
+	(void) fromKind; (void) filter; (void) kind; (void) rights;
+    return boost::none;
+}
+
 
 optional<EvaluatedExpression> VoidType::codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) {
 	(void) codegen; (void) from; (void) target;

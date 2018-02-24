@@ -103,6 +103,7 @@ public:
 
 	virtual CastPossible canConvertTo(ValueKind fromKind, ExprTypeInfo& target) override;
 	virtual optional<EvaluatedExpression> codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) override;
+	virtual optional<ExprTypeInfo> getPossibleConversionTarget(ValueKind fromKind, CTypeKindFilter filter, ValueKind kind, CastPossible rights) override;
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
 
 	llvm::Function* tryGetOrMakePrototype(CodegenLLVM& codegen);

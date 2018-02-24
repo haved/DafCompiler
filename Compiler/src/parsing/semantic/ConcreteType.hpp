@@ -11,7 +11,7 @@ enum class ConcreteTypeKind {
 
 void printConcreteTypeKind(ConcreteTypeKind kind, std::ostream& out);
 
-
+class ConcreteType;
 struct CTypeKindFilter { //Yes this is maybe a bit overkill
 private: CTypeKindFilter(int filter);
 public:
@@ -22,6 +22,9 @@ public:
 	CTypeKindFilter ored(const CTypeKindFilter& other) const;
 	CTypeKindFilter unioned(const CTypeKindFilter& other) const;
 	CTypeKindFilter inversed() const;
+	bool allows(ConcreteTypeKind kind);
+	bool allows(ConcreteType* type);
+	void printAllPosibilities(std::ostream& out);
 };
 
 enum class ValueKind;
@@ -36,9 +39,10 @@ public:
 	virtual ConcreteTypeKind getConcreteTypeKind() const =0;
 
 	virtual bool hasSize()=0;
-	//Assumed to be a different type
+	//Assumed to be a different type, but the valueKind can go the "wrong" direction
 	virtual CastPossible canConvertTo(ValueKind fromKind, ExprTypeInfo& B)=0;
-	virtual ExprTypeInfo getPossibleConversionTarget(ValueKind fromKind, CTypeKindFilter filter, ValueKind kind);
+	//Same here, so won't ask for a possible conversion to same ConcreteTypeKind
+	virtual optional<ExprTypeInfo> getPossibleConversionTarget(ValueKind fromKind, CTypeKindFilter filter, ValueKind kind, CastPossible rights)=0;
 	virtual optional<EvaluatedExpression> codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target)=0;
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen)=0;
 };
@@ -59,6 +63,7 @@ public:
 	ExprTypeInfo getDerefResultExprTypeInfo();
 
 	virtual CastPossible canConvertTo(ValueKind fromKind, ExprTypeInfo& target) override;
+	virtual optional<ExprTypeInfo> getPossibleConversionTarget(ValueKind fromKind, CTypeKindFilter filter, ValueKind kind, CastPossible rights) override;
 	virtual optional<EvaluatedExpression> codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) override;
 
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
@@ -91,6 +96,7 @@ public:
 	virtual bool hasSize() override;
 
 	virtual CastPossible canConvertTo(ValueKind fromKind, ExprTypeInfo& target) override;
+	virtual optional<ExprTypeInfo> getPossibleConversionTarget(ValueKind fromKind, CTypeKindFilter filter, ValueKind kind, CastPossible rights) override;
 	virtual optional<EvaluatedExpression> codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) override;
 
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;
@@ -108,6 +114,7 @@ public:
 	virtual bool hasSize() override;
 
 	virtual CastPossible canConvertTo(ValueKind fromKind, ExprTypeInfo& target) override;
+	virtual optional<ExprTypeInfo> getPossibleConversionTarget(ValueKind fromKind, CTypeKindFilter filter, ValueKind kind, CastPossible rights) override;
 	virtual optional<EvaluatedExpression> codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) override;
 
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen) override;

@@ -365,6 +365,14 @@ CastPossible FunctionExpression::canConvertTo(ValueKind fromKind, ExprTypeInfo& 
 	return canConvertTypeFromTo(getReturnTypeInfo(), to); //Could this cause an infinite loop? Nah..
 }
 
+optional<ExprTypeInfo> FunctionExpression::getPossibleConversionTarget(ValueKind fromKind, CTypeKindFilter filter, ValueKind kind, CastPossible rights) {
+	if(!canBeCalledImplicitlyOnce())
+		return boost::none;
+    if(filter.allowsAndHasValueKind(m_returnTypeInfo, kind))
+		return m_returnTypeInfo;
+	return boost::none;
+}
+
 optional<EvaluatedExpression> FunctionExpression::codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) {
 	(void) from; //TODO: Closures and stuff
     assert(canBeCalledImplicitlyOnce());
