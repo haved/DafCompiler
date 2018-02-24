@@ -14,6 +14,15 @@ void printConcreteTypeKind(ConcreteTypeKind kind, std::ostream& out) {
 	}
 }
 
+CTypeKindFilter::CTypeKindFilter(int filter) : filter(filter) {}
+CTypeKindFilter CTypeKindFilter::allowingNothing() {return 0;}
+CTypeKindFilter CTypeKindFilter::alsoAllowing(ConcreteTypeKind kind) const {return filter|(1<<(int)kind);}
+CTypeKindFilter CTypeKindFilter::butDisallowing(ConcreteTypeKind kind) const {
+	return inversed().alsoAllowing(kind).inversed();}
+CTypeKindFilter CTypeKindFilter::ored(const CTypeKindFilter& other) const {return filter | other.filter;}
+CTypeKindFilter CTypeKindFilter::unioned(const CTypeKindFilter& other) const {return filter & other.filter;}
+CTypeKindFilter CTypeKindFilter::inversed() const {return ~filter;}
+
 ConcretePointerType::ConcretePointerType(bool mut, ConcreteType* target) : m_mut(mut), m_target(target) {
 	assert(m_target);
 }

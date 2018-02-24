@@ -11,6 +11,19 @@ enum class ConcreteTypeKind {
 
 void printConcreteTypeKind(ConcreteTypeKind kind, std::ostream& out);
 
+
+struct CTypeKindFilter { //Yes this is maybe a bit overkill
+private: CTypeKindFilter(int filter);
+public:
+	int filter;
+	static CTypeKindFilter allowingNothing();
+	CTypeKindFilter alsoAllowing(ConcreteTypeKind kind) const;
+	CTypeKindFilter butDisallowing(ConcreteTypeKind kind) const;
+	CTypeKindFilter ored(const CTypeKindFilter& other) const;
+	CTypeKindFilter unioned(const CTypeKindFilter& other) const;
+	CTypeKindFilter inversed() const;
+};
+
 enum class ValueKind;
 enum class CastPossible;
 struct ExprTypeInfo;
@@ -25,6 +38,7 @@ public:
 	virtual bool hasSize()=0;
 	//Assumed to be a different type
 	virtual CastPossible canConvertTo(ValueKind fromKind, ExprTypeInfo& B)=0;
+	virtual ExprTypeInfo getPossibleConversionTarget(ValueKind fromKind, CTypeKindFilter filter, ValueKind kind);
 	virtual optional<EvaluatedExpression> codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target)=0;
 	virtual llvm::Type* codegenType(CodegenLLVM& codegen)=0;
 };
