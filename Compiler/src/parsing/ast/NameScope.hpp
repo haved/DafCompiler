@@ -27,7 +27,7 @@ class ConcreteNameScope : public Namespace {
 public:
 	ConcreteNameScope() {}
 	~ConcreteNameScope() {}
-	virtual Definition* tryGetDefinitionFromName(const std::string& name)=0;
+	virtual Definition* tryGetDefinitionFromName(const std::string& name) override =0;
 	virtual Definition* getPubDefinitionFromName(const std::string& name, const TextRange& range)=0;
 };
 

@@ -202,7 +202,7 @@ bool FunctionExpression::hasReferenceReturn() {
 
 //Used to check if we can be called without a parameter list
 //in which case we can have an implicit return type
-//this is then used by 
+//this is also used by the function call when the type is incorrect
 //TODO: Depricate this, and maybe also m_implicitCallReturnTypeInfo can be done away with
 //Once we have a way for FunctionCalls to request a specific set of parameters, that is
 bool FunctionExpression::canBeCalledImplicitlyOnce() {
@@ -274,15 +274,21 @@ ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_sta
 	return ConcretableState::TRY_LATER;
 }
 
-CastPossible isReturnCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind, const ExprTypeInfo& given) {
-	if(requiredType)
-		return canConvertTypeFromTo(given, ExprTypeInfo(*requiredType, requiredKind));
-	return getValueKindScore(requiredKind) <= getValueKindScore(given.valueKind) ? CastPossible::IMPLICITLY : CastPossible::IMPOSSIBLE;
-}
+bool isReturnCorrectOrComplain(optional<ConcreteType*> requiredType, ValueKind requiredKind, const ExprTypeInfo& given, const TextRange& range) {
+	CastPossible possible;
+	if(requiredType) {
+		possible = canConvertTypeFromTo(given, ExprTypeInfo(*requiredType, requiredKind));
+		if(possible == CastPossible::IMPLICITLY)
+			return true;
+	}
+	else {
+		if(getValueKindScore(requiredKind) <= getValueKindScore(given.valueKind))
+			return true;
+		possible = CastPossible::IMPOSSIBLE;
+	}
 
-void complainReturnIsntCorrect(optional<ConcreteType*> requiredType, ValueKind requiredKind,
-							   const ExprTypeInfo& given, CastPossible poss, const TextRange& range) {
-    complainThatTypeCantBeConverted(given, requiredType, requiredKind, poss, range);
+	complainThatTypeCantBeConverted(given, requiredType, requiredKind, possible, range);
+	return false;
 }
 
 ConcretableState FunctionExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
@@ -297,11 +303,8 @@ ConcretableState FunctionExpression::retryMakeConcreteInternal(DependencyMap& de
 
 	    if(m_function_body) {
 		    ExprTypeInfo bodyTypeInfo = (*m_function_body)->getTypeInfo();
-			CastPossible canReturn = isReturnCorrect(givenType, givenValueKind, bodyTypeInfo);
-			if(canReturn != CastPossible::IMPLICITLY) {
-				complainReturnIsntCorrect(givenType, givenValueKind, bodyTypeInfo, canReturn, getRange());
+			if(!isReturnCorrectOrComplain(givenType, givenValueKind, bodyTypeInfo, m_range))
 				return ConcretableState::LOST_CAUSE;
-			}
 			if(!givenType)
 				givenType = bodyTypeInfo.type;
 			m_returnTypeInfo = ExprTypeInfo(*givenType, givenValueKind);
