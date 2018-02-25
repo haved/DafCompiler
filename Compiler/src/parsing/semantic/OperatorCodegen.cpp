@@ -78,13 +78,14 @@ bool isBinaryOpNumerical(InfixOperator op) {
 
 optional<ExprTypeInfo> getBinaryOpNumericalResultType(const ExprTypeInfo& LHS_given, InfixOperator op, const ExprTypeInfo& RHS_given, const TextRange& range) {
 	assert(isBinaryOpNumerical(op));
-	optional<const ExprTypeInfo*> LHS_ptr = getPossibleConversion(LHS_given, ConcreteTypeKind::PRIMITIVE, ValueKind::ANONYMOUS, CastPossible::IMPLICITLY, range);
-	optional<const ExprTypeInfo*> RHS_ptr = getPossibleConversion(RHS_given, ConcreteTypeKind::PRIMITIVE, ValueKind::ANONYMOUS, CastPossible::IMPLICITLY, range);
+	CTypeKindFilter primitiveOnly = CTypeKindFilter::allowingNothing().alsoAllowing(ConcreteTypeKind::PRIMITIVE);
+	optional<ExprTypeInfo> LHS_ptr = getPossibleConversionOrComplain(LHS_given, primitiveOnly, ValueKind::ANONYMOUS, CastPossible::IMPLICITLY, range);
+	optional<ExprTypeInfo> RHS_ptr = getPossibleConversionOrComplain(RHS_given, primitiveOnly, ValueKind::ANONYMOUS, CastPossible::IMPLICITLY, range);
 	if(!LHS_ptr || ! RHS_ptr)
 		return boost::none;
 
-	const ExprTypeInfo& LHS = **LHS_ptr;
-	const ExprTypeInfo& RHS = **RHS_ptr;
+	const ExprTypeInfo& LHS = *LHS_ptr;
+	const ExprTypeInfo& RHS = *RHS_ptr;
 
 	if(complainIfNotPrimitive(LHS.type, op, "LHS", range) | complainIfNotPrimitive(RHS.type, op, "RHS", range))
 	    assert(false);
@@ -103,10 +104,10 @@ optional<ExprTypeInfo> getBinaryOpNumericalResultType(const ExprTypeInfo& LHS_gi
 }
 
 optional<ExprTypeInfo> getAssignmentOpResultType(const ExprTypeInfo& LHS, const ExprTypeInfo& RHS, const TextRange& range) {
-	optional<const ExprTypeInfo*> implicitType = getPossibleConversion(LHS, boost::none, ValueKind::MUT_LVALUE, CastPossible::IMPLICITLY, range);
+	optional<ExprTypeInfo> implicitType = getPossibleConversionOrComplain(LHS, CTypeKindFilter::allowingEverything(), ValueKind::MUT_LVALUE, CastPossible::IMPLICITLY, range);
 	if(!implicitType)
 		return boost::none;
-	const ExprTypeInfo& LHS_actual = **implicitType;
+	const ExprTypeInfo& LHS_actual = *implicitType;
 	ExprTypeInfo AnonLHS(LHS_actual.type, ValueKind::ANONYMOUS);
 	CastPossible RHS_to_LHS_poss = canConvertTypeFromTo(RHS, AnonLHS);
 	if(RHS_to_LHS_poss != CastPossible::IMPLICITLY) {
@@ -200,23 +201,24 @@ optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, Expres
 
 optional<ExprTypeInfo> getPointerToOperatorType(bool mut, const ExprTypeInfo& RHS, const TextRange& range) {
 	ValueKind targetValueKind = mut ? ValueKind::MUT_LVALUE : ValueKind::LVALUE;
-	optional<const ExprTypeInfo*> targetTypeInfo = getPossibleConversion(RHS, boost::none, targetValueKind, CastPossible::IMPLICITLY, range);
+	optional<ExprTypeInfo> targetTypeInfo = getPossibleConversionOrComplain(RHS, CTypeKindFilter::allowingEverything(), targetValueKind, CastPossible::IMPLICITLY, range);
 
 	if(!targetTypeInfo)
 		return boost::none;
 
-	ConcreteType* target_type = (*targetTypeInfo)->type;
+	ConcreteType* target_type = targetTypeInfo->type;
 	ConcreteType* pointer_type = ConcretePointerType::toConcreteType(mut, target_type);
 	return ExprTypeInfo(pointer_type, ValueKind::ANONYMOUS);
 }
 
 optional<ExprTypeInfo> getDereferenceOperatorType(const ExprTypeInfo& RHS, const TextRange& range) {
-    optional<const ExprTypeInfo*> targetTypeInfo = getPossibleConversion(RHS, ConcreteTypeKind::POINTER, ValueKind::ANONYMOUS, CastPossible::IMPLICITLY, range);
+	auto filter = CTypeKindFilter::allowingNothing().alsoAllowing(ConcreteTypeKind::POINTER);
+    optional<ExprTypeInfo> targetTypeInfo = getPossibleConversionOrComplain(RHS, filter, ValueKind::ANONYMOUS, CastPossible::IMPLICITLY, range);
 
 	if(!targetTypeInfo)
 	    return boost::none;
 
-	ConcretePointerType* pointer_type = static_cast<ConcretePointerType*>((*targetTypeInfo)->type);
+	ConcretePointerType* pointer_type = static_cast<ConcretePointerType*>(targetTypeInfo->type);
 	ExprTypeInfo derefTypeInfo = pointer_type->getDerefResultExprTypeInfo();
 	return derefTypeInfo;
 }

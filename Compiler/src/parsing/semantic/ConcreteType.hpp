@@ -3,33 +3,36 @@
 #include "CodegenLLVMForward.hpp"
 
 enum class ConcreteTypeKind {
-	FUNCTION,
+	FUNCTION=0,
 	POINTER,
 	PRIMITIVE,
-	VOID
+	VOID,
+	END_OF_ENUM
 };
 
 void printConcreteTypeKind(ConcreteTypeKind kind, std::ostream& out);
 
 class ConcreteType;
+struct ExprTypeInfo;
+enum class ValueKind;
 struct CTypeKindFilter { //Yes this is maybe a bit overkill
 private: CTypeKindFilter(int filter);
 public:
 	int filter;
 	static CTypeKindFilter allowingNothing();
+	static CTypeKindFilter allowingEverything();
 	CTypeKindFilter alsoAllowing(ConcreteTypeKind kind) const;
 	CTypeKindFilter butDisallowing(ConcreteTypeKind kind) const;
 	CTypeKindFilter ored(const CTypeKindFilter& other) const;
 	CTypeKindFilter unioned(const CTypeKindFilter& other) const;
 	CTypeKindFilter inversed() const;
-	bool allows(ConcreteTypeKind kind);
-	bool allows(ConcreteType* type);
-	void printAllPosibilities(std::ostream& out);
+	bool allows(ConcreteTypeKind kind) const;
+	bool allows(ConcreteType* type) const;
+	bool allowsAndHasValueKind(const ExprTypeInfo& attempt, ValueKind requiredKind) const;
+	void printAllPosibilities(std::ostream& out) const;
 };
 
-enum class ValueKind;
 enum class CastPossible;
-struct ExprTypeInfo;
 struct EvaluatedExpression;
 class ConcreteType {
 public:

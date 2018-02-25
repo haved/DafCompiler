@@ -16,9 +16,10 @@ void printConcreteTypeKind(ConcreteTypeKind kind, std::ostream& out) {
 
 CTypeKindFilter::CTypeKindFilter(int filter) : filter(filter) {}
 CTypeKindFilter CTypeKindFilter::allowingNothing() {return 0;}
+CTypeKindFilter CTypeKindFilter::allowingEverything() {return -1;}
 CTypeKindFilter CTypeKindFilter::alsoAllowing(ConcreteTypeKind kind) const {
     int bitMask = 1 << (int)kind;
-	assert(bitMask);
+	assert(bitMask>0 && bitMask<(1<<(int)ConcreteTypeKind::END_OF_ENUM));
 	return filter|bitMask;
 }
 CTypeKindFilter CTypeKindFilter::butDisallowing(ConcreteTypeKind kind) const {
@@ -26,8 +27,49 @@ CTypeKindFilter CTypeKindFilter::butDisallowing(ConcreteTypeKind kind) const {
 CTypeKindFilter CTypeKindFilter::ored(const CTypeKindFilter& other) const {return filter | other.filter;}
 CTypeKindFilter CTypeKindFilter::unioned(const CTypeKindFilter& other) const {return filter & other.filter;}
 CTypeKindFilter CTypeKindFilter::inversed() const {return ~filter;}
-bool CTypeKindFilter::allows(ConcreteTypeKind kind) {return filter & (1<<(int)kind); }
-bool CTypeKindFilter::allows(ConcreteType* type) { return allows(type->getConcreteTypeKind()); }
+bool CTypeKindFilter::allows(ConcreteTypeKind kind) const {return filter & (1<<(int)kind); }
+bool CTypeKindFilter::allows(ConcreteType* type) const { return allows(type->getConcreteTypeKind()); }
+bool CTypeKindFilter::allowsAndHasValueKind(const ExprTypeInfo& attempt, ValueKind requiredKind) const {
+	return allows(attempt.type) && valueKindConvertableToB(attempt.valueKind, requiredKind);
+}
+void CTypeKindFilter::printAllPosibilities(std::ostream& out) const {
+	int enumCount = (int)ConcreteTypeKind::END_OF_ENUM;
+	int onlyKnownEnumMask = ((1<<enumCount)-1);
+
+    int count = 0;
+	int filterScan = filter & onlyKnownEnumMask;
+	while(filterScan) {
+		if(filterScan&1)
+			count++;
+		filterScan>>=1;
+	}
+
+	if(count == 0) {
+		out << "no types allowed what is this";
+		return;
+	}
+	if(count == enumCount) {
+		out << "of any type";
+		return;
+	}
+
+	if(count != 1)
+		out << "(";
+    int printed = 0;
+	for(int i = 0; i < enumCount; i++) {
+		auto kind = (ConcreteTypeKind)i;
+		if(allows(kind)) {
+		    if(printed == count-1)
+				out << "or ";
+			else if(printed)
+				out << ", ";
+			printConcreteTypeKind(kind, out);
+			printed++;
+		}
+	}
+	if(count != 1)
+		out << ")";
+}
 
 ConcretePointerType::ConcretePointerType(bool mut, ConcreteType* target) : m_mut(mut), m_target(target) {
 	assert(m_target);
@@ -69,8 +111,11 @@ CastPossible ConcretePointerType::canConvertTo(ValueKind fromKind, ExprTypeInfo&
 }
 
 optional<ExprTypeInfo> ConcretePointerType::getPossibleConversionTarget(ValueKind fromKind, CTypeKindFilter filter, ValueKind kind, CastPossible rights) {
-	(void) fromKind; (void) filter; (void) kind; (void) rights;
-    return boost::none; //TODO: Allow casting pointers to integers
+    (void) rights;
+	ExprTypeInfo us(this, fromKind);
+	if(filter.allowsAndHasValueKind(us, kind))
+		return us;
+	return boost::none;
 }
 
 optional<EvaluatedExpression> ConcretePointerType::codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) {
@@ -151,8 +196,11 @@ CastPossible PrimitiveType::canConvertTo(ValueKind fromKind, ExprTypeInfo& to) {
 }
 
 optional<ExprTypeInfo> PrimitiveType::getPossibleConversionTarget(ValueKind fromKind, CTypeKindFilter filter, ValueKind kind, CastPossible rights) {
-	(void) fromKind; (void) filter; (void) kind; (void) rights;
-    return boost::none; //TODO: Allow casting primitves to pointer
+	(void) rights;
+	ExprTypeInfo us(this, fromKind);
+	if(filter.allowsAndHasValueKind(us, kind))
+		return us;
+	return boost::none;
 }
 
 optional<EvaluatedExpression> PrimitiveType::codegenTypeConversionTo(CodegenLLVM& codegen, EvaluatedExpression from, ExprTypeInfo* target) {
@@ -252,8 +300,11 @@ CastPossible VoidType::canConvertTo(ValueKind fromKind, ExprTypeInfo& to) {
 }
 
 optional<ExprTypeInfo> VoidType::getPossibleConversionTarget(ValueKind fromKind, CTypeKindFilter filter, ValueKind kind, CastPossible rights) {
-	(void) fromKind; (void) filter; (void) kind; (void) rights;
-    return boost::none;
+    (void) rights;
+	ExprTypeInfo us(this, fromKind);
+	if(filter.allowsAndHasValueKind(us, kind))
+		return us;
+	return boost::none;
 }
 
 

@@ -30,6 +30,9 @@ bool isReferenceValueKind(ValueKind kind) {
 	return kind != ValueKind::ANONYMOUS;
 }
 
+bool valueKindConvertableToB(ValueKind from, ValueKind to) {
+	return getValueKindScore(from)>=getValueKindScore(to);
+}
 
 ExprTypeInfo::ExprTypeInfo(ConcreteType* type, ValueKind kind) : type(type), valueKind(kind) {}
 ExprTypeInfo::ExprTypeInfo(const ExprTypeInfo& other) = default;

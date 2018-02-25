@@ -92,10 +92,10 @@ ConcretableState Let::retryMakeConcreteInternal(DependencyMap& depMap) {
 			}
 		}
 		else {
-			optional<const ExprTypeInfo*> exprTypeInfo = getNonFunctionType(m_expression->getTypeInfo(), m_expression->getRange());
-			if(!exprTypeInfo)
+			optional<ExprTypeInfo> inferred = getPossibleConversionOrComplain(m_expression->getTypeInfo(), CTypeKindFilter::allowingEverything().butDisallowing(ConcreteTypeKind::FUNCTION), ValueKind::ANONYMOUS, CastPossible::IMPLICITLY, m_expression->getRange());
+			if(!inferred)
 				return ConcretableState::LOST_CAUSE;
-			type = (*exprTypeInfo)->type;
+			type = inferred->type;
 		}
 
 		if(m_stealSpaceFromTarget) {

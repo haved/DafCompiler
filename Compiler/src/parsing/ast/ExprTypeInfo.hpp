@@ -12,6 +12,7 @@ enum class ValueKind {
 int getValueKindScore(ValueKind kind); //Higher can be converted to lower
 void printValueKind(ValueKind kind, std::ostream& out, bool printAnon = false);
 bool isReferenceValueKind(ValueKind kind);
+bool valueKindConvertableToB(ValueKind from, ValueKind to);
 
 struct ExprTypeInfo {
     ConcreteType* type;

@@ -17,10 +17,6 @@ CastPossible canConvertTypeFromTo(ExprTypeInfo A, ExprTypeInfo B) {
 	return A_t->canConvertTo(A.valueKind, B);
 }
 
-void complainThatTypeCantBeConverted(ExprTypeInfo A, ExprTypeInfo B, CastPossible poss, const TextRange& range) {
-	complainThatTypeCantBeConverted(A, B.type, B.valueKind, poss, range);
-}
-
 void complainThatTypeCantBeConverted(ExprTypeInfo A, optional<ConcreteType*> reqType, ValueKind reqKind, CastPossible poss, const TextRange& range) {
 	auto& out = logDaf(range, ERROR);
 	if(poss == CastPossible::IMPOSSIBLE)
@@ -37,18 +33,26 @@ void complainThatTypeCantBeConverted(ExprTypeInfo A, optional<ConcreteType*> req
     out << "'" << std::endl;
 }
 
-optional<ExprTypeInfo> getPossibleConversion(const ExprTypeInfo& from, CTypeKindFilter filter, ValueKind kind, CastPossible rights) {
-	return from.type->getPossibleConversionTarget(from.valueKind, filter, kind, rights);
+void complainThatTypeCantBeConverted(ExprTypeInfo A, ExprTypeInfo B, CastPossible poss, const TextRange& range) {
+	complainThatTypeCantBeConverted(A, B.type, B.valueKind, poss, range);
 }
 
+optional<ExprTypeInfo> getPossibleConversion(const ExprTypeInfo& from, CTypeKindFilter filter, ValueKind kind, CastPossible rights) {
+	assert(rights != CastPossible::IMPOSSIBLE);
+	optional<ExprTypeInfo> result = from.type->getPossibleConversionTarget(from.valueKind, filter, kind, rights);
+	if(result) {
+		assert(filter.allowsAndHasValueKind(*result, kind));
+		result->valueKind = kind; //We downgrade in case we got a better valueKind
+	}
+	return result;
+}
 
-void complainNoConversionPossible(const ExprTypeInfo& from, CTypeKindFilter filter, ValueKind kind, CastPossible poss, const TextRange& range) {
+void complainNoConversionMatch(const ExprTypeInfo& from, CTypeKindFilter filter, ValueKind kind, bool explicitly, const TextRange& range) {
 	auto& out = logDaf(range, ERROR);
-	if(poss == CastPossible::IMPOSSIBLE)
+	if(explicitly)
 		out << "no type conversion exists from '";
-	else if(poss == CastPossible::EXPLICITLY)
+	else
 		out << "no implicit type conversion exists from '";
-	else assert(false);
 	printValueKind(from.valueKind, out, false);
 	from.type->printSignature();
 	out << "' to '";
@@ -57,6 +61,12 @@ void complainNoConversionPossible(const ExprTypeInfo& from, CTypeKindFilter filt
 	out << "'" << std::endl;
 }
 
+optional<ExprTypeInfo> getPossibleConversionOrComplain(const ExprTypeInfo& from, CTypeKindFilter filter, ValueKind valueKind, CastPossible poss, const TextRange& range) {
+	auto result = getPossibleConversion(from, filter, valueKind, poss);
+	if(!result)
+		complainNoConversionMatch(from, filter, valueKind, poss==CastPossible::EXPLICITLY, range);
+	return result;
+}
 
 optional<EvaluatedExpression> codegenTypeConversion(CodegenLLVM& codegen, optional<EvaluatedExpression> eval_opt, ExprTypeInfo* target) {
 	assert(target);
