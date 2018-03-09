@@ -3,9 +3,16 @@
 def printInt(a:i32) "printIntToC";
 def printChar(c:u8) "printCharToC";
 
-def dafMain:i32 {
-	mut x := 6;
-	x = x + 2;
+def abs(a:i32):i32 {
+	mut result := a;
+	if result < 0
+		result = 0-result;
+	result
+};
 
-	x - 8
+def dafMain:i32 {
+	mut x := 2;
+	x = x - 8;
+	x = abs(x);
+	x - 6
 };

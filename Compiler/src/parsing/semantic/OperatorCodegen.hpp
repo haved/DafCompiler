@@ -10,9 +10,16 @@
 
 using boost::optional;
 
-optional<ExprTypeInfo> getBinaryOpResultType(const ExprTypeInfo& LHS, InfixOperator op, const ExprTypeInfo& RHS, const TextRange& range);
+struct BinaryOperatorTypeInfo {
+	ExprTypeInfo LHS, RHS, result;
+	BinaryOperatorTypeInfo(ExprTypeInfo allTheSame);
+	BinaryOperatorTypeInfo(ExprTypeInfo sides, ExprTypeInfo result);
+	BinaryOperatorTypeInfo(ExprTypeInfo LHS, ExprTypeInfo RHS, ExprTypeInfo result);
+};
 
-optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, Expression* LHS, InfixOperator op, Expression* RHS, ExprTypeInfo* target);
+optional<BinaryOperatorTypeInfo> getBinaryOpResultType(const ExprTypeInfo& LHS, InfixOperator op, const ExprTypeInfo& RHS, const TextRange& range);
+
+optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, optional<EvaluatedExpression> LHS, InfixOperator op, optional<EvaluatedExpression> RHS, ExprTypeInfo* target);
 
 optional<ExprTypeInfo> getPrefixOpResultType(const PrefixOperator& op, const ExprTypeInfo& RHS, const TextRange& range);
 

@@ -159,6 +159,8 @@ private:
 	unique_ptr<Expression> m_LHS;
 	InfixOperator m_op;
 	unique_ptr<Expression> m_RHS;
+	ExprTypeInfo m_LHS_targetType;
+	ExprTypeInfo m_RHS_targetType;
 public:
 	InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS);
 	InfixOperatorExpression(const InfixOperatorExpression& other) = delete;

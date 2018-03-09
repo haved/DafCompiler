@@ -264,15 +264,32 @@ ConcretableState InfixOperatorExpression::makeConcreteInternal(NamespaceStack& n
 
 ConcretableState InfixOperatorExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
-	optional<ExprTypeInfo> info = getBinaryOpResultType(m_LHS->getTypeInfo(), m_op, m_RHS->getTypeInfo(), getRange());
+	optional<BinaryOperatorTypeInfo> info = getBinaryOpResultType(m_LHS->getTypeInfo(), m_op, m_RHS->getTypeInfo(), getRange());
 	if(!info)
 		return ConcretableState::LOST_CAUSE;
-	m_typeInfo = *info;
+	m_LHS_targetType = info->LHS;
+	m_RHS_targetType = info->RHS;
+	m_typeInfo = info->result;
+    CastPossible LHS_cast = canConvertTypeFromTo(m_LHS->getTypeInfo(), m_LHS_targetType);
+	if(LHS_cast != CastPossible::IMPLICITLY) {
+		complainThatTypeCantBeConverted(m_LHS->getTypeInfo(), m_LHS_targetType, LHS_cast, m_LHS->getRange());
+		return ConcretableState::LOST_CAUSE; //TODO: Output both errors if neither type matches?
+	}
+	CastPossible RHS_cast = canConvertTypeFromTo(m_RHS->getTypeInfo(), m_RHS_targetType);
+	if(RHS_cast != CastPossible::IMPLICITLY) {
+		complainThatTypeCantBeConverted(m_RHS->getTypeInfo(), m_RHS_targetType, RHS_cast, m_RHS->getRange());
+		return ConcretableState::LOST_CAUSE;
+	}
 	return ConcretableState::CONCRETE;
 }
 
 optional<EvaluatedExpression> InfixOperatorExpression::codegenExpression(CodegenLLVM& codegen) {
 	assert(allConcrete() << getConcretableState());
+	optional<EvaluatedExpression> LHS_eval = m_LHS->codegenExpression(codegen);
+	optional<EvaluatedExpression> RHS_eval = m_RHS->codegenExpression(codegen);
+	optional<EvaluatedExpression> LHS_eval_cast = codegenTypeConversion(codegen, LHS_eval, &m_LHS_targetType);
+	optional<EvaluatedExpression> RHS_eval_cast = codegenTypeConversion(codegen, RHS_eval, &m_RHS_targetType);
+
 	return codegenBinaryOperator(codegen, m_LHS.get(), m_op, m_RHS.get(), &m_typeInfo);
 }
 
