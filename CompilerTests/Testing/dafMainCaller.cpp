@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdio>
+#include <cassert>
 
 int global;
 
@@ -18,6 +19,10 @@ extern "C" {
 
 	void printCharToC(char c) {
 		printf("%c", c);
+	}
+
+	void panic() {
+		assert(false);
 	}
 }
 

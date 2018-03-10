@@ -10,19 +10,23 @@ constexpr bool debug =
 #else
 	false;
 #endif
+constexpr bool printFilesGiven = debug;
+constexpr bool dumpNameScope = debug;
+constexpr bool dumpLLVMModule = debug;
+constexpr bool tellMeAboutGracefullShutdown = debug;
 
 using std::vector;
 
 int main(int argc, const char** argv) {
 	FileRegistry files = parseCommandArguments(argc, argv);
-	if constexpr(debug)
+	if constexpr(printFilesGiven)
 		files.printFiles();
 	terminateIfErrors(); //File duplicates are errors
 
 	for(int i = 0; i < files.getFileCount(); i++) {
 		Lexer lexer(files.getFileReference(i));
 		parseFileAsNameScope(lexer, &files.getFileAt(i)->m_nameScope);
-		if(debug) {
+		if constexpr(dumpNameScope) {
 			files.getFileAt(i)->m_nameScope->printSignature();
 			std::cout << std::endl;
 		}
@@ -47,14 +51,14 @@ int main(int argc, const char** argv) {
 	doCodegen(codegen, files);
 	terminateIfErrors();
 
-	if constexpr(debug)
+	if constexpr(dumpLLVMModule)
 		codegen.Module().dump();
 
 	outputCodegenToFile(codegen, files.getOutput());
 	llvm::llvm_shutdown(); //There will still be objects on the heap after this ;(
 	terminateIfErrors();
 
-	if constexpr(debug)
+	if constexpr(tellMeAboutGracefullShutdown)
 		puts("DafCompiler: Shutdown gracefully");
 
 	return 0;
