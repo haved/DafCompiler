@@ -1,0 +1,39 @@
+def printInt(a:i32) "printIntToC";
+//def printChar(c:u8) "printCharToC";
+def panic() "panic";
+
+def mod(a:i32, b:i32):i32 {
+	if b <= 0
+		panic();
+	mut result := a;
+	if a >= b {
+		result = mod(a-b,b);
+	}
+	else if a < 0
+		result = mod(a+b, b);
+	result
+};
+
+def collatz(a:i32, mut sum:i32) {
+	printInt(a);
+	sum=sum+a;
+	if a != 1 {
+		if mod(a,2) == 0
+			collatz(a/2, mut sum);
+		else
+			collatz(a*3+1, mut sum);
+	}
+};
+
+def dafMain:i32 {
+	mut sum := 0;
+	collatz(23, mut sum);
+	printInt(sum);
+	if sum > 633
+		panic();
+	else if sum <= 633
+		sum = sum - 633;
+	else
+		panic();
+	sum
+};

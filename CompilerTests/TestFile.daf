@@ -4,39 +4,6 @@ def printInt(a:i32) "printIntToC";
 def printChar(c:u8) "printCharToC";
 def panic() "panic";
 
-def mod(a:i32, b:i32):i32 {
-	if b <= 0
-		panic();
-	mut result := 0;
-	if a >= b {
-		result = mod(a-b,b);
-	}
-	else if a < 0
-		result = mod(a+b, b);
-	printInt(result);
-	result
-};
-
-def collatz(a:i32, mut counter:i32) {
-	//printInt(a);
-	counter=counter+1;
-	if a != 1 {
-		if mod(a,2) == 0
-			collatz(a/2, mut counter);
-		else
-			collatz(a*3+1, mut counter);
-	}
-};
-
 def dafMain:i32 {
-	printInt(mod(23, 2));
-	mut counter := 0;
-	collatz(23, mut counter);
-	if counter >= 16 {
-		if counter < 16
-			panic();
-		else
-			counter = counter - 16;
-	}
-	counter
+	0
 };
