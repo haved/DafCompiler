@@ -107,7 +107,7 @@ public:
 
 PrimitiveType* tokenTypeToPrimitiveType(TokenType type);
 PrimitiveType* literalKindToPrimitiveType(LiteralKind kind);
-PrimitiveType* castToPrimitveType(ConcreteType* type);
+PrimitiveType* castToPrimitiveType(ConcreteType* type);
 
 class VoidType : public ConcreteType {
 public:

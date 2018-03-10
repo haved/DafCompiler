@@ -56,7 +56,7 @@ ExprTypeInfo getNoneTypeInfo() {
 
 EvaluatedExpression::EvaluatedExpression(llvm::Value* value, bool pointerToValue, ExprTypeInfo* typeInfo) :
 	m_value(value), typeInfo(typeInfo) {
-	assert(typeInfo->type);
+	assert(typeInfo && typeInfo->type);
 	assert(pointerToValue == isReference());
 }
 

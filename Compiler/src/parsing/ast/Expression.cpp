@@ -235,7 +235,7 @@ optional<EvaluatedExpression> RealConstantExpression::codegenExpression(CodegenL
 }
 
 
-InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS) : Expression(TextRange(LHS->getRange(), RHS->getRange())), m_LHS(std::move(LHS)), m_op(op), m_RHS(std::move(RHS)) {
+InfixOperatorExpression::InfixOperatorExpression(std::unique_ptr<Expression>&& LHS, InfixOperator op, std::unique_ptr<Expression>&& RHS) : Expression(TextRange(LHS->getRange(), RHS->getRange())), m_LHS(std::move(LHS)), m_op(op), m_RHS(std::move(RHS)), m_LHS_targetType(getNoneTypeInfo()), m_RHS_targetType(getNoneTypeInfo()) {
 	assert(m_LHS && m_RHS && m_op != InfixOperator::CLASS_ACCESS);
 }
 
@@ -290,7 +290,7 @@ optional<EvaluatedExpression> InfixOperatorExpression::codegenExpression(Codegen
 	optional<EvaluatedExpression> LHS_eval_cast = codegenTypeConversion(codegen, LHS_eval, &m_LHS_targetType);
 	optional<EvaluatedExpression> RHS_eval_cast = codegenTypeConversion(codegen, RHS_eval, &m_RHS_targetType);
 
-	return codegenBinaryOperator(codegen, m_LHS.get(), m_op, m_RHS.get(), &m_typeInfo);
+	return codegenBinaryOperator(codegen, LHS_eval_cast, m_op, RHS_eval_cast, &m_typeInfo);
 }
 
 

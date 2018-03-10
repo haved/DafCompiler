@@ -5,6 +5,10 @@
 #include "DafLogger.hpp"
 #include "CodegenLLVM.hpp"
 
+BinaryOperatorTypeInfo::BinaryOperatorTypeInfo(ExprTypeInfo allTheSame) : LHS(allTheSame), RHS(allTheSame), result(allTheSame) {}
+BinaryOperatorTypeInfo::BinaryOperatorTypeInfo(ExprTypeInfo sides, ExprTypeInfo result) : LHS(sides), RHS(sides), result(result) {}
+BinaryOperatorTypeInfo::BinaryOperatorTypeInfo(ExprTypeInfo LHS, ExprTypeInfo RHS, ExprTypeInfo result) : LHS(LHS), RHS(RHS), result(result) {}
+
 PrimitiveType* findCommonPrimitiveType(PrimitiveType* LHS_prim, PrimitiveType* RHS_prim) {
 	PrimitiveType* winner;
 	bool rhsFloat = RHS_prim->isFloatingPoint(), lhsFloat = LHS_prim->isFloatingPoint();
@@ -76,8 +80,8 @@ optional<BinaryOperatorTypeInfo> getBinaryOpOnNumbersResultType(const ExprTypeIn
 	const ExprTypeInfo& LHS = *LHS_ptr;
 	const ExprTypeInfo& RHS = *RHS_ptr;
 
-	PrimitiveType* LHS_prim = castToPrimitveType(LHS.type);
-	PrimitiveType* RHS_prim = castToPrimitveType(RHS.type);
+	PrimitiveType* LHS_prim = castToPrimitiveType(LHS.type);
+	PrimitiveType* RHS_prim = castToPrimitiveType(RHS.type);
 	PrimitiveType* common = findCommonPrimitiveType(LHS_prim, RHS_prim);
 	ExprTypeInfo input(common, ValueKind::ANONYMOUS);
 
@@ -120,25 +124,55 @@ optional<BinaryOperatorTypeInfo> getBinaryOpResultType(const ExprTypeInfo& LHS, 
 
 
 
-EvaluatedExpression codegenBinaryOpOnNumbersToBoolean(CodegenLLVM& codegen, EvaluatedExpression& LHS, InfixOperator op, EvaluatedExpression& RHS, PrimitiveType* target) {
-	assert(target->getBitCount() == 1);
-    
+EvaluatedExpression codegenBinaryOpOnNumbersToBoolean(CodegenLLVM& codegen, EvaluatedExpression& LHS, InfixOperator op, EvaluatedExpression& RHS, ExprTypeInfo* target) {
+	assert(isBinaryOpOnNumbers(op));
+	assert(target && castToPrimitiveType(target->type)->getBitCount() == 1 && !target->isReference() && LHS.typeInfo->type == RHS.typeInfo->type);
+	PrimitiveType* prim = castToPrimitiveType(LHS.typeInfo->type);
+	bool floating = prim->isFloatingPoint();
+	bool isSigned = prim->isSigned();
+    switch(op) {
+	case InfixOperator::GREATER:
+		return EvaluatedExpression(floating ? codegen.Builder().CreateFCmpOGT(LHS.getValue(codegen), RHS.getValue(codegen), "fcmp_gt_tmp") :
+								   isSigned ? codegen.Builder().CreateICmpSGT(LHS.getValue(codegen), RHS.getValue(codegen), "icmp_sgt_tmp") :
+								              codegen.Builder().CreateICmpUGT(LHS.getValue(codegen), RHS.getValue(codegen), "icmp_ugt_tmp"), false, target);
+	case InfixOperator::GREATER_OR_EQUAL:
+		return EvaluatedExpression(floating ? codegen.Builder().CreateFCmpOGE(LHS.getValue(codegen), RHS.getValue(codegen), "fcmp_ge_tmp") :
+								   isSigned ? codegen.Builder().CreateICmpSGE(LHS.getValue(codegen), RHS.getValue(codegen), "icmp_sge_tmp") :
+								              codegen.Builder().CreateICmpUGE(LHS.getValue(codegen), RHS.getValue(codegen), "icmp_uge_tmp"), false, target);
+	case InfixOperator::LOWER:
+		return EvaluatedExpression(floating ? codegen.Builder().CreateFCmpOLT(LHS.getValue(codegen), RHS.getValue(codegen), "fcmp_lt_tmp") :
+								   isSigned ? codegen.Builder().CreateICmpSLT(LHS.getValue(codegen), RHS.getValue(codegen), "icmp_slt_tmp") :
+								              codegen.Builder().CreateICmpULT(LHS.getValue(codegen), RHS.getValue(codegen), "icmp_ult_tmp"), false, target);
+	case InfixOperator::LOWER_OR_EQUAL:
+		return EvaluatedExpression(floating ? codegen.Builder().CreateFCmpOLE(LHS.getValue(codegen), RHS.getValue(codegen), "fcmp_le_tmp") :
+								   isSigned ? codegen.Builder().CreateICmpSLE(LHS.getValue(codegen), RHS.getValue(codegen), "icmp_sle_tmp") :
+								              codegen.Builder().CreateICmpULE(LHS.getValue(codegen), RHS.getValue(codegen), "icmp_ule_tmp"), false, target);
+	case InfixOperator::EQUALS:
+		return EvaluatedExpression(floating ? codegen.Builder().CreateFCmpOEQ(LHS.getValue(codegen), RHS.getValue(codegen), "fcmp_eq_tmp") :
+								              codegen.Builder().CreateICmpEQ( LHS.getValue(codegen), RHS.getValue(codegen), "icmp_eq_tmp"), false, target);
+	case InfixOperator::NOT_EQUALS:
+		return EvaluatedExpression(floating ? codegen.Builder().CreateFCmpONE(LHS.getValue(codegen), RHS.getValue(codegen), "icmp_ne_tmp") :
+								              codegen.Builder().CreateICmpNE( LHS.getValue(codegen), RHS.getValue(codegen), "icmp_ne_tmp"), false, target);
+	default:
+		assert(false);
+		return EvaluatedExpression(nullptr, false, nullptr);
+	}
 }
 
 EvaluatedExpression codegenBinaryOperatorNumerical(CodegenLLVM& codegen, EvaluatedExpression& LHS, InfixOperator op, EvaluatedExpression& RHS, ExprTypeInfo* target) {
-	PrimitiveType* target_prim = castToPrimitveType(target->type);
+	assert(target);
 
 	if(isBinaryOpOnNumbersToBoolean(op))
-		return codegenBinaryOpOnNumbersToBoolean(codegen, LHS, op, RHS, target_prim);
+		return codegenBinaryOpOnNumbersToBoolean(codegen, LHS, op, RHS, target);
 
-	EvaluatedExpression LHS_expr = *codegenTypeConversion(codegen, LHS, target);
-	EvaluatedExpression RHS_expr = *codegenTypeConversion(codegen, RHS, target);
+	//The LHS and RHS are already converted to the same type as target
 
+	PrimitiveType* target_prim = castToPrimitiveType(target->type);
 	bool floating = target_prim->isFloatingPoint();
 	bool isSigned = target_prim->isSigned();
 
-	llvm::Value* LHS_value = LHS_expr.getValue(codegen);
-	llvm::Value* RHS_value = RHS_expr.getValue(codegen);
+	llvm::Value* LHS_value = LHS.getValue(codegen);
+	llvm::Value* RHS_value = RHS.getValue(codegen);
 
 	switch(op) {
 	case InfixOperator::PLUS:
@@ -159,24 +193,25 @@ EvaluatedExpression codegenBinaryOperatorNumerical(CodegenLLVM& codegen, Evaluat
 								   : isSigned
 								   ? codegen.Builder().CreateSDiv(LHS_value, RHS_value)
 								   : codegen.Builder().CreateUDiv(LHS_value, RHS_value), false, target);
-	case InfixOperator::GREATER:
-		//return EvaluatedExpression(codegen.Builder().Create(), false, getAnonBooleanTyI());
     default:
 		assert(false);
 		return EvaluatedExpression(nullptr, false, nullptr);
 	}
 }
 
-optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, EvaluatedExpression LHS, InfixOperator op, EvaluatedExpression RHS, ExprTypeInfo* target) {
+optional<EvaluatedExpression> codegenBinaryOperator(CodegenLLVM& codegen, optional<EvaluatedExpression> LHS, InfixOperator op, optional<EvaluatedExpression> RHS, ExprTypeInfo* target) {
+	if(!RHS || !LHS)
+		return boost::none;
+
 	if(isBinaryOpOnNumbers(op)) {
-		return codegenBinaryOperatorNumerical(codegen, LHS, op, RHS, target);
+		return codegenBinaryOperatorNumerical(codegen, *LHS, op, *RHS, target);
 	}
 	else if(op == InfixOperator::ASSIGN) {
-		assert(valueKindConvertableToB(LHS.typeInfo->valueKind, ValueKind::MUT_LVALUE));
+		assert(valueKindConvertableToB(LHS->typeInfo->valueKind, ValueKind::MUT_LVALUE));
 	    ExprTypeInfo AnonTarget(target->type, ValueKind::ANONYMOUS);
 
-		llvm::Value* address = LHS.getPointerToValue(codegen);
-		llvm::Value* value = RHS.getValue(codegen);
+		llvm::Value* address = LHS->getPointerToValue(codegen);
+		llvm::Value* value = RHS->getValue(codegen);
 
 		codegen.Builder().CreateStore(value, address);
 

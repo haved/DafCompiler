@@ -185,7 +185,7 @@ CastPossible PrimitiveType::canConvertTo(ValueKind fromKind, ExprTypeInfo& to) {
 		return CastPossible::IMPOSSIBLE;
 	}
 
-	PrimitiveType* to_prim = castToPrimitveType(to.type);
+	PrimitiveType* to_prim = castToPrimitiveType(to.type);
 	if(isFloatingPoint() && !to_prim->isFloatingPoint())
 		return CastPossible::EXPLICITLY; //float to int
 	if(to_prim->getBitCount() == 1)
@@ -207,7 +207,7 @@ optional<EvaluatedExpression> PrimitiveType::codegenTypeConversionTo(CodegenLLVM
 	assert(target && !target->isReference());
 
 	ConcreteType* to = target->type;
-	PrimitiveType* to_prim = castToPrimitveType(to);
+	PrimitiveType* to_prim = castToPrimitiveType(to);
 
     if(isFloatingPoint() || to_prim->isFloatingPoint())
 		assert(false && "We don't support");
@@ -279,7 +279,7 @@ PrimitiveType* literalKindToPrimitiveType(LiteralKind kind) {
 	return nullptr;
 }
 
-PrimitiveType* castToPrimitveType(ConcreteType* type) {
+PrimitiveType* castToPrimitiveType(ConcreteType* type) {
 	assert(type && type->getConcreteTypeKind() == ConcreteTypeKind::PRIMITIVE);
 	return static_cast<PrimitiveType*>(type);
 }
