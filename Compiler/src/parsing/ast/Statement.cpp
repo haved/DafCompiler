@@ -183,6 +183,61 @@ void WhileStatement::printSignature() {
 	}
 }
 
+ConcretableState WhileStatement::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	auto conc = allConcrete();
+	auto lost = anyLost();
+	auto require = [&](Concretable* c) {
+		ConcretableState state = c->makeConcrete(ns_stack, depMap);
+		conc <<= state;
+		lost <<= state;
+		if(state == ConcretableState::TRY_LATER)
+			depMap.makeFirstDependentOnSecond(this, c);
+	};
+	require(m_condition.get());
+	require(m_body.get());
+	if(conc)
+		return ConcretableState::CONCRETE;
+	if(lost)
+		return ConcretableState::LOST_CAUSE;
+	return ConcretableState::TRY_LATER;
+}
+
+ConcretableState WhileStatement::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
+	ExprTypeInfo condType = m_condition->getTypeInfo();
+	CastPossible poss = canConvertTypeFromTo(condType, *getAnonBooleanTyI());
+	if(poss != CastPossible::IMPLICITLY) {
+		complainThatTypeCantBeConverted(condType, *getAnonBooleanTyI(), poss, m_condition->getRange());
+		return ConcretableState::LOST_CAUSE;
+	}
+	return ConcretableState::CONCRETE;
+}
+
+void WhileStatement::codegenStatement(CodegenLLVM& codegen) {
+	llvm::Function* func = codegen.Builder().GetInsertBlock()->getParent();
+	llvm::BasicBlock* TestBB = llvm::BasicBlock::Create(codegen.Context(), "whileTest");
+	llvm::BasicBlock* BodyBB = llvm::BasicBlock::Create(codegen.Context(), "whileBody");
+	llvm::BasicBlock* MergeBB = llvm::BasicBlock::Create(codegen.Context(), "whileEnd");
+
+	codegen.Builder().CreateBr(TestBB);
+	func->getBasicBlockList().push_back(TestBB);
+	codegen.Builder().SetInsertPoint(TestBB);
+
+	optional<EvaluatedExpression> eval = m_condition->codegenExpression(codegen);
+	optional<EvaluatedExpression> eval_cast = codegenTypeConversion(codegen, eval, getAnonBooleanTyI());
+	if(!eval_cast)
+		return;
+	codegen.Builder().CreateCondBr(eval_cast->getValue(codegen), BodyBB, MergeBB);
+
+	func->getBasicBlockList().push_back(BodyBB);
+	codegen.Builder().SetInsertPoint(BodyBB);
+	m_body->codegenStatement(codegen);
+	codegen.Builder().CreateBr(TestBB);
+
+	func->getBasicBlockList().push_back(MergeBB);
+	codegen.Builder().SetInsertPoint(MergeBB);
+}
+
 ForStatement::ForStatement(unique_ptr<Expression>&& iterator, unique_ptr<Statement>&& body, const TextRange& range)
 	: Statement(range), m_iterator(std::move(iterator)), m_body(std::move(body)) {
 	assert(m_iterator); //Body my be ';', a.k.a. null
