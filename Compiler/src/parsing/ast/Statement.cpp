@@ -254,7 +254,7 @@ void ForStatement::printSignature() {
 	}
 }
 
-ReturnStatement::ReturnStatement(unique_ptr<Expression>&& value, const TextRange& range) : Statement(range), m_returnValue(std::move(value)), m_funcExpr(), m_ {} //Don't assert a return value
+ReturnStatement::ReturnStatement(unique_ptr<Expression>&& value, const TextRange& range) : Statement(range), m_returnValue(std::move(value)), m_funcExpr(), m_returnTypeExpected(getNoneTypeInfo()) {} //Don't assert a return value
 
 void ReturnStatement::printSignature() {
 	if(m_returnValue) {
@@ -317,7 +317,7 @@ void ReturnStatement::codegenStatement(CodegenLLVM& codegen) {
 		if(!castedRet)
 			return;
 		bool refRet = m_funcExpr->hasReferenceReturn();
-		codegen.Builder().CreateRet(refRet ? castedRet->getValue(codegen) : castedRet->getPointerToValue(codegen));
+		codegen.Builder().CreateRet(refRet ? castedRet->getPointerToValue(codegen) : castedRet->getValue(codegen));
 	} else {
 		codegen.Builder().CreateRetVoid();
 	}

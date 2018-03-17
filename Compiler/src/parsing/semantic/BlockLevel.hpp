@@ -8,7 +8,7 @@ using variableList = std::vector<Let*>;
 class FunctionExpression;
 class BlockLevelInfo {
 private:
-	FunctionExpression* m_currentFunction;
+	FunctionExpression* m_currentFunction=nullptr;
 	int m_currentBlockLevel=0;
 	variableList* m_savedLets=nullptr;
 public:

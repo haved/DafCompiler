@@ -11,7 +11,7 @@ constexpr bool debug =
 	false;
 #endif
 constexpr bool printFilesGiven = debug;
-constexpr bool dumpNameScope = debug;
+constexpr bool dumpNameScope = debug&&false;
 constexpr bool dumpLLVMModule = debug;
 constexpr bool tellMeAboutGracefullShutdown = debug;
 
