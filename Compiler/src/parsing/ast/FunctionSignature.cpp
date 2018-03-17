@@ -187,11 +187,6 @@ void FunctionExpression::setFunctionName(std::string& name) {
 		m_function_name = name;
 }
 
-Expression* FunctionExpression::getBody() {
-	assert(false && "we use FunctionExpression::getBody()");
-	return m_function_body ? m_function_body->get() : nullptr;
-}
-
 bool FunctionExpression::hasReturn() {
 	return m_type->hasReturn();
 }
@@ -203,7 +198,7 @@ bool FunctionExpression::hasReferenceReturn() {
 //Used to check if we can be called without a parameter list
 //in which case we can have an implicit return type
 //this is also used by the function call when the type is incorrect
-//TODO: Depricate this, and maybe also m_implicitCallReturnTypeInfo can be done away with
+//TODO: @Depricate this, and maybe also m_implicitCallReturnTypeInfo can be done away with
 //Once we have a way for FunctionCalls to request a specific set of parameters, that is
 bool FunctionExpression::canBeCalledImplicitlyOnce() {
 	return getParameters().empty();
@@ -260,7 +255,9 @@ ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_sta
 		for(auto& let : m_parameter_lets)
 			makeConcreteOrDepend(let.get());
 		ns_stack.push(this);
+		auto old = ns_stack.getBlockLevelInfo().push(this, nullptr);
 	    makeConcreteOrDepend(m_function_body->get());
+		ns_stack.getBlockLevelInfo().pop(old);
 		ns_stack.pop();
 	} else {
 		for(auto& param : getParameters())

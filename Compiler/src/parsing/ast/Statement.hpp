@@ -18,6 +18,7 @@ public:
 	Statement(const TextRange& range);
 	virtual ~Statement();
 	virtual void printSignature()override =0;
+	virtual bool isEndOfBlock() { return false; } //TODO: for return, continue, etc.
 	const TextRange& getRange();
 
     virtual void addToMap(NamedDefinitionMap& map);
@@ -101,15 +102,18 @@ public:
 class ReturnStatement : public Statement {
 private:
 	unique_ptr<Expression> m_returnValue; //Optional
+    FunctionExpression* m_funcExpr;
+	ExprTypeInfo m_returnTypeExpected;
 public:
 	ReturnStatement(unique_ptr<Expression>&& value, const TextRange& range);
+	ReturnStatement(const ReturnStatement& other) = delete;
+	ReturnStatement& operator=(const ReturnStatement& other) = delete;
 	virtual void printSignature() override;
 
-	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override {
-		(void) ns_stack, (void) depMap;
-		assert(!"TODO");
-		return ConcretableState::LOST_CAUSE;
-	}
+	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
+	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
+
+	virtual void codegenStatement(CodegenLLVM& codegen) override;
 };
 
 enum class LoopStatementType {

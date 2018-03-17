@@ -18,6 +18,7 @@
 
 namespace fs = boost::filesystem;
 
+class FunctionExpression;
 
 class CodegenLLVM {
 private:
@@ -26,6 +27,8 @@ private:
 	llvm::Module m_module;
 public:
 	CodegenLLVM(const std::string& moduleName);
+	CodegenLLVM(const CodegenLLVM& other)=delete;
+	CodegenLLVM& operator=(const CodegenLLVM& other)=delete;
 	llvm::LLVMContext& Context();
 	llvm::IRBuilder<>& Builder();
 	llvm::Module& Module();

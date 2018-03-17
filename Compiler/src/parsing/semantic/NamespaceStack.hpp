@@ -10,7 +10,6 @@
 
 /* SEE Namespace.hpp for an EXPLANATION */
 
-//TODO: Rename as it serves two purposes
 class NamespaceStack {
 private:
 	std::deque<Namespace*> m_namespaces;

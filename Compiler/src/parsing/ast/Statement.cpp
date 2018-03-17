@@ -254,7 +254,7 @@ void ForStatement::printSignature() {
 	}
 }
 
-ReturnStatement::ReturnStatement(unique_ptr<Expression>&& value, const TextRange& range) : Statement(range), m_returnValue(std::move(value)) {} //Don't assert a return value
+ReturnStatement::ReturnStatement(unique_ptr<Expression>&& value, const TextRange& range) : Statement(range), m_returnValue(std::move(value)), m_funcExpr(), m_ {} //Don't assert a return value
 
 void ReturnStatement::printSignature() {
 	if(m_returnValue) {
@@ -263,6 +263,64 @@ void ReturnStatement::printSignature() {
 		std::cout << ";" << std::endl;
 	} else
 		std::cout << "return;" << std::endl;
+}
+
+ConcretableState ReturnStatement::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+
+	auto lost = anyLost();
+	auto conc = allConcrete();
+
+	m_funcExpr = ns_stack.getBlockLevelInfo().getCurrentFunction();
+    ConcretableState state = m_funcExpr->getConcretableState();
+    lost <<= state;
+	conc <<= state;
+	if(!lost && !conc)
+		depMap.makeFirstDependentOnSecond(this, m_funcExpr);
+
+	if(m_returnValue) {
+		state = m_returnValue->makeConcrete(ns_stack, depMap);
+	    conc <<= state;
+		conc <<= state;
+		if(tryLater(state))
+			depMap.makeFirstDependentOnSecond(this, m_returnValue.get());
+	}
+
+	return conc ? ConcretableState::CONCRETE : ConcretableState::TRY_LATER;
+}
+
+ConcretableState ReturnStatement::retryMakeConcreteInternal(DependencyMap& depMap) {
+	(void) depMap;
+	m_returnTypeExpected = m_funcExpr->getReturnTypeInfo();
+
+	if(m_returnValue) {
+		ExprTypeInfo givenType = m_returnValue->getTypeInfo();
+		CastPossible poss = canConvertTypeFromTo(givenType, m_returnTypeExpected);
+		if(poss != CastPossible::IMPLICITLY) {
+			complainThatTypeCantBeConverted(givenType, m_returnTypeExpected, poss, m_returnValue->getRange());
+			return ConcretableState::LOST_CAUSE;
+		}
+	} else {
+		ExprTypeInfo anonVoidTypeI(getVoidType(), ValueKind::ANONYMOUS);
+		CastPossible poss = canConvertTypeFromTo(anonVoidTypeI, m_returnTypeExpected);
+		if(poss != CastPossible::IMPLICITLY) {
+			complainThatTypeCantBeConverted(anonVoidTypeI, m_returnTypeExpected, poss, getRange());
+			return ConcretableState::LOST_CAUSE;
+		}
+	}
+	return ConcretableState::CONCRETE;
+}
+
+void ReturnStatement::codegenStatement(CodegenLLVM& codegen) {
+	if(m_returnValue) {
+		optional<EvaluatedExpression> retEval = m_returnValue->codegenExpression(codegen);
+		optional<EvaluatedExpression> castedRet = codegenTypeConversion(codegen, retEval, &m_returnTypeExpected);
+		if(!castedRet)
+			return;
+		bool refRet = m_funcExpr->hasReferenceReturn();
+		codegen.Builder().CreateRet(refRet ? castedRet->getValue(codegen) : castedRet->getPointerToValue(codegen));
+	} else {
+		codegen.Builder().CreateRetVoid();
+	}
 }
 
 LoopStatement::LoopStatement(LoopStatementType type, const TextRange& range) : Statement(range), m_type(type) {}

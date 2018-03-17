@@ -80,8 +80,6 @@ public:
 
 	void setFunctionName(std::string& name);
 
-	//TODO: Do we need this?
-	Expression* getBody();
 	bool hasReturn();
 	bool hasReferenceReturn();
 	//TODO: Depricate once a FunctionCall can ask for a target type

@@ -1,0 +1,17 @@
+def printInt(a:i32) "printIntToC";
+def printChar(c:u8) "printCharToC";
+def panic() "panic";
+
+def mod(a:i32, b:i32) := a-(a/b*b);
+
+def dafMain():i32 {
+	mut num := 23;
+	while num != 1 {
+		printInt(num);
+		if mod(num, 2) == 0
+			num = num / 2;
+		else
+			num = 3*num+1;
+	}
+	printInt(1);
+};

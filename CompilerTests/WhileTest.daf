@@ -1,0 +1,17 @@
+def printInt(a:i32) "printIntToC";
+def printChar(c:u8) "printCharToC";
+def panic() "panic";
+
+def dafMain:i32 {
+	mut a := 6;
+	while a > 2 {
+		mut x := 0;
+		while x <= a {
+			printInt(x);
+			x = x + 1;
+		}
+		a = a - 1;
+	}
+
+	0
+};
