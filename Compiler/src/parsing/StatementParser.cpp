@@ -61,22 +61,22 @@ unique_ptr<Statement> parseIfStatement(Lexer& lexer) {
 	if(!condition)
 		return null_stmt();
 
-  unique_ptr<Statement> statement;
-  if(!tryParseStatementIntoPointer(lexer, &statement))
-    return null_stmt();
+	unique_ptr<Statement> statement;
+	if(!tryParseStatementIntoPointer(lexer, &statement))
+		return null_stmt();
 
 	bool elseFound = lexer.currType() == ELSE;
 	unique_ptr<Statement> else_body;
 	if(elseFound) {
 		lexer.advance(); //Eat 'else'
-    if(!tryParseStatementIntoPointer(lexer, &else_body))
-      return null_stmt();
+		if(!tryParseStatementIntoPointer(lexer, &else_body))
+			return null_stmt();
 	}
 
 	int endLine, endCol;
-  setEndFromStatement(&endLine, &endCol, elseFound?else_body:statement, lexer);
+	setEndFromStatement(&endLine, &endCol, elseFound?else_body:statement, lexer);
 
-  return unique_ptr<Statement>(new IfStatement(std::move(condition), std::move(statement), std::move(else_body), TextRange(lexer.getFile(), startLine, startCol, endLine, endCol)));
+	return unique_ptr<Statement>(new IfStatement(std::move(condition), std::move(statement), std::move(else_body), TextRange(lexer.getFile(), startLine, startCol, endLine, endCol)));
 }
 
 unique_ptr<Statement> parseWhileStatement(Lexer& lexer) {
@@ -86,17 +86,17 @@ unique_ptr<Statement> parseWhileStatement(Lexer& lexer) {
 	lexer.advance(); //Eat 'while'
 
 	unique_ptr<Expression> condition = parseExpression(lexer);
-  if(!condition)
-    return null_stmt();
+	if(!condition)
+		return null_stmt();
 
-  unique_ptr<Statement> body;
-  if(!tryParseStatementIntoPointer(lexer, &body))
+	unique_ptr<Statement> body;
+	if(!tryParseStatementIntoPointer(lexer, &body))
 		return null_stmt();
 
 	int endLine, endCol;
-  setEndFromStatement(&endLine, &endCol, body, lexer);
+	setEndFromStatement(&endLine, &endCol, body, lexer);
 
-  return unique_ptr<Statement>(new WhileStatement(std::move(condition), std::move(body), TextRange(lexer.getFile(), startLine, startCol, endLine, endCol)));
+	return unique_ptr<Statement>(new WhileStatement(std::move(condition), std::move(body), TextRange(lexer.getFile(), startLine, startCol, endLine, endCol)));
 }
 
 unique_ptr<Statement> parseForStatement(Lexer& lexer) {
@@ -109,14 +109,14 @@ unique_ptr<Statement> parseForStatement(Lexer& lexer) {
 	if(!iterator)
 		return null_stmt();
 
-  unique_ptr<Statement> body;
-  if(!tryParseStatementIntoPointer(lexer, &body))
-    return null_stmt();
+	unique_ptr<Statement> body;
+	if(!tryParseStatementIntoPointer(lexer, &body))
+		return null_stmt();
 
 	int endLine, endCol;
-  setEndFromStatement(&endLine, &endCol, body, lexer);
+	setEndFromStatement(&endLine, &endCol, body, lexer);
 
-  return unique_ptr<Statement>(new ForStatement(std::move(iterator), std::move(body), TextRange(lexer.getFile(), startLine, startCol, endLine, endCol)));
+	return unique_ptr<Statement>(new ForStatement(std::move(iterator), std::move(body), TextRange(lexer.getFile(), startLine, startCol, endLine, endCol)));
 }
 
 unique_ptr<Statement> parseReturnStatement(Lexer& lexer) {
@@ -200,8 +200,12 @@ unique_ptr<Statement> handleExpressionToStatement(unique_ptr<Expression> express
 	if(lexer.currType() == STATEMENT_END) {
 		range = TextRange(range, lexer.getCurrentToken().line, lexer.getCurrentToken().endCol);
 		lexer.advance(); //Eat ';'
-	} else if(expression->evaluatesToValue())
-		lexer.expectTokenAfterPrev(STATEMENT_END);
+	} else if(expression->evaluatesToValue()) {
+		if(expression->getExpressionKind() == ExpressionKind::SCOPE)
+			logDaf(lexer.getFile(), lexer.getPreviousToken(), ERROR) << "scope return value is unused, put a semicolon either after or before '}'-token" << std::endl;
+		else
+			lexer.expectTokenAfterPrev(STATEMENT_END);
+	}
 
 	return unique_ptr<Statement>(new ExpressionStatement(std::move(expression), range));
 }

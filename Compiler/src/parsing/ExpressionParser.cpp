@@ -66,17 +66,23 @@ unique_ptr<Scope> parseScope(Lexer& lexer) {
 
 	std::vector<unique_ptr<Statement>> statements;
 	unique_ptr<Expression> finalOutExpression;
+	bool endOfBlockSeen = false;
+    optional<TextRange> garbageStart;
 	while(lexer.currType()!=SCOPE_END) {
 		if(lexer.currType()==END_TOKEN) {
 			lexer.expectToken(SCOPE_END);
 			break;
 		}
 		assert(lexer.currType()!=STATEMENT_END);
+		if(endOfBlockSeen && !garbageStart)
+			garbageStart = TextRange(lexer.getFile(), lexer.getCurrentToken());
 		unique_ptr<Statement> statement = parseStatement(lexer, &finalOutExpression); //Exits any scopes it starts
 		if(finalOutExpression)
 			break;
-		if(statement)
+		if(statement) {
+		    endOfBlockSeen |= statement->isEndOfBlock();
 			statements.push_back(std::move(statement));
+		}
 		else {
 			skipUntilNextStatement(lexer); //Won't skip }
 			if(lexer.currType()==END_TOKEN)
@@ -88,7 +94,9 @@ unique_ptr<Scope> parseScope(Lexer& lexer) {
 			lexer.advance();
 	}
 
-	//TODO: Optimize: Is it worth it? It's a vector to pointers, after all
+	
+
+	//TODO: @Optimize: Is it worth it? It's a vector to pointers, after all
 	statements.shrink_to_fit();
 
 	TextRange range(lexer.getFile(), startLine, startCol, lexer.getCurrentToken());

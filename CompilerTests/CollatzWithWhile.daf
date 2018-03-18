@@ -2,11 +2,17 @@ def printInt(a:i32) "printIntToC";
 def printChar(c:u8) "printCharToC";
 def panic() "panic";
 
-def mod(a:i32, b:i32) := a-(a/b*b);
+def mod(a:i32, b:i32) := a-a/b*b;
+
+def inc(mut a:i32, b:i32) {
+	a = a + b;
+};
 
 def dafMain():i32 {
+	mut sum := 0;
 	mut num := 23;
 	while num != 1 {
+		inc(mut sum, num);
 		printInt(num);
 		if mod(num, 2) == 0
 			num = num / 2;
@@ -14,4 +20,5 @@ def dafMain():i32 {
 			num = 3*num+1;
 	}
 	printInt(1);
+	sum-120
 };
