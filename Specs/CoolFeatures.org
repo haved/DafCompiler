@@ -1,0 +1,40 @@
+
+* Cool features
+** Anonymous identifiers
+*** As imports
+#+BEGIN_SRC daf
+namedef IO := import("IO");
+
+def main {
+    IO.print(3);
+    namedef _ := IO;
+	print(5);
+};
+#+END_SRC
+*** As constructors
+#+BEGIN_SRC daf
+pub typedef CountingIterator := class with Iterator {
+    mut x:i32;
+	end:i32;
+	step:i32;
+
+    def _(start:i32, end:i32, step:i32):ctor This {
+	    this.x=start;
+		this.end=end;
+		this.step=step;
+	};
+	def _(start:i32, end:i32) := This(start, end, 1);
+	def _(end:i32) := This(0, end);
+
+	override def hasNext := x != end;
+	override def next := {
+	    x +=step;
+		x - step
+	};
+
+	override def skip(steps:i32) {
+	    x += steps*step;
+	};
+};
+#+END_SRC
+** Classes and 

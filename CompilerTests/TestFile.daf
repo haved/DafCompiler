@@ -17,10 +17,19 @@ def dafMain():i32 {
 		x = x + 1;
 	}
 
+	let smolOverX := {
+		mut try := 1000000000;
+		while isPrime(try)==0
+			try = try + 1;
+		try
+	};
+
+	printInt(smolOverX);
+
 	sum-548
 };
 
-def isPrime(a:i32):i32 {
+def isPrime(a:i32):bool {
 	if a <= 2
 		return a==2;
 	if mod(a,2)==0

@@ -78,12 +78,17 @@ ConcretableState Scope::retryMakeConcreteInternal(DependencyMap& depMap) {
 }
 
 optional<EvaluatedExpression> Scope::codegenExpression(CodegenLLVM& codegen) {
+	bool retStatement = false;
 	for(auto it = m_statements.begin(); it != m_statements.end(); ++it) {
-		assert(allConcrete() << (*it)->getConcretableState());
+		assert(allConcrete() << (*it)->getConcretableState() && !retStatement);
 		(*it)->codegenStatement(codegen);
+		retStatement |= (*it)->isEndOfBlock();
 	}
-	if(m_outExpression)
+	if(m_outExpression) {
+		if(retStatement)
+			return boost::none; //We passing none even though there is no error
 		return m_outExpression->codegenExpression(codegen);
+	}
 	return EvaluatedExpression(nullptr, false, &m_typeInfo);
 }
 

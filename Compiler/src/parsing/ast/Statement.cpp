@@ -265,6 +265,10 @@ void ReturnStatement::printSignature() {
 		std::cout << "return;" << std::endl;
 }
 
+bool ReturnStatement::isEndOfBlock() {
+	return true;
+}
+
 ConcretableState ReturnStatement::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 
 	auto lost = anyLost();
@@ -332,4 +336,8 @@ void LoopStatement::printSignature() {
 	case LoopStatementType::RETRY:    std::cout << "retry;"    << std::endl; break;
 	default: assert(false);
 	}
+}
+
+bool LoopStatement::isEndOfBlock() {
+	return true;
 }

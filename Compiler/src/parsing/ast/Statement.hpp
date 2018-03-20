@@ -109,6 +109,7 @@ public:
 	ReturnStatement(const ReturnStatement& other) = delete;
 	ReturnStatement& operator=(const ReturnStatement& other) = delete;
 	virtual void printSignature() override;
+	virtual bool isEndOfBlock() override;
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
@@ -128,6 +129,7 @@ private:
 public:
 	LoopStatement(LoopStatementType type, const TextRange& range);
 	virtual void printSignature() override;
+	virtual bool isEndOfBlock() override;
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override {
 		(void) ns_stack, (void) depMap;

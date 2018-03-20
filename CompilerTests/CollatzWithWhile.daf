@@ -4,9 +4,7 @@ def panic() "panic";
 
 def mod(a:i32, b:i32) := a-a/b*b;
 
-def inc(mut a:i32, b:i32) {
-	a = a + b;
-};
+def inc(mut a:i32, b:i32) = a = a + b;
 
 def dafMain():i32 {
 	mut sum := 0;

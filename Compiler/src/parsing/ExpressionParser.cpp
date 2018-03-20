@@ -77,11 +77,18 @@ unique_ptr<Scope> parseScope(Lexer& lexer) {
 		if(endOfBlockSeen && !garbageStart)
 			garbageStart = TextRange(lexer.getFile(), lexer.getCurrentToken());
 		unique_ptr<Statement> statement = parseStatement(lexer, &finalOutExpression); //Exits any scopes it starts
-		if(finalOutExpression)
+		if(finalOutExpression) {
+			if(endOfBlockSeen && !garbageStart)
+				garbageStart = finalOutExpression->getRange();
 			break;
+		}
 		if(statement) {
-		    endOfBlockSeen |= statement->isEndOfBlock();
-			statements.push_back(std::move(statement));
+			if(!endOfBlockSeen) {
+				endOfBlockSeen |= statement->isEndOfBlock();
+				statements.push_back(std::move(statement));
+			}
+			else if(!garbageStart)
+				garbageStart = statement->getRange();
 		}
 		else {
 			skipUntilNextStatement(lexer); //Won't skip }
@@ -94,7 +101,8 @@ unique_ptr<Scope> parseScope(Lexer& lexer) {
 			lexer.advance();
 	}
 
-	
+	if(garbageStart)
+		logDaf(TextRange(*garbageStart, lexer.getPreviousToken()), WARNING) << "unreachable code" << std::endl;
 
 	//TODO: @Optimize: Is it worth it? It's a vector to pointers, after all
 	statements.shrink_to_fit();
