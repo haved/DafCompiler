@@ -1,0 +1,10 @@
+
+typedef Lexer := class {
+    mut m_input:InputStream;
+	mut m_tokens:[3]Token;
+	mut m_currentToken:i32;
+
+	pub def _(move input:InputStream):ctor This {
+		m_input = move input;
+	};
+};

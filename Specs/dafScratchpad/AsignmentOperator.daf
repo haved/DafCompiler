@@ -1,0 +1,18 @@
+
+typedef MyClass := class {
+    pub mut name:String;
+	pub mut age:i32;
+	pub def _(move name:String, age:i32):ctor This {
+	    this.name = move name;
+		this.age  = age;
+	};
+	pub def _(other:This):=This(copy other.name, other.age);
+	pub def _(move other:This):=This(move other.name, other.age);
+};
+
+def main {
+	mut SomeAge := 17;
+	let someName := str("Hallais");
+
+	mut myPerson := MyClass(move name, SomeAge);
+};
