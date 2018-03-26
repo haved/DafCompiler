@@ -7,51 +7,50 @@ My hope is that I through this "book" will flesh out the language to its version
 I'm not forcing myself to stick to it, if something better comes along, but I want to at the very least work towards something that would work.
 Most books with titles like this one are written as tutorials. When writing this, very little conscious effort is made towards any such goal.
 
-* Language specification
-** Definitions
-Basically there are two places definitions occur. NameScopes and Scopes.
-The NameScopes are what you call global scopes. They are unordered and can only contain definitions.
-A file is parsed as the contents of a NameScope, thus, you can only have definitions on the top level.
-
-Regular Scopes are ordered, and are lists of statements. Most definitions also work as statements, but
-because Scopes are ordered, you can not access definitions above where they are defined in the Scope.
-You can access definitions from outside the Scope, but it doesn't go the other way around.
-*** Let
-Perhaps the simplest definition. Used to define a variable.
+* A basic program
+Following is a daf program outputting a line with the infamous "Hello World!" string to standard output.
 #+BEGIN_SRC daf
-let myNumber :i32= 5;
-let mut whatever := getValue();
-mut myInstance :MyClass= MyClass(5, 9);
-pub mut LED_PIN := 13;
+namedef IO := import("daf.IO");
+
+def main() {
+    IO.println("Hello World!");
+};
 #+END_SRC
-Always starting with either let or mut, the inclusion of mut making it a mutable variable, and if there is mut, let may be omitted.
-Following is the identifier, which for variables have to be unique for the NameScope / Scope.
-Afterwards a colon, and then either a type or an equals sign. If no type is supplied, the type will be inferred from the value.
-The value is the expression that comes after the equals sign. It is copied or moved 
-=pub= from the last example is not really part of the definition, but makes the let accessible from outside the NameScope it is defined in. This won't work in a Scope.
+The first line defines =IO= to be a NameScope, which is an unordered block with definitions.
+You can but a block of definitions after the ~:=~, or in this case they are imported from elsewhere.
+A file is parsed as a NameScope, meaning you import other files as if they were NameScopes.
+These definitions can then be referenced from outside the NameScope, seen here as =IO.println=.
+Because a NameScope is a list of definitions, and a file is parsed as a NameScope, all top level constructs are definitions.
+Luckily there are only five of them.
+** Definitions
+#+BEGIN_SRC daf
+namedef myNamespace := {};
+typedef myInt:=i32;
+def myFunc() := 6;
+let myVariable :myInt=6;
+with :i32 as Number;
+#+END_SRC
+Each of these can be top level constructs in files or in NameScopes (the same thing, remember).
+You may also prefix the definition with the =pub= keyword to make them accessible from outside the NameScope they are defined in.
+For example:
+#+BEGIN_SRC daf
+namedef myNamespace := {
+    pub def getWorld() := "World";
+};
 
-*** Def
-*** Typedef
-*** Namedef
-*** With
-*** Linkfile
-** Expressions
-*** value kinds of expressions
-In daf, like in many other languages, expressions have a value kind.
-This can be an lvalue, mutable lvalue, or an anonymous value.
-The basic idea is that you have a pointer to an lvalue, while you only have the actual value when it is anonymous.
-This means you can only take the pointer of an lvalue, and you get an lvalue when you de-reference a pointer.
-A variable is an lvalue because it has a memory address, while the return value from a function isn't.
-If you want to assign to an lvalue, it must also be mutable. Only then can it be the left side of an assignment operation, hence then name /lvalue/.
+def main() {
+    IO.print("Hello, ");
+	IO.println(myNamespace.getWorld());
+};
+#+END_SRC
+Definitions don't have to be in NameScopes, though. Regular ordered scopes consist of a list of statements, but an definition also works as a statement.
+For instance, a namespace can be defined inside a scope, like in the following example:
+#+BEGIN_SRC daf
+def main() {
+    namedef IO := import("daf.IO");
+	IO.println("Nice");
+};
+#+END_SRC
+There are some extra limitations when you put definitions in a scope, mainly that since Scopes are ordered, you have to make the definition above where you reference it.
+You may also not reference the definitions outside the scopes they are defined in. You're not even allowed to put =pub= in front of them.
 
-When move semantics are introduced, you'll discover that stuff gets more complex.
-*** Def as expression
-** Statements
-** Types
-*** Which can you make variables out of?
-** Name Scopes
-** Move semantics
-** Uncertain
-
-* Remember to write about
-** What types of values you have (lvalue, rvalue, move?)
