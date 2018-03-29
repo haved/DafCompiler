@@ -1,0 +1,43 @@
+
+def printInt(a:i32) "printIntToC";
+def printChar(c:u8) "printCharToC";
+def panic() "panic";
+
+def mod(a:i32, b:i32):=a-a/b*b;
+
+def dafMain():i32 {
+	mut sum := 0;
+	mut x := 2;
+	while x < 100 {
+		if isPrime(x) {
+			sum = sum + x;
+			printInt(x);
+		}
+		x = x + 1;
+	}
+
+	let smolOverX := {
+		mut try := 1000000000;
+		while isPrime(try)==0
+			try = try + 1;
+		try
+	};
+
+	printInt(smolOverX);
+
+	sum-548
+};
+
+def isPrime(a:i32):bool {
+	if a <= 2
+		return a==2;
+	if mod(a,2)==0
+		return 0;
+	mut testing := 3;
+	while testing*testing <= a {
+		if mod(a,testing) == 0
+			return 0;
+		testing = testing + 2;
+	}
+	1
+};

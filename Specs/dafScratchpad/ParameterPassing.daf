@@ -1,3 +1,29 @@
-def swap(mut a:$T, mut b:$T) {
-	
+def printInt(a:i32) { //Basic parameter, passed either by value or by reference. You can't modify it either way (but you can take a pointer to it)
+	printf("{}", a);
 };
+
+def swap(mut a:$T, mut b:$T) { //Always passed by reference, will mutate what they came from. Have to be certain by end of function
+	let tmp:T=move a; //Now a is uncrt
+	a = move b; //a is certain again!
+	b = move tmp;
+};
+
+def move_into(mut array:[..]$T, move elm:T) { //Takes a mut reference but expects it to be uncrt by the end of the function
+	if array.size == array.capacity {
+		array.capacity *= 2;
+		array.ptr = realloc(array.ptr, array.capacity);
+	}
+	array[array.size++] = move elm; //elm in now uncrt
+};
+
+def add_to(mut array:[..]$T, copy elm:T) { //Copies the parameter to a local variable you can modify, move from, etc.
+	if array.size == array.capacity {
+		array.capacity *= 2;
+		array.ptr = realloc(array.ptr, array.capacity);
+	}
+	array[array.size++] = move elm; //elm in now uncrt
+};
+
+def read(uncrt data:MyData) { //A mut reference you have to make certain by the end of the function
+	data = MyData("Cool beans", 42);
+}

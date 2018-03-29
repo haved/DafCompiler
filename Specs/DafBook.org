@@ -16,8 +16,8 @@ def main() {
     IO.println("Hello World!");
 };
 #+END_SRC
-The first line defines =IO= to be a NameScope, which is an unordered block with definitions.
-You can but a block of definitions after the ~:=~, or in this case they are imported from elsewhere.
+The first line defines =IO= to be a NameScope, which is an unordered list of definitions.
+You can put a block of definitions after the ~:=~, or in this case they are imported from elsewhere.
 A file is parsed as a NameScope, meaning you import other files as if they were NameScopes.
 These definitions can then be referenced from outside the NameScope, seen here as =IO.println=.
 Because a NameScope is a list of definitions, and a file is parsed as a NameScope, all top level constructs are definitions.
@@ -26,12 +26,12 @@ Luckily there are only five of them.
 #+BEGIN_SRC daf
 namedef myNamespace := {};
 typedef myInt:=i32;
-def myFunc() := 6;
-let myVariable :myInt=6;
+def myFunc() :myInt = 6;
+let myVariable :myInt =6;
 with :i32 as Number;
 #+END_SRC
 Each of these can be top level constructs in files or in NameScopes (the same thing, remember).
-You may also prefix the definition with the =pub= keyword to make them accessible from outside the NameScope they are defined in.
+You may also prefix the definition with the =pub= keyword to make them accessible from outside the NameScope (or file) they are defined in.
 For example:
 #+BEGIN_SRC daf
 namedef myNamespace := {
@@ -43,7 +43,7 @@ def main() {
 	IO.println(myNamespace.getWorld());
 };
 #+END_SRC
-Definitions don't have to be in NameScopes, though. Regular ordered scopes consist of a list of statements, but an definition also works as a statement.
+Definitions don't have to be in NameScopes, though. Regular ordered scopes consist of a list of statements, but a definition also works as a statement.
 For instance, a namespace can be defined inside a scope, like in the following example:
 #+BEGIN_SRC daf
 def main() {
@@ -54,3 +54,5 @@ def main() {
 There are some extra limitations when you put definitions in a scope, mainly that since Scopes are ordered, you have to make the definition above where you reference it.
 You may also not reference the definitions outside the scopes they are defined in. You're not even allowed to put =pub= in front of them.
 
+** Functions
+** Expressions
