@@ -1,0 +1,10 @@
+
+typedef Unique := class {
+	
+};
+
+def main {
+	mut a := 4;
+	a = 8; //The right hand side is copied into a
+
+};

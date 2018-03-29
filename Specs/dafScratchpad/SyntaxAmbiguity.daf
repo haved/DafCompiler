@@ -1,0 +1,55 @@
+
+//Syntax ambiguity. We want as little of it as possible
+//The main place it pops up is between type, namespace and expression parsing.
+
+def example1 {
+	IO.print();
+	Type.getDefault();
+	object.method();
+};
+
+//In all of the cases above you have identifiers being accessed by the dot operator.
+//We parse everything as if they were expressions, then if the left side of the dot operator is an identifier or another dot operator,
+//We also handle it being a type or namespace
+//This means the following:
+
+def example2 {
+
+	{
+		def(text:&u8):= "print"
+	}("This is OK");
+
+	{
+		def print(text:&u8) "print";
+	}.print("This is illegal");
+
+	namedef IO := {
+		def print(text:&u8) "print";
+	};
+	IO.print("This however is OK");
+};
+
+//In the first example, a scope returning a function is called. This is ok since the scope is parsed as an expression.
+//The second example has a NameScope, but it will be parsed as a regular scope
+//The third puts the NameScope behind a namedef, and references the NameScope through a variable name. That is OK.
+
+//There are other places where type vs. expression vs. NameScope is ambiguous.
+def typeParameter(T) {};
+
+def example3 {
+	typeParameter(myType);
+	typeParameter(i32);
+	typeParameter(&mut i32);
+};
+
+//The first example takes an identifier, previously solved by looking at the definition during the semantic phase.
+//The next is not an identifier, but a keyword that has to be a type
+//The next is even worse, as &mut can be used both to signify pointer, or to get a pointer
+
+with i32 as trait {
+	def double(this:This):=this*=2;
+};
+
+with myVariable as i32;
+
+//The ambiguity here should be obvious

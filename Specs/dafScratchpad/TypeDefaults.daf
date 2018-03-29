@@ -1,0 +1,2 @@
+
+//We want regular structs to have copy and move constructors, and default destructor.
