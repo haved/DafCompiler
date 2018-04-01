@@ -53,3 +53,26 @@ with i32 as trait {
 with myVariable as i32;
 
 //The ambiguity here should be obvious
+
+
+// ===== Solutions =====
+
+//Example 1 & 2
+//So for the first example, we just restrict the language to references by name.
+//That means when you are parsing an expression and you get a dot operator, what comes to the left of the dot is parsed as an expression, but if its an identifier it can be to a typedef or namedef.
+//The same thing goes for what might seem to be functions, as they may also be parameterized typedefs or namedefs
+
+
+//Example 3
+//This one is though
+//One possibility is prefixing types with a colon, like such:
+
+def example4 {
+	let myList := Vec(:i32);
+};
+
+//It's added text, though, and isn't particularly pretty. Its the best I've got, though. Same thing goes for with
+//You could push the whole "identifiers can be everything"-thing further, but in which case I wouldn't want to have type keywords.
+//Either way you get problems with (&mut i32)
+//I want stuff to be LL(1) or whatever. I don't really know, but I want to stick to a one-token look-ahead
+

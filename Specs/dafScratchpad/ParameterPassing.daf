@@ -11,9 +11,9 @@ def swap(mut a:$T, mut b:$T) { //Always passed by reference, will mutate what th
 def move_into(mut array:[..]$T, move elm:T) { //Takes a mut reference but expects it to be uncrt by the end of the function
 	if array.size == array.capacity {
 		array.capacity *= 2;
-		array.ptr = realloc(array.ptr, array.capacity);
+		array.ptr = realloc(array.ptr, array.capacity); //This knows the type, maybe, so capacity*sizeof(T), not good to redefine relloc, though
 	}
-	array[array.size++] = move elm; //elm in now uncrt
+	array[array.size++] = move elm; //elm is now uncrt
 };
 
 def add_to(mut array:[..]$T, copy elm:T) { //Copies the parameter to a local variable you can modify, move from, etc.
@@ -27,3 +27,44 @@ def add_to(mut array:[..]$T, copy elm:T) { //Copies the parameter to a local var
 def read(uncrt data:MyData) { //A mut reference you have to make certain by the end of the function
 	data = MyData("Cool beans", 42);
 }
+
+def reapString(dtor data:MyData):String= { //Takes move but will finish any partial destructing of its fields
+	move data.string
+};
+
+def sort(array:[..]$T, def cmp(a:T, b:T):Cmp) {
+	//Some sorting algo
+}
+
+def nameRef(mut data:MyData):mut String { //Can return mut or let
+	data.string
+};
+
+def usages {
+
+	let x := 2;
+	mut a := 7;
+	mut b := 8;
+
+	printInt(3);
+	printInt(x);
+	swap(mut a, mut b);
+
+	mut array := alloc(:String, 40);
+
+	let text := String("Halla");
+	mut text2 := String("Verden");
+	copy_into(mut array, text);
+	copy_into(mut array, move text);
+	move_into(mut array, move text2);
+	text2 = String("Reassigned, as it is mut");
+
+	let data:MyData;
+	read(uncrt data);
+
+	text2 = reapString(move data);
+
+	sort(array, def:=str_cmp);
+
+	free(array);
+};
