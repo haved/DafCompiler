@@ -1,0 +1,13 @@
+def printInt(a:i32) "printIntToC";
+def printChar(c:u8) "printCharToC";
+def panic() "panic";
+
+def oneFunc := def:= def:= def(mut a:i32) {
+	a = a + 1;
+};
+
+def dafMain:i32 {
+	mut var := 76;
+	oneFunc(mut var);
+	var - 77
+};

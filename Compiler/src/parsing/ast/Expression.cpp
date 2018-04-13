@@ -96,12 +96,12 @@ ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& de
 	    if(isDefOrLet(m_target)) {
 			m_defOrLet = DefOrLet(m_target);
 			m_typeInfo = m_defOrLet->getTypeInfo();
+			m_function->registerLetDefUse(&m_defOrLet);
 		}
 		else if(!m_namespaceTargetAllowed) {
 			complainDefinitionNotLetOrDef(m_target->getDefinitionKind(), m_name, m_name_range);
 			return ConcretableState::LOST_CAUSE;
 		}
-		//What's scary is that m_typeInfo can be none now, but only if our owner told us namespaceTargetAllowed
 		return ConcretableState::CONCRETE;
 	}
 

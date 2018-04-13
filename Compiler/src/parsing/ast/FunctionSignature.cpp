@@ -235,6 +235,11 @@ Definition* FunctionExpression::tryGetDefinitionFromName(const std::string& name
     return m_parameter_map.tryGetDefinitionFromName(name);
 }
 
+void FunctionExpression::registerLetForClosureCapture(Let* let) {
+  assert(let);
+  m_closure_captures.insert(let);
+}
+
 ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 	auto conc = allConcrete();
 	auto lost = anyLost();
@@ -255,9 +260,9 @@ ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_sta
 		for(auto& let : m_parameter_lets)
 			makeConcreteOrDepend(let.get());
 		ns_stack.push(this);
-		auto old = ns_stack.getBlockLevelInfo().push(this, nullptr);
-	    makeConcreteOrDepend(m_function_body->get());
-		ns_stack.getBlockLevelInfo().pop(old);
+		ns_stack.getBlockLevelInfo().push(this);
+    makeConcreteOrDepend(m_function_body->get());
+		ns_stack.getBlockLevelInfo().pop();
 		ns_stack.pop();
 	} else {
 		for(auto& param : getParameters())

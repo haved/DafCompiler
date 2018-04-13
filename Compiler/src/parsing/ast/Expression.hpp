@@ -68,15 +68,16 @@ class ConcreteNameScope;
 
 class VariableExpression : public Expression {
 private:
-    unique_ptr<Expression> m_LHS; //Can be null
+	unique_ptr<Expression> m_LHS; //Can be null
 	std::string m_name;
 	TextRange m_name_range;
 
 	bool m_namespaceTargetAllowed;
 
-    ConcreteNameScope* m_map;
+	ConcreteNameScope* m_map;
 	Definition* m_target;
 	optional<DefOrLet> m_defOrLet;
+    FunctionExpression* m_function;
 public:
 	VariableExpression(const std::string& name, const TextRange& range);
 	VariableExpression(VariableExpression& other)=delete;

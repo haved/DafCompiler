@@ -80,7 +80,7 @@ private:
 
 	ExprTypeInfo m_typeInfo;
 
-	int m_blockLevel; //Used to determine if it's inside or outside a function given
+	int m_blockLevel; //Used to determine if it's inside or outside a given function
 
 	llvm::Value* m_space;
 	bool m_stealSpaceFromTarget; //Used for reference function parameters

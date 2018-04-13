@@ -51,6 +51,8 @@ ConcretableState Def::retryMakeConcreteInternal(DependencyMap& depMap) {
 }
 
 ConcretableState Let::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
+	m_blockLevel = ns_stack.getBlockLevelInfo().getBlockLevel();
+
 	ConcretableState exprState =
 		m_expression ? m_expression         ->makeConcrete(ns_stack, depMap) : ConcretableState::CONCRETE;
 	ConcretableState typeState =
@@ -114,6 +116,10 @@ const ExprTypeInfo& Def::getFunctionExpressionTypeInfo() {
 
 const ExprTypeInfo& Let::getTypeInfo() const {
 	return m_typeInfo;
+}
+
+int Let::getBlockLevel() const {
+	return m_blockLevel;
 }
 
 void Def::globalCodegen(CodegenLLVM& codegen) {

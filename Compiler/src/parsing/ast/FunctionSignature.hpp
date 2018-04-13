@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <set>
 #include <memory>
 #include "parsing/ast/Type.hpp"
 #include "parsing/ast/Expression.hpp"
@@ -55,8 +56,12 @@ private:
 	optional<unique_ptr<Expression>> m_function_body;
 	optional<std::string> m_function_name;
 
+	FunctionExpression* parentFunction;
+
 	parameter_let_list m_parameter_lets;
 	NamedDefinitionMap m_parameter_map;
+
+	std::set<DefOrLet*> m_closure_captures;
 
 	ExprTypeInfo m_returnTypeInfo;
 	optional<ExprTypeInfo> m_implicitCallReturnTypeInfo;
@@ -89,6 +94,8 @@ public:
 	param_list& getParameters();
 	parameter_let_list& getParameterLetList();
 	virtual Definition* tryGetDefinitionFromName(const std::string& name) override;
+
+	void registerLetOrDefUse(DefOrLet* defOrLet);
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
