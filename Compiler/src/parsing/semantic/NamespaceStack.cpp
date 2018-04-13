@@ -35,6 +35,12 @@ Definition* NamespaceStack::getDefinitionFromName(const std::string& name, const
 	return target;
 }
 
-BlockLevelInfo& NamespaceStack::getBlockLevelInfo() {
-	return m_blockLevelInfo;
+FunctionExpression* NamespaceStack::updateCurrentFunction(FunctionExpression* expr) {
+	auto old = m_currentFunction;
+	m_currentFunction = expr;
+	return old;
+}
+
+FunctionExpression* NamespaceStack::getCurrentFunction() {
+	return m_currentFunction;
 }

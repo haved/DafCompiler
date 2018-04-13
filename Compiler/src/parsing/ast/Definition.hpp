@@ -80,7 +80,7 @@ private:
 
 	ExprTypeInfo m_typeInfo;
 
-	int m_blockLevel; //Used to determine if it's inside or outside a given function
+	FunctionExpression* m_definingFunction;
 
 	llvm::Value* m_space;
 	bool m_stealSpaceFromTarget; //Used for reference function parameters
@@ -96,7 +96,7 @@ public:
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depList) override;
 	const ExprTypeInfo& getTypeInfo() const;
-	int getBlockLevel() const;
+    optional<FunctionExpression*> getDefiningFunction();
 
 	virtual void globalCodegen(CodegenLLVM& codegen) override;
 	virtual void localCodegen(CodegenLLVM& codegen) override;

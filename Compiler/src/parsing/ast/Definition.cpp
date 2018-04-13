@@ -22,7 +22,7 @@ Def::Def(bool pub, std::string&& name, unique_ptr<FunctionExpression>&& expressi
 	m_functionExpression->setFunctionName(m_name);
 }
 
-Let::Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange &range, bool stealSpaceFromTarget) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_givenType(std::move(givenType)), m_expression(std::move(expression)), m_typeInfo(nullptr, ValueKind::ANONYMOUS), m_blockLevel(0), m_space(), m_stealSpaceFromTarget(stealSpaceFromTarget) {
+Let::Let(bool pub, bool mut, std::string&& name, TypeReference&& givenType, unique_ptr<Expression>&& expression, const TextRange &range, bool stealSpaceFromTarget) : Definition(pub, range), m_mut(mut), m_name(std::move(name)), m_givenType(std::move(givenType)), m_expression(std::move(expression)), m_typeInfo(nullptr, ValueKind::ANONYMOUS), m_definingFunction(nullptr), m_space(), m_stealSpaceFromTarget(stealSpaceFromTarget) {
 	assert(m_expression || m_givenType);
 }
 
@@ -51,7 +51,7 @@ ConcretableState Def::retryMakeConcreteInternal(DependencyMap& depMap) {
 }
 
 ConcretableState Let::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-	m_blockLevel = ns_stack.getBlockLevelInfo().getBlockLevel();
+	m_definingFunction = ns_stack.getCurrentFunction();
 
 	ConcretableState exprState =
 		m_expression ? m_expression         ->makeConcrete(ns_stack, depMap) : ConcretableState::CONCRETE;
@@ -118,8 +118,8 @@ const ExprTypeInfo& Let::getTypeInfo() const {
 	return m_typeInfo;
 }
 
-int Let::getBlockLevel() const {
-	return m_blockLevel;
+optional<FunctionExpression*> Let::getDefiningFunction() {
+	return m_definingFunction == nullptr ? boost::none : m_definingFunction;
 }
 
 void Def::globalCodegen(CodegenLLVM& codegen) {

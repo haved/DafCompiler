@@ -63,6 +63,13 @@ const ExprTypeInfo& DefOrLet::getTypeInfo() {
 		return getDef()->getFunctionExpressionTypeInfo();
 }
 
+optional<FunctionExpression*> DefOrLet::getDefinitingFunction() {
+	assert(m_target);
+	if(m_let)
+		return getLet()->getDefiningFunction();
+	assert(false && "Closure to def not supported ;(");
+}
+
 DefOrLet::operator bool() const {
 	return isSet();
 }

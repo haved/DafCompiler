@@ -130,6 +130,7 @@ FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, unique_p
 	m_type(std::move(type)),
 	m_function_body(std::move(function_body)),
 	m_function_name(boost::none),
+	m_parentFunction(nullptr),
 	m_parameter_lets(),
 	m_parameter_map(),
 	m_returnTypeInfo(getNoneTypeInfo()),
@@ -146,6 +147,7 @@ FunctionExpression::FunctionExpression(unique_ptr<FunctionType>&& type, std::str
 	m_type(std::move(type)),
 	m_function_body(boost::none),
 	m_function_name(foreign_name),
+	m_parentFunction(nullptr),
 	m_parameter_lets(),
 	m_parameter_map(),
 	m_returnTypeInfo(getNoneTypeInfo()),
@@ -235,9 +237,13 @@ Definition* FunctionExpression::tryGetDefinitionFromName(const std::string& name
     return m_parameter_map.tryGetDefinitionFromName(name);
 }
 
-void FunctionExpression::registerLetForClosureCapture(Let* let) {
-  assert(let);
-  m_closure_captures.insert(let);
+void FunctionExpression::registerLetOrDefUse(DefOrLet* lod) {
+	assert(lod);
+    optional<FunctionExpression*> defPoint = lod->getDefiningFunction();
+    if(defPoint && defPoint != this)
+		m_closure_captures.insert(lod);
+	assert(m_parentFunction);
+	m_parentFunction->registerLetOrDefUse(lod);
 }
 
 ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
@@ -257,13 +263,13 @@ ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_sta
 
 	if(m_function_body) {
 		readyParameterLets();
+		m_parentFunction = ns_stack.updateCurrentFunction(this);
 		for(auto& let : m_parameter_lets)
 			makeConcreteOrDepend(let.get());
 		ns_stack.push(this);
-		ns_stack.getBlockLevelInfo().push(this);
-    makeConcreteOrDepend(m_function_body->get());
-		ns_stack.getBlockLevelInfo().pop();
+		makeConcreteOrDepend(m_function_body->get());
 		ns_stack.pop();
+		assert(this == ns_stack.updateCurrentFunction(m_parentFunction));
 	} else {
 		for(auto& param : getParameters())
 			makeConcreteOrDepend(param.get());

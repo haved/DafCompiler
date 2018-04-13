@@ -8,7 +8,7 @@ class Definition;
 class Def;
 class Let;
 class ConcreteType;
-class ConcreteTypeAttempt;
+class FunctionExpression;
 struct ExprTypeInfo;
 
 class DefOrLet {
@@ -32,6 +32,8 @@ public:
 	Let* getLet();
 	Definition* getDefinition();
 	const ExprTypeInfo& getTypeInfo();
+	optional<FunctionExpression*> getDefinitingFunction();
+
 	operator bool() const;
 };
 

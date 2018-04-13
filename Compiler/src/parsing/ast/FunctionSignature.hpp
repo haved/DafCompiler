@@ -56,7 +56,7 @@ private:
 	optional<unique_ptr<Expression>> m_function_body;
 	optional<std::string> m_function_name;
 
-	FunctionExpression* parentFunction;
+	FunctionExpression* m_parentFunction;
 
 	parameter_let_list m_parameter_lets;
 	NamedDefinitionMap m_parameter_map;
