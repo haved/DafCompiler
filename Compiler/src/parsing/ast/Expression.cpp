@@ -69,6 +69,8 @@ void VariableExpression::allowNamespaceTarget() {
 ConcretableState VariableExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 	Concretable* stateSource;
 
+	m_function = ns_stack->getCurrentFunction();
+
 	if(m_LHS) {
 	    if(m_LHS->getExpressionKind() == ExpressionKind::VARIABLE)
 			static_cast<VariableExpression*>(m_LHS.get())->allowNamespaceTarget();

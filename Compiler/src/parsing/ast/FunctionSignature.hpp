@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <set>
+#include <map>
 #include <memory>
 #include "parsing/ast/Type.hpp"
 #include "parsing/ast/Expression.hpp"
@@ -61,7 +61,7 @@ private:
 	parameter_let_list m_parameter_lets;
 	NamedDefinitionMap m_parameter_map;
 
-	std::set<DefOrLet*> m_closure_captures;
+	std::map<DefOrLet*, int> m_closure_captures;
 
 	ExprTypeInfo m_returnTypeInfo;
 	optional<ExprTypeInfo> m_implicitCallReturnTypeInfo;
