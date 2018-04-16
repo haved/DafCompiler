@@ -78,6 +78,7 @@ private:
 	Definition* m_target;
 	optional<DefOrLet> m_defOrLet;
     FunctionExpression* m_function;
+	optional<int> m_capture_index; //When the variable isn't defined in the same function
 public:
 	VariableExpression(const std::string& name, const TextRange& range);
 	VariableExpression(VariableExpression& other)=delete;

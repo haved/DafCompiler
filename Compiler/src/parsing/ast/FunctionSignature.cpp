@@ -237,13 +237,22 @@ Definition* FunctionExpression::tryGetDefinitionFromName(const std::string& name
     return m_parameter_map.tryGetDefinitionFromName(name);
 }
 
-void FunctionExpression::registerLetOrDefUse(DefOrLet* lod) {
+optional<int> FunctionExpression::registerLetOrDefUse(DefOrLet lod) {
 	assert(lod);
-    optional<FunctionExpression*> defPoint = lod->getDefiningFunction();
-    if(defPoint && defPoint != this)
-		m_closure_captures.insert(lod);
-	assert(m_parentFunction);
-	m_parentFunction->registerLetOrDefUse(lod);
+
+    optional<FunctionExpression*> defPoint = lod.getDefiningFunction();
+	//Not a global and not defined in this function => defined in an outer function
+
+    if(!defPoint)
+		return boost::none;
+	if(defPoint == this)
+		return boost::none;
+
+	int result_id = m_closure_captures.size();
+	m_closure_captures.insert({lod, result_id});
+	if(m_parentFunction)
+		m_parentFunction->registerLetOrDefUse(lod);
+	return result_id;
 }
 
 ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {

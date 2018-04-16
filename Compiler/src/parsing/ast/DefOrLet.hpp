@@ -25,6 +25,7 @@ public:
 	DefOrLet& operator =(Def* def);
 	DefOrLet& operator =(Let* let);
 	DefOrLet& operator =(Definition* definition);
+	bool operator ==(const DefOrLet& other);
 	bool isDef() const;
 	bool isLet() const;
 	bool isSet() const;
@@ -32,7 +33,7 @@ public:
 	Let* getLet();
 	Definition* getDefinition();
 	const ExprTypeInfo& getTypeInfo();
-	optional<FunctionExpression*> getDefinitingFunction();
+	optional<FunctionExpression*> getDefiningFunction();
 
 	operator bool() const;
 };

@@ -29,6 +29,10 @@ DefOrLet& DefOrLet::operator =(Definition* definition) {
 	return *this; //Could be a one-liner, but Scott Meyers disagreed [-Weffc++]
 }
 
+bool DefOrLet::operator ==(const DefOrLet& other) {
+	return other.m_target == m_target ? assert(other.m_let == m_let), true : false;
+}
+
 bool DefOrLet::isLet() const {
 	return m_target && m_let;
 }
@@ -63,7 +67,7 @@ const ExprTypeInfo& DefOrLet::getTypeInfo() {
 		return getDef()->getFunctionExpressionTypeInfo();
 }
 
-optional<FunctionExpression*> DefOrLet::getDefinitingFunction() {
+optional<FunctionExpression*> DefOrLet::getDefiningFunction() {
 	assert(m_target);
 	if(m_let)
 		return getLet()->getDefiningFunction();
