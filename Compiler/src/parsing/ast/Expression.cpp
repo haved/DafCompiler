@@ -98,7 +98,8 @@ ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& de
 	    if(isDefOrLet(m_target)) {
 			m_defOrLet = DefOrLet(m_target);
 			m_typeInfo = m_defOrLet->getTypeInfo();
-			m_function->registerLetDefUse(&m_defOrLet);
+			//If this let comes from outside this function, it is passed as a closure capture
+			m_capture_index = m_function->registerLetDefUse(&m_defOrLet);
 		}
 		else if(!m_namespaceTargetAllowed) {
 			complainDefinitionNotLetOrDef(m_target->getDefinitionKind(), m_name, m_name_range);
@@ -131,6 +132,10 @@ ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& de
 
 optional<EvaluatedExpression> VariableExpression::codegenExpression(CodegenLLVM& codegen) {
     assert(m_defOrLet);
+
+	if(m_capture_index)
+		return m_function->captureAccessCodegen(codegen, *m_capture_index)
+
 	if(m_defOrLet->isDef()) {
 		return m_defOrLet->getDef()->functionAccessCodegen(codegen);
 	} else {

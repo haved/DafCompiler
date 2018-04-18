@@ -48,7 +48,7 @@ public:
 FunctionExpression* castToFunction(ConcreteType* type);
 
 class Let;
-using parameter_let_list = std::vector<unique_ptr<Let> >;
+using parameter_let_list = std::vector<unique_ptr<Let>>;
 class FunctionExpression : public Expression, public ConcreteType, public Namespace {
 private:
 	unique_ptr<FunctionType> m_type;
@@ -61,7 +61,7 @@ private:
 	parameter_let_list m_parameter_lets;
 	NamedDefinitionMap m_parameter_map;
 
-	std::map<DefOrLet, int> m_closure_captures;
+	std::map<DefOrLet, DefOrLet> m_closure_captures;
 
 	ExprTypeInfo m_returnTypeInfo;
 	optional<ExprTypeInfo> m_implicitCallReturnTypeInfo;
@@ -95,7 +95,7 @@ public:
 	parameter_let_list& getParameterLetList();
 	virtual Definition* tryGetDefinitionFromName(const std::string& name) override;
 
-	optional<int> registerLetOrDefUse(DefOrLet defOrLet);
+	DefOrLet captureLetOrDefUseIfNeeded(DefOrLet defOrLet);
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;

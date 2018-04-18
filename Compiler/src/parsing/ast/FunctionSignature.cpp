@@ -216,11 +216,12 @@ param_list& FunctionExpression::getParameters() {
 
 bool FunctionExpression::readyParameterLets() {
 	auto& params = getParameters();
+
 	for(unsigned int i = 0; i < params.size(); i++) {
 		FunctionParameter* param = params[i].get();
 		assert(param->getParameterKind() == ParameterKind::VALUE_PARAM);
 		ValueParameter* valParam = static_cast<ValueParameter*>(param);
-		unique_ptr<Let> paramLet = valParam->makeLet(this, i);
+		unique_ptr<Let> paramLet = valParam->makeLet(this, m_parameter_lets.size());
 		if(!paramLet)
 			return false;
 	    paramLet->addToMap(m_parameter_map);
@@ -237,7 +238,7 @@ Definition* FunctionExpression::tryGetDefinitionFromName(const std::string& name
     return m_parameter_map.tryGetDefinitionFromName(name);
 }
 
-optional<int> FunctionExpression::registerLetOrDefUse(DefOrLet lod) {
+DefOrLet FunctionExpression::captureDefOrLetUseIfNeeded(DefOrLet lod) {
 	assert(lod);
 
     optional<FunctionExpression*> defPoint = lod.getDefiningFunction();
@@ -248,7 +249,7 @@ optional<int> FunctionExpression::registerLetOrDefUse(DefOrLet lod) {
 	if(defPoint == this)
 		return boost::none;
 
-	int result_id = m_closure_captures.size();
+	m_parameter_lets
 	m_closure_captures.insert({lod, result_id});
 	if(m_parentFunction)
 		m_parentFunction->registerLetOrDefUse(lod);
