@@ -7,7 +7,7 @@
 
 using boost::optional;
 
-NamespaceStack::NamespaceStack() : m_namespaces(), m_blockLevelInfo() {}
+NamespaceStack::NamespaceStack() : m_namespaces(), m_currentFunction() {}
 
 void NamespaceStack::push(Namespace* name_space) {
 	assert(name_space);

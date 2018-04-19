@@ -274,7 +274,7 @@ ConcretableState ReturnStatement::makeConcreteInternal(NamespaceStack& ns_stack,
 	auto lost = anyLost();
 	auto conc = allConcrete();
 
-	m_funcExpr = ns_stack.getBlockLevelInfo().getCurrentFunction();
+	m_funcExpr = ns_stack.getCurrentFunction();
     ConcretableState state = m_funcExpr->getConcretableState();
     lost <<= state;
 	conc <<= state;

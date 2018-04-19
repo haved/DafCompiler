@@ -20,7 +20,7 @@ public:
 	inline bool isTypeAsType() {return !isExpressionAsType();}
 	void printSignature();
 
-	ConcretableState makeConcrete(Concretable* dep, NamespaceStack ns_stack, DependencyMap& depMap);
+	ConcretableState makeConcrete(Concretable* dep, NamespaceStack& ns_stack, DependencyMap& depMap);
 };
 
 class WithDefinition : public Definition {

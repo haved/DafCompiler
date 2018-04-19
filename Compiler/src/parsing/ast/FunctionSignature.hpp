@@ -95,7 +95,7 @@ public:
 	parameter_let_list& getParameterLetList();
 	virtual Definition* tryGetDefinitionFromName(const std::string& name) override;
 
-	DefOrLet captureLetOrDefUseIfNeeded(DefOrLet defOrLet);
+	DefOrLet captureDefOrLetUseIfNeeded(DefOrLet defOrLet);
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;

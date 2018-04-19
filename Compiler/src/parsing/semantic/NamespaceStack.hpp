@@ -16,6 +16,8 @@ private:
     FunctionExpression* m_currentFunction;
 public:
 	NamespaceStack();
+	NamespaceStack(const NamespaceStack& other)=delete;
+	NamespaceStack& operator=(const NamespaceStack& other)=delete;
 	void push(Namespace* name_space);
 	void pop();
 	Definition* tryGetDefinitionFromName(const std::string& name); //Never complains, just returns null

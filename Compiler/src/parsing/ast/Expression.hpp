@@ -100,8 +100,11 @@ class FunctionParameterExpression : public Expression {
 private:
 	FunctionExpression* m_funcExpr;
 	unsigned m_parameterIndex;
+	//When we have a captured DefOrLet we don't ask the FunctionParameter for our type
+	optional<DefOrLet> m_captured;
 public:
 	FunctionParameterExpression(FunctionExpression* funcExpr, unsigned parameterIndex, const TextRange& range);
+	FunctionParameterExpression(FunctionExpression* funcExpr, unsigned parameterIndex, DefOrLet typeSource);
 	FunctionParameterExpression(const FunctionParameterExpression& other) = delete;
 	FunctionParameterExpression& operator=(const FunctionParameterExpression& other) = delete;
 

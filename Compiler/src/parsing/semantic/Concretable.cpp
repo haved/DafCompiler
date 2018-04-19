@@ -24,14 +24,16 @@ ConcretableState Concretable::makeConcrete(NamespaceStack& ns_stack, DependencyM
 		depMap.markAsLostCause(this);
 		break;
     case ConcretableState::TRY_LATER:
-		//@Optimize @Speed a log(n) assert!
-		assert(depMap.nodeHasDependencies(this));
+		if(!depMap.nodeHasDependencies(this))
+			return retryMakeConcrete(depMap);
 		break;
 	}
 	return m_concreteState;
 }
 
 ConcretableState Concretable::retryMakeConcrete(DependencyMap& depMap) {
+	if(m_concreteState == ConcretableState::NEVER_TRIED)
+		return ConcretableState::TRY_LATER;
 	assert(m_concreteState == ConcretableState::TRY_LATER);
 	ConcretableState state = retryMakeConcreteInternal(depMap);
 	assert(m_concreteState == ConcretableState::TRY_LATER);
@@ -49,8 +51,8 @@ ConcretableState Concretable::retryMakeConcrete(DependencyMap& depMap) {
 		depMap.markAsLostCause(this);
 		break;
     case ConcretableState::TRY_LATER:
-		//@Optimize @Speed this assert is log(n) :O
-		assert(depMap.nodeHasDependencies(this));
+		if(!depMap.nodeHasDependencies(this))
+			return retryMakeConcrete(depMap);
 		break;
 	}
 	return m_concreteState;
@@ -109,10 +111,10 @@ void DependencyMap::markAsSolved(Concretable* solved) {
 
 	for(auto& dependent : it->second.dependentOnThis) {
 		auto find = m_graph.find(dependent);
-		if(find == m_graph.end()) //Lost causes have been removed from the graph
+		if(find == m_graph.end()) //Lost causes might have been removed from the graph
 			continue;
 		if(--find->second.dependentOnCount == 0) //Remove ourselves as a dependency
-		    dependent->retryMakeConcrete(*this); //Asserts dependent is TRY_LATER
+		    dependent->retryMakeConcrete(*this);
 	}
 
 	m_graph.erase(it);
@@ -123,7 +125,7 @@ void DependencyMap::markAsLostCause(Concretable* lostCause) {
 	m_anyLostCauses = true;
 
 	auto it = m_graph.find(lostCause);
-	if(it == m_graph.end()) //There might be no-one depending on this Concretable, and now there never will be
+	if(it == m_graph.end()) //There might be no-one depending on this Concretable
 		return;
 
 	std::queue<Concretable*> queue;

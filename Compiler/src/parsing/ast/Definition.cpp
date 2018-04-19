@@ -119,7 +119,9 @@ const ExprTypeInfo& Let::getTypeInfo() const {
 }
 
 optional<FunctionExpression*> Let::getDefiningFunction() {
-	return m_definingFunction == nullptr ? boost::none : m_definingFunction;
+	if(m_definingFunction == nullptr)
+		return boost::none;
+	return m_definingFunction;
 }
 
 void Def::globalCodegen(CodegenLLVM& codegen) {

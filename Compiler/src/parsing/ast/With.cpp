@@ -28,7 +28,7 @@ void With_As_Construct::printSignature() {
 	//The rest depends on whether or not it's an expression or a definition
 }
 
-ConcretableState With_As_Construct::makeConcrete(Concretable* dep, NamespaceStack ns_stack, DependencyMap& depMap) {
+ConcretableState With_As_Construct::makeConcrete(Concretable* dep, NamespaceStack& ns_stack, DependencyMap& depMap) {
 	auto concrete = allConcrete();
 	auto lost = anyLost();
 

@@ -71,7 +71,7 @@ optional<FunctionExpression*> DefOrLet::getDefiningFunction() {
 	assert(m_target);
 	if(m_let)
 		return getLet()->getDefiningFunction();
-	assert(false && "Closure to def not supported ;(");
+    return boost::none; //TODO: For now all defs are global
 }
 
 DefOrLet::operator bool() const {
