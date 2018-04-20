@@ -38,7 +38,7 @@ ConcretableState Expression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	return ConcretableState::CONCRETE;
 }
 
-VariableExpression::VariableExpression(const std::string& name, const TextRange& range) : Expression(range), m_LHS(), m_name(name), m_name_range(range), m_namespaceTargetAllowed(false), m_map(), m_target(), m_defOrLet() {
+VariableExpression::VariableExpression(const std::string& name, const TextRange& range) : Expression(range), m_LHS(), m_name(name), m_name_range(range), m_namespaceTargetAllowed(false), m_map(), m_target(), m_defOrLet(), m_function() {
 	assert(m_name.size() != 0);
 }
 
@@ -153,7 +153,7 @@ optional<EvaluatedExpression> VariableExpression::codegenExpression(CodegenLLVM&
 }
 
 FunctionParameterExpression::FunctionParameterExpression(FunctionExpression* funcExpr, unsigned paramIndex, const TextRange& range) :
-	Expression(range), m_funcExpr(funcExpr), m_parameterIndex(paramIndex) {
+	Expression(range), m_funcExpr(funcExpr), m_parameterIndex(paramIndex), m_captured(boost::none) {
 	assert(m_funcExpr);
 }
 
@@ -518,36 +518,7 @@ optional<EvaluatedExpression> FunctionCallExpression::codegenExpression(CodegenL
 		func = castToFunction(func->getReturnTypeInfo().type);
 	}
 
-	auto& reqParams = func->getParameters();
-	assert(givenParams == reqParams.size());
-
-	//Codegen arguments
-	std::vector<llvm::Value*> args;
-    for(unsigned int i = 0; i < givenParams; i++) {
-		FunctionParameter* required = reqParams[i].get();
-		assert(required->getParameterKind() == ParameterKind::VALUE_PARAM);
-		ValueParameter* requiredValParam = static_cast<ValueParameter*>(required);
-
-		Expression* argExpression = m_args[i].m_expression.get();
-		bool referenceParameter = requiredValParam->isReferenceParameter();
-		optional<EvaluatedExpression> arg =
-			requiredValParam->codegenCastToCorrectType(codegen, argExpression->codegenExpression(codegen));
-		if(!arg)
-			return boost::none;
-
-		args.push_back(referenceParameter ? arg->getPointerToValue(codegen) : arg->getValue(codegen));
-	}
-
-	//Call the function with parameters
-	llvm::Function* prototype = func->tryGetOrMakePrototype(codegen);
-	if(!prototype)
-		return boost::none;
-	llvm::Value* returnVal = codegen.Builder().CreateCall(prototype, args);
-
-    EvaluatedExpression val(returnVal, func->hasReferenceReturn(), &func->getReturnTypeInfo());
-	val = *codegenTypeConversion(codegen, val, &m_typeInfo);
-
-    return val;
+	return func->codegenOneCall(codegen, m_args);
 }
 
 

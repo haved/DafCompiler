@@ -5,6 +5,6 @@ def printInt(a:i32) "printIntToC";
 def main {
 	mut a := 5;
 	def alias := a;
-  	printInt(alias);
+  	//printInt(alias);
 };
 
