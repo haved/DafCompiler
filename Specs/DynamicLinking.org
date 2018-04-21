@@ -5,6 +5,7 @@ I'd like to not wait that long, and also save my SSD from all the writing.
 As of writing this I've only managed static linking, and the command cmake ultimatly executes is the following:
 
 * The static link command
+#+BEGIN_SRC 
 /usr/bin/c++    -g -Wall -Weffc++ -Wextra -pedantic -std=c++17    
 
 CMakeFiles/DafCompiler.dir/src/DafcMain.cpp.o
@@ -12,7 +13,8 @@ CMakeFiles/DafCompiler.dir/src/DafcMain.cpp.o
 
 -o DafCompiler
 
-/usr/lib/libboost_system.so /usr/lib/libboost_filesystem.so
+/usr/lib/libboost_system.so
+/usr/lib/libboost_filesystem.so
 
 /usr/local/lib/libLLVMX86CodeGen.a
 /usr/local/lib/libLLVMX86AsmParser.a
@@ -45,6 +47,7 @@ CMakeFiles/DafCompiler.dir/src/DafcMain.cpp.o
 -lz -lrt -ldl -ltinfo -lpthread -lm
 
 /usr/local/lib/libLLVMDemangle.a
+#+END_SRC
 
 * Ok so how to do dynamic linking
 I can see that the boost libraries used are .so, which I know are dynamic libraries on Linux.
@@ -59,6 +62,30 @@ cmake option LLVM_BUILD_LLVM_DYLIB:bool     adds the build target for the libLLV
 cmake option LLVM_LINK_LLVM_DYLIB:bool      uses the libLLVM shared library for other LLVM tools
 Both of these default to off, but turn them on. This is described in the InstallingLLVMFromSource.org file
 
-* Telling the DafCompiler cmake to use libLLVM-6.0.so
-Simply a matter of replacing all TARGET_LINK_LIBRARIES with specific LLVMSomeLibraries,
-with a single TARGET_LINK_LIBRARIES(DafCompiler LLVM)
+The result is a file called =libLLVM-6.0.so=, which is placed in =/usr/local/lib/=
+If you were to install LLVM through you package manager, you'd get the "same file" only in =/usr/lib=
+But we made a debug build, remember, so there is a bit of a size difference:
+
+1.2G /usr/local/lib/libLLVM-6.0.so
+61M	/usr/lib/libLLVM-6.0.so
+
+I find it hard to believe the Debug option did that much to the file size, but I'm not about to build LLVM from source again to check.
+
+* Telling the DafCompiler CMakeLists.txt to use libLLVM-6.0.so
+Simply a matter of replacing all =TARGET_LINK_LIBRARIES(LLVMSomeLibraries)=,
+with a single =TARGET_LINK_LIBRARIES(DafCompiler LLVM)=
+(Which I have done, if you are reading this)
+
+* The resulting link command
+#+BEGIN_SRC 
+/usr/bin/c++    -g -Wall -Weffc++ -Wextra -pedantic -std=c++17
+
+CMakeFiles/DafCompiler.dir/src/DafcMain.cpp.o
+<bunch more .cpp.o files>
+
+-o DafCompiler
+-Wl,-rpath,/usr/local/lib
+/usr/lib/libboost_system.so
+/usr/lib/libboost_filesystem.so
+/usr/local/lib/libLLVM-6.0.so 
+#+END_SRC
