@@ -31,23 +31,21 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 #endif()
 
 file(GLOB MySources src/*.cpp)
-
 file(GLOB MySourcesParsing src/parsing/*.cpp)
-
 file(GLOB MySourcesParsingLexing src/parsing/lexing/*.cpp)
-
 file(GLOB MySourcesParsingAst src/parsing/ast/*.cpp)
-
 file(GLOB MySourcesParsingSemantic src/parsing/semantic/*.cpp)
-
 file(GLOB MySourcesInfo src/info/*.cpp)
 
 #Find Boost
-FIND_PACKAGE( Boost 1.40 COMPONENTS system filesystem REQUIRED )
-INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
+FIND_PACKAGE(Boost 1.40 REQUIRED COMPONENTS system filesystem)
+INCLUDE_DIRECTORIES(Boost_INCLUDE_DIR)
 
 #Find LLVM
-FIND_PACKAGE(LLVM 6.0 REQUIRED CONFIG)
+FIND_PACKAGE(LLVM REQUIRED CONFIG)
+if(NOT LLVM_VERSION_MAJOR EQUAL 6)
+  MESSAGE(WARNING "I haven't tried builing with this version of LLVM. Good luck")
+endif()
 MESSAGE(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 MESSAGE(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
@@ -65,7 +63,7 @@ if(DAF_DEBUG_MACRO)
   target_compile_definitions(DafCompiler PRIVATE DAF_DEBUG)
 endif()
 
-TARGET_LINK_LIBRARIES(DafCompiler ${Boost_LIBRARIES})
+TARGET_LINK_LIBRARIES(DafCompiler Boost_LIBRARIES)
 TARGET_LINK_LIBRARIES(DafCompiler LLVM) #One shared library to rule them all
 
 MESSAGE(INFO " DAF_TARGET_ONLY_x86=${DAF_TARGET_ONLY_x86}")
