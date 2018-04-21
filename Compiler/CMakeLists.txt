@@ -4,7 +4,7 @@ set(DafCompiler_VERSION_MAJOR 1)
 
 option(DAF_DEBUG_MACRO "Enable #define DAF_DEBUG_MACRO (Overridden if CMAKE_BUILD_TYPE=Debug)" OFF)
 option(DAF_TARGET_ONLY_x86 "Ignore most LLVM targets" OFF)
-option(DAF_SHARED_LINKING_LLVM "link with libLLVM.so instead of a bunch of .a files" ON)
+#Support for static linking of LLVM last seen in commit [da4065c]
 
 # User specified strings:
 # DAF_EXTRA_CXX_FLAGS:String //Default: ""
@@ -16,10 +16,10 @@ option(DAF_SHARED_LINKING_LLVM "link with libLLVM.so instead of a bunch of .a fi
 # CMAKE_BUILD_TYPE:String #Not used by the buildScript because it does extra things to asserts and whatnot
 
 IF(CMAKE_BUILD_TYPE MATCHES "Rel") #if build type starts with Rel
-    MESSAGE(WARNING "Using CMAKE_BUILD_TYPE to build Release removes asserts. Will give many warnings")
+    MESSAGE(WARNING "Using CMAKE_BUILD_TYPE to build Release removes asserts. Will give warnings")
 ENDIF()
 IF(CMAKE_BUILD_TYPE MATCHES "Debug")
-  MESSAGE(WARNING "You are using CMAKE_BUILD_TYPE to choose Debug, so I'll enable DAF_DEBUG_MACRO")
+  MESSAGE("You are using CMAKE_BUILD_TYPE to choose Debug, so I'll enable DAF_DEBUG_MACRO")
   SET(DAF_DEBUG_MACRO ON)
 ENDIF()
 
@@ -30,35 +30,17 @@ SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${DAF_EXTRA_LINK_FLAGS}")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 #endif()
 
-file(GLOB MySources
-    #src/*.hpp
-	src/*.cpp
-)
+file(GLOB MySources src/*.cpp)
 
-file(GLOB MySourcesParsing
-    #src/parsing/*.hpp
-	src/parsing/*.cpp
-)
+file(GLOB MySourcesParsing src/parsing/*.cpp)
 
-file(GLOB MySourcesParsingLexing
-    #src/parsing/lexing/*.hpp
-	src/parsing/lexing/*.cpp
-)
+file(GLOB MySourcesParsingLexing src/parsing/lexing/*.cpp)
 
-file(GLOB MySourcesParsingAst
-    #src/parsing/ast/*.hpp
-	src/parsing/ast/*.cpp
-)
+file(GLOB MySourcesParsingAst src/parsing/ast/*.cpp)
 
-file(GLOB MySourcesParsingSemantic
-    #src/parsing/semantic/*.hpp
-	src/parsing/semantic/*.cpp
-)
+file(GLOB MySourcesParsingSemantic src/parsing/semantic/*.cpp)
 
-file(GLOB MySourcesInfo
-  #src/info/*.hpp
-  src/info/*.cpp
-)
+file(GLOB MySourcesInfo src/info/*.cpp)
 
 #Find Boost
 FIND_PACKAGE( Boost 1.40 COMPONENTS system filesystem REQUIRED )
@@ -84,46 +66,10 @@ if(DAF_DEBUG_MACRO)
 endif()
 
 TARGET_LINK_LIBRARIES(DafCompiler ${Boost_LIBRARIES})
-
-if(DAF_SHARED_LINKING_LLVM)
-	TARGET_LINK_LIBRARIES(DafCompiler LLVM) #One shared library
-else()
-	TARGET_LINK_LIBRARIES(DafCompiler #The strictly necessary llvm linking on x86
-  	LLVMX86CodeGen
-  	LLVMX86AsmParser
-  	)
-endif()
+TARGET_LINK_LIBRARIES(DafCompiler LLVM) #One shared library to rule them all
 
 MESSAGE(INFO " DAF_TARGET_ONLY_x86=${DAF_TARGET_ONLY_x86}")
 if(DAF_TARGET_ONLY_x86)
   target_compile_definitions(DafCompiler PRIVATE DAF_TARGET_ONLY_x86)
-elseif(NOT DAF_SHARED_LINK_LLVM)
-  TARGET_LINK_LIBRARIES(DafCompiler #Warning, this will make the binary almost a gigabyte large
-    LLVMXCoreCodeGen
-    LLVMSystemZCodeGen
-    LLVMSystemZAsmParser
-    LLVMSparcCodeGen
-    LLVMSparcAsmParser
-    LLVMPowerPCCodeGen
-    LLVMPowerPCAsmParser
-    LLVMNVPTXCodeGen
-    LLVMMSP430CodeGen
-    LLVMMipsCodeGen
-    LLVMMipsAsmParser
-    LLVMHexagonCodeGen
-    LLVMHexagonAsmParser
-    LLVMBPFCodeGen
-    LLVMARMCodeGen
-    LLVMARMAsmParser
-    LLVMAMDGPUCodeGen
-    LLVMAMDGPUAsmParser
-	LLVMAArch64CodeGen
-    LLVMAArch64AsmParser
-	LLVMLanaiAsmParser
-	LLVMLanaiCodeGen
-    )
 endif()
 
-#LLVM_MAP_COMPONENTS_TO_LIBNAMES(core irreader support passes target asmparser asmprinter codegen)
-#TARGET_LINK_LIBRARIES(DafCompiler "${llvm_libs}")
-#TARGET_LINK_LIBRARIES(DafCompiler LLVM-5.0)

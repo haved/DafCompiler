@@ -60,4 +60,5 @@ cmake option LLVM_LINK_LLVM_DYLIB:bool      uses the libLLVM shared library for 
 Both of these default to off, but turn them on. This is described in the InstallingLLVMFromSource.org file
 
 * Telling the DafCompiler cmake to use libLLVM-6.0.so
-
+Simply a matter of replacing all TARGET_LINK_LIBRARIES with specific LLVMSomeLibraries,
+with a single TARGET_LINK_LIBRARIES(DafCompiler LLVM)
