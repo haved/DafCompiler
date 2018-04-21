@@ -1,7 +1,8 @@
 #+TITLE: Installing LLVM from source
 I wanted a Debug build of LLVM because I couldn't link to llvm::Module::dump()
 * Remove package manager installs
-Use pacman and grep to find installed llvm packages.
+Before we begin we might want to remove llvm packages, though all our files will be installed in /usr/local,
+so this step might not be needed.
 #+BEGIN_SRC bash
 pacman -Ss | grep llvm | grep installed
 #+END_SRC
@@ -11,24 +12,27 @@ When I tried removing packages, only llvm could be removed without breaking too 
 sudo pacman -R llvm
 #+END_SRC
 
-* Download llvm source
-Go to http://releases.llvm.org/download.html#5.0.1
+* Download source, build and install llvm
+Go to http://releases.llvm.org/download.html
 and download the LLVM source code tarball.
 Put the llvm-6.0.0.src folder somewhere sensible, and make a build folder next to it.
 In this build folder we run cmake, pointing to the source dir.
+We tell cmake to build a Debug build, and also tell LLVM to build a shared library, and to use this for its tools.
 It is important that we don't move any folders after cmake has been called
-After the first cmake call be build and install
+After the first cmake call we build and install
 #+BEGIN_SRC bash
 mkdir llvm-6.0.0.debugBuild
 cd llvm-6.0.0.debugBuild
-cmake -DCMAKE_BUILD_TYPE=Debug ../llvm-6.0.0.src
+cmake -DCMAKE_BUILD_TYPE=Debug -DLLVM_BUILD_LLVM_DYLIB=True -DLLVM_LINK_LLVM_DYLIB=True ../llvm-6.0.0.src
 cmake --build .
 sudo make install
 #+END_SRC
 
-** Output of sudo make install, LLVM 6.0.0 Debug build
-In case I want to uninstall, I remove the files with the "Installing: "-prefix
-*** FULL OUTPUT! Many lines
+** Output of sudo make install, LLVM 6.0.0 Debug dynamic library build
+In case I want to uninstall, I remove the files with the "-- Installing: "-prefix, at your own discression
+
+*** Warning! Many lines!
+#+BEGIN_SRC 
 -- Install configuration: "Debug"
 -- Installing: /usr/local/include/llvm
 -- Installing: /usr/local/include/llvm/ExecutionEngine
@@ -1442,6 +1446,9 @@ Creating llvm-dlltool
 -- Installing: /usr/local/bin/llvm-readobj
 Creating llvm-readelf
 -- Installing: /usr/local/bin/llvm-rtdyld
+Creating libLLVM-6.0.0.so
+Creating libLLVM.so
+-- Installing: /usr/local/lib/libLLVM-6.0.so
 -- Installing: /usr/local/bin/llvm-size
 -- Installing: /usr/local/bin/llvm-split
 -- Installing: /usr/local/bin/llvm-stress
@@ -1487,3 +1494,4 @@ Creating llvm-readelf
 -- Installing: /usr/local/lib/cmake/llvm/./CrossCompile.cmake
 -- Installing: /usr/local/lib/cmake/llvm/./DetermineGCCCompatible.cmake
 -- Installing: /usr/local/lib/cmake/llvm/./GenerateVersionFromCVS.cmake
+#+END_SRC

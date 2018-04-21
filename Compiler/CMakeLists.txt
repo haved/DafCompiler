@@ -2,8 +2,9 @@ cmake_minimum_required (VERSION 3.4.3)
 project (DafCompiler)
 set(DafCompiler_VERSION_MAJOR 1)
 
-option(DAF_DEBUG_MACRO "Enable #define DAF_DEBUG_MACRO (Overridden by CMAKE_BUILD_TYPE)" OFF)
+option(DAF_DEBUG_MACRO "Enable #define DAF_DEBUG_MACRO (Overridden if CMAKE_BUILD_TYPE=Debug)" OFF)
 option(DAF_TARGET_ONLY_x86 "Ignore most LLVM targets" OFF)
+option(DAF_SHARED_LINKING_LLVM "link with libLLVM.so instead of a bunch of .a files" ON)
 
 # User specified strings:
 # DAF_EXTRA_CXX_FLAGS:String //Default: ""
@@ -12,13 +13,13 @@ option(DAF_TARGET_ONLY_x86 "Ignore most LLVM targets" OFF)
 # You might want to play with these:
 # CMAKE_CXX_COMPILER
 # CMAKE_LINKER
-# CMAKE_BUILD_TYPE:String
+# CMAKE_BUILD_TYPE:String #Not used by the buildScript because it does extra things to asserts and whatnot
 
-IF(CMAKE_BUILD_TYPE MATCHES "Rel")
+IF(CMAKE_BUILD_TYPE MATCHES "Rel") #if build type starts with Rel
     MESSAGE(WARNING "Using CMAKE_BUILD_TYPE to build Release removes asserts. Will give many warnings")
 ENDIF()
 IF(CMAKE_BUILD_TYPE MATCHES "Debug")
-  MESSAGE(WARNING "Using CMAKE_BUILD_TYPE to build Debug is frowned upon, but I'll enable DAF_DEBUG_MACRO")
+  MESSAGE(WARNING "You are using CMAKE_BUILD_TYPE to choose Debug, so I'll enable DAF_DEBUG_MACRO")
   SET(DAF_DEBUG_MACRO ON)
 ENDIF()
 
@@ -83,16 +84,21 @@ if(DAF_DEBUG_MACRO)
 endif()
 
 TARGET_LINK_LIBRARIES(DafCompiler ${Boost_LIBRARIES})
-TARGET_LINK_LIBRARIES(DafCompiler #The strictly necessary llvm linking on x86
-  LLVMX86CodeGen
-  LLVMX86AsmParser
-  )
+
+if(DAF_SHARED_LINKING_LLVM)
+	TARGET_LINK_LIBRARIES(DafCompiler LLVM) #One shared library
+else()
+	TARGET_LINK_LIBRARIES(DafCompiler #The strictly necessary llvm linking on x86
+  	LLVMX86CodeGen
+  	LLVMX86AsmParser
+  	)
+endif()
 
 MESSAGE(INFO " DAF_TARGET_ONLY_x86=${DAF_TARGET_ONLY_x86}")
 if(DAF_TARGET_ONLY_x86)
   target_compile_definitions(DafCompiler PRIVATE DAF_TARGET_ONLY_x86)
-else()
-  TARGET_LINK_LIBRARIES(DafCompiler
+elseif(NOT DAF_SHARED_LINK_LLVM)
+  TARGET_LINK_LIBRARIES(DafCompiler #Warning, this will make the binary almost a gigabyte large
     LLVMXCoreCodeGen
     LLVMSystemZCodeGen
     LLVMSystemZAsmParser

@@ -1,0 +1,63 @@
+#+TITLE: Dynamic linking of LLVM
+
+If you statically link LLVM the binary becomes 435 MB large, and linking together the thing takes upwards of 40 seconds on my machine.
+I'd like to not wait that long, and also save my SSD from all the writing.
+As of writing this I've only managed static linking, and the command cmake ultimatly executes is the following:
+
+* The static link command
+/usr/bin/c++    -g -Wall -Weffc++ -Wextra -pedantic -std=c++17    
+
+CMakeFiles/DafCompiler.dir/src/DafcMain.cpp.o
+<Bunch more .cpp.o files>
+
+-o DafCompiler
+
+/usr/lib/libboost_system.so /usr/lib/libboost_filesystem.so
+
+/usr/local/lib/libLLVMX86CodeGen.a
+/usr/local/lib/libLLVMX86AsmParser.a
+/usr/local/lib/libLLVMAsmPrinter.a
+/usr/local/lib/libLLVMDebugInfoCodeView.a
+/usr/local/lib/libLLVMDebugInfoMSF.a
+/usr/local/lib/libLLVMGlobalISel.a
+/usr/local/lib/libLLVMSelectionDAG.a
+/usr/local/lib/libLLVMCodeGen.a
+/usr/local/lib/libLLVMBitWriter.a
+/usr/local/lib/libLLVMScalarOpts.a
+/usr/local/lib/libLLVMInstCombine.a
+/usr/local/lib/libLLVMTransformUtils.a
+/usr/local/lib/libLLVMTarget.a
+/usr/local/lib/libLLVMAnalysis.a
+/usr/local/lib/libLLVMProfileData.a
+/usr/local/lib/libLLVMX86Desc.a
+/usr/local/lib/libLLVMX86AsmPrinter.a
+/usr/local/lib/libLLVMX86Utils.a
+/usr/local/lib/libLLVMObject.a
+/usr/local/lib/libLLVMBitReader.a
+/usr/local/lib/libLLVMCore.a
+/usr/local/lib/libLLVMBinaryFormat.a
+/usr/local/lib/libLLVMMCDisassembler.a
+/usr/local/lib/libLLVMX86Info.a
+/usr/local/lib/libLLVMMCParser.a
+/usr/local/lib/libLLVMMC.a
+/usr/local/lib/libLLVMSupport.a
+
+-lz -lrt -ldl -ltinfo -lpthread -lm
+
+/usr/local/lib/libLLVMDemangle.a
+
+* Ok so how to do dynamic linking
+I can see that the boost libraries used are .so, which I know are dynamic libraries on Linux.
+You link to the same file that is used at runtime (unlike on Windows), but there is some symlink stuff there.
+When linking you don't care about sonames, you just link with files through their link-name "/usr/lib/libsomething.so"
+When running the program a file with the correct soname has to be loaded, i.e. "/usr/lib/libsomething.so.3"
+Both of these files are symlinks to the actual file, the realname "/usr/lib/libsomething.so.3.0."
+The realname contains the actual version, which comes after the soname. This means you can do minor updates without changing the API / soname.
+
+* Ok LLVM specific guide
+cmake option LLVM_BUILD_LLVM_DYLIB:bool     adds the build target for the libLLVM shared library
+cmake option LLVM_LINK_LLVM_DYLIB:bool      uses the libLLVM shared library for other LLVM tools
+Both of these default to off, but turn them on. This is described in the InstallingLLVMFromSource.org file
+
+* Telling the DafCompiler cmake to use libLLVM-6.0.so
+
