@@ -39,7 +39,7 @@ file(GLOB MySourcesInfo src/info/*.cpp)
 
 #Find Boost
 FIND_PACKAGE(Boost 1.40 REQUIRED COMPONENTS system filesystem)
-INCLUDE_DIRECTORIES(Boost_INCLUDE_DIR)
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 
 #Find LLVM
 FIND_PACKAGE(LLVM REQUIRED CONFIG)
@@ -63,7 +63,7 @@ if(DAF_DEBUG_MACRO)
   target_compile_definitions(DafCompiler PRIVATE DAF_DEBUG)
 endif()
 
-TARGET_LINK_LIBRARIES(DafCompiler Boost_LIBRARIES)
+TARGET_LINK_LIBRARIES(DafCompiler ${Boost_LIBRARIES})
 TARGET_LINK_LIBRARIES(DafCompiler LLVM) #One shared library to rule them all
 
 MESSAGE(INFO " DAF_TARGET_ONLY_x86=${DAF_TARGET_ONLY_x86}")

@@ -36,3 +36,5 @@ Github issue #7
 ** The Concretable stuff
 It's n log n, which is good without having a vector in every single Concretable
 Doing it that way would be O(n) I think, but the memory fragmentation with the default allocation would be horrid
+Actually, It wouldn't be worse than what we are doing now. Also, we are at O(n*m*(log n)²) if i'm not mistaken, because we have to look up in the map for everything.
+Basically: Put the vector and number you're dependent on in the Concretable class, and remove the map.

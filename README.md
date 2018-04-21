@@ -22,7 +22,7 @@ Check out my Trello board [here](https://trello.com/b/bXCZLvBz "Daf trello board
 The compiler is linked to the shared library libLLVM.so, so make sure you have it / build it.
 If you want to build a debug build of the DafCompiler (extra output), you'll need a Debug build of LLVM.
 See the document Specs/InstallingLLVMFromSource.org for details.  
-**NOTE:** If you don't need a debug build of the DafCompiler, just invoke the build script with --release
+**NOTE:** If you don't need a debug build of the DafCompiler, just invoke the build script with `--release`
 
 ##### Using buildScript.py
 The script `buildScript.py` lets you build and test run Debug or Release builds of the compiler.
