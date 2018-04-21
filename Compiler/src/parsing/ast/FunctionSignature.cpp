@@ -270,7 +270,7 @@ DefOrLet FunctionExpression::captureDefOrLetUseIfNeeded(DefOrLet lod) {
 	Let* let = lod.getLet();
     ValueKind kind = let->getTypeInfo().valueKind;
 	bool mut = kind == ValueKind::MUT_LVALUE;
-	bool ref = isReferenceValueKind(kind);
+    bool ref = isReferenceValueKind(kind); assert(ref); //It's a let, so it should most certainly be an lvalue
 	auto expr = std::make_unique<FunctionParameterExpression>(this, parameter_index, lod);
     auto localLet = std::make_unique<Let>(false, mut, std::string(), TypeReference(), std::move(expr), getRange(), ref);
 	auto result = DefOrLet(localLet.get());
@@ -295,20 +295,21 @@ ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_sta
 		makeConcreteOrDepend(m_type->tryGetGivenReturnType());
 
 	if(m_function_body) {
-		readyParameterLets();
-		m_parentFunction = ns_stack.updateCurrentFunction(this);
-		for(auto& let : m_parameter_lets)
-			makeConcreteOrDepend(let.get());
+        readyParameterLets();
+        m_parentFunction = ns_stack.updateCurrentFunction(this);
+        for(auto& let : m_parameter_lets)
+            makeConcreteOrDepend(let.get());
 		ns_stack.push(this);
 		makeConcreteOrDepend(m_function_body->get());
 		ns_stack.pop();
 		for(auto& closure_let : m_closure_captures)
-			makeConcreteOrDepend(closure_let.first.get());
-		assert(this == ns_stack.updateCurrentFunction(m_parentFunction));
-	} else {
-		for(auto& param : getParameters())
-			makeConcreteOrDepend(param.get());
-	}
+			makeConcreteOrDepend(closure_let.internal.get());
+        assert(this == ns_stack.updateCurrentFunction(m_parentFunction));
+    } else {
+        //If we don't have a body we never use the variable Let instances, so make the parameters concrete by other means
+        for(auto& param : getParameters())
+            makeConcreteOrDepend(param.get());
+    }
 
 	if(lost)
 		return ConcretableState::LOST_CAUSE;
@@ -390,7 +391,7 @@ optional<EvaluatedExpression> FunctionExpression::codegenOneImplicitCall(Codegen
 	return codegenOneCall(codegen, boost::none);
 }
 
-optional<EvaluatedExpression> FunctionExpression::codegenOneCall(CodegenLLVM& codegen, optional<FuncParamList&> args) {
+optional<EvaluatedExpression> FunctionExpression::codegenOneCall(CodegenLLVM& codegen, optional<FunctionCallArgList&> args) {
 	llvm::Function* prototype = tryGetOrMakePrototype(codegen);
 	if(!prototype)
 		return boost::none;
@@ -399,21 +400,28 @@ optional<EvaluatedExpression> FunctionExpression::codegenOneCall(CodegenLLVM& co
 	std::vector<llvm::Value*> argValues; //@Allocation
 
 	if(args) {
-		assert(args->size() == m_parameter_lets.size());
-		for(unsigned int i = 0; i < args->size(); i++) {
-			FunctionParameter* required = m_type->getParameters()[i].get();
+        assert(args->size() == getParameters().size());
+        for(unsigned int i = 0; i < args->size(); i++) {
+            FunctionParameter* required = getParameters()[i].get();
 			assert(required->getParameterKind() == ParameterKind::VALUE_PARAM);
 			ValueParameter* requiredValParam = static_cast<ValueParameter*>(required);
 
-			Expression* argExpression = (*args)[i].m_expression.get();
-			bool referenceParameter = requiredValParam->isReferenceParameter();
-			optional<EvaluatedExpression> arg =
-				requiredValParam->codegenCastToCorrectType(codegen, argExpression->codegenExpression(codegen));
-			if(!arg)
+            Expression* argExpression = (*args)[i].m_expression.get();
+			bool refParam = requiredValParam->isReferenceParameter();
+			auto argEval = requiredValParam->codegenCastToCorrectType(codegen, argExpression->codegenExpression(codegen));
+			if(!argEval)
 				return boost::none;
 
-			argValues.push_back(referenceParameter ? arg->getPointerToValue(codegen) : arg->getValue(codegen));
+			argValues.push_back(refParam ? argEval->getPointerToValue(codegen) : argEval->getValue(codegen));
 		}
+	}
+
+	for(auto& closure:m_closure_captures) {
+        auto argEval = closure.owner->accessCodegen(codegen);
+		if(!argEval)
+			return boost::none;
+        bool ref = closure.owner->getTypeInfo().isReference();
+        argValues.push_back(ref ? argEval->getPointerToValue(codegen) : argEval->getValue(codegen));
 	}
 
 	llvm::Value* returnVal = codegen.Builder().CreateCall(prototype, argValues);
@@ -454,25 +462,26 @@ llvm::Type* FunctionExpression::codegenType(CodegenLLVM& codegen) {
 	return llvm::Type::getVoidTy(codegen.Context()); //TODO: Closures and stuff
 }
 
-llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen, parameter_let_list& params, closure_capture_list& closures, ExprTypeInfo& returnType) {
+llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen, param_list& params, closure_capture_list& closures, ExprTypeInfo& returnType) {
 
 	std::vector<llvm::Type*> argumentTypes;
 
-	auto addParam = [&](Let* param) {
-		const ExprTypeInfo& typeInfo = param->getTypeInfo();
+    auto addParam = [&](const ExprTypeInfo& typeInfo) {
 		llvm::Type* type = typeInfo.type->codegenType(codegen);
 		if(isReferenceValueKind(typeInfo.valueKind))
 			type = llvm::PointerType::getUnqual(type);
 		argumentTypes.push_back(type);
     };
-	for(auto& let : params)
-		addParam(let.get());
-	for(auto& closure : closures)
-		addParam(closure.first.get());
+    for(auto& param : params) {
+        assert(param->getParameterKind() == ParameterKind::VALUE_PARAM);
+        addParam(static_cast<ValueParameter*>(param.get())->getTypeInfo());
+    }
+    for(auto& closure : closures)
+        addParam(closure.internal->getTypeInfo()); //Closures are always lvalues, just like the Let
 
-	llvm::Type* returnTypeLLVM = nullptr;
-	if(returnType.type->hasSize()) {
-	    returnTypeLLVM = returnType.type->codegenType(codegen);
+    llvm::Type* returnTypeLLVM = nullptr;
+    if(returnType.type->hasSize()) {
+        returnTypeLLVM = returnType.type->codegenType(codegen);
 		if(!returnTypeLLVM)
 			return nullptr;
 
@@ -501,7 +510,7 @@ std::string anon_function_name("anon_function");
 void FunctionExpression::makePrototype(CodegenLLVM& codegen) {
 	assert(!m_prototype && !m_broken_prototype && !m_filled_prototype);
 
-	llvm::FunctionType* functionTypeLLVM = codegenFunctionType(codegen, m_parameter_lets, m_closure_captures, m_returnTypeInfo);
+    llvm::FunctionType* functionTypeLLVM = codegenFunctionType(codegen, getParameters(), m_closure_captures, m_returnTypeInfo);
 	if(!functionTypeLLVM) {
 		m_broken_prototype = true;
 		return;
@@ -537,8 +546,10 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 
 	ExprTypeInfo* targetTypeInfo = &m_returnTypeInfo;
 
-	for(auto& letParam : getParameterLetList())
+	for(auto& letParam : m_parameter_lets)
 		letParam->localCodegen(codegen);
+	for(auto& closure : m_closure_captures)
+		closure.internal->localCodegen(codegen);
 
 	optional<EvaluatedExpression> firstEval = body->codegenExpression(codegen);
 	optional<EvaluatedExpression> finalEval = codegenTypeConversion(codegen, *firstEval, targetTypeInfo);

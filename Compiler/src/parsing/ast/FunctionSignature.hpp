@@ -50,8 +50,11 @@ FunctionExpression* castToFunction(ConcreteType* type);
 class Let;
 using parameter_let_list = std::vector<unique_ptr<Let>>;
 //The local let (owned) and the outer source let (not owned)
-using closure_capture_list = std::vector<std::pair<unique_ptr<Let>, Let*>>;
-using FuncParamList = std::vector<FunctionCallArgument>;
+struct ClosureLets {
+	unique_ptr<Let> internal;
+	Let* owner;
+};
+using closure_capture_list = std::vector<ClosureLets>;
 
 class FunctionExpression : public Expression, public ConcreteType, public Namespace {
 private:
@@ -109,7 +112,7 @@ public:
 	optional<ExprTypeInfo>& getImplicitCallReturnTypeInfo();
 
     optional<EvaluatedExpression> codegenOneImplicitCall(CodegenLLVM& codegen);
-	optional<EvaluatedExpression> codegenOneCall(CodegenLLVM& codegen, optional<FuncParamList&> args);
+    optional<EvaluatedExpression> codegenOneCall(CodegenLLVM& codegen, optional<FunctionCallArgList&> args);
 	virtual optional<EvaluatedExpression> codegenExpression(CodegenLLVM& codegen) override;
 
 	virtual CastPossible canConvertTo(ValueKind fromKind, ExprTypeInfo& target) override;

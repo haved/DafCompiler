@@ -223,12 +223,13 @@ public:
 
 class FunctionType;
 
+using FunctionCallArgList = std::vector<FunctionCallArgument>;
 class FunctionCallExpression : public Expression {
 private:
 	unique_ptr<Expression> m_function;
-	std::vector<FunctionCallArgument> m_args;
+    FunctionCallArgList m_args;
 public:
-	FunctionCallExpression(unique_ptr<Expression>&& function, std::vector<FunctionCallArgument>&& arguments, int lastLine, int lastCol);
+    FunctionCallExpression(unique_ptr<Expression>&& function, FunctionCallArgList&& arguments, int lastLine, int lastCol);
 	virtual bool isStatement() override {return true;}
 	virtual void printSignature() override;
 	virtual ExpressionKind getExpressionKind() const override { return ExpressionKind::FUNCTION_CALL; }

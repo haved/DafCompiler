@@ -2,9 +2,16 @@
 
 def printInt(a:i32) "printIntToC";
 
-def main {
+def dafMain:i32 {
 	mut a := 5;
 	def alias := a;
-  	//printInt(alias);
+  	printInt(alias);
+
+	def addToA(b:i32) {
+		a = a + b;
+	};
+
+	addToA(50);
+	a-55
 };
 

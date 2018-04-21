@@ -518,7 +518,7 @@ optional<EvaluatedExpression> FunctionCallExpression::codegenExpression(CodegenL
 		func = castToFunction(func->getReturnTypeInfo().type);
 	}
 
-	return func->codegenOneCall(codegen, m_args);
+    return func->codegenOneCall(codegen, m_args);
 }
 
 
