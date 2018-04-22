@@ -115,6 +115,7 @@ const ExprTypeInfo& Def::getFunctionExpressionTypeInfo() {
 }
 
 const ExprTypeInfo& Let::getTypeInfo() const {
+    assert(allConcrete() << getConcretableState());
 	return m_typeInfo;
 }
 

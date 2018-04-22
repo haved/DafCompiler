@@ -255,6 +255,8 @@ DefOrLet FunctionExpression::captureDefOrLetUseIfNeeded(DefOrLet lod) {
 	if(defPoint == this)
 		return lod;
 
+    assert(lod.isLet());
+    Let* originalLet = lod.getLet();
 	if(m_parentFunction)
 		lod = m_parentFunction->captureDefOrLetUseIfNeeded(lod); //We get the lod from one step above us
 
@@ -266,15 +268,13 @@ DefOrLet FunctionExpression::captureDefOrLetUseIfNeeded(DefOrLet lod) {
 
 	int parameter_index = m_parameter_lets.size() + m_closure_captures.size();
 
-    assert(lod.isLet());
-	Let* let = lod.getLet();
-    ValueKind kind = let->getTypeInfo().valueKind;
+    ValueKind kind = originalLet->getTypeInfo().valueKind;
 	bool mut = kind == ValueKind::MUT_LVALUE;
     bool ref = isReferenceValueKind(kind); assert(ref); //It's a let, so it should most certainly be an lvalue
 	auto expr = std::make_unique<FunctionParameterExpression>(this, parameter_index, lod);
     auto localLet = std::make_unique<Let>(false, mut, std::string(), TypeReference(), std::move(expr), getRange(), ref);
 	auto result = DefOrLet(localLet.get());
-	m_closure_captures.push_back({std::move(localLet), let}); //First the inner let, then then outer source
+    m_closure_captures.push_back({std::move(localLet), lod.getLet()}); //First the inner let, then then outer source
 	m_closure_capture_map.insert({lod, result});
 	return result;
 }

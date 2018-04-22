@@ -8,7 +8,7 @@ def dafMain:i32 {
   	printInt(alias);
 
 	def addToA(b:i32) {
-		a = a + b;
+		(def:=a = a + b)();
 	};
 
 	addToA(50);
