@@ -3,7 +3,7 @@
 def printInt(a:i32) "printIntToC";
 
 def dafMain:i32 {
-	mut a := 5;
+	/*mut a := 5;
 	def alias := a;
   	printInt(alias);
 
@@ -12,6 +12,18 @@ def dafMain:i32 {
 	};
 
 	addToA(50);
-	a-55
+
+	printInt(a);
+
+	a-55*/
+
+	mut a := 6;
+
+	def incA(b:i32) {
+		a = a + b;
+	};
+
+	incA(11);
+	a-17
 };
 
