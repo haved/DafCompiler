@@ -38,7 +38,7 @@ ConcretableState Expression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	return ConcretableState::CONCRETE;
 }
 
-VariableExpression::VariableExpression(const std::string& name, const TextRange& range) : Expression(range), m_LHS(), m_name(name), m_name_range(range), m_namespaceTargetAllowed(false), m_map(), m_target(), m_defOrLet(), m_function() {
+VariableExpression::VariableExpression(const std::string& name, const TextRange& range) : Expression(range), m_LHS(), m_name(name), m_name_range(range), m_namespaceTargetAllowed(false), m_map(), m_target(), m_defOrLet(), m_function(), m_capture_index() {
 	assert(m_name.size() != 0);
 }
 
@@ -111,7 +111,8 @@ ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& de
 	    if(isDefOrLet(m_target)) {
 			m_defOrLet = DefOrLet(m_target);
 			//If this let comes from outside this function, we replace it with the closure capture
-			m_defOrLet = m_function->captureDefOrLetUseIfNeeded(*m_defOrLet);
+			if(m_defOrLet->isLet())
+				m_capture_index = m_function->captureLetUseIfNeeded(m_defOrLet->getLet());
 			return retryMakeConcreteInternal(depMap);
 		}
 		else if(!m_namespaceTargetAllowed) {
@@ -148,18 +149,19 @@ optional<EvaluatedExpression> VariableExpression::codegenExpression(CodegenLLVM&
 
     if(m_defOrLet->isDef())
 		return m_defOrLet->getDef()->functionAccessCodegen(codegen);
-    else
+    else {
+		if(m_capture_index) {
+			auto val = m_function->codegenClosureParamValue(codegen, *m_capture_index);
+			if(!val) return boost::none;
+			return EvaluatedExpression(*val, true, &m_typeInfo);
+		}
 		return m_defOrLet->getLet()->accessCodegen(codegen);
+	}
 }
 
 FunctionParameterExpression::FunctionParameterExpression(FunctionExpression* funcExpr, unsigned paramIndex, const TextRange& range) :
-	Expression(range), m_funcExpr(funcExpr), m_parameterIndex(paramIndex), m_captured(boost::none) {
+	Expression(range), m_funcExpr(funcExpr), m_parameterIndex(paramIndex) {
 	assert(m_funcExpr);
-}
-
-FunctionParameterExpression::FunctionParameterExpression(FunctionExpression* funcExpr, unsigned paramIndex, DefOrLet captured) :
-	Expression(funcExpr->getRange()), m_funcExpr(funcExpr), m_parameterIndex(paramIndex), m_captured(captured) {
-	assert(m_funcExpr && m_captured);
 }
 
 ExpressionKind FunctionParameterExpression::getExpressionKind() const {
@@ -173,17 +175,10 @@ void FunctionParameterExpression::printSignature() {
 ConcretableState FunctionParameterExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
 	(void) ns_stack;
 
-	ConcretableState state;
-	Concretable* c;
-	if(m_captured) {
-		c = m_captured->getDefinition();
-		state = c->getConcretableState();
-	} else {
-		param_list& params = m_funcExpr->getParameters();
-		assert(m_parameterIndex < params.size());
-		c = params[m_parameterIndex].get();
-	    state = c->makeConcrete(ns_stack, depMap);
-	}
+	param_list& params = m_funcExpr->getParameters();
+	assert(m_parameterIndex < params.size());
+	Concretable* c = params[m_parameterIndex].get();
+	ConcretableState state = c->makeConcrete(ns_stack, depMap);
 
 	if(allConcrete() << state)
 		return retryMakeConcreteInternal(depMap);
@@ -196,15 +191,12 @@ ConcretableState FunctionParameterExpression::makeConcreteInternal(NamespaceStac
 ConcretableState FunctionParameterExpression::retryMakeConcreteInternal(DependencyMap& depMap) {
 	(void) depMap;
 
-	if(m_captured) {
-		m_typeInfo = m_captured->getTypeInfo();
-	} else {
-		param_list& params = m_funcExpr->getParameters();
-		FunctionParameter* param = params[m_parameterIndex].get();
-		assert(param->getParameterKind() == ParameterKind::VALUE_PARAM);
-		ValueParameter* valParam = static_cast<ValueParameter*>(param);
-		m_typeInfo = valParam->getTypeInfo();
-	}
+	param_list& params = m_funcExpr->getParameters();
+	FunctionParameter* param = params[m_parameterIndex].get();
+	assert(param->getParameterKind() == ParameterKind::VALUE_PARAM);
+	ValueParameter* valParam = static_cast<ValueParameter*>(param);
+	m_typeInfo = valParam->getTypeInfo();
+
 	return ConcretableState::CONCRETE;
 }
 

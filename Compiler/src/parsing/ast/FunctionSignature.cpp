@@ -245,38 +245,26 @@ Definition* FunctionExpression::tryGetDefinitionFromName(const std::string& name
     return m_parameter_map.tryGetDefinitionFromName(name);
 }
 
-DefOrLet FunctionExpression::captureDefOrLetUseIfNeeded(DefOrLet lod) {
-	assert(lod && allConcrete() << lod.getDefinition()->getConcretableState());
+optional<int> FunctionExpression::captureLetUseIfNeeded(Let* let) {
+	assert(let && allConcrete() << let->getConcretableState());
 
-    optional<FunctionExpression*> defPoint = lod.getDefiningFunction();
+    optional<FunctionExpression*> defPoint = let->getDefiningFunction();
 	//Not a global and not defined in this function => defined in an outer function
-    if(!defPoint)
-		return lod;
-	if(defPoint == this)
-		return lod;
+    if(!defPoint) //Global
+		return boost::none;
+	if(defPoint == this) //Defined in this Function
+		return boost::none;
 
-    assert(lod.isLet());
-    Let* originalLet = lod.getLet();
-	if(m_parentFunction)
-		lod = m_parentFunction->captureDefOrLetUseIfNeeded(lod); //We get the lod from one step above us
+	auto find = m_closure_capture_map.find(let);
+	if(find != m_closure_capture_map.end())
+		return find->second;
 
-	{
-		auto alreadyThere = m_closure_capture_map.find(lod);
-		if(alreadyThere != m_closure_capture_map.end())
-			return alreadyThere->second;
-	}
+	optional<int> parent_capture_index = m_parentFunction ?	m_parentFunction->captureLetUseIfNeeded(let) : boost::none;
 
-	int parameter_index = m_parameter_lets.size() + m_closure_captures.size();
-
-    ValueKind kind = originalLet->getTypeInfo().valueKind;
-	bool mut = kind == ValueKind::MUT_LVALUE;
-    bool ref = isReferenceValueKind(kind); assert(ref); //It's a let, so it should most certainly be an lvalue
-	auto expr = std::make_unique<FunctionParameterExpression>(this, parameter_index, lod);
-    auto localLet = std::make_unique<Let>(false, mut, std::string(), TypeReference(), std::move(expr), getRange(), ref);
-	auto result = DefOrLet(localLet.get());
-    m_closure_captures.push_back({std::move(localLet), lod.getLet()}); //First the inner let, then then outer source
-	m_closure_capture_map.insert({lod, result});
-	return result;
+	int closure_index = m_closure_captures.size();
+	m_closure_captures.push_back({let, parent_capture_index});
+	m_closure_capture_map.insert({let, closure_index});
+	return closure_index;
 }
 
 ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
@@ -302,8 +290,6 @@ ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_sta
 		ns_stack.push(this);
 		makeConcreteOrDepend(m_function_body->get());
 		ns_stack.pop();
-		for(auto& closure_let : m_closure_captures)
-			makeConcreteOrDepend(closure_let.internal.get());
         assert(this == ns_stack.updateCurrentFunction(m_parentFunction));
     } else {
         //If we don't have a body we never use the variable Let instances, so make the parameters concrete by other means
@@ -386,6 +372,20 @@ optional<ExprTypeInfo>& FunctionExpression::getImplicitCallReturnTypeInfo() {
 	return m_implicitCallReturnTypeInfo;
 }
 
+optional<llvm::Value*> FunctionExpression::codegenClosureParamValue(CodegenLLVM& codegen, int closure_index) {
+	llvm::Function* prototype = tryGetOrMakePrototype(codegen);
+	if(!prototype)
+		return boost::none;
+
+	int param_index = m_parameter_lets.size() + closure_index;
+
+	auto argIterator = prototype->arg_begin();
+	argIterator += param_index;
+	llvm::Value* value = &(*argIterator); //C++, my dudes
+
+	return value;
+}
+
 optional<EvaluatedExpression> FunctionExpression::codegenOneImplicitCall(CodegenLLVM& codegen) {
 	assert(m_parameter_lets.empty());
 	return codegenOneCall(codegen, boost::none);
@@ -416,12 +416,21 @@ optional<EvaluatedExpression> FunctionExpression::codegenOneCall(CodegenLLVM& co
 		}
 	}
 
-	for(auto& closure:m_closure_captures) {
-        auto argEval = closure.owner->accessCodegen(codegen);
-		if(!argEval)
-			return boost::none;
-        bool ref = closure.owner->getTypeInfo().isReference();
-        argValues.push_back(ref ? argEval->getPointerToValue(codegen) : argEval->getValue(codegen));
+	for(auto& capture:m_closure_captures) {
+		if(capture.parent_capture_index) {
+			assert(m_parentFunction);
+		    auto val = m_parentFunction->codegenClosureParamValue(codegen, *(capture.parent_capture_index));
+			if(!val)
+				return boost::none;
+			argValues.push_back(*val);
+		}
+		else {
+			auto argEval = capture.let->accessCodegen(codegen);
+			if(!argEval)
+				return boost::none;
+			//A let is always a reference
+			argValues.push_back(argEval->getPointerToValue(codegen));
+		}
 	}
 
 	llvm::Value* returnVal = codegen.Builder().CreateCall(prototype, argValues);
@@ -462,7 +471,7 @@ llvm::Type* FunctionExpression::codegenType(CodegenLLVM& codegen) {
 	return llvm::Type::getVoidTy(codegen.Context()); //TODO: Closures and stuff
 }
 
-llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen, param_list& params, closure_capture_list& closures, ExprTypeInfo& returnType) {
+llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen, param_list& params, closure_capture_list& captures, ExprTypeInfo& returnType) {
 
 	std::vector<llvm::Type*> argumentTypes;
 
@@ -476,8 +485,8 @@ llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen, param_list& params
         assert(param->getParameterKind() == ParameterKind::VALUE_PARAM);
         addParam(static_cast<ValueParameter*>(param.get())->getTypeInfo());
     }
-    for(auto& closure : closures)
-        addParam(closure.internal->getTypeInfo()); //Closures are always lvalues, just like the Let
+    for(auto& capture : captures)
+        addParam(capture.let->getTypeInfo()); //Closures are always lvalues, just like the Let
 
     llvm::Type* returnTypeLLVM = nullptr;
     if(returnType.type->hasSize()) {
@@ -548,8 +557,6 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 
 	for(auto& letParam : m_parameter_lets)
 		letParam->localCodegen(codegen);
-	for(auto& closure : m_closure_captures)
-		closure.internal->localCodegen(codegen);
 
 	optional<EvaluatedExpression> firstEval = body->codegenExpression(codegen);
 	optional<EvaluatedExpression> finalEval = codegenTypeConversion(codegen, *firstEval, targetTypeInfo);

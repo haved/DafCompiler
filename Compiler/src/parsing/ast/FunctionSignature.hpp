@@ -49,12 +49,12 @@ FunctionExpression* castToFunction(ConcreteType* type);
 
 class Let;
 using parameter_let_list = std::vector<unique_ptr<Let>>;
-//The local let (owned) and the outer source let (not owned)
-struct ClosureLets {
-	unique_ptr<Let> internal;
-	Let* owner;
+
+struct ClosureCapture {
+	Let* let;
+	optional<int> parent_capture_index;
 };
-using closure_capture_list = std::vector<ClosureLets>;
+using closure_capture_list = std::vector<ClosureCapture>;
 
 class FunctionExpression : public Expression, public ConcreteType, public Namespace {
 private:
@@ -65,11 +65,11 @@ private:
 
 	FunctionExpression* m_parentFunction;
 
-	parameter_let_list m_parameter_lets;
-	NamedDefinitionMap m_parameter_map;
+	parameter_let_list m_parameter_lets; //The internal Lets pointing to parameters
+	NamedDefinitionMap m_parameter_map; //A namespace added to the stack for the FunctionBody
 
-    closure_capture_list m_closure_captures;
-	std::map<DefOrLet, DefOrLet> m_closure_capture_map;
+    closure_capture_list m_closure_captures; //A list of Lets needing to get their
+	std::map<Let*, int> m_closure_capture_map; //A map from external Let* to internal closure index
 
 	ExprTypeInfo m_returnTypeInfo;
 	optional<ExprTypeInfo> m_implicitCallReturnTypeInfo;
@@ -103,13 +103,15 @@ public:
 	parameter_let_list& getParameterLetList();
 	virtual Definition* tryGetDefinitionFromName(const std::string& name) override;
 
-	DefOrLet captureDefOrLetUseIfNeeded(DefOrLet defOrLet);
+	optional<int> captureLetUseIfNeeded(Let* let);
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
 
 	ExprTypeInfo& getReturnTypeInfo();
 	optional<ExprTypeInfo>& getImplicitCallReturnTypeInfo();
+
+	optional<llvm::Value*> codegenClosureParamValue(CodegenLLVM& codegen, int closure_index);
 
     optional<EvaluatedExpression> codegenOneImplicitCall(CodegenLLVM& codegen);
     optional<EvaluatedExpression> codegenOneCall(CodegenLLVM& codegen, optional<FunctionCallArgList&> args);
