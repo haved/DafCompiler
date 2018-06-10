@@ -4,8 +4,16 @@ I'd never tried functional programming before, and seeing as the LLVM tutorial w
 OCaml seemed like a great place to start.
 
 ** The packages I installed
-This was using pacman on Manjaro (Arch Linux)
+Keep in mind you don't need all these to build the compiler
+*** Pacman on Manjaro (Arch Linux)
 - ocaml
 - llvm-ocaml
 - opam
-- merlin
+- ocaml-compiler-libs
+- ocaml-findlib
+*** Opam
+=opam init=
+=eval `opam config env`=
+=opam install ocp-indent=
+
+*** I use spacemacs which already has an ocaml layer, using ocp-indent and merlin

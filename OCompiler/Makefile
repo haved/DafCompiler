@@ -12,13 +12,14 @@ SOURCE_MODULES = $(wildcard $(SRC)/*.ml)
 BUILD_MODULES = $(patsubst $(SRC)/%.ml, $(BUILD)/%.$(O_EXT), $(SOURCE_MODULES))
 
 all: $(BUILD_MODULES)
-	$(OCAML) -o $(FINAL_OUTPUT) $^
+	$(OCAML) $(OCAML_LINK) -o $(FINAL_OUTPUT) $^
 
 $(BUILD)/%.$(O_EXT): $(SRC)/%.ml $(BUILD)
-	$(OCAML) -c -o $@ $<
+	$(OCAML) $(OCAML_COMP) -c -o $@ $<
 
 $(BUILD):
 	mkdir $(BUILD)
 
 clean:
-	rm -r $(BUILD)
+	rm -rf $(BUILD)
+	rm -f $(FINAL_OUTPUT)
