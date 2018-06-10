@@ -110,6 +110,10 @@ ConcretableState Let::retryMakeConcreteInternal(DependencyMap& depMap) {
 	return ConcretableState::CONCRETE;
 }
 
+FunctionExpression* Def::getFunctionExpression() {
+	return m_functionExpression.get();
+}
+
 const ExprTypeInfo& Def::getFunctionExpressionTypeInfo() {
 	return m_functionExpression->getTypeInfo();
 }
@@ -120,6 +124,7 @@ const ExprTypeInfo& Let::getTypeInfo() const {
 }
 
 optional<FunctionExpression*> Let::getDefiningFunction() {
+	assert(getConcretableState() != ConcretableState::NEVER_TRIED);
 	if(m_definingFunction == nullptr)
 		return boost::none;
 	return m_definingFunction;

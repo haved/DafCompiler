@@ -113,6 +113,9 @@ ConcretableState VariableExpression::retryMakeConcreteInternal(DependencyMap& de
 			//If this let comes from outside this function, we replace it with the closure capture
 			if(m_defOrLet->isLet())
 				m_capture_index = m_function->captureLetUseIfNeeded(m_defOrLet->getLet());
+		    else
+				m_function->captureAllCapturesNeeded(m_defOrLet->getDef()); //TODO: Do this for all FunctionCalls
+
 			return retryMakeConcreteInternal(depMap);
 		}
 		else if(!m_namespaceTargetAllowed) {
@@ -413,7 +416,7 @@ void FunctionCallExpression::printSignature() {
 }
 
 ConcretableState FunctionCallExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
-    ConcretableState state = m_function->makeConcrete(ns_stack, depMap);
+	ConcretableState state = m_function->makeConcrete(ns_stack, depMap);
     auto conc = allConcrete() << state;
 	auto lost = anyLost() << state;
 	if(state == ConcretableState::TRY_LATER)
@@ -502,11 +505,7 @@ optional<EvaluatedExpression> FunctionCallExpression::codegenExpression(CodegenL
 	    if(funcParams == givenParams) {
 			break;
 		}
-		assert(func->canBeCalledImplicitlyOnce());
-		llvm::Function* prototype = func->tryGetOrMakePrototype(codegen);
-		if(!prototype)
-			return boost::none;
-		codegen.Builder().CreateCall(prototype);
+	    func->codegenOneImplicitCall(codegen);
 		func = castToFunction(func->getReturnTypeInfo().type);
 	}
 

@@ -25,6 +25,7 @@ private:
 	llvm::LLVMContext m_context;
 	llvm::IRBuilder<> m_builder;
 	llvm::Module m_module;
+	FunctionExpression* m_funcExpr;
 public:
 	CodegenLLVM(const std::string& moduleName);
 	CodegenLLVM(const CodegenLLVM& other)=delete;
@@ -32,6 +33,9 @@ public:
 	llvm::LLVMContext& Context();
 	llvm::IRBuilder<>& Builder();
 	llvm::Module& Module();
+	FunctionExpression* getFunctionExpression();
+	FunctionExpression* pushFunctionExpression(FunctionExpression* funcExpr);
+	void popFunctionExpression(FunctionExpression* funcExpr);
 };
 
 class FileRegistry;

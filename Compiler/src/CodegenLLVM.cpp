@@ -9,7 +9,7 @@
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Support/FileSystem.h>
 
-CodegenLLVM::CodegenLLVM(const std::string& moduleName) : m_context(), m_builder(m_context), m_module(moduleName, m_context) {}
+CodegenLLVM::CodegenLLVM(const std::string& moduleName) : m_context(), m_builder(m_context), m_module(moduleName, m_context), m_funcExpr() {}
 
 llvm::LLVMContext& CodegenLLVM::Context() {
 	return m_context;
@@ -22,6 +22,21 @@ llvm::IRBuilder<>& CodegenLLVM::Builder() {
 llvm::Module& CodegenLLVM::Module() {
 	return m_module;
 }
+
+FunctionExpression* CodegenLLVM::getFunctionExpression() {
+	return m_funcExpr;
+}
+
+FunctionExpression* CodegenLLVM::pushFunctionExpression(FunctionExpression* funcExpr) {
+	auto old = m_funcExpr;
+	m_funcExpr = funcExpr;
+	return old;
+}
+
+void CodegenLLVM::popFunctionExpression(FunctionExpression* funcExpr) {
+	m_funcExpr = funcExpr;
+}
+
 
 void doCodegen(CodegenLLVM& codegen, FileRegistry& files) {
 	for(int i = 0; i < files.getFileCount(); i++) {

@@ -246,7 +246,7 @@ Definition* FunctionExpression::tryGetDefinitionFromName(const std::string& name
 }
 
 optional<int> FunctionExpression::captureLetUseIfNeeded(Let* let) {
-	assert(let && allConcrete() << let->getConcretableState());
+	assert(let && allConcrete() << let->getConcretableState()); //The let technically only needs to be TRIED
 
     optional<FunctionExpression*> defPoint = let->getDefiningFunction();
 	//Not a global and not defined in this function => defined in an outer function
@@ -259,12 +259,30 @@ optional<int> FunctionExpression::captureLetUseIfNeeded(Let* let) {
 	if(find != m_closure_capture_map.end())
 		return find->second;
 
-	optional<int> parent_capture_index = m_parentFunction ?	m_parentFunction->captureLetUseIfNeeded(let) : boost::none;
+	assert(!allConcrete() << getConcretableState() && !m_prototype);
 
 	int closure_index = m_closure_captures.size();
-	m_closure_captures.push_back({let, parent_capture_index});
+	m_closure_captures.push_back({let});
 	m_closure_capture_map.insert({let, closure_index});
 	return closure_index;
+}
+
+void FunctionExpression::captureAllCapturesNeeded(Def* def) {
+	FunctionExpression* func = def->getFunctionExpression();
+	for(auto& capture : func->m_closure_captures)
+		captureLetUseIfNeeded(capture.let);
+}
+
+optional<int> FunctionExpression::getCaptureIndexIfNeeded(Let* let) {
+
+	auto find = m_closure_capture_map.find(let);
+	if(find != m_closure_capture_map.end())
+		return find->second;
+
+	optional<FunctionExpression*> defPoint = let->getDefiningFunction();
+	assert(!defPoint || defPoint == this);
+	
+	return boost::none;
 }
 
 ConcretableState FunctionExpression::makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) {
@@ -416,10 +434,12 @@ optional<EvaluatedExpression> FunctionExpression::codegenOneCall(CodegenLLVM& co
 		}
 	}
 
+	FunctionExpression* callee = codegen.getFunctionExpression();
+
 	for(auto& capture:m_closure_captures) {
-		if(capture.parent_capture_index) {
-			assert(m_parentFunction);
-		    auto val = m_parentFunction->codegenClosureParamValue(codegen, *(capture.parent_capture_index));
+        optional<int> capture_index = callee ? callee->getCaptureIndexIfNeeded(capture.let) : boost::none;
+        if(capture_index) {
+		    auto val = callee->codegenClosureParamValue(codegen, *capture_index);
 			if(!val)
 				return boost::none;
 			argValues.push_back(*val);
@@ -503,6 +523,7 @@ llvm::FunctionType* codegenFunctionType(CodegenLLVM& codegen, param_list& params
 }
 
 llvm::Function* FunctionExpression::tryGetOrMakePrototype(CodegenLLVM& codegen) {
+	assert(allConcrete() << getConcretableState());
 	for(;;) {
 		if(m_broken_prototype)
 			return nullptr;
@@ -558,6 +579,7 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 	for(auto& letParam : m_parameter_lets)
 		letParam->localCodegen(codegen);
 
+	auto prevFunc = codegen.pushFunctionExpression(this);
 	optional<EvaluatedExpression> firstEval = body->codegenExpression(codegen);
 	optional<EvaluatedExpression> finalEval = codegenTypeConversion(codegen, *firstEval, targetTypeInfo);
 	if(!finalEval) {
@@ -575,6 +597,7 @@ void FunctionExpression::fillPrototype(CodegenLLVM& codegen) {
 	else {
 		codegen.Builder().CreateRet(returnsRef ? finalEval->getPointerToValue(codegen) : finalEval->getValue(codegen));
 	}
+	codegen.popFunctionExpression(prevFunc);
 
 	llvm::verifyFunction(*m_prototype);
 

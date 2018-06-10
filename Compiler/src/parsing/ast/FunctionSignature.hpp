@@ -52,7 +52,6 @@ using parameter_let_list = std::vector<unique_ptr<Let>>;
 
 struct ClosureCapture {
 	Let* let;
-	optional<int> parent_capture_index;
 };
 using closure_capture_list = std::vector<ClosureCapture>;
 
@@ -104,6 +103,8 @@ public:
 	virtual Definition* tryGetDefinitionFromName(const std::string& name) override;
 
 	optional<int> captureLetUseIfNeeded(Let* let);
+	void captureAllCapturesNeeded(Def* def);
+	optional<int> getCaptureIndexIfNeeded(Let* let);
 
 	virtual ConcretableState makeConcreteInternal(NamespaceStack& ns_stack, DependencyMap& depMap) override;
 	virtual ConcretableState retryMakeConcreteInternal(DependencyMap& depMap) override;
