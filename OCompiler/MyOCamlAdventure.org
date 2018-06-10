@@ -1,0 +1,11 @@
+* My OCaml Adventure
+Before you design a programming language you should probably know several languages following different paradigms.
+I'd never tried functional programming before, and seeing as the LLVM tutorial was avaliable in it,
+OCaml seemed like a great place to start.
+
+** The packages I installed
+This was using pacman on Manjaro (Arch Linux)
+- ocaml
+- llvm-ocaml
+- opam
+- merlin
