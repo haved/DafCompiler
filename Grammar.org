@@ -1,0 +1,19 @@
+* The complete daf Grammar
+
+<digit> ::= [0-9]
+<number literal> ::= <digit> | <digit> <number literal>
+<expression> ::= <number literal>
+
+<letter> ::= [a-zA-Z]
+<indentifierStarter> ::= _ | <letter>
+<indentifierChar> ::= <indentifierStarter> | <indentifierChar> 
+<identifier> ::= <identifierStarter> | <identifier> <identifierChar>
+
+<reference kind> ::= let | mut |
+
+<parameter modifier> ::= <reference kind> | move | copy | uncrt | dtor
+<parameter> ::= <identifier> : <type>
+<parameter list> ::= <parameter> | <parameter list>, <parameter>
+<parameter list container> ::= () | (<parameter list>) 
+
+<def> ::= def <reference kind> <identifier> <parameter list container>
