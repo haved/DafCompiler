@@ -1,4 +1,7 @@
+_build
 *.native
-_build/
-*.log
+*.byte
+*.docdir
+
 setup.data
+setup.log

@@ -25,11 +25,12 @@ Add to .bashrc: =. /home/haavard/.opam/opam-init/init.sh > /dev/null 2> /dev/nul
 Restart emacs server
 
 * My setup (oasis)
+Source: https://ocaml.org/learn/tutorials/setting_up_with_oasis.html
 I'm sort of guessing this only has to be done once, but I'd like to save the instructions.
 =oasis setup -setup-update dynamic=
 This generates =setup.ml=, =Makefile= and the =configure= script, which should be checked into git
 
-* Redoing oasis
+* Clean build (even cleaner than git clean)
 ** Alternative to 'make clean'
 Removing files made by 'make', which should all be .gitignored
 =rm _build -r=
