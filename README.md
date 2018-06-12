@@ -15,7 +15,7 @@ Check out my Trello board [here](https://trello.com/b/bXCZLvBz "Daf trello board
 ## Building
 ### Dependencies
 As for now I don't know what parts of my OCaml environment are needed,
-but if you want to replicate it, check out the `MyOCamlAdventure.org` file in `OCompiler/`
+but if you want to replicate it, check out the `MyOCamlAdventure.org` file in `docs/`
 
 ### Compiling
 ```
