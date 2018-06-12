@@ -29,5 +29,10 @@ I'm sort of guessing this only has to be done once, but I'd like to save the ins
 =oasis setup -setup-update dynamic=
 This generates =setup.ml=, =Makefile= and the =configure= script, which should be checked into git
 
+* Redoing oasis
+I'm not sure changes to the =_oasis= file are automatically read, so I might want to re-run the oasis generation.
+=rm setup.ml Makefile configure=
+Then follow the /My setup/ section
+
 * Resources used:
 Learned oasis from here: https://ocaml.org/learn/tutorials/get_up_and_running.html

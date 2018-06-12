@@ -27,7 +27,7 @@ def doMake():
     os.chdir(prev_cwd)
 
 test_filter = "^.+\\.daf$"
-binary_from_test_dir = "../OCompiler/dafc"
+binary_from_test_dir = "../OCompiler/dafc_main.native"
 forward_compile_stdout = True
 def doTests():
     prev_cwd = os.getcwd()
