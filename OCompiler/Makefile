@@ -1,25 +1,41 @@
+# OASIS_START
+# DO NOT EDIT (digest: a3c674b4239234cbbe53afe090018954)
 
-SRC =src
-BUILD =build
+SETUP = ocaml setup.ml
 
-OCAML =ocamlopt
-OCAML_LINK =
-OCAML_COMP =
-O_EXT =cmx
-FINAL_OUTPUT =dafc
+build: setup.data
+	$(SETUP) -build $(BUILDFLAGS)
 
-SOURCE_MODULES = $(wildcard $(SRC)/*.ml)
-BUILD_MODULES = $(patsubst $(SRC)/%.ml, $(BUILD)/%.$(O_EXT), $(SOURCE_MODULES))
+doc: setup.data build
+	$(SETUP) -doc $(DOCFLAGS)
 
-all: $(BUILD_MODULES)
-	$(OCAML) $(OCAML_LINK) -o $(FINAL_OUTPUT) $^
+test: setup.data build
+	$(SETUP) -test $(TESTFLAGS)
 
-$(BUILD)/%.$(O_EXT): $(SRC)/%.ml $(BUILD)
-	$(OCAML) $(OCAML_COMP) -c -o $@ $<
+all:
+	$(SETUP) -all $(ALLFLAGS)
 
-$(BUILD):
-	mkdir $(BUILD)
+install: setup.data
+	$(SETUP) -install $(INSTALLFLAGS)
+
+uninstall: setup.data
+	$(SETUP) -uninstall $(UNINSTALLFLAGS)
+
+reinstall: setup.data
+	$(SETUP) -reinstall $(REINSTALLFLAGS)
 
 clean:
-	rm -rf $(BUILD)
-	rm -f $(FINAL_OUTPUT)
+	$(SETUP) -clean $(CLEANFLAGS)
+
+distclean:
+	$(SETUP) -distclean $(DISTCLEANFLAGS)
+
+setup.data:
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+configure:
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+.PHONY: build doc test all install uninstall reinstall clean distclean configure
+
+# OASIS_STOP

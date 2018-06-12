@@ -1,0 +1,24 @@
+#Based on https://ocaml.org/learn/tutorials/get_up_and_running.html
+
+OASISFormat:  0.4
+OCamlVersion: >= 4.02.3
+Name:         DafCompiler
+Version:      0.1
+Maintainers:  haved
+Homepage:     http://github.com/haved/DafCompiler
+Synopsis:     The compiler for the daf language
+Authors:      @hkrogstie
+License:      MIT
+Plugins:      META (0.4), DevFiles (0.4)
+#AlphaFeatures:
+
+Description: A compiler for the daf language written in OCaml
+
+Executable "dafc"
+   Path: src
+   BuildTools:ocamlbuild
+   install: true
+   MainIs: dafc_main.ml
+   CompiledObject: native
+   BuildDepends: 
+

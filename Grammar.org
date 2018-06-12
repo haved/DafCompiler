@@ -95,7 +95,7 @@ ctor, dtor, this, This,
 virt, override,
 
 if, else, for, while, do, match,
-continue, break, reatry, return,
+continue, break, retry, return,
 
 char,
 i8, u8, i16, u16, i32, u32, i64, u64,
@@ -104,4 +104,19 @@ usize, isize, bool, f32, f64,
 sizeof, typeof, lengthof,
 true, false, null,
 
-assign, type_separator
+assign, type_separator, statement_end, left_paren, comma, right_paren,
+scope_start, scope_end, class_access, dereference,
+left_bracket, right_bracket, type_infered,
+
+plus, minus, mult, divide, modulo,
+ref, bitwise_or, bitwise_xor, not, bitwise_not,
+lower, greater, q_mark,
+
+declare, module_access,
+lsl, asr, lsr, logical_and, logical_or,
+equals, not_equals, greater_or_equal, lower_or_equal, plus_plus, minus_minus
+
+mut_ref,
+
+identifier, string_literal, integer_literal, real_literal,
+end_token, error_token

@@ -15,7 +15,19 @@ Keep in mind you don't need all these to build the compiler
 =opam init=
 =eval `opam config env`=
 Add to .bashrc: =. /home/haavard/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true=
+=opam switch 4.06.1= NB!: Takes forever
+*** Build system
+=opam install oasis=
+
+*** Emacs mode
 =opam install ocp-indent=
+=opam install merlin=
 Restart emacs server
 
-*** I use spacemacs which already has an ocaml layer, using ocp-indent and merlin
+* My setup
+I'm sort of guessing this only has to be done once, but I'd like to save the instructions.
+=oasis setup -setup-update dynamic=
+This generates =setup.ml=, =Makefile= and the =configure= script, which should be checked into git
+
+* Resources used:
+Learned oasis from here: https://ocaml.org/learn/tutorials/get_up_and_running.html
