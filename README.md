@@ -18,9 +18,6 @@ As for now I don't know what parts of my OCaml environment are needed,
 but if you want to replicate it, check out the `MyOCamlAdventure.org` file in `docs/`
 
 ### Compiling
-For building OCaml, `oasis` is used, but the generated files are checked in to the git repository.
-See `docs/MyOCamlAdventure.org` in case you want to re-do the oasis things.
-  
 For normal building, use the build script
 ```
 ./buildScript.py
