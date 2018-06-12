@@ -1,19 +1,107 @@
 * The complete daf Grammar
 
 <digit> ::= [0-9]
-<number literal> ::= <digit> | <digit> <number literal>
-<expression> ::= <number literal>
+<integer literal> ::= <digit> | <digit><integer literal>
 
 <letter> ::= [a-zA-Z]
 <indentifierStarter> ::= _ | <letter>
 <indentifierChar> ::= <indentifierStarter> | <indentifierChar> 
-<identifier> ::= <identifierStarter> | <identifier> <identifierChar>
+<identifier> ::= <identifierStarter> | <identifier><identifierChar>
+
+** Expressions
+<variable> ::= <identifier>
+<expression> ::= <number literal> | <varibale> | <scope>
+
+** Statement and Scope
+<statement> ::= <expression>; | <def>; | <if statement>
+
+<statement list> ::= <statement> | <statement list> <statement>
+<maybe expression> ::= <expression> | 
+<scope> ::= { <statement list> <maybe expression> }
+
+** Type
+<primitive> ::= i8 | u8 | i16 | u16 | i32 | u32 | i64 | u64 | char
+<maybe mut> ::= mut |
+<pointer> ::= & <maybe mut> <type>
+<array size> ::= ? | <integer literal> |
+<array> ::= [ <array size> ] <maybe mut> <type>
+
+<type name> ::= <identifier>
+
+<typeof> ::= typeof <expression>
+
+<type> ::= <primitive> | <pointer> | <class> | <trait> | <namespace> | <typeof> | <type name>
+
+*** Class
+<type list> ::= <type> | <type list> , <type>
+<with list> ::= with <type list> |
+<class> ::= class <with list> { <in type definition list> }
+
+*** Namespace
+<namespace> ::= namespace { <global definition list> }
+
+** Def stuff
 
 <reference kind> ::= let | mut |
 
 <parameter modifier> ::= <reference kind> | move | copy | uncrt | dtor
-<parameter> ::= <identifier> : <type>
+<parameter> ::= <parameter modifier> <identifier> : <type>
 <parameter list> ::= <parameter> | <parameter list>, <parameter>
-<parameter list container> ::= () | (<parameter list>) 
+<parameter list container> ::= ( ) | ( <parameter list> ) |
 
-<def> ::= def <reference kind> <identifier> <parameter list container>
+<return modifier> ::= <reference kind> | ctor
+
+<def implicit type specifier> ::= : <return modifier>
+<def explicit or no type specifier> ::= <def implicit type specifier> <type> | 
+
+<def body giving type> ::= = <expession>
+<def body> ::= <string literal> | <scope> | <def body giving type>
+<def return and body> ::= <def explicit or no type specifier> <def body> | <def implicit type specifier> <def body giving type>
+
+<def> ::= def <reference kind> <identifier> <parameter list container> <def return and body>
+
+** Definitions
+
+<definition> ::= <def> | <let>
+
+<global accessModifier> ::= pub |
+<global definition> ::= <global accessModifier> <definition> ;
+<global definition list> ::= <global definition list> <global definition> |
+
+** Complex type contents
+
+<in type accessModifier> ::= pub | prot | 
+<type field> ::= <identifier> : <type>
+<in type> ::= <definition> | <type field>
+<in type definition> ::= <in type accessModifier> <in type> ;
+<in type definition list> ::= <in type definition list> <in type definition> |
+
+
+* How types, expressions and namespaces are used in tandem
+When you parse an expression you can also accept a type or namespace.
+This makes sense for cases like this =String.new=, where =String= is a type,
+or for =IO.print=, with =IO= being a namespace.
+To allow this, an namespace is a type, and a type is an expression.
+This means you use =def= for all of them.
+
+This should mostly work, but there is one thing to keep in mind.
+You can't accept an expression when parsing a type, yet you can still use identifiers.
+This means both expressions and types have identifier parsing, each taking precendce in their case.
+
+* Token list
+pub, let, def, with, as, mut, uncrt, move, copy,
+class, trait, enum, prot,
+ctor, dtor, this, This,
+virt, override,
+
+if, else, for, while, do, match,
+continue, break, reatry, return,
+
+char,
+i8, u8, i16, u16, i32, u32, i64, u64,
+usize, isize, bool, f32, f64,
+
+sizeof, typeof, lengthof,
+true, false, null,
+
+assign, type_separator
