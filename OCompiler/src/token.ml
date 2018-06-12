@@ -1,32 +1,32 @@
 type token =
-  | PUB | LET | DEF | WITH | AS | MUT | UNCRT | MOVE | COPY
-  | CLASS | TRAIT | ENUM | PROT
-  | CTOR | DTOR | THIS | THIS_TYPE
-  | VIRT | OVERRIDE
+  | Pub | Let | Def | With | As | Mut | Uncrt | Move | Copy
+  | Class | Trait | Enum | Prot
+  | Ctor | Dtor | This | This_Type
+  | Virt | Override
 
-  | IF | ELSE | FOR | WHILE | DO | MATCH
-  | CONTINUE | BREAK | RETRY | RETURN
+  | If | Else | For | While | Do | Match
+  | Continue | Break | Retry | Return
 
-  | CHAR
+  | Char
   | I8 | U8 | I16 | U16 | I32 | U32 | I64 | U64
-  | USIZE | ISIZE | BOOL | F32 | F64
+  | Usize | Isize | Bool | F32 | F64
 
-  | SIZEOF | TYPEOF | LENGTHOF
-  | TRUE | FALSE | NULL
+  | Sizeof | Typeof | Lengthof
+  | True | False | Null
 
-  | ASSIGN | TYPE_SEPARATOR | STATEMENT_END | LEFT_PAREN | COMMA | RIGHT_PAREN
-  | SCOPE_START | SCOPE_END | CLASS_ACCESS | DEREFERENCE
-  | LEFT_BRACKET | RIGHT_BRACKET | TYPE_INFERED
+  | Assign | Type_Separator | Statement_End | Left_Paren | Comma | Right_Paren
+  | Scope_Start | Scope_End | Class_Access | Dereference
+  | Left_Bracket | Right_Bracket | Type_Infered
 
-  | PLUS | MINUS | MULT | DIVIDE | MODULO
-  | REF | BITWISE_OR | BITWISE_XOR | NOT | BITWISE_NOT
-  | LOWER | GREATER | Q_MARK
+  | Plus | Minus | Mult | Divide | Modulo
+  | Ref | Bitwise_Or | Bitwise_Xor | Not | Bitwise_Not
+  | Lower | Greater | Q_mark
 
-  | DECLARE | MODULE_ACCESS
-  | LSL | ARS | LSR | LOGICAL_AND | LOGICAL_OR
-  | EQUALS | NOT_EQUALS | GREATER_OR_EQUAL | LOWER_OR_EQUAL | PLUS_PLUS | MINUS_MINUS
+  | Declare | Module_Access
+  | Lsl | Ars | Lsr | Logical_And | Logical_Or
+  | Equals | Not_Equals | Greater_Or_Equal | Lower_Or_Equal | Plus_Plus | Minus_Minus
 
-  | MUT_REF
+  | Mut_Ref
 
-  | IDENTIFIER of string | STRING_LITERAL of string | INTEGER_LITERAL of int | REAL_LITERAL of float
-  | END_TOKEN | ERROR_TOKEN of char
+  | Identifier of string | String_Literal of string | Integer_Literal of int | Real_Literal of float
+  | End_Token | Error_Token of char
