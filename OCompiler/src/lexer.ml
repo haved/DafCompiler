@@ -25,24 +25,24 @@ and lex_ident buffer = parser
                      | [< ' ('A' .. 'Z' | 'a' .. 'z' | '0' .. '9' | '_' as c); stream >] ->
                        Buffer.add_char buffer c;
                        lex_ident buffer stream
-                     | [< stream=lex_singles >] ->
+                     | [< next_parser=lex_singles >] ->
                        match Buffer.contents buffer with
-                       | id -> [< 'Token.Identifier id; stream >]
+                       | id -> [< 'Token.Identifier id; next_parser >]
 
 and lex_number buffer = parser
                       | [< ' ('0' .. '9' | '.' as c); stream >] ->
                         Buffer.add_char buffer c;
                         lex_number buffer stream
-                      | [< stream=lex_singles >] ->
-                        [< 'Token.Real_Literal (float_of_string (Buffer.contents buffer)); stream >]
+                      | [< next_parser=lex_singles >] ->
+                        [< 'Token.Real_Literal (float_of_string (Buffer.contents buffer)); next_parser >]
 
 and lex_line_comment_first = parser
                 | [< ' ('/'); stream >] -> lex_line_comment stream
-                | [< stream=lex_singles >] -> [< ' (Token.char_to_token '/'); stream >]
+                | [< next_parser=lex_singles >] -> [< ' (Token.char_to_token '/'); next_parser >]
 
 and lex_line_comment = parser
-                | [< ' ('\n'); stream=lex_singles >] -> stream
-                | [< 'c; e=lex_line_comment >] -> e
+                | [< ' ('\n'); next_parser=lex_singles >] -> next_parser
+                | [< 'c; next_parser=lex_line_comment >] -> next_parser
                 | [< >] -> [< >]
 
 let lex char_stream =

@@ -6,4 +6,20 @@ def main {
 	b = b / a;
 	b
 };
+|
+mut global := 4;
 
+(a + b)
+
+def otherMain(x:i32):mut i32= {
+	mut a := 4+x;
+	def average(mut b:i32):i32 {
+		b += a;
+		a -= b;
+		(a + b)/2
+	};
+	average(mut global);
+	global
+};
+
+def main3 = print_int(4);
