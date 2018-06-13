@@ -15,23 +15,33 @@ type token =
   | Sizeof | Typeof | Lengthof
   | True | False | Null
 
-  | Assign | Type_Separator | Statement_End | Left_Paren | Comma | Right_Paren
-  | Scope_Start | Scope_End | Class_Access | Dereference
-  | Left_Bracket | Right_Bracket | Type_Infered
+  | Assign | Type_Separator | Declare | Statement_End | Left_Paren | Comma | Right_Paren
+  | Scope_Start | Scope_End | Left_Bracket | Right_Bracket | Type_Infered
 
   | Plus | Minus | Mult | Divide | Modulo
-  | Ref | Bitwise_Or | Bitwise_Xor | Not | Bitwise_Not
-  | Lower | Greater | Q_mark
+  | Lsl | Asr | Lsr
+  | Ref | Mut_Ref | Dereference | Class_Access
+  | Bitwise_Or | Bitwise_Xor | Not | Bitwise_Not
+  | Logical_And | Logical_Or
+  | Equals | Not_Equals | Greater_Or_Equal | Lower_Or_Equal | Lower | Greater
+  | Q_mark
 
-  | Declare
-  | Lsl | Asr | Lsr | Logical_And | Logical_Or
-  | Equals | Not_Equals | Greater_Or_Equal | Lower_Or_Equal | Plus_Plus | Minus_Minus
-
-  | Mut_Ref
+  | Plus_Plus | Minus_Minus
 
   | Identifier of string | String_Literal of string | Integer_Literal of int | Real_Literal of float
   | Error of char
 
+let char_to_token c =
+  match c with
+  | '=' -> Assign | ':' -> Type_Separator | ';' -> Statement_End | '(' -> Left_Paren | ',' -> Comma | ')' -> Right_Paren
+  | '{' -> Scope_Start | '}' -> Scope_End | '[' -> Left_Bracket | ']' -> Right_Bracket | '$' -> Type_Infered
+
+  | '+' -> Plus | '-' -> Minus | '*' -> Mult | '/' -> Divide | '%' -> Modulo
+  | '&' -> Ref | '.' -> Class_Access | '@' -> Dereference
+  | '|' -> Bitwise_Or | '^' -> Bitwise_Xor | '!' -> Not | '~' -> Bitwise_Not
+  | '<' -> Lower | '>' -> Greater
+  | '?' -> Q_mark
+  | _ -> Error c
 
 let token_to_string token =
   match token with
@@ -50,22 +60,21 @@ let token_to_string token =
   | Sizeof -> "sizeof" | Typeof -> "typeof" | Lengthof -> "lengthof"
   | True -> "true" | False -> "false" | Null -> "null"
 
-  | Assign -> "=" | Type_Separator -> ":" | Statement_End -> ";" | Left_Paren -> "(" | Comma -> "," | Right_Paren -> ")"
-  | Scope_Start -> "{" | Scope_End -> "}" | Class_Access -> "." | Dereference -> "@"
-  | Left_Bracket -> "[" | Right_Bracket -> "]" | Type_Infered -> "$"
+  | Assign -> "=" | Type_Separator -> ":" | Declare -> ":=" | Statement_End -> ";" | Left_Paren -> "(" | Comma -> "," | Right_Paren -> ")"
+  | Scope_Start -> "{" | Scope_End -> "}" | Left_Bracket -> "[" | Right_Bracket -> "]" | Type_Infered -> "$"
 
   | Plus -> "+" | Minus -> "-" | Mult -> "*" | Divide -> "/" | Modulo -> "%"
-  | Ref -> "&" | Bitwise_Or -> "|" | Bitwise_Xor -> "^" | Not -> "!" | Bitwise_Not -> "~"
-  | Lower -> "<" | Greater -> ">" | Q_mark -> "?"
+  | Lsl -> "<<" | Asr -> ">>" | Lsr -> ">>"
+  | Ref -> "&" | Mut_Ref -> "&mut" | Class_Access -> "." | Dereference -> "@"
+  | Bitwise_Or -> "|" | Bitwise_Xor -> "^" | Not -> "!" | Bitwise_Not -> "~"
+  | Logical_And -> "&&" | Logical_Or -> "||"
+  | Equals -> "==" | Not_Equals -> "!=" | Greater_Or_Equal -> ">=" | Lower_Or_Equal -> "<=" | Lower -> "<" | Greater -> ">"
+  | Q_mark -> "?"
 
-  | Declare -> ":="
-  | Lsl -> "<<" | Asr -> ">>" | Lsr -> ">>" | Logical_And -> "&&" | Logical_Or -> "||"
-  | Equals -> "=" | Not_Equals -> "!=" | Greater_Or_Equal -> ">=" | Lower_Or_Equal -> "<=" | Plus_Plus -> "++" | Minus_Minus -> "--"
-
-  | Mut_Ref -> "&mut"
+  | Plus_Plus -> "++" | Minus_Minus -> "--"
 
   | Identifier string -> string
   | String_Literal string -> String.concat string ["\""; "\""]
   | Integer_Literal int -> string_of_int int
   | Real_Literal float -> string_of_float float
-  | Error char -> "ERROR_TOKEN"
+  | Error char -> Printf.sprintf "ERROR_TOKEN %c" char

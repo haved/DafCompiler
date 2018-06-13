@@ -16,7 +16,7 @@ let rec lex = parser
               lex_line_comment stream
 
             | [< 'c; stream >] ->
-              [< 'Token.Class_Access; lex stream >]
+              [< '(Token.char_to_token c); lex stream >]
 
             (*End of stream*)
             | [< >] -> [< >]
