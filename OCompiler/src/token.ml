@@ -43,6 +43,11 @@ let char_to_token c =
   | '?' -> Q_mark
   | _ -> Error c
 
+let try_merge_tokens tok1 tok2 =
+  match (tok1, tok2) with
+  | (Type_Separator, Assign) -> Some Declare
+  | _ -> None
+
 let token_to_string token =
   match token with
   | Pub -> "pub" | Let -> "let" | Def -> "def" | With -> "with" | As -> "as" | Mut -> "mut" | Uncrt -> "uncrt" | Move -> "move" | Copy -> "copy"
@@ -78,3 +83,4 @@ let token_to_string token =
   | Integer_Literal int -> string_of_int int
   | Real_Literal float -> string_of_float float
   | Error char -> Printf.sprintf "ERROR_TOKEN %c" char
+
