@@ -1,4 +1,13 @@
 
+(* These are identical:
+   [< next_parser = lex_singles >] -> next_parser
+   [< next_parser = lex_singles >] -> [< next_parser >]
+   [< stream >] -> lex_singles stream
+   [< stream >] -> [< lex_singles stream >]
+
+   Also there is nothing special about the words 'next_parser' or 'stream'
+*)
+
 let rec lex_singles = parser
             | [< ' (' ' | '\r' | '\n' | '\t'); stream >] -> lex_singles stream
 
@@ -13,7 +22,7 @@ let rec lex_singles = parser
               lex_number buffer stream
 
             | [< ' ('/'); stream >] ->
-              lex_line_comment_first stream
+              lex_comment_first stream
 
             | [< 'c; stream >] ->
               [< ' Token.char_to_token c; lex_singles stream >]
@@ -36,14 +45,24 @@ and lex_number buffer = parser
                       | [< next_parser=lex_singles >] ->
                         [< 'Token.Real_Literal (float_of_string (Buffer.contents buffer)); next_parser >]
 
-and lex_line_comment_first = parser
-                | [< ' ('/'); stream >] -> lex_line_comment stream
-                | [< next_parser=lex_singles >] -> [< ' (Token.char_to_token '/'); next_parser >]
+and lex_comment_first = parser
+                      | [< ' ('/'); next_parser=lex_line_comment >] -> next_parser
+                      | [< ' ('*'); next_parser=lex_multi_comment >] -> next_parser
+                      | [< next_parser=lex_singles >] -> [< ' (Token.char_to_token '/'); next_parser >]
 
 and lex_line_comment = parser
-                | [< ' ('\n'); next_parser=lex_singles >] -> next_parser
-                | [< 'c; next_parser=lex_line_comment >] -> next_parser
-                | [< >] -> [< >]
+                     | [< ' ('\n'); next_parser=lex_singles >] -> next_parser
+                     | [< 'c; next_parser=lex_line_comment >] -> next_parser
+                     | [< >] -> [< >]
+
+and lex_multi_comment = parser
+                      | [< ' ('*'); next_parser=lex_multi_comment_ending_first >] -> next_parser
+                      | [< 'c; next_parser=lex_multi_comment >] -> next_parser
+                      | [< >] -> [< >]
+
+and lex_multi_comment_ending_first = parser
+                                   | [< ' ('/'); next_parser=lex_singles >] -> next_parser
+                                   | [< next_parser=lex_multi_comment >] -> next_parser
 
 let lex char_stream =
   let token_stream = lex_singles char_stream in
