@@ -16,9 +16,65 @@ def info(text, *arg):
     print("{}: INFO: {}".format(binaryName, text.format(*arg)))
 
 
+compiler_folder = "OCompiler"
+
+def printHelpText():
+    print("""Usage: ./buildScript.py <options>
+    Options:
+    --tests                  Run tests
+    --testFilter <filter>    Specify a regex filtering file names for testing
+    --dafc_stdout:bool       Should dafc stdout be printed? Default: No
+    --help                   Print this help message
+    """)
+
+binary_from_test_dir = "../{}/dafc_main.native".format(compiler_folder)
+run_tests = False
+test_filter = "^.+\\.daf$"
+forward_dafc_stdout = False
+
+def nextArg(args):
+    if len(args) < 2:
+        fatal_error("Expected an option after: {}", args[0])
+    return args[1]
+
+def parseBool(arg):
+    if arg in ['yes', 'Yes', 'YES', 'y', 'Y', 'true', 'True', 'TRUE', 't', 'T']:
+        return True
+    elif arg in ['no', 'No', 'NO', 'n', 'N', 'false', 'False', 'FALSE', 'f', 'F', 'nil']:
+        return False
+    fatal_error("Failed parsing bool: {}", arg)
+
+def parseOptions(args):
+    global run_tests, test_filter, forward_dafc_stdout
+    argsLeft = args
+
+    while len(argsLeft):
+        arg = argsLeft[0]
+
+        if arg == '--tests':
+            run_tests = True
+        elif arg == '--help':
+            printHelpText()
+            exit(0)
+        elif arg == '--testFilter':
+            test_filter = nextArg(argsLeft)
+            argsLeft = argsLeft[1:]
+        elif arg == '--dafc_stdout':
+            forward_dafc_stdout = parseBool(nextArg(argsLeft))
+            argsLeft = argsLeft[1:]
+        else:
+            fatal_error("Unrecognized option: {}", arg)
+        argsLeft = argsLeft[1:]
+
+def main():
+    parseOptions(argv[1:])
+    doMake()
+    if run_tests:
+        doTests()
+
 def doMake():
     prev_cwd = os.getcwd()
-    os.chdir("OCompiler")
+    os.chdir(compiler_folder)
     info("Compiling dafc")
     with subprocess.Popen(["make", "-j3"]) as makeCall:
         makeCall.wait()
@@ -26,9 +82,6 @@ def doMake():
             fatal_error("Make failed with return code {}", makeCall.returncode)
     os.chdir(prev_cwd)
 
-test_filter = "^.+\\.daf$"
-binary_from_test_dir = "../OCompiler/dafc_main.native"
-forward_compile_stdout = True
 def doTests():
     prev_cwd = os.getcwd()
     os.chdir("OCompilerTests")
@@ -39,16 +92,13 @@ def doTests():
 
     for index, f_name in enumerate(files_to_test, 1):
         info("Running test {}/{}: {}", index, len(files_to_test), f_name)
-        with subprocess.Popen([binary_from_test_dir, f_name], stdout=None if forward_compile_stdout else subprocess.PIPE) as comp:
+        with subprocess.Popen([binary_from_test_dir, f_name], stdout=None if forward_dafc_stdout else subprocess.PIPE) as comp:
             comp.wait(timeout=10)
             if comp.returncode is not 0:
                 fatal_error("Test {}/{} failed: return code {}", index, len(files_to_test), comp.returncode)
 
     os.chdir(prev_cwd)
 
-def main():
-    doMake()
-    doTests()
 
 if __name__ == "__main__":
     main()

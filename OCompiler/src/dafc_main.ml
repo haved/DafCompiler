@@ -5,14 +5,17 @@ let rec print_token_stream stream =
       | None -> ()
       | Some token ->
         print_string (Token.token_to_string token);
-        Stream.junk stream;
-        print_token_stream stream
+        try
+          Stream.junk stream;
+          print_token_stream stream
+        with e -> ()
 
-let tokenize file_name =
+let compile file_name =
   let ic = open_in file_name in
   try
     let stream = Lexer.lex (Stream.of_channel ic) in
-    stream
+    print_token_stream stream;
+    close_in ic;
   with e ->
     close_in_noerr ic;
     raise e
@@ -24,4 +27,4 @@ let () =
   | None ->
     Log.fatal_error "No input file";
   | Some input_file ->
-    print_token_stream (tokenize input_file)
+    compile input_file
