@@ -34,12 +34,10 @@ let rec lex_singles = parser
             | [< >] -> [< >]
 
 and lex_ident buffer = parser
-                     | [< ' ('A' .. 'Z' | 'a' .. 'z' | '0' .. '9' | '_' as c); stream >] ->
+                     | [< ' ('A' .. 'Z' | 'a' .. 'z' | '0' .. '9' | '_' as c); stream>] ->
                        Buffer.add_char buffer c;
                        lex_ident buffer stream
-                     | [< next_parser=lex_singles >] ->
-                       match Buffer.contents buffer with
-                       | id -> [< 'Token.Identifier id; next_parser >]
+                     | [< next_parser=lex_singles >] -> [< 'Token.string_to_token (Buffer.contents buffer); next_parser >]
 
 and lex_number buffer = parser
                       | [< ' ('0' .. '9' | '.' as c); stream >] ->

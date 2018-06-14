@@ -31,6 +31,21 @@ type token =
   | Identifier of string | String_Literal of string | Integer_Literal of int | Real_Literal of float
   | Error of char
 
+
+module StringMap = Map.Make(String)
+let rec string_pairlist_to_map m pairlist =
+  match pairlist with
+  | [] -> m
+  | (str, tok) :: rest ->
+    string_pairlist_to_map (StringMap.add str tok m) rest
+
+let string_to_token_map = string_pairlist_to_map StringMap.empty [("pub", Pub); ("def", Def); ("mut", Mut)]
+
+let string_to_token text =
+  match StringMap.find_opt text string_to_token_map with
+  | Some tok -> tok
+  | None -> Identifier text
+
 let char_to_token c =
   match c with
   | '=' -> Assign | ':' -> Type_Separator | ';' -> Statement_End | '(' -> Left_Paren | ',' -> Comma | ')' -> Right_Paren

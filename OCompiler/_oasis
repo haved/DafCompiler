@@ -16,9 +16,9 @@ Description: A compiler for the daf language written in OCaml
 
 Executable "dafc"
    Path: src
-   BuildTools:ocamlbuild
+   BuildTools: ocamlbuild
    install: true
    MainIs: dafc_main.ml
    CompiledObject: native
-   BuildDepends: 
+   BuildDepends:
 
