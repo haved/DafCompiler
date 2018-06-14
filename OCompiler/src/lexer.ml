@@ -8,6 +8,9 @@
    Also there is nothing special about the words 'next_parser' or 'stream'
 *)
 
+(* turns a char stream into a token stream, but makes tokens as short as possible
+   Token.merge_tokens_in_stream combines tokens
+*)
 let rec lex_singles = parser
             | [< ' (' ' | '\r' | '\n' | '\t'); stream >] -> lex_singles stream
 
@@ -64,13 +67,4 @@ and lex_multi_comment_ending_first = parser
                                    | [< ' ('/'); next_parser=lex_singles >] -> next_parser
                                    | [< next_parser=lex_multi_comment >] -> next_parser
 
-let lex char_stream =
-  let token_stream = lex_singles char_stream in
-  Stream.from
-    (fun _ ->
-       try
-         Some (Stream.next token_stream)
-       with
-       | Stream.Failure -> None (*Means end of stream*)
-       | e -> raise e (*All other errors shall be raised*)
-    )
+let lex char_stream = char_stream |> lex_singles |> Token.merge_tokens_in_stream

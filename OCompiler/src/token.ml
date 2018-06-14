@@ -48,6 +48,15 @@ let try_merge_tokens tok1 tok2 =
   | (Type_Separator, Assign) -> Some Declare
   | _ -> None
 
+let rec merge_tokens_in_stream = parser
+                               | [< 'Ref; next_parser=merge_ref_in_stream >] -> next_parser
+                               | [< 'token; next_parser=merge_tokens_in_stream >] -> [< 'token; next_parser >]
+                               | [< >] -> [< >]
+
+and merge_ref_in_stream = parser
+                        | [< 'Mut; next_parser=merge_tokens_in_stream >] -> [< 'Mut_Ref; next_parser >]
+                        | [< next_parser=merge_tokens_in_stream >] -> [< 'Ref; next_parser >]
+
 let token_to_string token =
   match token with
   | Pub -> "pub" | Let -> "let" | Def -> "def" | With -> "with" | As -> "as" | Mut -> "mut" | Uncrt -> "uncrt" | Move -> "move" | Copy -> "copy"
@@ -83,4 +92,3 @@ let token_to_string token =
   | Integer_Literal int -> string_of_int int
   | Real_Literal float -> string_of_float float
   | Error char -> Printf.sprintf "ERROR_TOKEN %c" char
-

@@ -13,6 +13,7 @@ mut global := 4;
 
 def otherMain(x:i32):mut i32= {
 	mut a := 4+x;
+	let a_ptr := &mut a;
 	def average(mut b:i32):i32 {
 //*		b += a;
 		a -= b;
