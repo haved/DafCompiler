@@ -32,19 +32,23 @@ type token =
   | Error of char
 
 
-module StringMap = Map.Make(String)
-let rec string_pairlist_to_map m pairlist =
-  match pairlist with
-  | [] -> m
-  | (str, tok) :: rest ->
-    string_pairlist_to_map (StringMap.add str tok m) rest
-
-let string_to_token_map = string_pairlist_to_map StringMap.empty [("pub", Pub); ("def", Def); ("mut", Mut)]
-
 let string_to_token text =
-  match StringMap.find_opt text string_to_token_map with
-  | Some tok -> tok
-  | None -> Identifier text
+  match text with
+  | "pub" -> Pub | "let" -> Let | "def" -> Def | "with" -> With | "as" -> As | "mut" -> Mut | "uncrt" -> Uncrt | "move" -> Move | "copy" -> Copy
+  | "class" -> Class | "trait" -> Trait | "namespace" -> Namespace | "enum" -> Enum | "prot" -> Prot
+  | "ctor" -> Ctor | "dtor" -> Dtor | "this" -> This | "This" -> This_Type
+  | "virt" -> Virt | "override" -> Override
+
+  | "if" -> If | "else" -> Else | "for" -> For | "while" -> While | "do" -> Do | "match" -> Match
+  | "continue" -> Continue | "break" -> Break | "retry" -> Retry | "return" -> Return
+
+  | "char" -> Char
+  | "i8" -> I8 | "u8" -> U8 | "i16" -> I16 | "u16" -> U16 | "i32" -> I32 | "u32" -> U32 | "i64" -> I64 | "u64" -> U64
+  | "usize" -> Usize | "isize" -> Isize | "bool" -> Bool | "f32" -> F32 | "f64" -> F64
+
+  | "sizeof" -> Sizeof | "typeof" -> Typeof | "lengthof" -> Lengthof
+  | "true" -> True | "false" -> False | "null" -> Null
+  | id -> Identifier id
 
 let char_to_token c =
   match c with
@@ -57,11 +61,6 @@ let char_to_token c =
   | '<' -> Lower | '>' -> Greater
   | '?' -> Q_mark
   | _ -> Error c
-
-let try_merge_tokens tok1 tok2 =
-  match (tok1, tok2) with
-  | (Type_Separator, Assign) -> Some Declare
-  | _ -> None
 
 let rec merge_tokens_in_stream = parser
                                | [< 'Ref; next_parser=merge_ref_in_stream >] -> next_parser
@@ -102,7 +101,7 @@ let token_to_string token =
 
   | Plus_Plus -> "++" | Minus_Minus -> "--"
 
-  | Identifier string -> string
+  | Identifier string -> String.concat string ["_";"_"]
   | String_Literal string -> String.concat string ["\""; "\""]
   | Integer_Literal int -> string_of_int int
   | Real_Literal float -> string_of_float float
