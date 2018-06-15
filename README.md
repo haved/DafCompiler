@@ -18,14 +18,23 @@ As for now I don't know what parts of my OCaml environment are needed,
 but if you want to replicate it, check out the `MyOCamlAdventure.org` file in `docs/`
 
 ### Compiling
-For normal building, use the build script
+For normal building, use the build script. This will create the binary `OCompiler/dafc_main.native`
 ```
 ./buildScript.py
 ```
 
 ### Testing
+This command will invoke the daf compiler on a bunch of daf files, run them, and expect the return code 0
+```
+./buildScript.py --tests
+```
 
 ### Compiling your own daf
-The easiest way to write and run daf would be making your own tests
-For anything more serious read `dafc --help`
+The easiest way to test out daf for yourself would be to use the testing script.
+```
+.buildScript.py --tests --testFolder <your folder> --test_stdout Y
+```
+The folder name `MyTests` is already in the .gitignore, for just this purpose.
 
+### Installing
+The binary `dafc_main.native` is self-contained and can be moved anywhere.

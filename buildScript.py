@@ -16,21 +16,27 @@ def info(text, *arg):
     print("{}: INFO: {}".format(binaryName, text.format(*arg)))
 
 
-compiler_folder = "OCompiler"
-
 def printHelpText():
     print("""Usage: ./buildScript.py <options>
     Options:
+
     --tests                  Run tests
+    --testFolder             Specify folder in which to look for tests. Default: OCompilerTests
     --testFilter <filter>    Specify a regex filtering file names for testing
     --dafc_stdout:bool       Should dafc stdout be printed? Default: No
+    --test_stdout:bool       Should test stdout be printed? Default: No
+
     --help                   Print this help message
     """)
 
-binary_from_test_dir = "../{}/dafc_main.native".format(compiler_folder)
+compiler_folder = "OCompiler"
+relative_binary_path = "{}/dafc_main.native".format(compiler_folder)
+
 run_tests = False
+test_folder = "OCompilerTests"
 test_filter = "^.+\\.daf$"
 forward_dafc_stdout = False
+forward_test_stdout = False
 
 def nextArg(args):
     if len(args) < 2:
@@ -45,7 +51,7 @@ def parseBool(arg):
     fatal_error("Failed parsing bool: {}", arg)
 
 def parseOptions(args):
-    global run_tests, test_filter, forward_dafc_stdout
+    global run_tests, test_folder, test_filter, forward_dafc_stdout, forward_test_stdout
     argsLeft = args
 
     while len(argsLeft):
@@ -53,6 +59,9 @@ def parseOptions(args):
 
         if arg == '--tests':
             run_tests = True
+        elif arg == '--testFolder':
+            test_folder = nextArg(argsLeft)
+            argsLeft = argsLeft[1:]
         elif arg == '--help':
             printHelpText()
             exit(0)
@@ -62,6 +71,9 @@ def parseOptions(args):
         elif arg == '--dafc_stdout':
             forward_dafc_stdout = parseBool(nextArg(argsLeft))
             argsLeft = argsLeft[1:]
+        elif arg == '--test_stdout':
+            forward_test_stdout = parseBool(nextArg(argsLeft))
+            argsLeft = argsLeft[1:]
         else:
             fatal_error("Unrecognized option: {}", arg)
         argsLeft = argsLeft[1:]
@@ -70,7 +82,8 @@ def main():
     parseOptions(argv[1:])
     doMake()
     if run_tests:
-        doTests()
+        binary_path = os.path.join(os.getcwd(), relative_binary_path)
+        doTests(binary_path)
 
 def doMake():
     prev_cwd = os.getcwd()
@@ -82,9 +95,9 @@ def doMake():
             fatal_error("Make failed with return code {}", makeCall.returncode)
     os.chdir(prev_cwd)
 
-def doTests():
+def doTests(binary_name):
     prev_cwd = os.getcwd()
-    os.chdir("OCompilerTests")
+    os.chdir(test_folder)
 
     filter = re.compile(test_filter)
 
@@ -92,7 +105,7 @@ def doTests():
 
     for index, f_name in enumerate(files_to_test, 1):
         info("Running test {}/{}: {}", index, len(files_to_test), f_name)
-        with subprocess.Popen([binary_from_test_dir, f_name], stdout=None if forward_dafc_stdout else subprocess.PIPE) as comp:
+        with subprocess.Popen([binary_name, f_name], stdout=None if forward_dafc_stdout else subprocess.PIPE) as comp:
             comp.wait(timeout=10)
             if comp.returncode is not 0:
                 fatal_error("Test {}/{} failed: return code {}", index, len(files_to_test), comp.returncode)
