@@ -32,8 +32,8 @@ type token =
   | Error of char
 
 
-let string_to_token text =
-  match text with
+let string_to_token text loc =
+  let tok = match text with
   | "pub" -> Pub | "let" -> Let | "def" -> Def | "with" -> With | "as" -> As | "mut" -> Mut | "uncrt" -> Uncrt | "move" -> Move | "copy" -> Copy
   | "class" -> Class | "trait" -> Trait | "namespace" -> Namespace | "enum" -> Enum | "prot" -> Prot
   | "ctor" -> Ctor | "dtor" -> Dtor | "this" -> This | "This" -> This_Type
@@ -48,10 +48,11 @@ let string_to_token text =
 
   | "sizeof" -> Sizeof | "typeof" -> Typeof | "lengthof" -> Lengthof
   | "true" -> True | "false" -> False | "null" -> Null
-  | id -> Identifier id
+  | id -> Identifier id in
+  (tok, (loc, String.length text))
 
-let char_to_token c =
-  match c with
+let char_to_token c loc =
+  let tok = match c with
   | '=' -> Assign | ':' -> Type_Separator | ';' -> Statement_End | '(' -> Left_Paren | ',' -> Comma | ')' -> Right_Paren
   | '{' -> Scope_Start | '}' -> Scope_End | '[' -> Left_Bracket | ']' -> Right_Bracket | '$' -> Type_Infered
 
@@ -60,25 +61,26 @@ let char_to_token c =
   | '|' -> Bitwise_Or | '^' -> Bitwise_Xor | '!' -> Not | '~' -> Bitwise_Not
   | '<' -> Lower | '>' -> Greater
   | '?' -> Q_mark
-  | _ -> Error c
+  | _ -> Error c in
+  (tok, (loc, 1))
 
 let rec merge_tokens_in_stream = parser
-                               | [< 'Type_Separator; next_parser=merge_type_sep_in_stream >] -> next_parser
-                               | [< 'Ref; next_parser=merge_ref_in_stream >] -> next_parser
-                               | [< 'Assign; next_parser=merge_assign_in_stream >] -> next_parser
-                               | [< 'Not; next_parser=merge_not_in_stream >] -> next_parser
-                               | [< 'token; next_parser=merge_tokens_in_stream >] -> [< 'token; next_parser >]
+                               | [< '(Type_Separator, loc); stream >] -> merge_type_sep_in_stream loc stream
+                               | [< '(Ref, loc); stream >] -> merge_ref_in_stream loc stream
+                               | [< '(Assign, loc); stream >] -> merge_assign_in_stream loc stream
+                               | [< '(Not, loc); stream >] -> merge_not_in_stream loc stream
+                               | [< '(token, loc); next_parser=merge_tokens_in_stream >] -> [< '(token, loc); next_parser >]
                                | [< >] -> [< >]
 
-and merge_type_sep_in_stream = parser
-                             | [< 'Assign; next_parser=merge_tokens_in_stream >] -> [< 'Declare; next_parser >]
+and merge_type_sep_in_stream loc = parser
+                             | [< '(Assign, loc); next_parser=merge_tokens_in_stream >] -> [< 'Declare; next_parser >]
                              | [< next_parser=merge_tokens_in_stream >] -> [< 'Type_Separator; next_parser >]
 
-and merge_ref_in_stream = parser
+and merge_ref_in_stream loc = parser
                         | [< 'Mut; next_parser=merge_tokens_in_stream >] -> [< 'Mut_Ref; next_parser >]
                         | [< next_parser=merge_tokens_in_stream >] -> [< 'Ref; next_parser >]
 
-and merge_assign_in_stream = parser
+and merge_assign_in_stream loc = parser
                            | [< 'Assign; next_parser=merge_tokens_in_stream >] -> [< 'Equals; next_parser >]
                            | [< next_parser=merge_tokens_in_stream >] -> [< 'Assign; next_parser >]
 

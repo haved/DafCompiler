@@ -12,39 +12,49 @@
    Token.merge_tokens_in_stream combines tokens
 *)
 let rec lex_singles = parser
-            | [< ' (' ' | '\r' | '\n' | '\t'); stream >] -> lex_singles stream
+            | [< ' ((' ' | '\r' | '\n' | '\t'), loc); stream >] -> lex_singles stream
 
-            | [< ' ('A' .. 'Z' | 'a' .. 'z' as c); stream >] ->
+            | [< ' (('A' .. 'Z' | 'a' .. 'z' as c), loc); stream >] ->
               let buffer = Buffer.create 1 in
               Buffer.add_char buffer c;
-              lex_ident buffer stream
+              lex_ident buffer loc stream
 
-            | [< ' ('0' .. '9' as c); stream >] ->
+            | [< ' (('0' .. '9' as c), loc); stream >] ->
               let buffer = Buffer.create 1 in
               Buffer.add_char buffer c;
-              lex_number buffer stream
+              lex_number buffer loc stream
 
-            | [< ' ('/'); stream >] ->
+            | [< ' ('/', loc); stream >] ->
               lex_comment_first stream
 
-            | [< 'c; stream >] ->
-              [< ' Token.char_to_token c; lex_singles stream >]
+            | [< '(c, loc); stream >] ->
+              [< ' Token.char_to_token c loc; lex_singles stream >]
 
             (*End of stream*)
             | [< >] -> [< >]
 
-and lex_ident buffer = parser
+and lex_ident buffer loc = parser
                      | [< ' ('A' .. 'Z' | 'a' .. 'z' | '0' .. '9' | '_' as c); stream>] ->
                        Buffer.add_char buffer c;
-                       lex_ident buffer stream
-                     | [< next_parser=lex_singles >] -> [< 'Token.string_to_token (Buffer.contents buffer); next_parser >]
+                       lex_ident buffer loc stream
+                     | [< next_parser=lex_singles >] -> [< 'Token.string_to_token (Buffer.contents buffer) loc; next_parser >]
 
-and lex_number buffer = parser
-                      | [< ' ('0' .. '9' | '.' as c); stream >] ->
+and lex_number buffer loc = parser
+                      | [< ' ('0' .. '9' as c); stream >] ->
                         Buffer.add_char buffer c;
-                        lex_number buffer stream
+                        lex_number buffer loc stream
+                      | [< ' ('.'); stream >] ->
+                        Buffer.add_char buffer '.';
+                        lex_real_number buffer loc stream
                       | [< next_parser=lex_singles >] ->
-                        [< 'Token.Real_Literal (float_of_string (Buffer.contents buffer)); next_parser >]
+                        [< '(Token.Integer_Literal (int_of_string (Buffer.contents buffer)), (loc, Buffer.length buffer)); next_parser >]
+
+and lex_number buffer loc = parser
+                      | [< ' ('0' .. '9' as c); stream >] ->
+                        Buffer.add_char buffer c;
+                        lex_number buffer loc stream
+                      | [< next_parser=lex_singles >] ->
+                        [< '(Token.Real_Literal (float_of_string (Buffer.contents buffer)), (loc, Buffer.length buffer)); next_parser >]
 
 and lex_comment_first = parser
                       | [< ' ('/'); next_parser=lex_line_comment >] -> next_parser
@@ -65,4 +75,10 @@ and lex_multi_comment_ending_first = parser
                                    | [< ' ('/'); next_parser=lex_singles >] -> next_parser
                                    | [< next_parser=lex_multi_comment >] -> next_parser
 
-let lex char_stream = char_stream |> lex_singles |> Token.merge_tokens_in_stream
+let rec add_loc_to_char_stream line col = parser
+                                    | [< ' ('\n'); next=(add_loc_to_char_stream (line+1) 0) >] -> [< ' ('\n', (line, col)); next >]
+                                    | [< ' ('\t'); next=(add_loc_to_char_stream line (col+4)) >] -> [< ' ('\t', (line, col)); next >]
+                                    | [< ' c; next=(add_loc_to_char_stream line (col+4)) >] -> [< ' (c, (line, col)); next >]
+                                    | [< >] -> [< >]
+
+let lex char_stream = char_stream |> (add_loc_to_char_stream 1 0) |> lex_singles |> Token.merge_tokens_in_stream
