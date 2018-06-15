@@ -63,13 +63,31 @@ let char_to_token c =
   | _ -> Error c
 
 let rec merge_tokens_in_stream = parser
+                               | [< 'Type_Separator; next_parser=merge_type_sep_in_stream >] -> next_parser
                                | [< 'Ref; next_parser=merge_ref_in_stream >] -> next_parser
+                               | [< 'Assign; next_parser=merge_assign_in_stream >] -> next_parser
+                               | [< 'Not; next_parser=merge_not_in_stream >] -> next_parser
                                | [< 'token; next_parser=merge_tokens_in_stream >] -> [< 'token; next_parser >]
                                | [< >] -> [< >]
+
+and merge_type_sep_in_stream = parser
+                             | [< 'Assign; next_parser=merge_tokens_in_stream >] -> [< 'Declare; next_parser >]
+                             | [< next_parser=merge_tokens_in_stream >] -> [< 'Type_Separator; next_parser >]
 
 and merge_ref_in_stream = parser
                         | [< 'Mut; next_parser=merge_tokens_in_stream >] -> [< 'Mut_Ref; next_parser >]
                         | [< next_parser=merge_tokens_in_stream >] -> [< 'Ref; next_parser >]
+
+and merge_assign_in_stream = parser
+                           | [< 'Assign; next_parser=merge_tokens_in_stream >] -> [< 'Equals; next_parser >]
+                           | [< next_parser=merge_tokens_in_stream >] -> [< 'Assign; next_parser >]
+
+and merge_not_in_stream = parser
+                        | [< 'Assign; next_parser=merge_tokens_in_stream >] -> [< 'Not_Equals; next_parser >]
+                        | [< next_parser=merge_tokens_in_stream >] -> [< 'Not; next_parser >]
+
+(* TODO: lsl, asr, lsr, &&, ||, >=, <=, ++, --*)
+(* TODO: Make a prettier token merging system. This parser stuff is too big*)
 
 let token_to_string token =
   match token with
