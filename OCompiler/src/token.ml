@@ -15,12 +15,12 @@ type token =
   | Sizeof | Typeof | Lengthof
   | True | False | Null
 
-  | Assign | Type_Separator | Declare | Statement_End | Left_Paren | Comma | Right_Paren
+  | Assign | Type_Separator | Statement_End | Left_Paren | Comma | Right_Paren
   | Scope_Start | Scope_End | Left_Bracket | Right_Bracket | Type_Infered
 
   | Plus | Minus | Mult | Divide | Modulo
   | Lsl | Asr | Lsr
-  | Ref | Mut_Ref | Dereference | Class_Access
+  | Ref | Dereference | Class_Access
   | Bitwise_Or | Bitwise_Xor | Not | Bitwise_Not
   | Logical_And | Logical_Or
   | Equals | Not_Equals | Greater_Or_Equal | Lower_Or_Equal | Lower | Greater
@@ -30,66 +30,6 @@ type token =
 
   | Identifier of string | String_Literal of string | Integer_Literal of int | Real_Literal of float
   | Error of char
-
-
-let string_to_token text loc =
-  let tok = match text with
-  | "pub" -> Pub | "let" -> Let | "def" -> Def | "with" -> With | "as" -> As | "mut" -> Mut | "uncrt" -> Uncrt | "move" -> Move | "copy" -> Copy
-  | "class" -> Class | "trait" -> Trait | "namespace" -> Namespace | "enum" -> Enum | "prot" -> Prot
-  | "ctor" -> Ctor | "dtor" -> Dtor | "this" -> This | "This" -> This_Type
-  | "virt" -> Virt | "override" -> Override
-
-  | "if" -> If | "else" -> Else | "for" -> For | "while" -> While | "do" -> Do | "match" -> Match
-  | "continue" -> Continue | "break" -> Break | "retry" -> Retry | "return" -> Return
-
-  | "char" -> Char
-  | "i8" -> I8 | "u8" -> U8 | "i16" -> I16 | "u16" -> U16 | "i32" -> I32 | "u32" -> U32 | "i64" -> I64 | "u64" -> U64
-  | "usize" -> Usize | "isize" -> Isize | "bool" -> Bool | "f32" -> F32 | "f64" -> F64
-
-  | "sizeof" -> Sizeof | "typeof" -> Typeof | "lengthof" -> Lengthof
-  | "true" -> True | "false" -> False | "null" -> Null
-  | id -> Identifier id in
-  (tok, (loc, String.length text))
-
-let char_to_token c loc =
-  let tok = match c with
-  | '=' -> Assign | ':' -> Type_Separator | ';' -> Statement_End | '(' -> Left_Paren | ',' -> Comma | ')' -> Right_Paren
-  | '{' -> Scope_Start | '}' -> Scope_End | '[' -> Left_Bracket | ']' -> Right_Bracket | '$' -> Type_Infered
-
-  | '+' -> Plus | '-' -> Minus | '*' -> Mult | '/' -> Divide | '%' -> Modulo
-  | '&' -> Ref | '.' -> Class_Access | '@' -> Dereference
-  | '|' -> Bitwise_Or | '^' -> Bitwise_Xor | '!' -> Not | '~' -> Bitwise_Not
-  | '<' -> Lower | '>' -> Greater
-  | '?' -> Q_mark
-  | _ -> Error c in
-  (tok, (loc, 1))
-
-let rec merge_tokens_in_stream = parser
-                               | [< '(Type_Separator, loc); stream >] -> merge_type_sep_in_stream loc stream
-                               | [< '(Ref, loc); stream >] -> merge_ref_in_stream loc stream
-                               | [< '(Assign, loc); stream >] -> merge_assign_in_stream loc stream
-                               | [< '(Not, loc); stream >] -> merge_not_in_stream loc stream
-                               | [< '(token, loc); next_parser=merge_tokens_in_stream >] -> [< '(token, loc); next_parser >]
-                               | [< >] -> [< >]
-
-and merge_type_sep_in_stream loc = parser
-                             | [< '(Assign, loc); next_parser=merge_tokens_in_stream >] -> [< 'Declare; next_parser >]
-                             | [< next_parser=merge_tokens_in_stream >] -> [< 'Type_Separator; next_parser >]
-
-and merge_ref_in_stream loc = parser
-                        | [< 'Mut; next_parser=merge_tokens_in_stream >] -> [< 'Mut_Ref; next_parser >]
-                        | [< next_parser=merge_tokens_in_stream >] -> [< 'Ref; next_parser >]
-
-and merge_assign_in_stream loc = parser
-                           | [< 'Assign; next_parser=merge_tokens_in_stream >] -> [< 'Equals; next_parser >]
-                           | [< next_parser=merge_tokens_in_stream >] -> [< 'Assign; next_parser >]
-
-and merge_not_in_stream = parser
-                        | [< 'Assign; next_parser=merge_tokens_in_stream >] -> [< 'Not_Equals; next_parser >]
-                        | [< next_parser=merge_tokens_in_stream >] -> [< 'Not; next_parser >]
-
-(* TODO: lsl, asr, lsr, &&, ||, >=, <=, ++, --*)
-(* TODO: Make a prettier token merging system. This parser stuff is too big*)
 
 let token_to_string token =
   match token with
@@ -108,12 +48,12 @@ let token_to_string token =
   | Sizeof -> "sizeof" | Typeof -> "typeof" | Lengthof -> "lengthof"
   | True -> "true" | False -> "false" | Null -> "null"
 
-  | Assign -> "=" | Type_Separator -> ":" | Declare -> ":=" | Statement_End -> ";" | Left_Paren -> "(" | Comma -> "," | Right_Paren -> ")"
+  | Assign -> "=" | Type_Separator -> ":" | Statement_End -> ";" | Left_Paren -> "(" | Comma -> "," | Right_Paren -> ")"
   | Scope_Start -> "{" | Scope_End -> "}" | Left_Bracket -> "[" | Right_Bracket -> "]" | Type_Infered -> "$"
 
   | Plus -> "+" | Minus -> "-" | Mult -> "*" | Divide -> "/" | Modulo -> "%"
-  | Lsl -> "<<" | Asr -> ">>" | Lsr -> ">>"
-  | Ref -> "&" | Mut_Ref -> "&mut" | Class_Access -> "." | Dereference -> "@"
+  | Lsl -> "<<" | Asr -> ">>" | Lsr -> ">>>"
+  | Ref -> "&" | Class_Access -> "." | Dereference -> "@"
   | Bitwise_Or -> "|" | Bitwise_Xor -> "^" | Not -> "!" | Bitwise_Not -> "~"
   | Logical_And -> "&&" | Logical_Or -> "||"
   | Equals -> "==" | Not_Equals -> "!=" | Greater_Or_Equal -> ">=" | Lower_Or_Equal -> "<=" | Lower -> "<" | Greater -> ">"
@@ -126,3 +66,89 @@ let token_to_string token =
   | Integer_Literal int -> string_of_int int
   | Real_Literal float -> string_of_float float
   | Error char -> Printf.sprintf "ERROR_TOKEN %c" char
+
+
+type loc_t = {line:int; col:int}
+type span_t = {loc:loc_t; len:int;}
+type token_with_span = (token * span_t)
+
+let span (loc:loc_t) (len:int) :span_t = {loc=loc;len=len}
+
+let span_loc span = span.loc
+let span_end span = {line=span.loc.line; col=span.loc.col+span.len}
+let span_combine head tail = {loc=head.loc; len=tail.loc.col+tail.len-head.loc.col}
+
+let string_to_token (text : string) (loc : loc_t) : token_with_span =
+  let tok = match text with
+  | "pub" -> Pub | "let" -> Let | "def" -> Def | "with" -> With | "as" -> As | "mut" -> Mut | "uncrt" -> Uncrt | "move" -> Move | "copy" -> Copy
+  | "class" -> Class | "trait" -> Trait | "namespace" -> Namespace | "enum" -> Enum | "prot" -> Prot
+  | "ctor" -> Ctor | "dtor" -> Dtor | "this" -> This | "This" -> This_Type
+  | "virt" -> Virt | "override" -> Override
+
+  | "if" -> If | "else" -> Else | "for" -> For | "while" -> While | "do" -> Do | "match" -> Match
+  | "continue" -> Continue | "break" -> Break | "retry" -> Retry | "return" -> Return
+
+  | "char" -> Char
+  | "i8" -> I8 | "u8" -> U8 | "i16" -> I16 | "u16" -> U16 | "i32" -> I32 | "u32" -> U32 | "i64" -> I64 | "u64" -> U64
+  | "usize" -> Usize | "isize" -> Isize | "bool" -> Bool | "f32" -> F32 | "f64" -> F64
+
+  | "sizeof" -> Sizeof | "typeof" -> Typeof | "lengthof" -> Lengthof
+  | "true" -> True | "false" -> False | "null" -> Null
+  | id -> Identifier id in
+  (tok, {loc=loc; len=String.length text})
+
+let char_to_token (c : char) (loc : loc_t) : token_with_span =
+  let tok = match c with
+  | '=' -> Assign | ':' -> Type_Separator | ';' -> Statement_End | '(' -> Left_Paren | ',' -> Comma | ')' -> Right_Paren
+  | '{' -> Scope_Start | '}' -> Scope_End | '[' -> Left_Bracket | ']' -> Right_Bracket | '$' -> Type_Infered
+
+  | '+' -> Plus | '-' -> Minus | '*' -> Mult | '/' -> Divide | '%' -> Modulo
+  | '&' -> Ref | '.' -> Class_Access | '@' -> Dereference
+  | '|' -> Bitwise_Or | '^' -> Bitwise_Xor | '!' -> Not | '~' -> Bitwise_Not
+  | '<' -> Lower | '>' -> Greater
+  | '?' -> Q_mark
+  | _ -> Error c in
+  (tok, {loc=loc; len=1})
+
+type merge_t = {input:token*token; output:token}
+let merges = [
+  {input=(Assign,     Assign);     output=Equals};
+  {input=(Not,        Assign);     output=Not_Equals};
+  {input=(Lower,      Lower);      output=Lsl};
+  {input=(Greater,    Greater);    output=Asr};
+  {input=(Asr,        Greater);    output=Lsr};
+  {input=(Ref,        Ref);        output=Logical_And};
+  {input=(Bitwise_Or, Bitwise_Or); output=Logical_Or};
+  {input=(Lower,      Assign);     output=Lower_Or_Equal};
+  {input=(Greater,    Assign);     output=Greater_Or_Equal};
+  {input=(Plus,  Plus);  output=Plus_Plus};
+  {input=(Minus, Minus); output=Minus_Minus};]
+
+let get_merge (tok1, tok1_span) (tok2, tok2_span) =
+  if (span_end tok1_span) <> (span_loc tok2_span) then None else
+    let rec check_list list =
+      match list with
+      | {input=(match1, match2); output=out} :: rest ->
+        if match1 == tok1 && match2 == tok2 then Some (out, span_combine tok1_span tok2_span) else check_list rest
+      | [] -> None
+    in
+    check_list merges
+
+let merge_tokens_in_stream stream =
+  let rec maybe_merge_with_one tok1:token_with_span =
+    match Stream.peek stream with
+    | Some tok2 -> (
+      match get_merge tok1 tok2 with
+        | Some merge ->
+          Stream.junk stream; (* Eat tok2 *)
+          maybe_merge_with_one merge
+        | None -> tok1 (* tok2 is still in stream *)
+    )
+    | None -> tok1 in
+  let next _ =
+    match Stream.peek stream with
+    | Some tok1 ->
+      Stream.junk stream;
+      Some (maybe_merge_with_one tok1)
+    | None -> None
+  in Stream.from (next)

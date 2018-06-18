@@ -3,7 +3,7 @@ open Printf
 let rec print_token_stream stream =
     match Stream.peek stream with
       | None -> ()
-      | Some token ->
+      | Some (token, _) ->
         Printf.printf "%s " (Token.token_to_string token);
         Stream.junk stream;
         print_token_stream stream
