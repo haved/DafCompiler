@@ -9,71 +9,82 @@
 *)
 
 let rec lex_singles = parser
-            | [< ' ((' ' | '\r' | '\n' | '\t'), loc); stream >] -> lex_singles stream
+                    | [< ' ((' ' | '\r' | '\n' | '\t'), loc); stream >] -> lex_singles stream
 
-            | [< ' (('A' .. 'Z' | 'a' .. 'z' as c), loc); stream >] ->
-              let buffer = Buffer.create 1 in
-              Buffer.add_char buffer c;
-              lex_ident buffer loc stream
+                    | [< ' (('A' .. 'Z' | 'a' .. 'z' as c), loc); stream >] ->
+                      let buffer = Buffer.create 1 in
+                      Buffer.add_char buffer c;
+                      lex_ident buffer loc stream
 
-            | [< ' (('0' .. '9' as c), loc); stream >] ->
-              let buffer = Buffer.create 1 in
-              Buffer.add_char buffer c;
-              lex_number buffer loc stream
+                    | [< ' (('0' .. '9' as c), loc); stream >] ->
+                      let buffer = Buffer.create 1 in
+                      Buffer.add_char buffer c;
+                      lex_number buffer loc stream
 
-            | [< ' ('/', loc); stream >] -> 
-              lex_comment_first loc stream
+                    | [< ' ('/', loc); stream >] -> 
+                      lex_comment_first (Token.char_to_token '/' loc) stream
 
-            | [< '(c, loc); stream >] ->
-              [< ' Token.char_to_token c loc; lex_singles stream >]
+                    | [< '(c, loc); stream >] ->
+                      [< ' Token.char_to_token c loc; lex_singles stream >]
 
-            (*End of stream*)
-            | [< >] -> [< >]
+                    (*End of stream*)
+                    | [< >] -> [< >]
 
 and lex_ident buffer loc = parser
-                     | [< ' ('A' .. 'Z' | 'a' .. 'z' | '0' .. '9' | '_' as c, _); stream>] ->
-                       Buffer.add_char buffer c;
-                       lex_ident buffer loc stream
-                     | [< next_parser=lex_singles >] ->
-                       [< 'Token.string_to_token (Buffer.contents buffer) loc; next_parser >]
+                         | [< ' ('A' .. 'Z' | 'a' .. 'z' | '0' .. '9' | '_' as c, _); stream>] -> (
+                         Buffer.add_char buffer c;
+                         lex_ident buffer loc stream )
+                         | [< next_parser=lex_singles >] ->
+                           [< 'Token.string_to_token (Buffer.contents buffer) loc; next_parser >]
 
 and lex_number buffer loc = parser
-                      | [< ' ('0' .. '9' as c, _); stream >] ->
-                        Buffer.add_char buffer c;
-                        lex_number buffer loc stream
-                      | [< ' ('.', _); stream >] ->
-                        Buffer.add_char buffer '.';
-                        lex_real_number buffer loc stream
-                      | [< next_parser=lex_singles >] ->
-                        [< '(Token.Integer_Literal (int_of_string (Buffer.contents buffer)),
+                          | [< ' ('0' .. '9' as c, _); stream >] -> (
+                            Buffer.add_char buffer c;
+                            lex_number buffer loc stream )
+                          | [< ' ('.', _); stream >] -> (
+                            Buffer.add_char buffer '.';
+                            lex_real_number buffer loc stream )
+                          | [< next_parser=lex_singles >] ->
+                            [< '(Token.Integer_Literal (int_of_string (Buffer.contents buffer)),
                              Token.span loc (Buffer.length buffer)); next_parser >]
 
 and lex_real_number buffer loc = parser
-                      | [< ' ('0' .. '9' as c, _); stream >] ->
-                        Buffer.add_char buffer c;
-                        lex_real_number buffer loc stream
-                      | [< next_parser=lex_singles >] ->
-                        [< '(Token.Real_Literal (float_of_string (Buffer.contents buffer)),
-                             Token.span loc (Buffer.length buffer)); next_parser >]
+                               | [< ' ('0' .. '9' as c, _); stream >] -> (
+                                 Buffer.add_char buffer c;
+                                 lex_real_number buffer loc stream )
+                               | [< next_parser=lex_singles >] ->
+                                 [< '(Token.Real_Literal (float_of_string (Buffer.contents buffer)),
+                                      Token.span loc (Buffer.length buffer)); next_parser >]
 
-and lex_comment_first loc = parser
-                      | [< ' ('/', _); next_parser=lex_line_comment >] -> next_parser
-                      | [< ' ('*', _); next_parser=lex_multi_comment >] -> next_parser
-                      | [< next_parser=lex_singles >] -> [< ' (Token.char_to_token '/' loc); next_parser >]
+and lex_comment_first tok = parser
+                          | [< ' ('/', _); next_parser=lex_line_comment >] -> next_parser
+                          | [< ' ('*', _); stream >] -> lex_multi_comment 1 stream
+                          | [< next_parser=lex_singles >] -> [< ' tok; next_parser >]
 
 and lex_line_comment = parser
                      | [< ' ('\n', _); next_parser=lex_singles >] -> next_parser
                      | [< '(c, _); next_parser=lex_line_comment >] -> next_parser
                      | [< >] -> [< >]
 
-and lex_multi_comment = parser
-                      | [< ' ('*', _); next_parser=lex_multi_comment_ending_first >] -> next_parser
-                      | [< '(c, _); next_parser=lex_multi_comment >] -> next_parser
-                      | [< >] -> [< >]
+and lex_multi_comment level = parser
+                            | [< ' ('*', _); stream >] -> lex_multi_comment_ending_first level stream
+                            | [< ' ('/', _); stream >] -> lex_multi_comment_rec_first level stream
+                            | [< '(c, _); stream >] -> lex_multi_comment level stream
+                            | [< >] -> [< >]
 
-and lex_multi_comment_ending_first = parser
-                                   | [< ' ('/', _); next_parser=lex_singles >] -> next_parser
-                                   | [< next_parser=lex_multi_comment >] -> next_parser
+(* When we have seen a * we check for / *)
+and lex_multi_comment_ending_first level = parser
+                                         | [< ' ('/', _); stream >] ->
+                                           if level = 1 then
+                                             lex_singles stream
+                                           else
+                                             lex_multi_comment (level-1) stream
+                                         | [< stream >] -> lex_multi_comment level stream
+
+(* When we see a / in a multiline comment, we check for * in case of recursive comments *)
+and lex_multi_comment_rec_first level = parser
+                                      | [< ' ('*', _); stream >] -> lex_multi_comment (level+1) stream
+                                      | [< stream >] -> lex_multi_comment level stream
 
 let rec add_loc_to_char_stream line col =
   let loc:Token.loc_t = {line=line; col=col} in
