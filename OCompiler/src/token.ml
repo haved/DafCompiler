@@ -67,18 +67,9 @@ let token_to_string token =
   | Real_Literal float -> string_of_float float
   | Error char -> Printf.sprintf "ERROR_TOKEN %c" char
 
+type token_with_span = (token * Span.span_t)
 
-type loc_t = {line:int; col:int}
-type span_t = {loc:loc_t; len:int;}
-type token_with_span = (token * span_t)
-
-let span (loc:loc_t) (len:int) :span_t = {loc=loc;len=len}
-
-let span_loc span = span.loc
-let span_end span = {line=span.loc.line; col=span.loc.col+span.len}
-let span_combine head tail = {loc=head.loc; len=tail.loc.col+tail.len-head.loc.col}
-
-let string_to_token (text : string) (loc : loc_t) : token_with_span =
+let string_to_token (text : string) (loc : Span.loc_t) : token_with_span =
   let tok = match text with
   | "pub" -> Pub | "let" -> Let | "def" -> Def | "with" -> With | "as" -> As | "mut" -> Mut | "uncrt" -> Uncrt | "move" -> Move | "copy" -> Copy
   | "class" -> Class | "trait" -> Trait | "namespace" -> Namespace | "enum" -> Enum | "prot" -> Prot
@@ -97,7 +88,7 @@ let string_to_token (text : string) (loc : loc_t) : token_with_span =
   | id -> Identifier id in
   (tok, {loc=loc; len=String.length text})
 
-let char_to_token (c : char) (loc : loc_t) : token_with_span =
+let char_to_token (c : char) (loc : Span.loc_t) : token_with_span =
   let tok = match c with
   | '=' -> Assign | ':' -> Type_Separator | ';' -> Statement_End | '(' -> Left_Paren | ',' -> Comma | ')' -> Right_Paren
   | '{' -> Scope_Start | '}' -> Scope_End | '[' -> Left_Bracket | ']' -> Right_Bracket | '$' -> Type_Infered
@@ -125,11 +116,11 @@ let merges = [
   {input=(Minus, Minus); output=Minus_Minus};]
 
 let get_merge (tok1, tok1_span) (tok2, tok2_span) =
-  if (span_end tok1_span) <> (span_loc tok2_span) then None else
+  if (Span.end_loc tok1_span) <> (Span.loc tok2_span) then None else
     let rec check_list list =
       match list with
       | {input=(match1, match2); output=out} :: rest ->
-        if match1 == tok1 && match2 == tok2 then Some (out, span_combine tok1_span tok2_span) else check_list rest
+        if match1 == tok1 && match2 == tok2 then Some (out, Span.combine tok1_span tok2_span) else check_list rest
       | [] -> None
     in
     check_list merges

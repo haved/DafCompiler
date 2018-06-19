@@ -11,11 +11,13 @@ let rec print_token_stream stream =
 let compile file_name =
   let ic = open_in file_name in
   try
-    let stream = Lexer.lex (Stream.of_channel ic) in
     try
+      let stream = Lexer.lex (Stream.of_channel ic) in
       print_token_stream stream;
     with
     | Stream.Failure -> close_in ic; (*File is done*)
+    | Log.SpanError (span, text) -> Log.fatal_error_file_span file_name span text;
+    | Log.ParseError text -> Log.fatal_error_file file_name text;
     | e -> raise e;
   with file_error ->
     close_in_noerr ic;
