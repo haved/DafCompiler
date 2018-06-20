@@ -1,6 +1,5 @@
 // -*- compile-command: "cd .. && time ./buildScript.py" -*-
 
-/*
 def main {
 	let a := 5;
 	mut b : i32 = 7;
@@ -8,9 +7,9 @@ def main {
 	b
 };
 
-/*
-mut global := 4;
-*/
+(*
+mut global := 4; (*Tast*)  Test
+*)
 
 def otherMain(x:i32):mut i32= {
 	mut a := 4+x;
@@ -23,7 +22,7 @@ def otherMain(x:i32):mut i32= {
 	average(mut global);
 	global
 };
-/* */
+
 def main3 = print_int(4);
 
 def test_token_merging() {
@@ -31,7 +30,5 @@ def test_token_merging() {
 	let a := b == 5 && c != 4 || 3<<2 + 4<<<i++;
 
 };
-
-*/
 
 let a := b == 5 && c != 4 || 3<<2 + 4>>>>>>>>i++;
