@@ -46,7 +46,7 @@ and lex_number buffer loc = parser
                             lex_real_number buffer loc stream )
                           | [< next_parser=lex_singles >] ->
                             [< '(Token.Integer_Literal (int_of_string (Buffer.contents buffer)),
-                             Span.make loc (Buffer.length buffer)); next_parser >]
+                             Span.span loc (Buffer.length buffer)); next_parser >]
 
 and lex_real_number buffer loc = parser
                                | [< ' ('0' .. '9' as c, _); stream >] -> (
@@ -54,7 +54,7 @@ and lex_real_number buffer loc = parser
                                  lex_real_number buffer loc stream )
                                | [< next_parser=lex_singles >] ->
                                  [< '(Token.Real_Literal (float_of_string (Buffer.contents buffer)),
-                                      Span.make loc (Buffer.length buffer)); next_parser >]
+                                      Span.span loc (Buffer.length buffer)); next_parser >]
 
 and lex_comment_first tok = parser
                           | [< ' ('/', _); next_parser=lex_line_comment >] -> next_parser
@@ -70,7 +70,8 @@ and lex_multi_comment level = parser
                             | [< ' ('*', _); stream >] -> lex_multi_comment_ending_first level stream
                             | [< ' ('/', _); stream >] -> lex_multi_comment_rec_first level stream
                             | [< '(c, _); stream >] -> lex_multi_comment level stream
-                            | [< >] -> raise (Log.ParseError "Multiline comment never closed")
+                            | [< >] -> ignore(Log.log Log.Warning "Multiline comment never closed");
+                                       [< >]
 
 (* When we have seen a * we check for / *)
 and lex_multi_comment_ending_first level = parser
@@ -87,7 +88,7 @@ and lex_multi_comment_rec_first level = parser
                                       | [< stream >] -> lex_multi_comment level stream
 
 let rec add_loc_to_char_stream line col =
-  let loc:Span.loc_t = {line=line; col=col} in
+  let loc : Span.loc_t = (line, col) in
   parser
 | [< ' ('\n'); stream >] -> [< ' ('\n', loc); add_loc_to_char_stream (line+1) 0 stream >]
 | [< ' ('\t'); stream >] -> [< ' ('\t', loc); add_loc_to_char_stream line (col+4) stream >]

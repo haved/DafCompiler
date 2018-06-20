@@ -1,10 +1,10 @@
-type loc_t = {line:int; col:int}
-type span_t = {loc:loc_t; len:int;}
-type file_id_t = int
-type snippet_t = span_t * file_id_t
+type loc_t = int * int
+type span_t = {loc:loc_t; len:int}
+let span loc len = {loc=loc; len=len}
 
-let make (loc:loc_t) (len:int) :span_t = {loc=loc;len=len}
+let end_loc {loc=(line, col); len=len} = (line, col+len)
+let combine_spans_opt span1 {loc=loc2; len=len2} =
+  if end_loc span1 = loc2  then Some {loc=span1.loc; len=span1.len+len2} else None
 
-let loc span = span.loc
-let end_loc span = {line=span.loc.line; col=span.loc.col+span.len}
-let combine head tail = {loc=head.loc; len=tail.loc.col+tail.len-head.loc.col}
+type interval = {loc: loc_t; end_loc: loc_t}
+let interval_of_span (span:span_t) = {loc=span.loc; end_loc=end_loc span}

@@ -116,11 +116,13 @@ let merges = [
   {input=(Minus, Minus); output=Minus_Minus};]
 
 let get_merge (tok1, tok1_span) (tok2, tok2_span) =
-  if (Span.end_loc tok1_span) <> (Span.loc tok2_span) then None else
+  match Span.combine_spans_opt tok1_span tok2_span with
+  | None -> None
+  | Some span ->
     let rec check_list list =
       match list with
       | {input=(match1, match2); output=out} :: rest ->
-        if match1 == tok1 && match2 == tok2 then Some (out, Span.combine tok1_span tok2_span) else check_list rest
+        if match1 == tok1 && match2 == tok2 then Some (out, span) else check_list rest
       | [] -> None
     in
     check_list merges

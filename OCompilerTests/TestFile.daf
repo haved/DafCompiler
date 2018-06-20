@@ -32,6 +32,6 @@ def test_token_merging() {
 
 };
 
-
+*/
 
 let a := b == 5 && c != 4 || 3<<2 + 4>>>>>>>>i++;
