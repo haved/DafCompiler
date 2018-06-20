@@ -76,7 +76,7 @@ and lex_multi_comment level = parser
                             | [< ' ('*', _); stream >] -> lex_multi_comment_ending_first level stream
                             | [< ' ('(', _); stream >] -> lex_multi_comment_rec_first level stream
                             | [< '(c, _); stream >] -> lex_multi_comment level stream
-                            | [< >] -> ignore(Log.log Log.Warning "Multiline comment never closed");
+                            | [< >] -> Log.log Log.Warning "Multiline comment never closed";
                                        [< >]
 
 and lex_multi_comment_rec_first level = parser

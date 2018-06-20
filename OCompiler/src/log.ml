@@ -15,7 +15,9 @@ let format_file_interval file_name ({loc=(line, col); end_loc=(end_line, end_col
 
 let log_at at level text =
   Printf.printf "%s: %s: %s\n" at (string_of_log_level level) text;
-  exit 0
+  match level with
+  | Fatal_Error -> ignore(exit 0)
+  | _ -> ()
 
 let log level text = log_at binary_name level text
 let log_from_file file_name level text = log_at file_name text
@@ -27,5 +29,7 @@ exception UnexpectedChar of char * Span.loc_t
 exception UnexpectedToken of Token.token_with_span * string
 exception UnexpectedEOF of string
 
-let unexpected_token_msg file_name (token, span) expected =
-  log_from_file_span file_name span Fatal_Error (Printf.sprintf "unexpected token '%s'. Expected: %s" (Token.token_to_string token) expected)
+let unexpected_token_msg token expected =
+  (Printf.sprintf "unexpected token '%s'. Expected: %s" (Token.token_to_string token) expected)
+
+let unexpected_EOF_msg expected = Printf.sprintf "expected %s, got EOF", expected

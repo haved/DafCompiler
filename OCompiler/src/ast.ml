@@ -8,3 +8,10 @@ type expr_without_span =
   | Infix_Operator of infix_operator * expr * expr
 
 and expr = expr_without_span * Span.span_t
+
+let print_definition defin =
+  print_endline (match defin with
+  | Plus -> "+"
+  | Minus -> "-"
+  | Mult -> "*"
+  | Divide -> "/")
