@@ -20,16 +20,7 @@ let log_at at level text =
   | _ -> ()
 
 let log level text = log_at binary_name level text
-let log_from_file file_name level text = log_at file_name text
+let log_from_file file_name level text = log_at file_name level text
 let log_from_file_loc file_name loc level text = log_at (format_file_loc file_name loc) level text
 let log_from_file_interval file_name interval level text = log_at (format_file_interval file_name interval) level text
 let log_from_file_span file_name span level text = log_from_file_interval file_name (Span.interval_of_span span) level text
-
-exception UnexpectedChar of char * Span.loc_t
-exception UnexpectedToken of Token.token_with_span * string
-exception UnexpectedEOF of string
-
-let unexpected_token_msg token expected =
-  (Printf.sprintf "unexpected token '%s'. Expected: %s" (Token.token_to_string token) expected)
-
-let unexpected_EOF_msg expected = Printf.sprintf "expected %s, got EOF", expected
