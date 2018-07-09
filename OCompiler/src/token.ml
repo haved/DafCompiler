@@ -61,7 +61,7 @@ let token_to_string token =
 
   | Plus_Plus -> "++" | Minus_Minus -> "--"
 
-  | Identifier string -> String.concat string ["_";"_"]
+  | Identifier string -> String.concat string ["identifier '";"'"]
   | String_Literal string -> String.concat string ["\""; "\""]
   | Integer_Literal int -> string_of_int int
   | Real_Literal float -> string_of_float float
