@@ -16,14 +16,14 @@ and expect_tok expected = parser
 and peek_span stream =
   match Stream.peek stream with
   | Some (_,span)-> span
-  | None -> Span.span ((-1,0), 0) (*Someone else will complain about EOF*)
+  | None -> Span.span (-1,0) 0
 
 and parse_identifier = parser
                      | [< '(Token.Identifier ident,_) >] -> ident
                      | [< err=(error_expected "an identifier") >] -> raise err
 
 and parse_defable = parser
-                  | [< '(Token.Integer_Literal num,span) >] -> (Ast.Integer_Literal num,span)
+                  | [< '(Token.Integer_Literal num,span) >] -> (Ast.Integer_Literal num,Span.interval_of_span span)
                   | [< err=(error_expected "a defable") >] -> raise err
 
 and parse_parameter_modifier = parser
@@ -35,14 +35,10 @@ and parse_parameter_modifier = parser
                              | [< '(Token.Dtor,_) >] -> Ast.Dtor_Param
                              | [< >] -> Ast.Normal_Param
 
-and parse_parameter =
-  parser
-| [< start_span=peek_span;
-     modif=parse_parameter_modifier;
-     name=parse_identifier;
-     _=expect_tok Token.Type_Separator;
-     (typ, end_span)=parse_defable >]
-  -> (Ast.Value_Param (modif,name,typ),Span.interval_of_spans start end_span)
+and parse_parameter = parser
+                    | [< start_span=peek_span; modif=parse_parameter_modifier; name=parse_identifier;
+                         _=expect_tok Token.Type_Separator; (_,end_int) as typ=parse_defable >]
+                      -> (Ast.Value_Param (modif,name,typ), Span.merge_spans start_span end_span)
 
 and after_param_parse = parser
                       | [< '(Token.Right_Paren) >] -> []
@@ -68,7 +64,7 @@ and parse_return_modifier = parser
 and parse_type_opt stream = match Stream.peek stream with
   | Some (Token.Assign,_) -> None
   | Some (Token.Statement_End,_) -> None
-  | _ -> Some parse_defable stream
+  | _ -> Some (parse_defable stream)
 
 and parse_return_type = parser
                       | [< '(Token.Type_Separator,_); modif=parse_return_modifier; typ=parse_type_opt >]
@@ -77,23 +73,24 @@ and parse_return_type = parser
 
 and parse_def_body stream = match Stream.peek stream with
   | Some (Token.Statement_End,_) -> None
-  | Some (Token.Assign,_) -> Stream.junk stream; Some parse_defable stream
-  | _ -> Some parse_defable stream (*TODO Only allow scope when there is no = *)
+  | Some (Token.Assign,_) -> Stream.junk stream; Some (parse_defable stream)
+  | _ -> Some (parse_defable stream) (*TODO Only allow scope when there is no = *)
 
 and parse_def = parser
-              | [< name=parse_identifier; params=parse_parameter_list; return=parse_return_type; body=parse_def_body >]
+              | [< name=parse_identifier; params=parse_parameter_list;
+                   return=parse_return_type; body=parse_def_body >]
+                -> Ast.Def {def_name=name; def_params=params; def_ret=return; def_body=body}
+(*TODO: Complain when inferring type without body*)
 
-and parse_bare_definition : Ast.bare_definition =
-  parser
-| [< '(Token.Def, _); def=parse_def; >] -> def,start_span
-| [< err=(error_expected "a definition") >] -> raise err
+and parse_bare_definition = parser
+                          | [< '(Token.Def,_); def=parse_def; >] -> def
+                          | [< err=(error_expected "a definition") >] -> raise err
 
 and is_pub = parser
            | [< '(Token.Pub, span) >] -> (true, span)
            | [< span=peek_span >] -> (false, span)
 
-and parse_definition : Ast.definition =
-  parser
+and parse_definition = parser
 | [< (pub, start)=is_pub; bare_defin=parse_bare_definition; end_span=expect_token Token.Statement_End >]
   -> (pub, bare_defin, Span.interval_of_spans start end_span)
 

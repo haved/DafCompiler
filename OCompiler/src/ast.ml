@@ -27,7 +27,7 @@ and bare_parameter =
 and parameter = bare_parameter * Span.interval_t
 
 and bare_definition = (*Without pub or interval*)
-  | Def of {def_name:string; def_params:parameter list; def_ret:return_type; body:defable option;}
+  | Def of {def_name:string; def_params:parameter list; def_ret:return_type; def_body:defable option;}
 
 and definition = bool * bare_definition * Span.interval_t
 
@@ -37,3 +37,10 @@ let string_of_infix_operator defin = match defin with
   | Mult -> "*"
   | Divide -> "/"
   | Access_Operator -> "."
+
+open Printf
+
+let string_of_bare_definition bare_defin = "bare_definition"
+
+let string_of_definition (pub,bare_defin,span) =
+  (Printf.sprintf "%s%s" (if pub then "pub " else "") (string_of_bare_definition bare_defin))
