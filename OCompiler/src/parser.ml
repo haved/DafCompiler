@@ -9,7 +9,7 @@ let rec error_expected what = parser
 
 and expect_tok expected = parser
                         | [< '(found, span) as token_with_span >] ->
-                          if found = expected then ()
+                          if found = expected then span
                           else raise (UnexpectedToken(token_with_span, Token.token_to_string expected))
                         | [< >] -> raise (UnexpectedEOF (Token.token_to_string expected))
 
@@ -24,7 +24,7 @@ and parse_identifier = parser
 
 and parse_defable = parser
                   | [< '(Token.Integer_Literal num,span) >] -> (Ast.Integer_Literal num,span)
-                  | [< err=(error_expected "an expression") >] -> raise err
+                  | [< err=(error_expected "a defable") >] -> raise err
 
 and parse_parameter_modifier = parser
                              | [< '(Token.Let,_) >] -> Ast.Let_Param
@@ -65,31 +65,41 @@ and parse_return_modifier = parser
                           | [< '(Token.Mut,_) >] -> Ast.Mut_Ref_Ret
                           | [< >] -> Ast.Value_Ret
 
+and parse_type_opt stream = match Stream.peek stream with
+  | Some (Token.Assign,_) -> None
+  | Some (Token.Statement_End,_) -> None
+  | _ -> Some parse_defable stream
+
 and parse_return_type = parser
-                      | [< >] -> Some 
+                      | [< '(Token.Type_Separator,_); modif=parse_return_modifier; typ=parse_type_opt >]
+                        -> Some (modif,typ)
                       | [< >] -> None
 
-and parse_def_body = parser
-                   | 
-                   | [< '(Token.Statement_End,span) >] -> (None,span)
+and parse_def_body stream = match Stream.peek stream with
+  | Some (Token.Statement_End,_) -> None
+  | Some (Token.Assign,_) -> Stream.junk stream; Some parse_defable stream
+  | _ -> Some parse_defable stream (*TODO Only allow scope when there is no = *)
 
 and parse_def = parser
               | [< name=parse_identifier; params=parse_parameter_list; return=parse_return_type; body=parse_def_body >]
-                
 
-and parse_definition_wo_pub : Ast.bare_definition * Span.interval_t =
+and parse_bare_definition : Ast.bare_definition =
   parser
-| [< ' (Token.Def, start_span); (def,end_int)=parse_def >] -> (def*end_int) (*TODO: Merge in def span*)
+| [< '(Token.Def, _); def=parse_def; >] -> def,start_span
 | [< err=(error_expected "a definition") >] -> raise err
+
+and is_pub = parser
+           | [< '(Token.Pub, span) >] -> (true, span)
+           | [< span=peek_span >] -> (false, span)
 
 and parse_definition : Ast.definition =
   parser
-| [< '(Token.Pub, pub_span); (defin_wo, defin_span)=parse_definition_without_pub >] -> (true, defin_wo, Span.)
-| [< (defin_wo, defin_span)=parse_definition_wo_pub_span >] -> (false, defin_wo)
+| [< (pub, start)=is_pub; bare_defin=parse_bare_definition; end_span=expect_token Token.Statement_End >]
+  -> (pub, bare_defin, Span.interval_of_spans start end_span)
 
-and parse_all_definitions = parser
-                               | [< defin = (parse_definition false); rest = parse_all_definitions >] -> defin :: rest
-                               | [< >] -> []
+and parse_all_definitions stream = match Stream.peek stream with
+  | Some _ -> parse_definition stream :: parse_all_definitions stream
+  | None -> []
 
 let definition_list_of_file file_name =
   let ic = open_in file_name in

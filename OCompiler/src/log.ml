@@ -8,7 +8,7 @@ let string_of_log_level level = match level with
   | Error -> "error"
   | Fatal_Error -> "fatal_error"
 let format_file_loc file_name (line, col) = (Printf.sprintf "%s: %d:%d" file_name line col)
-let format_file_interval file_name ({loc=(line, col); end_loc=(end_line, end_col)}:Span.interval) =
+let format_file_interval file_name ({loc=(line, col); end_loc=(end_line, end_col)}:Span.interval_t) =
   if line == end_line
     then Printf.sprintf "%s: %d:%d-%d" file_name line col end_col
     else Printf.sprintf "%s: %d:%d-%d:%d" file_name line col end_line end_col
