@@ -2,3 +2,30 @@
 
 See ast.ml and parser.ml for grammar, and lexer.ml for tokens.
 Once those are finished I may detail the grammar here
+
+** Expressions, statements, types, namespaces and definitions
+
+We merge expressions, types and namespaces into one unit known as /deffable/.
+This is because they are what's parsed after a =def= or =typedef= or =namedef=
+
+Both parsing an expression and parsing a type invokes the same function.
+Errors for giving the wrong one will be given later, when identifiers are replaced with their definitions.
+
+** Types, classes and traits
+There are types you can't initialize, even though all their members are public.
+A trait may contain defs and typedefs that aren't defined.
+This is then the job of any class implementing the trait.
+*** virtual
+A def may be =virtual=.
+A pointer to the containing type can then be used to invoke an implementation.
+
+If the def is already defined, you must mark the overriding with =override=
+
+*** implementing for your future type
+A trait or class may also want to write an implementation for a def,
+but have the implementation be recompiled for each subclass.
+This should be possible, somehow.
+
+** Taking type parameters
+A typedef can be a parameter, much like a def parameter.
+def a(typedef b($T):Newable):= b(i32).new();
