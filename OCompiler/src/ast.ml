@@ -8,7 +8,7 @@ type bare_defable =
   | Infix_Operator of infix_operator * defable * defable
   | Identfier of string
 
-and defable = bare_defable * Span.interval_t
+and defable = bare_defable * Span.span_t
 
 (*TODO: ctor return is not a part of the signature, only function definition*)
 and return_modifier =
@@ -24,12 +24,12 @@ and bare_parameter =
   | Type_Inferred_Value_Param of parameter_modifier * string * string
   | Def_Param of string * parameter list * return_type
 
-and parameter = bare_parameter * Span.interval_t
+and parameter = bare_parameter * Span.span_t
 
 and bare_definition = (*Without pub or interval*)
   | Def of {def_name:string; def_params:parameter list; def_ret:return_type; def_body:defable option;}
 
-and definition = bool * bare_definition * Span.interval_t
+and definition = bool * bare_definition * Span.span_t
 
 let string_of_infix_operator defin = match defin with
   | Plus -> "+"

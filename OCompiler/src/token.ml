@@ -86,7 +86,7 @@ let string_to_token (text : string) (loc : Span.loc_t) : token_with_span =
   | "sizeof" -> Sizeof | "typeof" -> Typeof | "lengthof" -> Lengthof
   | "true" -> True | "false" -> False | "null" -> Null
   | id -> Identifier id in
-  (tok, {loc=loc; len=String.length text})
+  (tok, Span.span_of_loc_len loc (String.length text))
 
 let char_to_token (c : char) (loc : Span.loc_t) : token_with_span =
   let tok = match c with
@@ -99,7 +99,7 @@ let char_to_token (c : char) (loc : Span.loc_t) : token_with_span =
   | '<' -> Lower | '>' -> Greater
   | '?' -> Q_mark
   | _ -> Error c in
-  (tok, {loc=loc; len=1})
+  (tok, Span.span_of_loc_len loc 1)
 
 type merge_t = {input:token*token; output:token}
 let merges = [

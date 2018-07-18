@@ -49,7 +49,7 @@ and lex_number buffer loc = parser
                             lex_real_number buffer loc stream )
                           | [< next_parser=lex_singles >] ->
                             [< '(Token.Integer_Literal (int_of_string (Buffer.contents buffer)),
-                             Span.span loc (Buffer.length buffer)); next_parser >]
+                             Span.span_of_loc_len loc (Buffer.length buffer)); next_parser >]
 
 and lex_real_number buffer loc = parser
                                | [< ' ('0' .. '9' as c, _); stream >] -> (
@@ -57,7 +57,7 @@ and lex_real_number buffer loc = parser
                                  lex_real_number buffer loc stream )
                                | [< next_parser=lex_singles >] ->
                                  [< '(Token.Real_Literal (float_of_string (Buffer.contents buffer)),
-                                      Span.span loc (Buffer.length buffer)); next_parser >]
+                                      Span.span_of_loc_len loc (Buffer.length buffer)); next_parser >]
 
 and lex_line_comment_first tok = parser
                           | [< ' ('/', _); next_parser=lex_line_comment >] -> next_parser
