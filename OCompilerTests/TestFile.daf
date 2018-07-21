@@ -1,6 +1,6 @@
 // -*- compile-command: "cd .. && time ./buildScript.py" -*-
 
-def main {
+pub def main {
 	let a := 5;
 	mut b : i32 = 7;
 	b = b / a;

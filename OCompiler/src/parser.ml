@@ -91,11 +91,13 @@ and is_pub = parser
            | [< span=peek_span >] -> (false, span)
 
 and parse_definition = parser
-| [< (pub, start)=is_pub; bare_defin=parse_bare_definition; end_span=expect_tok Token.Statement_End >]
-  -> (pub, bare_defin, Span.span_over start end_span)
+                     | [< (pub, start)=is_pub; bare_defin=parse_bare_definition; end_span=expect_tok Token.Statement_End >]
+                       -> (pub, bare_defin, Span.span_over start end_span)
 
 and parse_all_definitions stream = match Stream.peek stream with
-  | Some _ -> parse_definition stream :: parse_all_definitions stream
+  | Some (tok,_) ->
+    let defin = parse_definition stream in
+    defin :: parse_all_definitions stream
   | None -> []
 
 let definition_list_of_file file_name =
