@@ -2,11 +2,14 @@
 type infix_operator =
   | Plus | Minus | Mult | Divide | Access_Operator
 
-type bare_defable =
+type def_literal_t = {def_params:parameter list; def_ret:return_type; def_body:defable option}
+
+and bare_defable =
   | Integer_Literal of int
   | Real_Literal of float
   | Infix_Operator of infix_operator * defable * defable
   | Identfier of string
+  | Def_Literal of def_literal_t
 
 and defable = bare_defable * Span.span_t
 
@@ -27,7 +30,7 @@ and bare_parameter =
 and parameter = bare_parameter * Span.span_t
 
 and bare_definition = (*Without pub or interval*)
-  | Def of {def_name:string; def_params:parameter list; def_ret:return_type; def_body:defable option;}
+  | Def of string * def_literal_t
 
 and definition = bool * bare_definition * Span.span_t
 

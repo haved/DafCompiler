@@ -1,5 +1,9 @@
 open Printf
 
+(*
+    ==== Error handeling ====
+*)
+
 exception UnexpectedToken of Token.token_with_span * string
 exception UnexpectedEOF of string
 
@@ -13,6 +17,10 @@ and expect_tok expected = parser
                           else raise (UnexpectedToken(token_with_span, Token.token_to_string expected))
                         | [< >] -> raise (UnexpectedEOF (Token.token_to_string expected))
 
+(*
+     ==== Helper parsers ====
+*)
+
 and peek_span stream =
   match Stream.peek stream with
   | Some (_,span)-> span
@@ -22,9 +30,19 @@ and parse_identifier = parser
                      | [< '(Token.Identifier ident,_) >] -> ident
                      | [< err=(error_expected "an identifier") >] -> raise err
 
+(*
+    ==== The defable, either an expression, a type or a namespace ====
+*)
+
 and parse_defable = parser
                   | [< '(Token.Integer_Literal num,span) >] -> (Ast.Integer_Literal num,span)
+                  | [< '(Token.Def,start); (def_literal,end_span)=parse_def_literal >]
+                    -> (def_literal,Span.span_over start end_span)
                   | [< err=(error_expected "a defable") >] -> raise err
+
+(*
+    ==== Everything related to def_literal ====
+*)
 
 and parse_parameter_modifier = parser
                              | [< '(Token.Let,_) >] -> Ast.Let_Param
@@ -46,7 +64,7 @@ and after_param_parse = parser
                       | [< err=error_expected "',' or ')'" >] -> raise err
 
 and parse_parameter_rec = parser
-                        | [< param = parse_parameter; params=after_param_parse >] -> param :: params
+                        | [< param=parse_parameter; params=after_param_parse >] -> param :: params
 
 and parse_first_parameter = parser
                           | [< '(Token.Right_Paren,_) >] -> []
@@ -61,38 +79,48 @@ and parse_return_modifier = parser
                           | [< '(Token.Mut,_) >] -> Ast.Mut_Ref_Ret
                           | [< >] -> Ast.Value_Ret
 
-and parse_type_opt stream = match Stream.peek stream with
+and parse_type_or_inferred stream = match Stream.peek stream with
   | Some (Token.Assign,_) -> None
-  | Some (Token.Statement_End,_) -> None
   | _ -> Some (parse_defable stream)
 
 and parse_return_type = parser
-                      | [< '(Token.Type_Separator,_); modif=parse_return_modifier; typ=parse_type_opt >]
+                      | [< '(Token.Type_Separator,_); modif=parse_return_modifier; typ=parse_type_or_inferred >]
                         -> Some (modif,typ)
                       | [< >] -> None
 
 and parse_def_body stream = match Stream.peek stream with
-  | Some (Token.Statement_End,_) -> None
+  | Some (Token.Statement_End,) -> None
   | Some (Token.Assign,_) -> Stream.junk stream; Some (parse_defable stream)
-  | _ -> Some (parse_defable stream) (*TODO Only allow scope when there is no = *)
+  | _ -> Some (parse_defable stream) (* TODO there is no '=' => only allow scope *)
+
+and parse_def_literal = parser
+                      | [< start=peek_span; params=parse_parameter_list; return=parse_return_type; (body,end_span)=parse_def_body >]
+                        -> ({def_params=params; def_ret=return; def_body=body}, Span.span_over start end_span)
+
+(*
+    ==== All definitions ====
+    They are first parsed "bare", meaning without span info or the 'pub' keyword.
+*)
 
 and parse_def = parser
-              | [< name=parse_identifier; params=parse_parameter_list;
-                   return=parse_return_type; body=parse_def_body >]
-                -> Ast.Def {def_name=name; def_params=params; def_ret=return; def_body=body}
-(*TODO: Complain when inferring type without body*)
+              | [< name=parse_identifier; def_literal=parse_def_literal >]
+                -> Ast.Def (name, def_literal)
 
 and parse_bare_definition = parser
                           | [< '(Token.Def,_); def=parse_def; >] -> def
                           | [< err=(error_expected "a definition") >] -> raise err
 
-and is_pub = parser
+and parse_is_pub = parser
            | [< '(Token.Pub, span) >] -> (true, span)
            | [< span=peek_span >] -> (false, span)
 
 and parse_definition = parser
-                     | [< (pub, start)=is_pub; bare_defin=parse_bare_definition; end_span=expect_tok Token.Statement_End >]
+                     | [< (pub, start)=parse_is_pub; bare_defin=parse_bare_definition; end_span=expect_tok Token.Statement_End >]
                        -> (pub, bare_defin, Span.span_over start end_span)
+
+(*
+   ==== File parsing code ====
+*)
 
 and parse_all_definitions stream = match Stream.peek stream with
   | Some (tok,_) ->
