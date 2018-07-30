@@ -15,7 +15,7 @@ Keep in mind you don't need all these to build the compiler
 =opam init=
 =eval `opam config env`=
 Add to .bashrc: =. /home/haavard/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true=
-=opam switch 4.06.1= NB!: Takes forever
+=opam switch 4.06.1= This is the OCaml compiler I use. NB!: Switching takes forever
 *** Build system
 =opam install oasis= //Not sure if needed after oasis is set up (done in repo)
 =opam install core=

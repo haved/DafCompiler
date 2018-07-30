@@ -5,3 +5,5 @@ _build
 
 setup.data
 setup.log
+
+#configure, Makefile ande setup.ml are supposed to be checked in
