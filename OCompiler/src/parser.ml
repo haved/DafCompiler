@@ -37,11 +37,11 @@ and parse_identifier = parser
 and parse_defable = parser
                   | [< '(Token.Integer_Literal num,span) >] -> (Ast.Integer_Literal num,span)
                   | [< '(Token.Def,start); (def_literal,end_span)=parse_def_literal >]
-                    -> (def_literal,Span.span_over start end_span)
+                    -> (def_literal, Span.span_over start end_span)
                   | [< err=(error_expected "a defable") >] -> raise err
 
 (*
-    ==== Everything related to def_literal ====
+    ==== Everything related to def_literal, also used by def ====
 *)
 
 and parse_parameter_modifier = parser
@@ -89,30 +89,33 @@ and parse_return_type = parser
                       | [< >] -> None
 
 and parse_def_body stream = match Stream.peek stream with
-  | Some (Token.Statement_End,) -> None
-  | Some (Token.Assign,_) -> Stream.junk stream; Some (parse_defable stream)
-  | _ -> Some (parse_defable stream) (* TODO there is no '=' => only allow scope *)
+  | Some (Token.Assign,_) -> Stream.junk stream; parse_defable stream
+  | _ -> parse_defable stream (* TODO there is no '=' => only allow scope *)
 
 and parse_def_literal = parser
-                      | [< start=peek_span; params=parse_parameter_list; return=parse_return_type; (body,end_span)=parse_def_body >]
-                        -> ({def_params=params; def_ret=return; def_body=body}, Span.span_over start end_span)
+                      | [< start=peek_span; params=parse_parameter_list; return=parse_return_type; (_,end_span)as body=parse_def_body >]
+                        -> (Ast.Def_Literal (params, return, body), Span.span_over start end_span)
 
 (*
     ==== All definitions ====
     They are first parsed "bare", meaning without span info or the 'pub' keyword.
 *)
 
+and parse_optional_def_body stream = match Stream.peek stream with
+  | Some (Token.Statement_End,_) -> None
+  | _ -> Some (parse_def_body stream)
+
 and parse_def = parser
-              | [< name=parse_identifier; def_literal=parse_def_literal >]
-                -> Ast.Def (name, def_literal)
+              | [< name=parse_identifier; params=parse_parameter_list; return=parse_return_type; body=parse_optional_def_body >]
+                -> Ast.Def (name, params, return, body)
 
 and parse_bare_definition = parser
                           | [< '(Token.Def,_); def=parse_def; >] -> def
                           | [< err=(error_expected "a definition") >] -> raise err
 
 and parse_is_pub = parser
-           | [< '(Token.Pub, span) >] -> (true, span)
-           | [< span=peek_span >] -> (false, span)
+                 | [< '(Token.Pub, span) >] -> (true, span)
+                 | [< span=peek_span >] -> (false, span)
 
 and parse_definition = parser
                      | [< (pub, start)=parse_is_pub; bare_defin=parse_bare_definition; end_span=expect_tok Token.Statement_End >]

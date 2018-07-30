@@ -1,0 +1,3 @@
+FLG -pp camlp4of
+S src
+B _build/src

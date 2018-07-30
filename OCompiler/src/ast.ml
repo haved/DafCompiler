@@ -1,19 +1,20 @@
 
+(* ==== Defables ==== *)
+
 type infix_operator =
   | Plus | Minus | Mult | Divide | Access_Operator
 
-type def_literal_t = {def_params:parameter list; def_ret:return_type; def_body:defable option}
-
-and bare_defable =
+type bare_defable =
   | Integer_Literal of int
   | Real_Literal of float
   | Infix_Operator of infix_operator * defable * defable
   | Identfier of string
-  | Def_Literal of def_literal_t
+  | Def_Literal of parameter list * return_type * defable
 
 and defable = bare_defable * Span.span_t
 
-(*TODO: ctor return is not a part of the signature, only function definition*)
+(* ==== Def stuff ===== *)
+
 and return_modifier =
   | Value_Ret | Ref_Ret | Mut_Ref_Ret
 
@@ -29,8 +30,10 @@ and bare_parameter =
 
 and parameter = bare_parameter * Span.span_t
 
-and bare_definition = (*Without pub or interval*)
-  | Def of string * def_literal_t
+(* ==== Definitions ==== *)
+
+and bare_definition =
+  | Def of string * parameter list * return_type * defable option
 
 and definition = bool * bare_definition * Span.span_t
 
