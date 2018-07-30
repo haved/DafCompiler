@@ -28,7 +28,7 @@ and peek_span stream =
 
 and parse_identifier = parser
                      | [< '(Token.Identifier ident,_) >] -> ident
-                     | [< err=(error_expected "an identifier") >] -> raise err
+                     | [< err=error_expected "an identifier" >] -> raise err
 
 (*
     ==== The defable, either an expression, a type or a namespace ====
@@ -38,7 +38,36 @@ and parse_defable = parser
                   | [< '(Token.Integer_Literal num,span) >] -> (Ast.Integer_Literal num,span)
                   | [< '(Token.Def,start); (def_literal,end_span)=parse_def_literal >]
                     -> (def_literal, Span.span_over start end_span)
+                  | [< '(Token.Scope_Start,start); (scope,end_span)=parse_scope [] >]
+                    -> (scope, Span.span_over start end_span)
                   | [< err=(error_expected "a defable") >] -> raise err
+
+(*
+   ==== Scopes and statements ====
+*)
+
+and parse_scope stmts = parser
+                      | [< '(Token.Scope_End,end_span) >] -> (stmts,end_span)
+                      | [< stmt = parse_statement; scope = parse_scope (stmts::stmt) >] -> scope
+
+and parse_else_opt = parser
+                        | [< '(Token.Else,_); else_=parse_statement >] -> Some else_
+                        | _ -> None
+
+and parse_if =
+  parser
+| [< '(Token.If,start); cond=parse_defable; (_,body_span) as body=parse_statement; else_opt=parse_statement>]
+  -> match else_opt with
+  | Some (_,end_span) as else_stmt -> (Ast.If (cond,body,else_stmt), end_span)
+  | None -> (Ast.If (cond,body,Ast.NopStatement), body_span)
+
+and parse_statement stream =
+  match Stream.peek stream with
+  | None -> raise error_expected "a statement" stream
+  | Some (token,_) ->
+    match token with
+    | Token.If -> parse_if stream
+    | _ -> parse_expression_statement stream
 
 (*
     ==== Everything related to def_literal, also used by def ====

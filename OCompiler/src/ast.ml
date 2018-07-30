@@ -13,6 +13,16 @@ type bare_defable =
 
 and defable = bare_defable * Span.span_t
 
+(* ==== Scopes and statements ==== *)
+
+and statement = bare_statement * Span.span_t
+
+and bare_statement =
+  | NopStatement
+  | If of defable * statement * statement
+  | DefinitionStatement of bare_definition
+  | ExpressionStatement of defable
+
 (* ==== Def stuff ===== *)
 
 and return_modifier =
