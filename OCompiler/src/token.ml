@@ -1,6 +1,6 @@
 
 type token =
-  | Pub | Let | Def | With | As | Mut | Uncrt | Move | Copy
+  | Pub | Let | Def | Typedef | With | As | Mut | Uncrt | Move | Copy
   | Class | Trait | Namespace | Enum | Prot
   | Ctor | Dtor | This | This_Type
   | Virt | Override
@@ -33,7 +33,7 @@ type token =
 
 let token_to_string token =
   match token with
-  | Pub -> "pub" | Let -> "let" | Def -> "def" | With -> "with" | As -> "as" | Mut -> "mut" | Uncrt -> "uncrt" | Move -> "move" | Copy -> "copy"
+  | Pub -> "pub" | Let -> "let" | Def -> "def" | Typedef -> "typedef" | With -> "with" | As -> "as" | Mut -> "mut" | Uncrt -> "uncrt" | Move -> "move" | Copy -> "copy"
   | Class -> "class" | Trait -> "trait" | Namespace -> "namespace" | Enum -> "enum" | Prot -> "prot"
   | Ctor -> "ctor" | Dtor -> "dtor" | This -> "this" | This_Type -> "This"
   | Virt -> "virt" | Override -> "override"
@@ -71,7 +71,7 @@ type token_with_span = (token * Span.span_t)
 
 let string_to_token (text : string) (loc : Span.loc_t) : token_with_span =
   let tok = match text with
-  | "pub" -> Pub | "let" -> Let | "def" -> Def | "with" -> With | "as" -> As | "mut" -> Mut | "uncrt" -> Uncrt | "move" -> Move | "copy" -> Copy
+  | "pub" -> Pub | "let" -> Let | "def" -> Def | "typedef" -> Typedef | "with" -> With | "as" -> As | "mut" -> Mut | "uncrt" -> Uncrt | "move" -> Move | "copy" -> Copy
   | "class" -> Class | "trait" -> Trait | "namespace" -> Namespace | "enum" -> Enum | "prot" -> Prot
   | "ctor" -> Ctor | "dtor" -> Dtor | "this" -> This | "This" -> This_Type
   | "virt" -> Virt | "override" -> Override

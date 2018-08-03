@@ -36,9 +36,9 @@ and parse_identifier = parser
 
 and parse_defable = parser
                   | [< '(Token.Integer_Literal num,span) >] -> (Ast.Integer_Literal num,span)
-                  | [< '(Token.Def,start); (def_literal,end_span)=parse_def_literal >]
+                  | [< '(Token.Def,start); (def_literal,end_span)=parse_def_literal_values >]
                     -> (def_literal, Span.span_over start end_span)
-                  | [< '(Token.Scope_Start,start); (scope,end_span)=parse_scope_contents [] >]
+                  | [< '(Token.Scope_Start,start); (scope,end_span)=parse_scope_contents >]
                     -> (Ast.Scope scope, Span.span_over start end_span)
                   | [< err=error_expected "a defable" >] -> raise err
 
@@ -47,27 +47,31 @@ and parse_defable = parser
 *)
 
 and parse_scope = parser
-                | [< '(Token.Scope_Start,start); (scope,end_span)=parse_scope_contents [] >]
+                | [< '(Token.Scope_Start,start); (scope,end_span)=parse_scope_contents >]
                   -> (Ast.Scope scope, Span.span_over start end_span)
                 | [< err=error_expected "a scope" >] -> raise err
 
-and parse_scope_contents stmts = parser
-                      | [< '(Token.Scope_End,end_span) >] -> (stmts,end_span)
-                      | [< stmt = parse_statement; scope = parse_scope (stmts::stmt) >] -> scope
+and parse_scope_contents = parser
+                      | [< '(Token.Scope_End,end_span) >] -> ([],end_span)
+                      | [< stmt=parse_statement; (rest,end_scope)=parse_scope_contents >] -> ()
 
 and parse_else_opt = parser
                         | [< '(Token.Else,_); body=parse_statement >] -> Some body (* to love *)
-                        | _ -> None
+                        | [< >] -> None
 
 and parse_packed_statement stream =
-match Stream.peek stream with
-  | Some (Token.Scope_Start,_) -> parse_scope stream (* Yes a scope is a defable, but here is doesn't need ; *)
-  | 
-  | Some (_,start) ->
-    let expression = parse_defable   stream in
-    let end_span  = expect_tok Token.Statement_End stream in
-    (Ast.ExpressionStatement expression, Span.span_over start end_span)
+  match Stream.peek stream with
   | None -> raise (error_expected "a statement" stream)
+  | Some (token,start) -> match token with
+    | Token.Scope_Start -> parse_scope stream (* Yes a scope is a defable, but here is doesn't need ; *)
+    | Token.Def | Token.Let | Token.Mut | Token.Typedef ->
+      let defin = parse_bare_defable stream in
+      let end_span = expect_tok Token.Statement_End stream in
+      (Ast.DefinitionStatement defin, Span.span_over start end_span)
+    | _ ->
+      let expression = parse_defable   stream in
+      let end_span  = expect_tok Token.Statement_End stream in
+      (Ast.ExpressionStatement expression, Span.span_over start end_span)
 
 and parse_statement =
   parser
@@ -131,13 +135,13 @@ and parse_def_body stream = match Stream.peek stream with
   | Some (Token.Assign,_) -> Stream.junk stream; parse_defable stream
   | _ -> parse_scope stream (* We only allow a scope body if there is no '=' *)
 
-and parse_def_literal = parser
+and parse_def_literal_values = parser
                       | [< start=peek_span; params=parse_parameter_list; return=parse_return_type; (_,end_span)as body=parse_def_body >]
                         -> (Ast.Def_Literal (params, return, body), Span.span_over start end_span)
 
 (*
     ==== All definitions ====
-    They are first parsed "bare", meaning without span info or the 'pub' keyword.
+    They are first parsed "bare", meaning without span info or the 'pub' keyword or trailing semicolon.
 *)
 
 and parse_optional_def_body stream = match Stream.peek stream with
