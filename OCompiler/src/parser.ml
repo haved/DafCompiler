@@ -38,36 +38,46 @@ and parse_defable = parser
                   | [< '(Token.Integer_Literal num,span) >] -> (Ast.Integer_Literal num,span)
                   | [< '(Token.Def,start); (def_literal,end_span)=parse_def_literal >]
                     -> (def_literal, Span.span_over start end_span)
-                  | [< '(Token.Scope_Start,start); (scope,end_span)=parse_scope [] >]
-                    -> (scope, Span.span_over start end_span)
-                  | [< err=(error_expected "a defable") >] -> raise err
+                  | [< '(Token.Scope_Start,start); (scope,end_span)=parse_scope_contents [] >]
+                    -> (Ast.Scope scope, Span.span_over start end_span)
+                  | [< err=error_expected "a defable" >] -> raise err
 
 (*
    ==== Scopes and statements ====
 *)
 
-and parse_scope stmts = parser
+and parse_scope = parser
+                | [< '(Token.Scope_Start,start); (scope,end_span)=parse_scope_contents [] >]
+                  -> (Ast.Scope scope, Span.span_over start end_span)
+                | [< err=error_expected "a scope" >] -> raise err
+
+and parse_scope_contents stmts = parser
                       | [< '(Token.Scope_End,end_span) >] -> (stmts,end_span)
                       | [< stmt = parse_statement; scope = parse_scope (stmts::stmt) >] -> scope
 
 and parse_else_opt = parser
-                        | [< '(Token.Else,_); else_=parse_statement >] -> Some else_
+                        | [< '(Token.Else,_); body=parse_statement >] -> Some body (* to love *)
                         | _ -> None
 
-and parse_if =
-  parser
-| [< '(Token.If,start); cond=parse_defable; (_,body_span) as body=parse_statement; else_opt=parse_statement>]
-  -> match else_opt with
-  | Some (_,end_span) as else_stmt -> (Ast.If (cond,body,else_stmt), end_span)
-  | None -> (Ast.If (cond,body,Ast.NopStatement), body_span)
+and parse_packed_statement stream =
+match Stream.peek stream with
+  | Some (Token.Scope_Start,_) -> parse_scope stream (* Yes a scope is a defable, but here is doesn't need ; *)
+  | 
+  | Some (_,start) ->
+    let expression = parse_defable   stream in
+    let end_span  = expect_tok Token.Statement_End stream in
+    (Ast.ExpressionStatement expression, Span.span_over start end_span)
+  | None -> raise (error_expected "a statement" stream)
 
-and parse_statement stream =
-  match Stream.peek stream with
-  | None -> raise error_expected "a statement" stream
-  | Some (token,_) ->
-    match token with
-    | Token.If -> parse_if stream
-    | _ -> parse_expression_statement stream
+and parse_statement =
+  parser
+| [< '(Token.If, start); cond=parse_defable; body=parse_statement; else_opt=parse_else_opt >]
+  -> (
+    match else_opt with
+    | Some (_,end_span) as else_ ->      (Ast.If_Statement (cond body Some else_), Span.span_over start end_span)
+    | None -> let (_,end_span) = body in (Ast.If_Statement (cond body None),       Span.span_over start end_span)
+  )
+| [< stmt = parse_packed_statement >] -> stmt
 
 (*
     ==== Everything related to def_literal, also used by def ====
@@ -119,7 +129,7 @@ and parse_return_type = parser
 
 and parse_def_body stream = match Stream.peek stream with
   | Some (Token.Assign,_) -> Stream.junk stream; parse_defable stream
-  | _ -> parse_defable stream (* TODO there is no '=' => only allow scope *)
+  | _ -> parse_scope stream (* We only allow a scope body if there is no '=' *)
 
 and parse_def_literal = parser
                       | [< start=peek_span; params=parse_parameter_list; return=parse_return_type; (_,end_span)as body=parse_def_body >]
@@ -134,12 +144,12 @@ and parse_optional_def_body stream = match Stream.peek stream with
   | Some (Token.Statement_End,_) -> None
   | _ -> Some (parse_def_body stream)
 
-and parse_def = parser
+and parse_def_values = parser
               | [< name=parse_identifier; params=parse_parameter_list; return=parse_return_type; body=parse_optional_def_body >]
                 -> Ast.Def (name, params, return, body)
 
 and parse_bare_definition = parser
-                          | [< '(Token.Def,_); def=parse_def; >] -> def
+                          | [< '(Token.Def,_); def=parse_def_values; >] -> def
                           | [< err=(error_expected "a definition") >] -> raise err
 
 and parse_is_pub = parser

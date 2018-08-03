@@ -9,6 +9,7 @@ type bare_defable =
   | Real_Literal of float
   | Infix_Operator of infix_operator * defable * defable
   | Identfier of string
+  | Scope of statement list
   | Def_Literal of parameter list * return_type * defable
 
 and defable = bare_defable * Span.span_t
@@ -23,7 +24,7 @@ and bare_statement =
   | DefinitionStatement of bare_definition
   | ExpressionStatement of defable
 
-(* ==== Def stuff ===== *)
+(* ==== Def stuff ==== *)
 
 and return_modifier =
   | Value_Ret | Ref_Ret | Mut_Ref_Ret
