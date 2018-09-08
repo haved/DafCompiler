@@ -20,5 +20,5 @@ Executable "dafc"
    install: true
    MainIs: dafc_main.ml
    CompiledObject: native
-   BuildDepends: camlp4 llvm.6.0.0
+   BuildDepends: camlp4 llvm
 

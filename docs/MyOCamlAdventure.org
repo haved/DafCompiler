@@ -7,9 +7,9 @@ OCaml seemed like a great place to start.
 *** Pacman on Manjaro (Arch Linux)
 - opam
 **** Uninstall these if they are installed through pacman
-- ocaml
 - llvm-ocaml
-- ocaml-compiler-libs
+- camlp4
+- ocaml-ctypes
 - ocaml-findlib
 *** Initializing opam
 - =opam init=
