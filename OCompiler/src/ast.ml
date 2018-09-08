@@ -43,8 +43,12 @@ and parameter = bare_parameter * Span.span_t
 
 (* ==== Definitions ==== *)
 
+and let_modifier =
+  | Mut_Let | Normal_Let
+
 and bare_definition =
   | Def of string * parameter list * return_type * defable option
+  | Let of let_modifier * string * defable option * defable option
 
 and definition = bool * bare_definition * Span.span_t
 

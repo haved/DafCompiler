@@ -62,12 +62,12 @@ and parse_else_opt = parser
 and parse_packed_statement stream =
   match Stream.peek stream with
   | None -> raise (error_expected "a statement" stream)
-  | Some (token,start) -> match token with
+  | Some (token,start_span) -> match token with
     | Token.Scope_Start -> parse_scope stream (* Yes a scope is a defable, but here is doesn't need ; *)
     | Token.Def | Token.Let | Token.Mut | Token.Typedef ->
-      let defin = parse_bare_defable stream in
+      let defin = parse_bare_definition stream in
       let end_span = expect_tok Token.Statement_End stream in
-      (Ast.DefinitionStatement defin, Span.span_over start end_span)
+      (Ast.DefinitionStatement defin, Span.span_over start_span end_span)
     | _ ->
       let expression = parse_defable   stream in
       let end_span  = expect_tok Token.Statement_End stream in
@@ -152,17 +152,35 @@ and parse_def_values = parser
               | [< name=parse_identifier; params=parse_parameter_list; return=parse_return_type; body=parse_optional_def_body >]
                 -> Ast.Def (name, params, return, body)
 
+and parse_let_modifiers = parser
+                        | [< '(Token.Mut,_) >] -> Ast.Mut_Let
+                        | [< >] -> Ast.Normal_Let
+
+and parse_optional_let_type_and_assigment =
+  let parse_optional_body = parser
+                          | [< '(Token.Assign,_); body=parse_defable >] -> Some body
+                          | [< >] -> None
+  in parser
+   | [< '(Token.Assign,_); body=parse_defable >] -> (None,Some body)
+   | [< typ=parse_defable; body=parse_optional_body >] -> (Some typ,body)
+
+and parse_let_values = parser
+                     | [< modif=parse_let_modifiers; name=parse_identifier; '(Token.Type_Separator,_); (typ,assign)=parse_optional_let_type_and_assignment >] -> Ast.Let (modif, name, typ, assign)
+
 and parse_bare_definition = parser
                           | [< '(Token.Def,_); def=parse_def_values; >] -> def
+                          | [< '(Token.Let,_); let_values=parse_let_values; >] -> let_values
                           | [< err=(error_expected "a definition") >] -> raise err
 
+(* Turning bare definitions into definitions *)
+
 and parse_is_pub = parser
-                 | [< '(Token.Pub, (start_loc,_)) >] -> (true, start_loc)
-                 | [< (start_loc,_)=peek_span >] -> (false, start_loc)
+                 | [< '(Token.Pub, start_span) >] -> (true, start_span)
+                 | [< start_span=peek_span >] -> (false, start_span)
 
 and parse_definition = parser
-                     | [< (pub, start_loc)=parse_is_pub; bare_defin=parse_bare_definition; end_loc=expect_tok Token.Statement_End >]
-                       -> (pub, bare_defin, Span.span start_loc end_loc)
+                     | [< (pub, start_span)=parse_is_pub; bare_defin=parse_bare_definition; end_span=expect_tok Token.Statement_End >]
+                       -> (pub, bare_defin, Span.span_over start_span end_span)
 
 (*
    ==== File parsing code ====
