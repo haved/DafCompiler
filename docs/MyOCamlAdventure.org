@@ -6,31 +6,32 @@ OCaml seemed like a great place to start.
 ** The packages I installed
 *** Pacman on Manjaro (Arch Linux)
 - opam
-**** Probably don't have these installed using pacman, see opam
+**** Uninstall these if they are installed through pacman
 - ocaml
 - llvm-ocaml
 - ocaml-compiler-libs
 - ocaml-findlib
 *** Initializing opam
-=opam init=
-=eval `opam config env`=
-Add to .bashrc: =. /home/haavard/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true=
-=opam switch 4.06.1= This is the OCaml compiler I use. NB!: Switching takes forever
+- =opam init=
+- =eval `opam config env`=
+- Add to .bashrc: =. /home/haavard/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true=
+- =opam switch 4.06.1= This is the OCaml compiler I use. NB!: Switching takes forever
 *** Build system packages
-**** TODO: Find out
-I'm not sure if the oasis package is needed to use the oasis generated Makefile (checked into git)
-=opam install oasis=
-=opam install core=
+- =opam install oasis= //I'm not sure if the oasis package is needed to use the oasis generated Makefile (checked into git)
 *** Dependencies
-Many of these packages also exist in pacman, but if you use opam you'll be sure to get the correct package version for your compiler
-I don't know if oasis automatically installs dependencies or not
-=opam install llvm.6.0.0 camlp4 compiler-libs findlib=
+Many of these packages also exist in pacman, but if you use opam you'll be sure to get the correct package version for your compiler version.
+- =opam install llvm.6.0.0 camlp4=
+- =opam install core= //Core is an alternative to the standard library
+**** Packages found installed, maybe useless, maybe automatically installed dependencies
+Or maybe I did it manually some time ago?
+- In pacman: ocmal-compiler-libs ocmal-findlib
+- In opam: ocamlfind ocp-build
 
 *** Emacs mode
 I use spacemacs with the ocaml layer
-=opam install ocp-indent=
-=opam install merlin=
-Restart emacs server
+- =opam install ocp-indent=
+- =opam install merlin=
+- Restart emacs server
 
 * My oasis setup
 Source: https://ocaml.org/learn/tutorials/setting_up_with_oasis.html
