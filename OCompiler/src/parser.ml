@@ -36,10 +36,10 @@ and parse_identifier = parser
 
 and parse_defable = parser
                   | [< '(Token.Integer_Literal num,span) >] -> (Ast.Integer_Literal num,span)
-                  | [< '(Token.Def,start); (def_literal,end_span)=parse_def_literal_values >]
-                    -> (def_literal, Span.span_over start end_span)
-                  | [< '(Token.Scope_Start,start); (scope,end_span)=parse_scope_contents >]
-                    -> (Ast.Scope scope, Span.span_over start end_span)
+                  | [< '(Token.Def,start_span); (def_literal,end_span)=parse_def_literal_values >]
+                    -> (def_literal, Span.span_over start_span end_span)
+                  | [< '(Token.Scope_Start,(start_loc,_)); (scope,end_loc)=parse_scope_contents >]
+                    -> (Ast.Scope scope, Span.span start_loc end_loc)
                   | [< err=error_expected "a defable" >] -> raise err
 
 (*
@@ -52,8 +52,8 @@ and parse_scope = parser
                 | [< err=error_expected "a scope" >] -> raise err
 
 and parse_scope_contents = parser
-                      | [< '(Token.Scope_End,end_span) >] -> ([],end_span)
-                      | [< stmt=parse_statement; (rest,end_scope)=parse_scope_contents >] -> ()
+                      | [< '(Token.Scope_End,(_,end_loc)) >] -> ([],end_loc)
+                      | [< stmt=parse_statement; (rest,end_loc)=parse_scope_contents >] -> (stmt::rest, end_loc)
 
 and parse_else_opt = parser
                         | [< '(Token.Else,_); body=parse_statement >] -> Some body (* to love *)
@@ -133,7 +133,7 @@ and parse_return_type = parser
 
 and parse_def_body stream = match Stream.peek stream with
   | Some (Token.Assign,_) -> Stream.junk stream; parse_defable stream
-  | _ -> parse_scope stream (* We only allow a scope body if there is no '=' *)
+  | _ -> parse_scope stream (* If there is no '=', we only allow a scope body *)
 
 and parse_def_literal_values = parser
                       | [< start=peek_span; params=parse_parameter_list; return=parse_return_type; (_,end_span)as body=parse_def_body >]
@@ -157,12 +157,12 @@ and parse_bare_definition = parser
                           | [< err=(error_expected "a definition") >] -> raise err
 
 and parse_is_pub = parser
-                 | [< '(Token.Pub, span) >] -> (true, span)
-                 | [< span=peek_span >] -> (false, span)
+                 | [< '(Token.Pub, (start_loc,_)) >] -> (true, start_loc)
+                 | [< (start_loc,_)=peek_span >] -> (false, start_loc)
 
 and parse_definition = parser
-                     | [< (pub, start)=parse_is_pub; bare_defin=parse_bare_definition; end_span=expect_tok Token.Statement_End >]
-                       -> (pub, bare_defin, Span.span_over start end_span)
+                     | [< (pub, start_loc)=parse_is_pub; bare_defin=parse_bare_definition; end_loc=expect_tok Token.Statement_End >]
+                       -> (pub, bare_defin, Span.span start_loc end_loc)
 
 (*
    ==== File parsing code ====

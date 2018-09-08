@@ -3,7 +3,7 @@
 OASISFormat:  0.4
 OCamlVersion: >= 4.02.3
 Name:         DafCompiler
-Version:      0.1
+Version:      0.0
 Maintainers:  haved
 Homepage:     http://github.com/haved/DafCompiler
 Synopsis:     The compiler for the daf language
