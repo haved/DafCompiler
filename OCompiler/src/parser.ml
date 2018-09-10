@@ -43,6 +43,13 @@ and parse_defable = parser
                   | [< err=error_expected "a defable" >] -> raise err
 
 (*
+   ==== Types ====
+*)
+
+and parse_type_literal = parser
+                       | [< '(Token.U8,spn) >] -> (Ast.Primitive Ast.U8, spn)
+
+(*
    ==== Scopes and statements ====
 *)
 

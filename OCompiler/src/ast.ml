@@ -9,10 +9,16 @@ type bare_defable =
   | Real_Literal of float
   | Infix_Operator of infix_operator * defable * defable
   | Identfier of string
+  | Primitive_Type_Literal of primitive_type
   | Scope of statement list
   | Def_Literal of parameter list * return_type * defable
 
 and defable = bare_defable * Span.span_t
+
+(* ==== Types ==== *)
+
+and primitive_type =
+  | U8 | I8 | U16 | I16 | U32 | I32 | U64 | I64 | F32 | F64 | USIZE | ISIZE | BOOL | CHAR
 
 (* ==== Scopes and statements ==== *)
 
