@@ -20,7 +20,7 @@ and statement = bare_statement * Span.span_t
 
 and bare_statement =
   | NopStatement
-  | If of defable * statement * statement
+  | If of defable * statement * statement option
   | DefinitionStatement of bare_definition
   | ExpressionStatement of defable
 

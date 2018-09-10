@@ -47,8 +47,8 @@ and parse_defable = parser
 *)
 
 and parse_scope = parser
-                | [< '(Token.Scope_Start,start); (scope,end_span)=parse_scope_contents >]
-                  -> (Ast.Scope scope, Span.span_over start end_span)
+                | [< '(Token.Scope_Start,(start_loc,_)); (scope,end_loc)=parse_scope_contents >]
+                  -> (Ast.Scope scope, Span.span start_loc end_loc)
                 | [< err=error_expected "a scope" >] -> raise err
 
 and parse_scope_contents = parser
@@ -63,24 +63,23 @@ and parse_packed_statement stream =
   match Stream.peek stream with
   | None -> raise (error_expected "a statement" stream)
   | Some (token,start_span) -> match token with
-    | Token.Scope_Start -> parse_scope stream (* Yes a scope is a defable, but here is doesn't need ; *)
-    | Token.Def | Token.Let | Token.Mut | Token.Typedef ->
+    | Token.Scope_Start ->
+      let (_,span) as scope = parse_scope stream in
+      (Ast.ExpressionStatement scope,span)
+    | Token.Def | Token.Let | Token.Typedef ->
       let defin = parse_bare_definition stream in
       let end_span = expect_tok Token.Statement_End stream in
       (Ast.DefinitionStatement defin, Span.span_over start_span end_span)
     | _ ->
       let expression = parse_defable   stream in
       let end_span  = expect_tok Token.Statement_End stream in
-      (Ast.ExpressionStatement expression, Span.span_over start end_span)
+      (Ast.ExpressionStatement expression, Span.span_over start_span end_span)
 
 and parse_statement =
   parser
-| [< '(Token.If, start); cond=parse_defable; body=parse_statement; else_opt=parse_else_opt >]
-  -> (
-    match else_opt with
-    | Some (_,end_span) as else_ ->      (Ast.If_Statement (cond body Some else_), Span.span_over start end_span)
-    | None -> let (_,end_span) = body in (Ast.If_Statement (cond body None),       Span.span_over start end_span)
-  )
+| [< '(Token.If, start); cond=parse_defable; (_,body_end) as body=parse_statement; else_opt=parse_else_opt >]
+  -> let end_span = (match else_opt with Some (_,e)->e | None -> body_end) in
+  (Ast.If (cond, body, else_opt), Span.span_over start end_span)
 | [< stmt = parse_packed_statement >] -> stmt
 
 (*
@@ -156,7 +155,7 @@ and parse_let_modifiers = parser
                         | [< '(Token.Mut,_) >] -> Ast.Mut_Let
                         | [< >] -> Ast.Normal_Let
 
-and parse_optional_let_type_and_assigment =
+and parse_optional_let_type_and_assignment =
   let parse_optional_body = parser
                           | [< '(Token.Assign,_); body=parse_defable >] -> Some body
                           | [< >] -> None

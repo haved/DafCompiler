@@ -2,7 +2,7 @@
 
 pub def main {
 	let a := 5;
-	mut b : i32 = 7;
+	let mut b : i32 = 7;
 	b = b / a;
 	b
 };
