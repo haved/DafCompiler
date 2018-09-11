@@ -34,31 +34,36 @@ and parse_identifier = parser
     ==== The defable, either an expression, a type or a namespace ====
 *)
 
-and parse_defable = parser
-                  | [< '(Token.Identifier id,span) >] -> (Ast.Identifier id, span)
+and parse_single_defable = parser
+                         | [< '(Token.Identifier id,span) >] -> (Ast.Identifier id, span)
 
-                  | [< '(Token.Integer_Literal num,span) >] -> (Ast.Integer_Literal num,span)
-                  | [< '(Token.Def,start_span); (def_literal,end_span)=parse_def_literal_values >]
-                    -> (def_literal, Span.span_over start_span end_span)
-                  | [< '(Token.Scope_Start,(start_loc,_)); (scope,end_loc)=parse_scope_contents >]
-                    -> (Ast.Scope scope, Span.span start_loc end_loc)
+                         | [< '(Token.Integer_Literal num,span) >] -> (Ast.Integer_Literal num,span)
+                         | [< '(Token.Def,start_span); (def_literal,end_span)=parse_def_literal_values >]
+                           -> (def_literal, Span.span_over start_span end_span)
+                         | [< '(Token.Scope_Start,(start_loc,_)); (scope,end_loc)=parse_scope_contents >]
+                           -> (Ast.Scope scope, Span.span start_loc end_loc)
 
-                  | [< '(Token.U8,   span) >] -> (Ast.Primitive_Type_Literal Ast.U8,   span)
-                  | [< '(Token.I8,   span) >] -> (Ast.Primitive_Type_Literal Ast.I8,   span)
-                  | [< '(Token.U16,  span) >] -> (Ast.Primitive_Type_Literal Ast.U16,  span)
-                  | [< '(Token.I16,  span) >] -> (Ast.Primitive_Type_Literal Ast.I16,  span)
-                  | [< '(Token.U32,  span) >] -> (Ast.Primitive_Type_Literal Ast.U32,  span)
-                  | [< '(Token.I32,  span) >] -> (Ast.Primitive_Type_Literal Ast.I32,  span)
-                  | [< '(Token.U64,  span) >] -> (Ast.Primitive_Type_Literal Ast.U64,  span)
-                  | [< '(Token.I64,  span) >] -> (Ast.Primitive_Type_Literal Ast.I64,  span)
-                  | [< '(Token.F32,  span) >] -> (Ast.Primitive_Type_Literal Ast.F32,  span)
-                  | [< '(Token.F64,  span) >] -> (Ast.Primitive_Type_Literal Ast.F64,  span)
-                  | [< '(Token.Usize,span) >] -> (Ast.Primitive_Type_Literal Ast.USIZE,span)
-                  | [< '(Token.Isize,span) >] -> (Ast.Primitive_Type_Literal Ast.ISIZE,span)
-                  | [< '(Token.Bool, span) >] -> (Ast.Primitive_Type_Literal Ast.BOOL, span)
-                  | [< '(Token.Char, span) >] -> (Ast.Primitive_Type_Literal Ast.CHAR, span)
+                         | [< '(Token.U8,   span) >] -> (Ast.Primitive_Type_Literal Ast.U8,   span)
+                         | [< '(Token.I8,   span) >] -> (Ast.Primitive_Type_Literal Ast.I8,   span)
+                         | [< '(Token.U16,  span) >] -> (Ast.Primitive_Type_Literal Ast.U16,  span)
+                         | [< '(Token.I16,  span) >] -> (Ast.Primitive_Type_Literal Ast.I16,  span)
+                         | [< '(Token.U32,  span) >] -> (Ast.Primitive_Type_Literal Ast.U32,  span)
+                         | [< '(Token.I32,  span) >] -> (Ast.Primitive_Type_Literal Ast.I32,  span)
+                         | [< '(Token.U64,  span) >] -> (Ast.Primitive_Type_Literal Ast.U64,  span)
+                         | [< '(Token.I64,  span) >] -> (Ast.Primitive_Type_Literal Ast.I64,  span)
+                         | [< '(Token.F32,  span) >] -> (Ast.Primitive_Type_Literal Ast.F32,  span)
+                         | [< '(Token.F64,  span) >] -> (Ast.Primitive_Type_Literal Ast.F64,  span)
+                         | [< '(Token.Usize,span) >] -> (Ast.Primitive_Type_Literal Ast.USIZE,span)
+                         | [< '(Token.Isize,span) >] -> (Ast.Primitive_Type_Literal Ast.ISIZE,span)
+                         | [< '(Token.Bool, span) >] -> (Ast.Primitive_Type_Literal Ast.BOOL, span)
+                         | [< '(Token.Char, span) >] -> (Ast.Primitive_Type_Literal Ast.CHAR, span)
 
-                  | [< err=error_expected "a defable" >] -> raise err
+                         | [< err=error_expected "a defable" >] -> raise err
+
+(* === Parses until an operator with lower precedence is found *)
+and parse_defables min_precedence stream = 0
+
+and parse_defable = parse_defables 0
 
 (*
    ==== Types ====

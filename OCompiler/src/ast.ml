@@ -4,6 +4,9 @@
 type infix_operator =
   | Plus | Minus | Mult | Divide | Access_Operator
 
+type prefix_operator =
+  | Pre_Increase | Pre_Decrease
+
 type bare_defable =
   | Identifier of string
 
@@ -15,6 +18,8 @@ type bare_defable =
   | Primitive_Type_Literal of primitive_type
 
   | Infix_Operator of infix_operator * defable * defable
+  | Prefix_Operator of prefix_operator * defable
+  | Ref_Op of defable
 
 and defable = bare_defable * Span.span_t
 
