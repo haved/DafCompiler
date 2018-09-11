@@ -5,13 +5,16 @@ type infix_operator =
   | Plus | Minus | Mult | Divide | Access_Operator
 
 type bare_defable =
+  | Identifier of string
+
   | Integer_Literal of int
   | Real_Literal of float
-  | Infix_Operator of infix_operator * defable * defable
-  | Identfier of string
-  | Primitive_Type_Literal of primitive_type
-  | Scope of statement list
   | Def_Literal of parameter list * return_type * defable
+  | Scope of statement list
+
+  | Primitive_Type_Literal of primitive_type
+
+  | Infix_Operator of infix_operator * defable * defable
 
 and defable = bare_defable * Span.span_t
 
