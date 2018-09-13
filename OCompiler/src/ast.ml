@@ -1,13 +1,20 @@
 
-(* ==== Defables ==== *)
-
 type infix_operator =
   | Plus | Minus | Mult | Divide | Access_Operator
 
-type prefix_operator =
-  | Pre_Increase | Pre_Decrease
+and prefix_operator =
+  | Ref | MutRef | Pre_Increase | Pre_Decrease
 
-type bare_defable =
+and argument_modifier = Arg_Normal | Arg_Mut | Arg_Move | Arg_Copy
+
+and argument = argument_modifier * defable * Span.span_t
+
+and postfix_operator =
+  | Post_Increase | Post_Decrease | Array_Access | FunctionCall of argument list
+
+(* ==== Defables ==== *)
+
+and bare_defable =
   | Identifier of string
 
   | Integer_Literal of int
@@ -19,7 +26,7 @@ type bare_defable =
 
   | Infix_Operator of infix_operator * defable * defable
   | Prefix_Operator of prefix_operator * defable
-  | Ref_Op of defable
+  | Postfix_Operator of postfix_operator * defable
 
 and defable = bare_defable * Span.span_t
 

@@ -60,8 +60,33 @@ and parse_single_defable = parser
 
                          | [< err=error_expected "a defable" >] -> raise err
 
-(* === Parses until an operator with lower precedence is found *)
-and parse_defables min_precedence stream = 0
+and parse_prefix_op_opt =
+  let parse_ref_augment span = parser
+                           | [< '(Token.Mut, span2) >] -> (Ast.MutRef, Span.span_over span span2)
+                           | [< >] -> (Ast.Ref, span)
+  in parser
+   | [< '(Token.Ref, span); result=parse_ref_augment span >] -> Some result
+   | [< '(Token.Plus_Plus, span) >] -> Some (Ast.Pre_Increase, span)
+   | [< '(Token.Minus_Minus, span) >] -> Some (Ast.Pre_Decrease, span)
+   | _ -> None
+
+and precedence_of_prefix_op = function
+  | Ast.Ref -> 10
+  | Ast.MutRef -> 10
+  | Ast.Pre_Increase -> 10
+  | Ast.Post_Increase -> 10
+
+(* === Parses until an operator with lower than min_precedence is found === *)
+(* === For left-to-right operators, you recursivly call with min_precedence = precedence+1 === *)
+(* === Thus, the next time e.g. a - appears, it will have too low precence and return ===*)
+and parse_defables min_precedence stream =
+  let side = match parse_prefix_op_opt stream with
+    | None -> parse_single_defable
+    | Some (op, op_span) ->
+      let (_,operand_span) as operand = parse_defables (precedence_of_prefix_op op) in
+      (Ast.Prefix_Operator (op, operand), Span.span_over op_span operand_span)
+
+
 
 and parse_defable = parse_defables 0
 
