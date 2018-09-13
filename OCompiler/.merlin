@@ -1,3 +1,4 @@
 FLG -pp camlp4of
+PKG llvm camlp4
 S src
 B _build/src

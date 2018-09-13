@@ -68,7 +68,7 @@ and parse_prefix_op_opt =
    | [< '(Token.Ref, span); result=parse_ref_augment span >] -> Some result
    | [< '(Token.Plus_Plus, span) >] -> Some (Ast.Pre_Increase, span)
    | [< '(Token.Minus_Minus, span) >] -> Some (Ast.Pre_Decrease, span)
-   | _ -> None
+   | [< >] -> None
 
 and precedence_of_prefix_op = function
   | Ast.Ref -> 10
