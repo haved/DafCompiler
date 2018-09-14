@@ -1,4 +1,5 @@
 open Printf
+module Ast=Daf_ast
 
 (*
     ==== Error handeling ====
@@ -74,21 +75,20 @@ and precedence_of_prefix_op = function
   | Ast.Ref -> 10
   | Ast.MutRef -> 10
   | Ast.Pre_Increase -> 10
-  | Ast.Post_Increase -> 10
+  | Ast.Pre_Decrease -> 10
 
 (* === Parses until an operator with lower than min_precedence is found === *)
 (* === For left-to-right operators, you recursivly call with min_precedence = precedence+1 === *)
 (* === Thus, the next time e.g. a - appears, it will have too low precence and return ===*)
-and parse_defables min_precedence stream =
+and parse_defables min_precedence stream : (Ast.defable)=
   let side = match parse_prefix_op_opt stream with
-    | None -> parse_single_defable
+    | None -> parse_single_defable stream
     | Some (op, op_span) ->
-      let (_,operand_span) as operand = parse_defables (precedence_of_prefix_op op) in
+      let (_,operand_span) as operand = parse_defables (precedence_of_prefix_op op) stream in
       (Ast.Prefix_Operator (op, operand), Span.span_over op_span operand_span)
+  in side
 
-
-
-and parse_defable = parse_defables 0
+and parse_defable stream = parse_defables 0 stream
 
 (*
    ==== Types ====
@@ -237,7 +237,7 @@ and parse_definition = parser
    ==== File parsing code ====
 *)
 
-and parse_all_definitions stream = match Stream.peek stream with
+let rec parse_all_definitions stream = match Stream.peek stream with
   | Some (tok,_) ->
     let defin = parse_definition stream in
     defin :: parse_all_definitions stream
