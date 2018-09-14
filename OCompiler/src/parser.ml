@@ -77,16 +77,30 @@ and precedence_of_prefix_op = function
   | Ast.Pre_Increase -> 10
   | Ast.Pre_Decrease -> 10
 
-(* === Parses until an operator with lower than min_precedence is found === *)
-(* === For left-to-right operators, you recursivly call with min_precedence = precedence+1 === *)
-(* === Thus, the next time e.g. a - appears, it will have too low precence and return ===*)
+and precedence_of_postfix_op = function
+  | Ast.Post_Increase -> 10
+  | Ast.Post_Decrease -> 10
+
+and parse_postfix_ops operand min_precedence stream =
+  match Stream.peek stream with
+  | None -> operand
+  | Some (tok, span) ->
+    let op = match tok with
+      | Token.Plus_Plus -> Some Ast.Post_Increase
+      | Token.Minus_Minus -> Some Ast.Pre_Decrease
+      | _ -> None
+    in match op with
+    | None -> operand
+    | Some op -> let op_prec = precedence_of_postfix_op
+
 and parse_defables min_precedence stream : (Ast.defable)=
-  let side = match parse_prefix_op_opt stream with
+  let pre = match parse_prefix_op_opt stream with
     | None -> parse_single_defable stream
     | Some (op, op_span) ->
       let (_,operand_span) as operand = parse_defables (precedence_of_prefix_op op) stream in
       (Ast.Prefix_Operator (op, operand), Span.span_over op_span operand_span)
-  in side
+  in
+  let prepost = parse_postfix_ops pre min_precedence stream
 
 and parse_defable stream = parse_defables 0 stream
 
