@@ -80,18 +80,25 @@ and precedence_of_prefix_op = function
 and precedence_of_postfix_op = function
   | Ast.Post_Increase -> 10
   | Ast.Post_Decrease -> 10
+  | Ast.FunctionCall _ -> 10
+  | Ast.Array_Access -> 10
 
 and parse_postfix_ops operand min_precedence stream =
   match Stream.peek stream with
   | None -> operand
-  | Some (tok, span) ->
+  | Some (tok, op_span) ->
     let op = match tok with
       | Token.Plus_Plus -> Some Ast.Post_Increase
-      | Token.Minus_Minus -> Some Ast.Pre_Decrease
+      | Token.Minus_Minus -> Some Ast.Post_Decrease
       | _ -> None
     in match op with
     | None -> operand
-    | Some op -> let op_prec = precedence_of_postfix_op
+    | Some op -> let op_prec = precedence_of_postfix_op op in
+      if (op_prec < min_precedence) then operand else
+        let _,start_span = operand in
+        Stream.junk stream;
+        let expr = (Ast.Postfix_Operator (op,operand), Span.span_over start_span op_span) in
+        parse_postfix_ops expr op_prec stream
 
 and parse_defables min_precedence stream : (Ast.defable)=
   let pre = match parse_prefix_op_opt stream with
@@ -99,8 +106,8 @@ and parse_defables min_precedence stream : (Ast.defable)=
     | Some (op, op_span) ->
       let (_,operand_span) as operand = parse_defables (precedence_of_prefix_op op) stream in
       (Ast.Prefix_Operator (op, operand), Span.span_over op_span operand_span)
-  in
-  let prepost = parse_postfix_ops pre min_precedence stream
+  in let prepost = parse_postfix_ops pre min_precedence stream in
+  prepost
 
 and parse_defable stream = parse_defables 0 stream
 
@@ -138,7 +145,7 @@ and parse_packed_statement stream =
       (Ast.DefinitionStatement defin, Span.span_over start_span end_span)
     | _ ->
       let expression = parse_defable   stream in
-      let end_span  = expect_tok Token.Statement_End stream in
+      let end_span  = expect_tok Token.Statement_End stream in (*TODO: Add final out expressions by matching } *)
       (Ast.ExpressionStatement expression, Span.span_over start_span end_span)
 
 and parse_statement =

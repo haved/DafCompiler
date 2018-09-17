@@ -1,14 +1,18 @@
 // -*- compile-command: "cd .. && time ./buildScript.py" -*-
 
+
 pub def main {
 	let a := 5;
 	let mut b : i32 = 7;
-	b = b / a;
-	b
+	b++;
+	b++;
+	&b;
+	&mut &mut b;
+	b;
 };
 
 def otherMain(x:i32):mut i32= {
-	mut a := 4+x;
+	let mut a := 4+x;
 	let a_ptr := &mut a;
 	def average(mut b:i32):i32 {
 // 		b += a;
@@ -20,3 +24,4 @@ def otherMain(x:i32):mut i32= {
 };
 
 def main3 = print_int(4);
+

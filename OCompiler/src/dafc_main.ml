@@ -4,10 +4,10 @@ let rec print_definitions defins =
   | defin :: rest -> print_endline (Daf_ast.string_of_definition defin); print_definitions rest
   | [] -> ()
 
-let rec at_array index array = if Array.length array > index then Some array.(index) else None
+let rec at_array_opt index array = if Array.length array > index then Some array.(index) else None
 
 let () =
-  match at_array 1 Sys.argv with
+  match at_array_opt 1 Sys.argv with
   | None ->
     Log.log Log.Fatal_Error "No input file";
   | Some input_file ->
