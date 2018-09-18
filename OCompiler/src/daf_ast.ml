@@ -65,8 +65,7 @@ and parameter = bare_parameter * Span.span_t
 
 (* ==== Definitions ==== *)
 
-and let_modifier =
-  | Mut_Let | Normal_Let
+and let_modifier = Normal_Let | Mut_Let
 
 and bare_definition =
   | Def of string * parameter list * return_type * defable option
@@ -83,7 +82,37 @@ let string_of_infix_operator defin = match defin with
 
 open Printf
 
-let string_of_bare_definition bare_defin = "bare_definition"
+let rec string_of_defable = function
+  | _ -> "defable" (*TODO*)
 
-let string_of_definition (pub,bare_defin,span) =
+and string_of_parameter_modifier = function
+  | Normal_Param -> ""
+  | Let_Param -> "let "
+  | Mut_Param -> "mut "
+  | Move_Param -> "move "
+  | Copy_Param -> "copy "
+  | Uncrt_Param -> "uncrt "
+  | Dtor_Param -> "dtor "
+
+and string_of_param (bare_param, _) = match bare_param with
+  | Value_Param (param_modif, name, typ) ->
+    Printf.sprintf "%s%s:%s" (string_of_parameter_modifier param_modif) name (string_of_defable typ)
+  | _ -> "param" (*TODO*)
+
+and string_of_param_list = function
+  | [] -> ""
+  | params -> Printf.sprintf "(%s)" (String.concat "," (List.map (string_of_param) params))
+
+and string_of_let_modifier = function
+  | Mut_Let -> "mut "
+  | Normal_Let -> ""
+
+and string_of_bare_definition = function
+  | Def (name, param_list, ret_type, opt_body) ->
+    Printf.sprintf "def %s %s" name (string_of_param_list param_list)
+
+  | Let (let_modif, name, opt_typ, opt_body) ->
+    Printf.sprintf "let %s%s" (string_of_let_modifier let_modif) name
+
+and string_of_definition (pub,bare_defin,span) =
   (Printf.sprintf "%s%s" (if pub then "pub " else "") (string_of_bare_definition bare_defin))
