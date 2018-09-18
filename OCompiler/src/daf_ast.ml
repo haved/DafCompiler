@@ -82,8 +82,11 @@ let string_of_infix_operator defin = match defin with
 
 open Printf
 
-let rec string_of_defable = function
-  | _ -> "defable" (*TODO*)
+let rec string_of_defable tab (bare_defable,_) = match bare_defable with
+  | Identifier id -> id
+  | Integer_Literal int -> Printf.sprintf "%d" int
+  | Real_Literal float -> Printf.sprintf "%f" float
+  | _ -> "defable"
 
 and string_of_parameter_modifier = function
   | Normal_Param -> ""
@@ -94,25 +97,42 @@ and string_of_parameter_modifier = function
   | Uncrt_Param -> "uncrt "
   | Dtor_Param -> "dtor "
 
-and string_of_param (bare_param, _) = match bare_param with
+and string_of_param tab (bare_param, _) = match bare_param with
   | Value_Param (param_modif, name, typ) ->
-    Printf.sprintf "%s%s:%s" (string_of_parameter_modifier param_modif) name (string_of_defable typ)
+    Printf.sprintf "%s%s:%s" (string_of_parameter_modifier param_modif) name (string_of_defable tab typ)
   | _ -> "param" (*TODO*)
 
-and string_of_param_list = function
+and string_of_param_list tab = function
   | [] -> ""
-  | params -> Printf.sprintf "(%s)" (String.concat "," (List.map (string_of_param) params))
+  | params -> Printf.sprintf "(%s)" (String.concat ", " (List.map (string_of_param tab) params))
+
+and string_of_return_modifier = function
+  | Value_Ret -> ""
+  | Ref_Ret -> "let "
+  | Mut_Ref_Ret -> "mut "
+
+and string_of_return_type tab = function
+  | None -> ""
+  | Some (ret_modif, opt_typ) ->
+    Printf.sprintf ":%s%s" (string_of_return_modifier ret_modif)
+      (match opt_typ with None -> "" | Some typ -> string_of_defable (tab+2) typ)
 
 and string_of_let_modifier = function
   | Mut_Let -> "mut "
   | Normal_Let -> ""
 
-and string_of_bare_definition = function
+and string_of_opt_body tab = function
+  | None -> ""
+  | Some body -> Printf.sprintf "=%s" (string_of_defable tab body)
+
+and string_of_bare_definition tab = function
   | Def (name, param_list, ret_type, opt_body) ->
-    Printf.sprintf "def %s %s" name (string_of_param_list param_list)
-
+    Printf.sprintf "def %s%s%s%s" name (string_of_param_list tab param_list)
+      (string_of_return_type tab ret_type) (string_of_opt_body tab opt_body)
   | Let (let_modif, name, opt_typ, opt_body) ->
-    Printf.sprintf "let %s%s" (string_of_let_modifier let_modif) name
+    Printf.sprintf "let %s%s:%s%s" (string_of_let_modifier let_modif) name
+      (match opt_typ with None -> "" | Some typ -> (string_of_defable tab typ))
+      (string_of_opt_body tab opt_body)
 
-and string_of_definition (pub,bare_defin,span) =
-  (Printf.sprintf "%s%s" (if pub then "pub " else "") (string_of_bare_definition bare_defin))
+and string_of_definition tab (pub,bare_defin,span) =
+  (Printf.sprintf "%*s%s%s" tab "" (if pub then "pub " else "") (string_of_bare_definition tab bare_defin))

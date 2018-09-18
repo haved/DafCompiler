@@ -1,7 +1,7 @@
 
 let rec print_definitions defins =
   match defins with
-  | defin :: rest -> print_endline (Daf_ast.string_of_definition defin); print_definitions rest
+  | defin :: rest -> print_endline (Daf_ast.string_of_definition 2 defin); print_definitions rest
   | [] -> ()
 
 let rec at_array_opt index array = if Array.length array > index then Some array.(index) else None

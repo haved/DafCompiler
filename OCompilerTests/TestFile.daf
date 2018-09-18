@@ -1,5 +1,6 @@
 // -*- compile-command: "cd .. && time ./buildScript.py" -*-
 
+def a : i32 = 5;
 
 pub def main (move a:i32, mut b:i32) {
 	let a := 5;
