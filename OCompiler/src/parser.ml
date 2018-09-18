@@ -136,7 +136,7 @@ and parse_packed_statement stream =
   match Stream.peek stream with
   | None -> raise (error_expected "a statement" stream)
   | Some (token,start_span) -> match token with
-    | Token.Scope_Start ->
+    | Token.Scope_Start -> (*We have a custom *)
       let scope = parse_scope stream in
       (Ast.ExpressionStatement scope, Span.from scope)
     | Token.Def | Token.Let | Token.Typedef ->
@@ -144,11 +144,11 @@ and parse_packed_statement stream =
       let end_span = expect_tok Token.Statement_End stream in
       (Ast.DefinitionStatement defin, Span.span_over start_span end_span)
     | _ ->
-      let  expression = parse_defable stream in
+      let expression = parse_defable stream in
       match Stream.peek stream with
-    | Some (Token.Scope_End,_) -> (Ast.ReturnStatement expression, Span.from expression)
-    | _ -> let semicolon_span = expect_tok Token.Statement_End stream in
-      (Ast.ExpressionStatement expression, Span.span_over start_span semicolon_span)
+      | Some (Token.Scope_End,_) -> (Ast.ReturnStatement expression, Span.from expression)
+      | _ -> let semicolon_span = expect_tok Token.Statement_End stream in
+        (Ast.ExpressionStatement expression, Span.span_over start_span semicolon_span)
 
 and parse_statement =
   parser
