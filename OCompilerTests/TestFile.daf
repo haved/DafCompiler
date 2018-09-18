@@ -8,9 +8,9 @@ pub def main {
 	b++;
 	&b;
 	&mut &mut b;
-	b;
+	b
 };
-
+(*
 def otherMain(x:i32):mut i32= {
 	let mut a := 4+x;
 	let a_ptr := &mut a;
@@ -25,3 +25,4 @@ def otherMain(x:i32):mut i32= {
 
 def main3 = print_int(4);
 
+*)

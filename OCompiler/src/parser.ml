@@ -104,8 +104,8 @@ and parse_defables min_precedence stream : (Ast.defable)=
   let pre = match parse_prefix_op_opt stream with
     | None -> parse_single_defable stream
     | Some (op, op_span) ->
-      let (_,operand_span) as operand = parse_defables (precedence_of_prefix_op op) stream in
-      (Ast.Prefix_Operator (op, operand), Span.span_over op_span operand_span)
+      let operand = parse_defables (precedence_of_prefix_op op) stream in
+      (Ast.Prefix_Operator (op, operand), Span.span_over op_span (Span.from operand))
   in let prepost = parse_postfix_ops pre min_precedence stream in
   prepost
 
@@ -137,16 +137,18 @@ and parse_packed_statement stream =
   | None -> raise (error_expected "a statement" stream)
   | Some (token,start_span) -> match token with
     | Token.Scope_Start ->
-      let (_,span) as scope = parse_scope stream in
-      (Ast.ExpressionStatement scope,span)
+      let scope = parse_scope stream in
+      (Ast.ExpressionStatement scope, Span.from scope)
     | Token.Def | Token.Let | Token.Typedef ->
       let defin = parse_bare_definition stream in
       let end_span = expect_tok Token.Statement_End stream in
       (Ast.DefinitionStatement defin, Span.span_over start_span end_span)
     | _ ->
-      let expression = parse_defable   stream in
-      let end_span  = expect_tok Token.Statement_End stream in (*TODO: Add final out expressions by matching } *)
-      (Ast.ExpressionStatement expression, Span.span_over start_span end_span)
+      let  expression = parse_defable stream in
+      match Stream.peek stream with
+    | Some (Token.Scope_End,_) -> (Ast.ReturnStatement expression, Span.from expression)
+    | _ -> let semicolon_span = expect_tok Token.Statement_End stream in
+      (Ast.ExpressionStatement expression, Span.span_over start_span semicolon_span)
 
 and parse_statement =
   parser
@@ -170,8 +172,8 @@ and parse_parameter_modifier = parser
 
 and parse_parameter = parser
                     | [< start_span=peek_span; modif=parse_parameter_modifier; name=parse_identifier;
-                         _=expect_tok Token.Type_Separator; (_,end_span) as typ=parse_defable >]
-                      -> (Ast.Value_Param (modif,name,typ), Span.span_over start_span end_span)
+                         _=expect_tok Token.Type_Separator; typ=parse_defable >]
+                      -> (Ast.Value_Param (modif,name,typ), Span.span_over start_span typ|>Span.from)
 
 and after_param_parse = parser
                       | [< '(Token.Right_Paren,_) >] -> []
@@ -208,8 +210,8 @@ and parse_def_body stream = match Stream.peek stream with
   | _ -> parse_scope stream (* If there is no '=', we only allow a scope body *)
 
 and parse_def_literal_values = parser
-                      | [< start=peek_span; params=parse_parameter_list; return=parse_return_type; (_,end_span)as body=parse_def_body >]
-                        -> (Ast.Def_Literal (params, return, body), Span.span_over start end_span)
+                      | [< start=peek_span; params=parse_parameter_list; return=parse_return_type; body=parse_def_body >]
+                        -> (Ast.Def_Literal (params, return, body), Span.span_over start body|>Span.from)
 
 (*
     ==== All definitions ====

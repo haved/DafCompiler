@@ -44,6 +44,7 @@ and bare_statement =
   | If of defable * statement * statement option
   | DefinitionStatement of bare_definition
   | ExpressionStatement of defable
+  | ReturnStatement of defable
 
 (* ==== Def stuff ==== *)
 
