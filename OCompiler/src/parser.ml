@@ -8,6 +8,8 @@ module Ast=Daf_ast
 exception UnexpectedToken of Token.token_with_span * string
 exception UnexpectedEOF of string
 
+type stmt_or_result_expr = Statement of Ast.statement | Result_Expr of Ast.defable
+
 let rec error_expected what = parser
                       | [< 'token_with_span >] -> UnexpectedToken (token_with_span, what)
                       | [< >] -> UnexpectedEOF what
@@ -132,30 +134,30 @@ and parse_else_opt = parser
                         | [< '(Token.Else,_); body=parse_statement >] -> Some body (* to love *)
                         | [< >] -> None
 
-and parse_packed_statement stream =
+and parse_packed_statement_or_result_expr stream =
   match Stream.peek stream with
   | None -> raise (error_expected "a statement" stream)
   | Some (token,start_span) -> match token with
     | Token.Scope_Start -> (*We have a custom *)
       let scope = parse_scope stream in
-      (Ast.ExpressionStatement scope, Span.from scope)
+      Statement (Ast.ExpressionStatement scope, Span.from scope)
     | Token.Def | Token.Let | Token.Typedef ->
       let defin = parse_bare_definition stream in
       let end_span = expect_tok Token.Statement_End stream in
-      (Ast.DefinitionStatement defin, Span.span_over start_span end_span)
+      Statement (Ast.DefinitionStatement defin, Span.span_over start_span end_span)
     | _ ->
       let expression = parse_defable stream in
       match Stream.peek stream with
-      | Some (Token.Scope_End,_) -> (Ast.ReturnStatement expression, Span.from expression)
+      | Some (Token.Scope_End,_) -> Result_Expr expression
       | _ -> let semicolon_span = expect_tok Token.Statement_End stream in
-        (Ast.ExpressionStatement expression, Span.span_over start_span semicolon_span)
+        Statement (Ast.ExpressionStatement expression, Span.span_over start_span semicolon_span)
 
-and parse_statement =
+and parse_statement_or_result_expr =
   parser
 | [< '(Token.If, start); cond=parse_defable; (_,body_end) as body=parse_statement; else_opt=parse_else_opt >]
   -> let end_span = (match else_opt with Some (_,e)->e | None -> body_end) in
   (Ast.If (cond, body, else_opt), Span.span_over start end_span)
-| [< stmt = parse_packed_statement >] -> stmt
+| [< stmt = parse_packed_statement_or_result_expr >] -> stmt
 
 (*
     ==== Everything related to def_literal, also used by def ====

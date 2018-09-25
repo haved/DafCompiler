@@ -86,7 +86,18 @@ let rec string_of_defable tab (bare_defable,_) = match bare_defable with
   | Identifier id -> id
   | Integer_Literal int -> Printf.sprintf "%d" int
   | Real_Literal float -> Printf.sprintf "%f" float
+  | Scope statement_list -> Printf.sprintf "{\n%s%*s}" (string_of_statement_list (tab+2) statement_list) tab ""
   | _ -> "defable"
+
+and string_of_statement tab (bare_stmt, _) = match bare_stmt with
+  | NopStatement -> ";"
+  | ExpressionStatement defable -> Printf.sprintf "%s;" (string_of_defable tab defable)
+  | _ -> "statement"
+
+and string_of_statement_list tab list =
+  match list with
+  | head :: rest -> Printf.sprintf "%*s%s\n%s" tab "" (string_of_statement tab head) (string_of_statement_list tab rest)
+  | [] -> ""
 
 and string_of_parameter_modifier = function
   | Normal_Param -> ""
