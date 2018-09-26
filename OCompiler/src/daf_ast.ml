@@ -1,20 +1,7 @@
 
-type infix_operator =
-  | Plus | Minus | Mult | Divide | Access_Operator
-
-and prefix_operator =
-  | Ref | MutRef | Pre_Increase | Pre_Decrease
-
-and argument_modifier = Arg_Normal | Arg_Mut | Arg_Move | Arg_Copy
-
-and argument = argument_modifier * defable * Span.span_t
-
-and postfix_operator =
-  | Post_Increase | Post_Decrease | Array_Access | FunctionCall of argument list
-
 (* ==== Defables ==== *)
 
-and bare_defable =
+type bare_defable =
   | Identifier of string
 
   | Integer_Literal of int
@@ -29,6 +16,21 @@ and bare_defable =
   | Postfix_Operator of postfix_operator * defable
 
 and defable = bare_defable * Span.span_t
+
+(* ==== Operators ==== *)
+
+and infix_operator =
+  | Plus | Minus | Mult | Divide | Access_Operator
+
+and prefix_operator =
+  | Ref | MutRef | Pre_Increase | Pre_Decrease
+
+and argument_modifier = Arg_Normal | Arg_Mut | Arg_Move | Arg_Copy | Arg_Uncrt
+
+and argument = argument_modifier * defable * Span.span_t
+
+and postfix_operator =
+  | Post_Increase | Post_Decrease | Array_Access of defable | Function_Call of argument list
 
 (* ==== Types ==== *)
 
@@ -73,13 +75,6 @@ and bare_definition =
 
 and definition = bool * bare_definition * Span.span_t
 
-let string_of_infix_operator defin = match defin with
-  | Plus -> "+"
-  | Minus -> "-"
-  | Mult -> "*"
-  | Divide -> "/"
-  | Access_Operator -> "."
-
 open Printf
 
 let rec string_of_defable tab (bare_defable,_) = match bare_defable with
@@ -87,7 +82,48 @@ let rec string_of_defable tab (bare_defable,_) = match bare_defable with
   | Integer_Literal int -> Printf.sprintf "%d" int
   | Real_Literal float -> Printf.sprintf "%f" float
   | Scope statement_list -> Printf.sprintf "{\n%s%*s}" (string_of_statement_list (tab+2) statement_list) tab ""
+  | Primitive_Type_Literal primitive_type -> string_of_primitive_type primitive_type
+  | Infix_Operator (op, lhs, rhs) ->
+    Printf.sprintf "%s %s %s" (string_of_defable (tab+2) lhs) (string_of_infix_operator op) (string_of_defable (tab+2) rhs)
+  | Prefix_Operator (op, rhs) ->
+    Printf.sprintf "%s%s" (string_of_prefix_operator op) (string_of_defable (tab+2) rhs)
+  | Postfix_Operator (op, lhs) ->
+    Printf.sprintf "%s%s" (string_of_defable (tab+2) lhs) (string_of_postfix_operator tab op)
   | _ -> "defable"
+
+and string_of_infix_operator defin = match defin with
+  | Plus -> "+"
+  | Minus -> "-"
+  | Mult -> "*"
+  | Divide -> "/"
+  | Access_Operator -> "."
+
+and string_of_prefix_operator = function
+  | Ref -> "&"
+  | MutRef -> "&mut "
+  | Pre_Increase -> "++"
+  | Pre_Decrease -> "--"
+
+and string_of_argument tab arg =
+  "arg"
+
+and string_of_argument_list tab list =
+  String.concat ", " (List.map (string_of_argument tab) list)
+
+and string_of_postfix_operator tab = function
+  | Post_Increase -> "++"
+  | Post_Decrease -> "--"
+  | Array_Access index -> Printf.sprintf "[ %s ]" (string_of_defable (tab+2) index)
+  | Function_Call arg_list -> Printf.sprintf "(%s)" (string_of_argument_list (tab+2) arg_list)
+
+and string_of_primitive_type = function
+  | U8 -> "u8" | I8 -> "i8"
+  | U16 -> "u16" | I16 -> "i16"
+  | U32 -> "u32" | I32 -> "i32"
+  | U64 -> "u64" | I64 -> "i64"
+  | F32 -> "f32" | F64 -> "f64"
+  | USIZE -> "usize" | ISIZE -> "isize"
+  | BOOL -> "bool" | CHAR -> "char"
 
 and string_of_statement tab (bare_stmt, _) = match bare_stmt with
   | NopStatement -> ";"
