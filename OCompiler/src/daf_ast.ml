@@ -7,7 +7,7 @@ type bare_defable =
   | Integer_Literal of int
   | Real_Literal of float
   | Def_Literal of parameter list * return_type * defable
-  | Scope of statement list
+  | Scope of statement list * defable option
 
   | Primitive_Type_Literal of primitive_type
 
@@ -81,7 +81,9 @@ let rec string_of_defable tab (bare_defable,_) = match bare_defable with
   | Identifier id -> id
   | Integer_Literal int -> Printf.sprintf "%d" int
   | Real_Literal float -> Printf.sprintf "%f" float
-  | Scope statement_list -> Printf.sprintf "{\n%s%*s}" (string_of_statement_list (tab+2) statement_list) tab ""
+  | Scope (statement_list, result) ->
+    Printf.sprintf "{\n%s%s%*s}" (string_of_statement_list (tab+2) statement_list)
+                                 (string_of_opt_result_expr (tab+2) result) tab ""
   | Primitive_Type_Literal primitive_type -> string_of_primitive_type primitive_type
   | Infix_Operator (op, lhs, rhs) ->
     Printf.sprintf "%s %s %s" (string_of_defable (tab+2) lhs) (string_of_infix_operator op) (string_of_defable (tab+2) rhs)
@@ -134,6 +136,10 @@ and string_of_statement_list tab list =
   match list with
   | head :: rest -> Printf.sprintf "%*s%s\n%s" tab "" (string_of_statement tab head) (string_of_statement_list tab rest)
   | [] -> ""
+
+and string_of_opt_result_expr tab = function
+  | Some expr -> Printf.sprintf "%*s%s\n" tab "" (string_of_defable tab expr)
+  | None -> ""
 
 and string_of_parameter_modifier = function
   | Normal_Param -> ""

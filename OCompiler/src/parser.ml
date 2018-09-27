@@ -8,7 +8,7 @@ module Ast=Daf_ast
 exception UnexpectedToken of Token.token_with_span * string
 exception UnexpectedEOF of string
 
-type stmt_or_result_expr = Statement of Ast.statement | Result_Expr of Ast.defable
+type stmt_or_result_expr = Statement of Ast.statement | Result_Expr of (Ast.defable*Span.loc_t)
 
 let rec error_expected what = parser
                       | [< 'token_with_span >] -> UnexpectedToken (token_with_span, what)
@@ -43,8 +43,8 @@ and parse_single_defable = parser
                          | [< '(Token.Integer_Literal num,span) >] -> (Ast.Integer_Literal num,span)
                          | [< '(Token.Def,start_span); (def_literal,end_span)=parse_def_literal_values >]
                            -> (def_literal, Span.span_over start_span end_span)
-                         | [< '(Token.Scope_Start,(start_loc,_)); (scope,end_loc)=parse_scope_contents >]
-                           -> (Ast.Scope scope, Span.span start_loc end_loc)
+                         | [< '(Token.Scope_Start,(start_loc,_)); (stmts,result,end_loc)=parse_scope_contents >]
+                           -> (Ast.Scope (stmts,result), Span.span start_loc end_loc)
 
                          | [< '(Token.U8,   span) >] -> (Ast.Primitive_Type_Literal Ast.U8,   span)
                          | [< '(Token.I8,   span) >] -> (Ast.Primitive_Type_Literal Ast.I8,   span)
@@ -61,7 +61,7 @@ and parse_single_defable = parser
                          | [< '(Token.Bool, span) >] -> (Ast.Primitive_Type_Literal Ast.BOOL, span)
                          | [< '(Token.Char, span) >] -> (Ast.Primitive_Type_Literal Ast.CHAR, span)
 
-                         | [< err=error_expected "a defable" >] -> raise err
+                         | [< err=error_expected "a defable">] -> raise err
 
 and parse_prefix_op_opt =
   let parse_ref_augment span = parser
@@ -82,8 +82,8 @@ and precedence_of_prefix_op = function
 and precedence_of_postfix_op = function
   | Ast.Post_Increase -> 10
   | Ast.Post_Decrease -> 10
-  | Ast.FunctionCall _ -> 10
-  | Ast.Array_Access -> 10
+  | Ast.Function_Call _ -> 10
+  | Ast.Array_Access _ -> 10
 
 and parse_postfix_ops operand min_precedence stream =
   match Stream.peek stream with
@@ -122,13 +122,19 @@ and parse_defable stream = parse_defables 0 stream
 *)
 
 and parse_scope = parser
-                | [< '(Token.Scope_Start,(start_loc,_)); (scope,end_loc)=parse_scope_contents >]
-                  -> (Ast.Scope scope, Span.span start_loc end_loc)
+                | [< '(Token.Scope_Start,(start_loc,_)); (stmts,result,end_loc)=parse_scope_contents >]
+                  -> (Ast.Scope (stmts,result), Span.span start_loc end_loc)
                 | [< err=error_expected "a scope" >] -> raise err
 
 and parse_scope_contents = parser
-                      | [< '(Token.Scope_End,(_,end_loc)) >] -> ([],end_loc)
-                      | [< stmt=parse_statement; (rest,end_loc)=parse_scope_contents >] -> (stmt::rest, end_loc)
+                         | [< '(Token.Scope_End,(_,end_loc)) >] -> ([],None,end_loc)
+                         | [< stmt_or_result=parse_statement_or_result_expr; stream >]
+                           -> match stmt_or_result with
+                           | Statement stmt ->
+                             let (rest,result,end_loc)=parse_scope_contents stream in
+                             (stmt::rest, result, end_loc)
+                           | Result_Expr (result,end_loc) ->
+                             ([], Some result, end_loc)
 
 and parse_else_opt = parser
                         | [< '(Token.Else,_); body=parse_statement >] -> Some body (* to love *)
@@ -147,17 +153,21 @@ and parse_packed_statement_or_result_expr stream =
       Statement (Ast.DefinitionStatement defin, Span.span_over start_span end_span)
     | _ ->
       let expression = parse_defable stream in
-      match Stream.peek stream with
-      | Some (Token.Scope_End,_) -> Result_Expr expression
-      | _ -> let semicolon_span = expect_tok Token.Statement_End stream in
-        Statement (Ast.ExpressionStatement expression, Span.span_over start_span semicolon_span)
+      stream |> parser
+        | [< '(Token.Scope_End,(_,end_loc)) >] -> Result_Expr (expression, end_loc)
+        | [< >] -> let semicolon_span = expect_tok Token.Statement_End stream in
+          Statement (Ast.ExpressionStatement expression, Span.span_over start_span semicolon_span)
 
 and parse_statement_or_result_expr =
   parser
 | [< '(Token.If, start); cond=parse_defable; (_,body_end) as body=parse_statement; else_opt=parse_else_opt >]
   -> let end_span = (match else_opt with Some (_,e)->e | None -> body_end) in
-  (Ast.If (cond, body, else_opt), Span.span_over start end_span)
-| [< stmt = parse_packed_statement_or_result_expr >] -> stmt
+  Statement (Ast.If (cond, body, else_opt), Span.span_over start end_span)
+| [< stmt_or_re = parse_packed_statement_or_result_expr >] -> stmt_or_re
+
+and parse_statement stream = match parse_statement_or_result_expr stream with
+  | Statement stmt -> stmt
+  | Result_Expr (_,_) -> raise (error_expected "a statement" stream)
 
 (*
     ==== Everything related to def_literal, also used by def ====
