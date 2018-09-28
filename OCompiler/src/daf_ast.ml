@@ -130,11 +130,14 @@ and string_of_primitive_type = function
 and string_of_statement tab (bare_stmt, _) = match bare_stmt with
   | NopStatement -> ";"
   | ExpressionStatement defable -> Printf.sprintf "%s;" (string_of_defable tab defable)
-  | _ -> "statement"
+  | If (cond,body,else_opt) -> Printf.sprintf "if %s %s" (string_of_defable tab cond) (string_of_statement tab body)
+  | _ -> "statement" (*TODO*)
 
 and string_of_statement_list tab list =
   match list with
-  | head :: rest -> Printf.sprintf "%*s%s\n%s" tab "" (string_of_statement tab head) (string_of_statement_list tab rest)
+  | head :: rest -> Printf.sprintf "%*s%s\n%s" tab ""
+                      (string_of_statement tab head)
+                      (string_of_statement_list tab rest)
   | [] -> ""
 
 and string_of_opt_result_expr tab = function

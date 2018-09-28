@@ -144,13 +144,15 @@ and parse_packed_statement_or_result_expr stream =
   match Stream.peek stream with
   | None -> raise (error_expected "a statement" stream)
   | Some (token,start_span) -> match token with
-    | Token.Scope_Start -> (*We have a custom *)
-      let scope = parse_scope stream in
-      Statement (Ast.ExpressionStatement scope, Span.from scope)
     | Token.Def | Token.Let | Token.Typedef ->
       let defin = parse_bare_definition stream in
       let end_span = expect_tok Token.Statement_End stream in
       Statement (Ast.DefinitionStatement defin, Span.span_over start_span end_span)
+    | Token.Scope_Start -> (* A scope doesn't need to be followed by a semicolon *)
+      let scope = parse_scope stream in
+      (stream |> parser
+      | [< '(Token.Scope_End, end_span) >] -> Result_Expr (scope, end_loc)
+      | [< >] -> Statement (Ast.ExpressionStatement scope, Span.from scope)
     | _ ->
       let expression = parse_defable stream in
       stream |> parser
@@ -167,7 +169,7 @@ and parse_statement_or_result_expr =
 
 and parse_statement stream = match parse_statement_or_result_expr stream with
   | Statement stmt -> stmt
-  | Result_Expr (_,_) -> raise (error_expected "a statement" stream)
+  | Result_Expr (_,_) -> raise (error_expected "a statement, not a result value" stream)
 
 (*
     ==== Everything related to def_literal, also used by def ====

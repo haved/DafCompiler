@@ -9,7 +9,22 @@ pub def main (move a:i32, mut b:i32) {
 	b++;
 	&b;
 	&mut &mut b;
-	b
+
+	if a;else;
+	if a++ {
+    	let x := 5;
+		c
+    }
+	else {
+    	let y := a;
+		b
+    }
+
+    if x {}
+	else if y {}
+	else if z {}
+
+    b
 };
 (*
 def otherMain(x:i32):mut i32= {
