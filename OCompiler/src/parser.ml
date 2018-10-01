@@ -109,6 +109,7 @@ and parse_defables min_precedence stream : (Ast.defable)=
       let operand = parse_defables (precedence_of_prefix_op op) stream in
       (Ast.Prefix_Operator (op, operand), Span.span_over op_span (Span.from operand))
   in let prepost = parse_postfix_ops pre min_precedence stream in
+  (*TODO Infix*)
   prepost
 
 and parse_defable stream = parse_defables 0 stream

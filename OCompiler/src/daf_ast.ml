@@ -132,6 +132,7 @@ and string_of_primitive_type = function
 and string_of_statement tab (bare_stmt, _) = match bare_stmt with
   | NopStatement -> ";"
   | ExpressionStatement defable -> Printf.sprintf "%s;" (string_of_defable tab defable)
+  | DefinitionStatement bare_def -> (string_of_bare_definition tab bare_def)
   | If (cond,body,else_opt) -> (match else_opt with
       | Some else_body -> Printf.sprintf "if %s %s\n%selse %s"
                             (string_of_defable tab cond) (string_of_statement tab body)
@@ -185,7 +186,7 @@ and string_of_let_modifier = function
 
 and string_of_opt_body tab = function
   | None -> ""
-  | Some body -> Printf.sprintf "=%s" (string_of_defable tab body)
+  | Some body -> Printf.sprintf " = %s" (string_of_defable tab body)
 
 and string_of_bare_definition tab = function
   | Def (name, param_list, ret_type, opt_body) ->
