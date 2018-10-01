@@ -23,6 +23,7 @@ pub def main (move a:i32, mut b:i32) {
     if x {}
 	else if y {}
 	else if z {}
+	else if y {}
 
     b
 };

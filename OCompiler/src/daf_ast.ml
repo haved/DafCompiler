@@ -77,20 +77,22 @@ and definition = bool * bare_definition * Span.span_t
 
 open Printf
 
+let tabulate len = Printf.sprintf "  %*s" (len*4) ""
+
 let rec string_of_defable tab (bare_defable,_) = match bare_defable with
   | Identifier id -> id
   | Integer_Literal int -> Printf.sprintf "%d" int
   | Real_Literal float -> Printf.sprintf "%f" float
   | Scope (statement_list, result) ->
-    Printf.sprintf "{\n%s%s%*s}" (string_of_statement_list (tab+2) statement_list)
-                                 (string_of_opt_result_expr (tab+2) result) tab ""
+    Printf.sprintf "{\n%s%s%s}" (string_of_statement_list (tab+1) statement_list)
+      (string_of_opt_result_expr (tab+1) result) (tabulate tab)
   | Primitive_Type_Literal primitive_type -> string_of_primitive_type primitive_type
   | Infix_Operator (op, lhs, rhs) ->
-    Printf.sprintf "%s %s %s" (string_of_defable (tab+2) lhs) (string_of_infix_operator op) (string_of_defable (tab+2) rhs)
+    Printf.sprintf "%s %s %s" (string_of_defable (tab+1) lhs) (string_of_infix_operator op) (string_of_defable (tab+1) rhs)
   | Prefix_Operator (op, rhs) ->
-    Printf.sprintf "%s%s" (string_of_prefix_operator op) (string_of_defable (tab+2) rhs)
+    Printf.sprintf "%s%s" (string_of_prefix_operator op) (string_of_defable (tab+1) rhs)
   | Postfix_Operator (op, lhs) ->
-    Printf.sprintf "%s%s" (string_of_defable (tab+2) lhs) (string_of_postfix_operator tab op)
+    Printf.sprintf "%s%s" (string_of_defable (tab+1) lhs) (string_of_postfix_operator tab op)
   | _ -> "defable"
 
 and string_of_infix_operator defin = match defin with
@@ -115,8 +117,8 @@ and string_of_argument_list tab list =
 and string_of_postfix_operator tab = function
   | Post_Increase -> "++"
   | Post_Decrease -> "--"
-  | Array_Access index -> Printf.sprintf "[ %s ]" (string_of_defable (tab+2) index)
-  | Function_Call arg_list -> Printf.sprintf "(%s)" (string_of_argument_list (tab+2) arg_list)
+  | Array_Access index -> Printf.sprintf "[ %s ]" (string_of_defable (tab+1) index)
+  | Function_Call arg_list -> Printf.sprintf "(%s)" (string_of_argument_list (tab+1) arg_list)
 
 and string_of_primitive_type = function
   | U8 -> "u8" | I8 -> "i8"
@@ -130,18 +132,22 @@ and string_of_primitive_type = function
 and string_of_statement tab (bare_stmt, _) = match bare_stmt with
   | NopStatement -> ";"
   | ExpressionStatement defable -> Printf.sprintf "%s;" (string_of_defable tab defable)
-  | If (cond,body,else_opt) -> Printf.sprintf "if %s %s" (string_of_defable tab cond) (string_of_statement tab body)
+  | If (cond,body,else_opt) -> (match else_opt with
+      | Some else_body -> Printf.sprintf "if %s %s\n%selse %s"
+                            (string_of_defable tab cond) (string_of_statement tab body)
+                            (tabulate tab) (string_of_statement tab else_body)
+      | None -> Printf.sprintf "if %s %s" (string_of_defable tab cond) (string_of_statement tab body)
+    )
   | _ -> "statement" (*TODO*)
 
 and string_of_statement_list tab list =
   match list with
-  | head :: rest -> Printf.sprintf "%*s%s\n%s" tab ""
-                      (string_of_statement tab head)
-                      (string_of_statement_list tab rest)
+  | head :: rest -> Printf.sprintf "%s%s\n%s"
+                      (tabulate tab) (string_of_statement tab head) (string_of_statement_list tab rest)
   | [] -> ""
 
 and string_of_opt_result_expr tab = function
-  | Some expr -> Printf.sprintf "%*s%s\n" tab "" (string_of_defable tab expr)
+  | Some expr -> Printf.sprintf "%s%s\n" (tabulate tab) (string_of_defable tab expr)
   | None -> ""
 
 and string_of_parameter_modifier = function
@@ -171,7 +177,7 @@ and string_of_return_type tab = function
   | None -> ""
   | Some (ret_modif, opt_typ) ->
     Printf.sprintf ":%s%s" (string_of_return_modifier ret_modif)
-      (match opt_typ with None -> "" | Some typ -> string_of_defable (tab+2) typ)
+      (match opt_typ with None -> "" | Some typ -> string_of_defable (tab+1) typ)
 
 and string_of_let_modifier = function
   | Mut_Let -> "mut "
@@ -191,4 +197,4 @@ and string_of_bare_definition tab = function
       (string_of_opt_body tab opt_body)
 
 and string_of_definition tab (pub,bare_defin,span) =
-  (Printf.sprintf "%*s%s%s" tab "" (if pub then "pub " else "") (string_of_bare_definition tab bare_defin))
+  (Printf.sprintf "%s%s%s" (tabulate tab) (if pub then "pub " else "") (string_of_bare_definition tab bare_defin))
