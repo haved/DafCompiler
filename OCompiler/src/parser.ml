@@ -65,37 +65,46 @@ and parse_single_defable = parser
 
                          | [< err=error_expected "a defable">] -> raise err
 
+and precedence_of_postfix_op = function
+  | Ast.Post_Increase | Ast.Post_Decrease
+  | Ast.Function_Call _ | Ast.Array_Access _ -> 2000
+
+and precedence_of_prefix_op = function
+  | _ -> 1000
+
+and precedence_of_infix_op = function
+  | Ast.Access_Op -> 2000
+  | Ast.Mult | Ast.Divide | Ast.Mod -> 900
+  | Ast.Plus | Ast.Minus -> 800
+  | Ast.Left_Shift | Ast.Right_Shift | Ast.Logic_Right_Shift -> 700
+  | Ast.Lower | Ast.LowerEq | Ast.Greater | Ast.GreaterEq -> 600
+  | Ast.Equals | Ast.Not_Equals -> 500
+  | Ast.Bitwise_And -> 280
+  | Ast.Bitwise_Xor -> 260
+  | Ast.Bitwise_Or -> 240
+  | Ast.Logical_And -> 220
+  | Ast.Logical_Or -> 200
+  | Ast.Assignment -> 100
+
+and is_infix_op_left_to_right = function
+  | Ast.Assignment -> false
+  | _ -> true
+
 and parse_prefix_op_opt =
   let parse_ref_augment span = parser
                            | [< '(Token.Mut, span2) >] -> (Ast.MutRef, Span.span_over span span2)
                            | [< >] -> (Ast.Ref, span)
   in parser
    | [< '(Token.Ref, span); result=parse_ref_augment span >] -> Some result
-   | [< '(Token.Plus_Plus, span) >] -> Some (Ast.Pre_Increase, span)
+   | [< '(Token.Plus,  span) >] -> Some (Ast.Positive, span)
+   | [< '(Token.Minus, span) >] -> Some (Ast.Negative, span)
+   | [< '(Token.Not, span) >] -> Some (Ast.Not, span)
+   | [< '(Token.Bitwise_Not, span) >] -> Some (Ast.Bitwise_Not, span)
+   | [< '(Token.Plus_Plus,   span) >] -> Some (Ast.Pre_Increase, span)
    | [< '(Token.Minus_Minus, span) >] -> Some (Ast.Pre_Decrease, span)
+   | [< '(Token.Dereference, span) >] -> Some (Ast.Dereference, span)
+   | [< '(Token.Sizeof, span) >] -> Some (Ast.Sizeof, span)
    | [< >] -> None
-
-and precedence_of_prefix_op = function
-  | Ast.Ref -> 1000
-  | Ast.MutRef -> 1000
-  | Ast.Pre_Increase -> 1000
-  | Ast.Pre_Decrease -> 1000
-
-and precedence_of_postfix_op = function
-  | Ast.Post_Increase -> 2000
-  | Ast.Post_Decrease -> 2000
-  | Ast.Function_Call _ -> 2000
-  | Ast.Array_Access _ -> 2000
-
-and precedence_of_infix_op = function
-  | Ast.Plus -> 100
-  | Ast.Minus -> 100
-  | Ast.Mult -> 200
-  | Ast.Divide -> 200
-  | Ast.Access_Op -> 2000
-
-and is_infix_op_left_to_right = function
-  | _ -> true
 
 and parse_postfix_ops operand min_precedence stream =
   match Stream.peek stream with
@@ -116,10 +125,19 @@ and parse_postfix_ops operand min_precedence stream =
   )
 
 and infix_op_of_token_opt = function
-  | Token.Plus -> Some Ast.Plus
-  | Token.Minus -> Some Ast.Minus
-  | Token.Mult -> Some Ast.Mult
-  | Token.Divide -> Some Ast.Divide
+  | Token.Class_Access -> Some Ast.Access_Op
+  | Token.Mult -> Some Ast.Mult | Token.Divide -> Some Ast.Divide | Token.Modulo -> Some Ast.Mod
+  | Token.Plus -> Some Ast.Plus | Token.Minus -> Some Ast.Minus
+  | Token.Lsl -> Some Ast.Left_Shift | Token.Asr -> Some Ast.Right_Shift | Token.Lsr -> Some Ast.Logic_Right_Shift
+  | Token.Lower -> Some Ast.Lower | Token.Lower_Or_Equal -> Some Ast.LowerEq
+  | Token.Greater -> Some Ast.Greater | Token.Greater_Or_Equal -> Some Ast.GreaterEq
+  | Token.Equals -> Some Ast.Equals | Token.Not_Equals -> Some Ast.Not_Equals
+  | Token.Ref -> Some Ast.Bitwise_And
+  | Token.Bitwise_Xor -> Some Ast.Bitwise_Xor
+  | Token.Bitwise_Or -> Some Ast.Bitwise_Or
+  | Token.Logical_And -> Some Ast.Logical_And
+  | Token.Logical_Or -> Some Ast.Logical_Or
+  | Token.Assign -> Some Ast.Assignment
   | _ -> None
 
 and parse_infix_ops lhs min_precedence stream =

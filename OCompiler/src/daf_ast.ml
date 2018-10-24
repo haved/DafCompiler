@@ -32,12 +32,12 @@ and prefix_operator =
   | Ref | MutRef | Dereference | Sizeof
 
 and infix_operator =
-  | Accress_Op
+  | Access_Op
   | Mult | Divide | Mod
   | Plus | Minus
-  | LeftShit | RightShift
-  | Less | LessEq | Greater | GreaterEq
-  | Equal | Not_Equal
+  | Left_Shift | Right_Shift | Logic_Right_Shift
+  | Lower | LowerEq | Greater | GreaterEq
+  | Equals | Not_Equals
   | Bitwise_And
   | Bitwise_Xor
   | Bitwise_Or
@@ -110,17 +110,10 @@ let rec string_of_defable tab (bare_defable,_) = match bare_defable with
     Printf.sprintf "(%s%s)" (string_of_defable (tab+1) lhs) (string_of_postfix_operator tab op)
   | _ -> "defable"
 
-and string_of_infix_operator defin = match defin with
-  | Plus -> "+"
-  | Minus -> "-"
-  | Mult -> "*"
-  | Divide -> "/"
-
 and string_of_prefix_operator = function
-  | Ref -> "&"
-  | MutRef -> "&mut "
-  | Pre_Increase -> "++"
-  | Pre_Decrease -> "--"
+  | Positive -> "+" | Negative -> "-"
+  | Not -> "!" | Bitwise_Not -> "~" | Pre_Increase -> "++" | Pre_Decrease -> "--"
+  | Ref -> "&" | MutRef -> "&mut " | Dereference -> "@" | Sizeof -> "sizeof"
 
 and string_of_argument tab arg =
   "arg"
@@ -133,6 +126,21 @@ and string_of_postfix_operator tab = function
   | Post_Decrease -> "--"
   | Array_Access index -> Printf.sprintf "[ %s ]" (string_of_defable (tab+1) index)
   | Function_Call arg_list -> Printf.sprintf "(%s)" (string_of_argument_list (tab+1) arg_list)
+
+
+and string_of_infix_operator defin = match defin with
+  | Access_Op -> "."
+  | Mult -> "*" | Divide -> "/" | Mod -> "%"
+  | Plus -> "+" | Minus -> "-"
+  | Left_Shift -> "<<" | Right_Shift -> ">>" | Logic_Right_Shift -> ">>>"
+  | Lower -> "<" | LowerEq -> "<=" | Greater -> ">" | GreaterEq -> ">="
+  | Equals -> "=" | Not_Equals -> "!="
+  | Bitwise_And -> "&"
+  | Bitwise_Xor -> "^"
+  | Bitwise_Or -> "|"
+  | Logical_And -> "&&"
+  | Logical_Or -> "||"
+  | Assignment -> "="
 
 and string_of_primitive_type = function
   | U8 -> "u8" | I8 -> "i8"
