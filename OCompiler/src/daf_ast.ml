@@ -20,7 +20,7 @@ and defable = bare_defable * Span.span_t
 (* ==== Operators ==== *)
 
 and infix_operator =
-  | Plus | Minus | Mult | Divide | Access_Operator
+  | Plus | Minus | Mult | Divide
 
 and prefix_operator =
   | Ref | MutRef | Pre_Increase | Pre_Decrease
@@ -75,6 +75,8 @@ and bare_definition =
 
 and definition = bool * bare_definition * Span.span_t
 
+(* ==== Ast printing ==== *)
+
 open Printf
 
 let tabulate len = Printf.sprintf "  %*s" (len*4) ""
@@ -100,7 +102,6 @@ and string_of_infix_operator defin = match defin with
   | Minus -> "-"
   | Mult -> "*"
   | Divide -> "/"
-  | Access_Operator -> "."
 
 and string_of_prefix_operator = function
   | Ref -> "&"

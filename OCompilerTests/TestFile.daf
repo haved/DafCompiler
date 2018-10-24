@@ -29,11 +29,11 @@ pub def main (move a:i32, mut b:i32) {
 };
 
 def otherMain(x:i32):mut i32= {
-	let mut a := 4+x;
+	let mut a := 4+x+y*c-d*4*3-2-2*5;
 	let a_ptr := &mut a;
 	def average(mut b:i32):i32 {
 // 		b += a;
-		a -= b;
+//		a -= b;
 		(a + b)/2
 	};
 	average(mut global);

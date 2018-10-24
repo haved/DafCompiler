@@ -85,10 +85,19 @@ and precedence_of_postfix_op = function
   | Ast.Function_Call _ -> 10
   | Ast.Array_Access _ -> 10
 
+and precedence_of_infix_op = function
+  | Ast.Plus -> 100
+  | Ast.Minus -> 100
+  | Ast.Mult -> 200
+  | Ast.Divide -> 200
+
+and is_infix_op_left_to_right = function
+  | _ -> true
+
 and parse_postfix_ops operand min_precedence stream =
   match Stream.peek stream with
   | None -> operand
-  | Some (tok, op_span) ->
+  | Some (tok, op_span) -> (
     let op = match tok with
       | Token.Plus_Plus -> Some Ast.Post_Increase
       | Token.Minus_Minus -> Some Ast.Post_Decrease
@@ -101,6 +110,31 @@ and parse_postfix_ops operand min_precedence stream =
         Stream.junk stream;
         let expr = (Ast.Postfix_Operator (op,operand), Span.span_over start_span op_span) in
         parse_postfix_ops expr op_prec stream
+  )
+
+and infix_op_of_token_opt = function
+  | Token.Plus -> Some Ast.Plus
+  | Token.Minus -> Some Ast.Minus
+  | Token.Mult -> Some Ast.Mult
+  | Token.Divide -> Some Ast.Divide
+  | _ -> None
+
+and parse_infix_ops lhs min_precedence stream =
+  match Stream.peek stream with
+  | None -> lhs
+  | Some (tok, op_span) ->
+    match infix_op_of_token_opt tok with
+    | None -> lhs
+    | Some op -> let prec = precedence_of_infix_op op in
+      if prec < min_precedence then lhs (* The precedence of the op is too low, pop the call stack until it isn't *)
+      else (
+        Stream.junk stream;
+        let left_to_right = is_infix_op_left_to_right op in
+        let rhs = parse_defables (prec + if left_to_right then 1 else 0) stream in
+        let combined = (Ast.Infix_Operator (op, lhs, rhs), Span.span_over (lhs|>Span.from) rhs|>Span.from) in
+        parse_infix_ops combined min_precedence stream
+      )
+
 
 and parse_defables min_precedence stream : (Ast.defable)=
   let pre = match parse_prefix_op_opt stream with
@@ -108,9 +142,9 @@ and parse_defables min_precedence stream : (Ast.defable)=
     | Some (op, op_span) ->
       let operand = parse_defables (precedence_of_prefix_op op) stream in
       (Ast.Prefix_Operator (op, operand), Span.span_over op_span (Span.from operand))
-  in let prepost = parse_postfix_ops pre min_precedence stream in
-  (*TODO Infix*)
-  prepost
+  in let prepost = parse_postfix_ops pre min_precedence stream
+  in let expr_down_to_min_prec = parse_infix_ops prepost min_precedence stream in
+  expr_down_to_min_prec
 
 and parse_defable stream = parse_defables 0 stream
 
