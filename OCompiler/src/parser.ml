@@ -46,6 +46,8 @@ and parse_single_defable = parser
                          | [< '(Token.Scope_Start,(start_loc,_)); (stmts,result,end_loc)=parse_scope_contents >]
                            -> (Ast.Scope (stmts,result), Span.span start_loc end_loc)
 
+                         | [< '(Token.Left_Paren,_); defable=parse_defable; _=expect_tok Token.Right_Paren >] -> defable
+
                          | [< '(Token.U8,   span) >] -> (Ast.Primitive_Type_Literal Ast.U8,   span)
                          | [< '(Token.I8,   span) >] -> (Ast.Primitive_Type_Literal Ast.I8,   span)
                          | [< '(Token.U16,  span) >] -> (Ast.Primitive_Type_Literal Ast.U16,  span)
@@ -126,7 +128,7 @@ and parse_infix_ops lhs min_precedence stream =
     match infix_op_of_token_opt tok with
     | None -> lhs
     | Some op -> let prec = precedence_of_infix_op op in
-      if prec < min_precedence then lhs (* The precedence of the op is too low, pop the call stack until it isn't *)
+      if prec < min_precedence then lhs (*The precedence of the op is too low, pop the call stack until it isn't*)
       else (
         Stream.junk stream;
         let left_to_right = is_infix_op_left_to_right op in

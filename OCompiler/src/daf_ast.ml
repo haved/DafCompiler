@@ -90,11 +90,11 @@ let rec string_of_defable tab (bare_defable,_) = match bare_defable with
       (string_of_opt_result_expr (tab+1) result) (tabulate tab)
   | Primitive_Type_Literal primitive_type -> string_of_primitive_type primitive_type
   | Infix_Operator (op, lhs, rhs) ->
-    Printf.sprintf "%s %s %s" (string_of_defable (tab+1) lhs) (string_of_infix_operator op) (string_of_defable (tab+1) rhs)
+    Printf.sprintf "(%s%s%s)" (string_of_defable (tab+1) lhs) (string_of_infix_operator op) (string_of_defable (tab+1) rhs)
   | Prefix_Operator (op, rhs) ->
-    Printf.sprintf "%s%s" (string_of_prefix_operator op) (string_of_defable (tab+1) rhs)
+    Printf.sprintf "(%s%s)" (string_of_prefix_operator op) (string_of_defable (tab+1) rhs)
   | Postfix_Operator (op, lhs) ->
-    Printf.sprintf "%s%s" (string_of_defable (tab+1) lhs) (string_of_postfix_operator tab op)
+    Printf.sprintf "(%s%s)" (string_of_defable (tab+1) lhs) (string_of_postfix_operator tab op)
   | _ -> "defable"
 
 and string_of_infix_operator defin = match defin with

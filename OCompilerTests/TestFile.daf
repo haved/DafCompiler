@@ -36,10 +36,10 @@ def otherMain(x:i32):mut i32= {
 //		a -= b;
 		(a + b)/2
 	};
-	average(mut global);
+	//average(mut global);
 	global
 };
 
-def main3 = print_int(4);
+def main3 = print_int(*(4)*);
 
 (* Test comment *)
