@@ -76,22 +76,23 @@ and parse_prefix_op_opt =
    | [< >] -> None
 
 and precedence_of_prefix_op = function
-  | Ast.Ref -> 10
-  | Ast.MutRef -> 10
-  | Ast.Pre_Increase -> 10
-  | Ast.Pre_Decrease -> 10
+  | Ast.Ref -> 1000
+  | Ast.MutRef -> 1000
+  | Ast.Pre_Increase -> 1000
+  | Ast.Pre_Decrease -> 1000
 
 and precedence_of_postfix_op = function
-  | Ast.Post_Increase -> 10
-  | Ast.Post_Decrease -> 10
-  | Ast.Function_Call _ -> 10
-  | Ast.Array_Access _ -> 10
+  | Ast.Post_Increase -> 2000
+  | Ast.Post_Decrease -> 2000
+  | Ast.Function_Call _ -> 2000
+  | Ast.Array_Access _ -> 2000
 
 and precedence_of_infix_op = function
   | Ast.Plus -> 100
   | Ast.Minus -> 100
   | Ast.Mult -> 200
   | Ast.Divide -> 200
+  | Ast.Access_Op -> 2000
 
 and is_infix_op_left_to_right = function
   | _ -> true

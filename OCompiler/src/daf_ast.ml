@@ -19,18 +19,31 @@ and defable = bare_defable * Span.span_t
 
 (* ==== Operators ==== *)
 
-and infix_operator =
-  | Plus | Minus | Mult | Divide
-
-and prefix_operator =
-  | Ref | MutRef | Pre_Increase | Pre_Decrease
-
 and argument_modifier = Arg_Normal | Arg_Mut | Arg_Move | Arg_Copy | Arg_Uncrt
 
 and argument = argument_modifier * defable * Span.span_t
 
 and postfix_operator =
   | Post_Increase | Post_Decrease | Array_Access of defable | Function_Call of argument list
+
+and prefix_operator =
+  | Positive | Negative
+  | Not | Bitwise_Not | Pre_Increase | Pre_Decrease
+  | Ref | MutRef | Dereference | Sizeof
+
+and infix_operator =
+  | Accress_Op
+  | Mult | Divide | Mod
+  | Plus | Minus
+  | LeftShit | RightShift
+  | Less | LessEq | Greater | GreaterEq
+  | Equal | Not_Equal
+  | Bitwise_And
+  | Bitwise_Xor
+  | Bitwise_Or
+  | Logical_And
+  | Logical_Or
+  | Assignment
 
 (* ==== Types ==== *)
 
