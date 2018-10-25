@@ -147,13 +147,17 @@ def doTests(binary_name):
     filter = re.compile(test_filter)
 
     files_to_test = [f_name for f_name in os.listdir('.') if filter.match(f_name)]
+    tests_failed_count = 0
 
     for index, f_name in enumerate(files_to_test, 1):
         info("Running test {}/{}: {}", index, len(files_to_test), f_name)
         with Popen([binary_name, f_name], stdout=None if forward_dafc_stdout else subprocess.PIPE) as comp:
             comp.wait(timeout=10)
             if comp.returncode is not 0:
-                fatal_error("Test {}/{} failed: return code {}", index, len(files_to_test), comp.returncode)
+                error("Test {}/{} failed: return code {}", index, len(files_to_test), comp.returncode)
+                tests_failed_count += 1
+
+    info("{}/{} tests passed. {} failed", len(files_to_test)-tests_failed_count, len(files_to_test), tests_failed_count)
 
     popdir()
 
