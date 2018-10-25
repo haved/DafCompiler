@@ -22,13 +22,12 @@ def verbose_log(text, *arg):
 def printHelpText():
     print("""\
 Runs the commands used to build the daf compiler.
-Can optionally setup opam before attempting to compile.
 Can optionally run basic compiler tests with the binary.
 Usage: ./buildScript.py <options>
     Options:
     --verbose                Prints all commands executed
 
-    --opam_setup             Switches compiler version and installs required opam packages before compiling
+    --opam_setup             Prints recommended commands for setting up opam then exits
 
     --tests                  Run tests
     --testFolder             Specify folder in which to look for tests. Default: OCompilerTests
@@ -36,8 +35,25 @@ Usage: ./buildScript.py <options>
     --dafc_stdout            Print dafc stdout
     --test_stdout            Print stdout from the tests
 
-    --help                   Print this help message
-    """)
+    --help                   Print this help message then exits
+""")
+
+opam_version_string = "4.06.1"
+llvm_version_string = "llvm.6.0.0"
+
+def print_opam_setup_text():
+    print("""\
+# (=== Distro specific ===)
+sudo pacman -S --needed opam &&
+sudo pacman -Rs llvm-ocaml camlp4 ocaml-ctypes ocaml-findlib &&
+
+# (=== Universal ===)
+opam init --no-setup && #omit this option if you want opam to change ~/.bashrc 
+eval `opam config env` &&
+opam switch {} &&
+opam install oasis {} camlp4 && #core
+echo "Opam is now set up"
+""".format(opam_version_string, llvm_version_string))
 
 compiler_folder = "OCompiler"
 relative_binary_path = "{}/dafc_main.native".format(compiler_folder)
@@ -72,8 +88,9 @@ def parseOptions(args):
 
         if arg == '--verbose':
             verbose = True
-        elif arg == '--setup_opam':
-            run_opam_setup = True
+        elif arg == '--opam_setup':
+            print_opam_setup_text()
+            exit(0)
         elif arg == '--tests':
             run_tests = True
         elif arg == '--testFolder':
