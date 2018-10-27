@@ -27,33 +27,15 @@ Usage: ./buildScript.py <options>
     Options:
     --verbose                Prints all commands executed
 
-    --opam_setup             Prints recommended commands for setting up opam then exits
-
     --tests                  Run tests
     --testFolder             Specify folder in which to look for tests. Default: OCompilerTests
     --testFilter <filter>    Specify a regex filtering file names for testing. Default: .daf files
     --dafc_stdout            Print dafc stdout
     --test_stdout            Print stdout from the tests
 
-    --help                   Print this help message then exits
+    --help                   Print this help message then exit
+    --opam_setup             Run through the interactive setup of opam then exit
 """)
-
-opam_version_string = "4.06.1"
-llvm_version_string = "llvm.6.0.0"
-
-def print_opam_setup_text():
-    print("""\
-# (=== Distro specific ===)
-sudo pacman -S --needed opam &&
-sudo pacman -Rs llvm-ocaml camlp4 ocaml-ctypes ocaml-findlib &&
-
-# (=== Universal ===)
-opam init --no-setup && #omit this option if you want opam to change ~/.bashrc 
-eval `opam config env` &&
-opam switch {} &&
-opam install oasis {} camlp4 && #core
-echo "Opam is now set up"
-""".format(opam_version_string, llvm_version_string))
 
 compiler_folder = "OCompiler"
 relative_binary_path = "{}/dafc_main.native".format(compiler_folder)
@@ -89,8 +71,7 @@ def parseOptions(args):
         if arg == '--verbose':
             verbose = True
         elif arg == '--opam_setup':
-            print_opam_setup_text()
-            exit(0)
+            run_opam_setup = True
         elif arg == '--tests':
             run_tests = True
         elif arg == '--testFolder':
@@ -117,7 +98,8 @@ def parseOptions(args):
 def main():
     parseOptions(argv[1:])
     if run_opam_setup:
-        fatal_error("The opam setup command is a lie, for now")
+        opam_setup()
+        exit(0)
     doMake()
     if run_tests:
         binary_path = os.path.join(os.getcwd(), relative_binary_path)
@@ -171,13 +153,103 @@ def doTests(binary_name):
         with Popen([binary_name, f_name], stdout=None if forward_dafc_stdout else subprocess.PIPE) as comp:
             comp.wait(timeout=10)
             if comp.returncode is not 0:
-                error("Test {}/{} failed: return code {}", index, len(files_to_test), comp.returncode)
+                warning("Test {}/{} failed: return code {}", index, len(files_to_test), comp.returncode)
                 tests_failed_count += 1
 
     info("{}/{} tests passed. {} failed", len(files_to_test)-tests_failed_count, len(files_to_test), tests_failed_count)
 
     popdir()
 
+
+
+
+################################################################################
+#                                opam setup code                               #
+################################################################################
+
+def input_or(query, default="y"):
+    inp = input(query)
+    if inp == None or inp == "":
+        return default
+    return inp
+
+def run_silent(command):
+    with Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as com: #Forwards stderr
+        out, err = com.communicate()
+        if com.returncode is not 0:
+            return None
+        return out.decode('utf-8')
+
+def semantic_version_comp(a, b):
+    a = a.split('.')
+    b = b.split('.')
+
+    while len(a) > 0 and len(b) > 0:
+        if a[0] < b[0]:
+            return -1
+        elif a[0] > b[0]:
+            return 1
+        a = a[1:]
+        b = b[1:]
+    return 0
+
+def warning_continue(form, *args):
+    warning(form, *args)
+    if not parseBool(input_or("Do you want to continue anyways (probably won't work): [y/N]", "n")):
+        exit(0)
+
+WANTED_OPAM_VER = "2.0.0"
+WANTED_LLVM_VER = "7.0.0"
+OPAM_SWITCH_WANTED = "4.07.1"
+
+def opam_setup():
+    print("""\
+
+
+    == Welcome to the opam setup ==
+
+    First, we will check your installed versions of opam and llvm
+
+""")
+
+    print("Checking installed opam version: ", end='')
+    opam_version = run_silent(["opam", "--version"]).strip()
+    if opam_version == None:
+        warning("Consider the following command: sudo pacman -S --needed opam")
+        fatal_error("Opam not installed, aborting")
+    print(opam_version)
+
+    print("Checking installed llvm version: ", end='')
+    llvm_version = run_silent(["llvm-config", "--version"]).strip()
+    if llvm_version == None:
+        warning("Consider the following command: sudo pacman -S --needed llvm")
+        fatal_error("LLVM not installed, aborting")
+    print(llvm_version)
+
+    if semantic_version_comp(opam_version, WANTED_OPAM_VER) < 0:
+        warning_continue("Opam version ({}) is bellow the desired ({})", opam_version, WANTED_OPAM_VER)
+
+    if semantic_version_comp(llvm_version, WANTED_LLVM_VER) < 0:
+        warning_continue("LLVM version ({}) is bellow the desired ({})", llvm_version, WANTED_LLVM_VER)
+
+    print("""\
+
+
+    == Opam initialization ==
+
+    Opam needs to be initialized the first time its used. You can optionally add opam to .bashrc
+
+""")
+
+    print("""\
+sudo pacman -Rs llvm-ocaml camlp4 ocaml-ctypes ocaml-findlib &&
+
+opam init --no-setup && #omit this option if you want opam to change ~/.bashrc 
+eval `opam config env` &&
+opam switch create {} &&
+opam install oasis {} camlp4 &&
+echo "Opam is now set up"
+""")
 
 if __name__ == "__main__":
     main()

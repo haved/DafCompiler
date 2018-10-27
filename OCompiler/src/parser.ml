@@ -66,8 +66,7 @@ and parse_single_defable = parser
                          | [< err=error_expected "a defable">] -> raise err
 
 and precedence_of_postfix_op = function
-  | Ast.Post_Increase | Ast.Post_Decrease
-  | Ast.Function_Call _ | Ast.Array_Access _ -> 2000
+  | _ -> 2000
 
 and precedence_of_prefix_op = function
   | _ -> 1000

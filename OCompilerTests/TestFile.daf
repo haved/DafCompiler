@@ -40,6 +40,6 @@ def otherMain(x:i32):mut i32= {
 	global
 };
 
-def main3 = print_int(*(4)*);
+def main3 = print_int(4);
 
 (* Test comment *)

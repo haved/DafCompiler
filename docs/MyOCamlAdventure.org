@@ -20,8 +20,8 @@ OCaml seemed like a great place to start.
 - =opam install oasis= //I'm not sure if the oasis package is needed to use the oasis generated Makefile (checked into git)
 *** Dependencies
 Many of these packages also exist in pacman, but if you use opam you'll be sure to get the correct package version for your compiler version.
-- =opam install llvm.6.0.0 camlp4=
-- =opam install core= //Core is an alternative to the standard library
+- =opam install llvm camlp4=
+//Maybe I use =Core= at some point
 **** Packages found installed, maybe useless, maybe automatically installed dependencies
 Or maybe I did it manually some time ago?
 - In pacman: ocmal-compiler-libs ocmal-findlib
