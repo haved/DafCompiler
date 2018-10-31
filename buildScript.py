@@ -123,12 +123,15 @@ def popdir():
         verbose_log("Returning to dir: {}", dir)
     os.chdir(dir)
 
+def command_to_string(arg_list):
+    def capture(text):
+        text = text.replace('"', '\\"');
+        return '"'+text+'"' if " " in text else text
+    return " ".join([capture(arg) for arg in arg_list])
+
 def Popen(arg_list, **dic):
     if verbose:
-        def capture(text):
-            text = text.replace('"', '\\"');
-            return '"'+text+'"' if " " in text else text
-        verbose_log(" ".join([capture(arg) for arg in arg_list]))
+        verbose_log(command_to_string(arg_list))
     return subprocess.Popen(arg_list, **dic)
 
 def doMake():
@@ -173,6 +176,12 @@ def input_or(query, default="y"):
         return default
     return inp
 
+def run_loud(command, **dic):
+    print("$ " + command_to_string(command))
+    with subprocess.Popen(command, **dic) as com:
+        com.wait()
+        return com.returncode
+
 def run_silent(command):
     with Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as com: #Forwards stderr
         out, err = com.communicate()
@@ -200,7 +209,15 @@ def warning_continue(form, *args):
 
 WANTED_OPAM_VER = "2.0.0"
 WANTED_LLVM_VER = "7.0.0"
-OPAM_SWITCH_WANTED = "4.07.1"
+OPAM_SWITCH = "4.07.1"
+
+OPAM_PACKAGES_WANTED_MINUS_LLVM = ["camlp4"]
+def opam_exec_command(arg_list):
+    return ["opam", "exec", "--set-switch", OPAM_SWITCH, "--"] + arg_list
+
+EXAMPLE_OPAM_EXEC = command_to_string(opam_exec_command(["<COMMAND>"]))
+BOLD_FORMAT = '\x1b[1;37;40m'
+NORMAL_FORMAT = '\x1b[0m'
 
 def opam_setup():
     print("""\
@@ -215,41 +232,62 @@ def opam_setup():
     print("Checking installed opam version: ", end='')
     opam_version = run_silent(["opam", "--version"]).strip()
     if opam_version == None:
-        warning("Consider the following command: sudo pacman -S --needed opam")
+        warning("Consider the following command: sudo pacman -S opam")
         fatal_error("Opam not installed, aborting")
     print(opam_version)
 
     print("Checking installed llvm version: ", end='')
     llvm_version = run_silent(["llvm-config", "--version"]).strip()
     if llvm_version == None:
-        warning("Consider the following command: sudo pacman -S --needed llvm")
+        warning("Consider the following command: sudo pacman -S llvm")
         fatal_error("LLVM not installed, aborting")
     print(llvm_version)
 
     if semantic_version_comp(opam_version, WANTED_OPAM_VER) < 0:
-        warning_continue("Opam version ({}) is bellow the desired ({})", opam_version, WANTED_OPAM_VER)
+        warning_continue(f"Opam version ({opam_version}) is bellow the desired ({WANTED_OPAM_VER})")
 
     if semantic_version_comp(llvm_version, WANTED_LLVM_VER) < 0:
-        warning_continue("LLVM version ({}) is bellow the desired ({})", llvm_version, WANTED_LLVM_VER)
+        warning_continue(f"LLVM version ({llvm_version}) is bellow the desired ({WANTED_LLVM_VER})")
 
-    print("""\
+    llvm_opam_package = "llvm."+llvm_version
+    print(f"Using LLVM version to choose opam package: {llvm_opam_package}")
+    opam_packages_wanted = OPAM_PACKAGES_WANTED_MINUS_LLVM + [llvm_opam_package]
+
+    print(f"""\
 
 
     == Opam initialization ==
 
-    Opam needs to be initialized the first time its used. You can optionally add opam to .bashrc
+    Opam needs to be initialized the first time its used.
+    buildScript.py will then install the following opam switch: {BOLD_FORMAT}{OPAM_SWITCH}{NORMAL_FORMAT}
+    In this switch, the following packages are installed: {BOLD_FORMAT}{' '.join(opam_packages_wanted)}{NORMAL_FORMAT}
+    Compilation will then by default be done through: {BOLD_FORMAT}{EXAMPLE_OPAM_EXEC}{NORMAL_FORMAT}
 
 """)
 
-    print("""\
-sudo pacman -Rs llvm-ocaml camlp4 ocaml-ctypes ocaml-findlib &&
+    print("If you want to easily execute binaries installed in your opam switch, you can add opam to your PATH.")
+    bashrc_edit = parseBool(input_or("Allow opam to add the current switch to PATH when your shell starts? (This modifies your current shell's init script) [N/y]:", "n"))
 
-opam init --no-setup && #omit this option if you want opam to change ~/.bashrc 
-eval `opam config env` &&
-opam switch create {} &&
-opam install oasis {} camlp4 &&
-echo "Opam is now set up"
-""")
+    if run_loud(["opam", "init", "--bare", "--auto-setup" if bashrc_edit else "--no-setup"]) != 0:
+        fatal_error("Opam init failed")
+    print()
+
+    run_loud(["opam", "switch", "create", OPAM_SWITCH])
+    print()
+
+    if run_loud(["opam", "install", "--switch", OPAM_SWITCH] + opam_packages_wanted) != 0:
+        fatal_error("Installing packages failed")
+
+    print()
+
+    if bashrc_edit or parseBool(input_or("Do you want to add opam to PATH in your current session? [y/N]: ", "n")):
+        if bashrc_edit:
+            print("Adding opam to current shell session (maybe, not sure if env changes are exported):")
+        run_loud(["eval", "$(opam env)"], shell=True)
+
+    print()
+
+    info("Opam setup is done")
 
 if __name__ == "__main__":
     main()
