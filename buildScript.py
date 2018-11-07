@@ -134,10 +134,13 @@ def Popen(arg_list, **dic):
         verbose_log(command_to_string(arg_list))
     return subprocess.Popen(arg_list, **dic)
 
+def Popen_opam(arg_list, **dic):
+    return Popen(opam_exec_command(arg_list), **dic)
+
 def doMake():
     info("Compiling dafc")
     pushdir(compiler_folder)
-    with Popen(["make", "-j3"]) as makeCall:
+    with Popen_opam(["make", "-j3"]) as makeCall:
         makeCall.wait()
         if makeCall.returncode is not 0:
             fatal_error("Make failed with return code {}", makeCall.returncode)
@@ -170,54 +173,18 @@ def doTests(binary_name):
 #                                opam setup code                               #
 ################################################################################
 
-def input_or(query, default="y"):
-    inp = input(query)
-    if inp == None or inp == "":
-        return default
-    return inp
-
-def run_loud(command, **dic):
-    print("$ " + command_to_string(command))
-    with subprocess.Popen(command, **dic) as com:
-        com.wait()
-        return com.returncode
-
-def run_silent(command):
-    with Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as com: #Forwards stderr
-        out, err = com.communicate()
-        if com.returncode is not 0:
-            return None
-        return out.decode('utf-8')
-
-def semantic_version_comp(a, b):
-    a = a.split('.')
-    b = b.split('.')
-
-    while len(a) > 0 and len(b) > 0:
-        if a[0] < b[0]:
-            return -1
-        elif a[0] > b[0]:
-            return 1
-        a = a[1:]
-        b = b[1:]
-    return 0
-
-def warning_continue(form, *args):
-    warning(form, *args)
-    if not parseBool(input_or("Do you want to continue anyways (probably won't work): [y/N]", "n")):
-        exit(0)
-
 WANTED_OPAM_VER = "2.0.0"
 WANTED_LLVM_VER = "7.0.0"
 OPAM_SWITCH = "4.07.1"
 
 OPAM_PACKAGES_WANTED_MINUS_LLVM = ["camlp4"]
-def opam_exec_command(arg_list):
-    return ["opam", "exec", "--set-switch", OPAM_SWITCH, "--"] + arg_list
 
-EXAMPLE_OPAM_EXEC = command_to_string(opam_exec_command(["<COMMAND>"]))
 BOLD_FORMAT = '\x1b[1;37;40m'
 NORMAL_FORMAT = '\x1b[0m'
+
+def opam_exec_command(arg_list):
+    return ["opam", "exec", "--set-switch", OPAM_SWITCH, "--"] + arg_list
+EXAMPLE_OPAM_EXEC = command_to_string(opam_exec_command(["<COMMAND>"]))
 
 def opam_setup():
     print("""\
@@ -258,7 +225,7 @@ def opam_setup():
 
     == Opam initialization ==
 
-    Opam needs to be initialized the first time its used.
+    Opam needs to be initialized the first time it's used.
     buildScript.py will then install the following opam switch: {BOLD_FORMAT}{OPAM_SWITCH}{NORMAL_FORMAT}
     In this switch, the following packages are installed: {BOLD_FORMAT}{' '.join(opam_packages_wanted)}{NORMAL_FORMAT}
     Compilation will then by default be done through: {BOLD_FORMAT}{EXAMPLE_OPAM_EXEC}{NORMAL_FORMAT}
@@ -282,12 +249,52 @@ def opam_setup():
 
     if bashrc_edit or parseBool(input_or("Do you want to add opam to PATH in your current session? [y/N]: ", "n")):
         if bashrc_edit:
-            print("Adding opam to current shell session (maybe, not sure if env changes are exported):")
+            print("Adding opam to current shell session:")
         run_loud(["eval", "$(opam env)"], shell=True)
+        print("INFO: You have to run this command yourself, I don't know how to export PATH")
 
     print()
 
     info("Opam setup is done")
+
+# ====== Functions used by opam setup ======
+
+def input_or(query, default="y"):
+    inp = input(query)
+    if inp == None or inp == "":
+        return default
+    return inp
+
+def run_loud(command, **dic):
+    print("$ " + command_to_string(command))
+    with subprocess.Popen(command, **dic) as com:
+        com.wait()
+        return com.returncode
+
+def run_silent(command):
+    with Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as com: #Forwards stderr
+        out, err = com.communicate()
+        if com.returncode is not 0:
+            return None
+        return out.decode('utf-8')
+
+def semantic_version_comp(a, b):
+    a = a.split('.')
+    b = b.split('.')
+
+    while len(a) > 0 and len(b) > 0:
+        if a[0] < b[0]:
+            return -1
+        elif a[0] > b[0]:
+            return 1
+        a = a[1:]
+        b = b[1:]
+    return 0
+
+def warning_continue(form, *args):
+    warning(form, *args)
+    if not parseBool(input_or("Do you want to continue anyways (probably won't work): [y/N]", "n")):
+        exit(0)
 
 if __name__ == "__main__":
     main()
