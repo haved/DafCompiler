@@ -183,7 +183,7 @@ BOLD_FORMAT = '\x1b[1;37;40m'
 NORMAL_FORMAT = '\x1b[0m'
 
 def opam_exec_command(arg_list):
-    return ["opam", "exec", "--set-switch", OPAM_SWITCH, "--"] + arg_list
+    return ["opam", "config", "exec", "--switch="+OPAM_SWITCH, "--"] + arg_list
 EXAMPLE_OPAM_EXEC = command_to_string(opam_exec_command(["<COMMAND>"]))
 
 def opam_setup():

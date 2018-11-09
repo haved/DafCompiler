@@ -1,0 +1,41 @@
+# This is the build guide for dafc
+# .hbg files can be read by HavedBuildGuide.py, turned into human readable guides, or executed
+# The execution can be interactive, or go through specified chapters automatically.
+
+# The language is lisp-like, using parenthesies.
+# Some code or text should not be included when creating the static human readable guide
+# This can be achieved with (if STATIC ...), (if RUNNING ...) and if(if INTERACTIVE ...)
+
+# NB: If running only a subset of chapters, RUNNING will only be true in those chapters.
+
+* Build
+** Dependencies
+*** Package install
+
+(if RUNNING
+  *** Testing installed packages
+  (set LLVM_VERSION? ($ ["llvm-config" "--version"]))
+  (set OPAM_VERSION? ($ ["opam" "--version"]))
+  (if (not LLVM_VERSION?)
+    (ERROR Missing LLVM)
+  )
+  (if (not OPAM_VERSION?)
+    (ERROR Missing opam)
+  )
+  (abort_if_error)
+)
+
+*** Opam setup
+(if RUNNING
+  *** Testing opam switch
+  ()
+)
+
+* Test
+(if RUNNING
+
+)
+
+* Install
+
+* Uninstall
