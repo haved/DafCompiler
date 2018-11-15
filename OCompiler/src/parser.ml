@@ -65,8 +65,7 @@ and parse_single_defable = parser
 
                          | [< err=error_expected "a defable">] -> raise err
 
-and precedence_of_postfix_op = function
-  | _ -> 2000
+and precedence_of_postfix_op = 2000
 
 and precedence_of_prefix_op = function
   | _ -> 1000
@@ -105,23 +104,23 @@ and parse_prefix_op_opt =
    | [< '(Token.Sizeof, span) >] -> Some (Ast.Sizeof, span)
    | [< >] -> None
 
+and parse_arg_list = parser
+                   | [< '(Token.Right_End, span) >] -> ([], span)
+
+and parse_prefix_op_opt = parser
+                        | [< '(Token.Plus_Plusm, span) >] -> Some (Ast.Post_Increase, span)
+                        | [< '(Token.Minus_Minus, span) >] -> Some (Ast.Post_Decrease, span)
+                        | [< '(Token.Left_Paren, start_span); (arg_list,end_span)=parse_arg_list >] -> Some (Ast.Function_Call arg_list, Span.span_over start_span end_span)
+                        | [< >] -> None
+
 and parse_postfix_ops operand min_precedence stream =
-  match Stream.peek stream with
-  | None -> operand
-  | Some (tok, op_span) -> (
-    let op = match tok with
-      | Token.Plus_Plus -> Some Ast.Post_Increase
-      | Token.Minus_Minus -> Some Ast.Post_Decrease
-      | _ -> None
-    in match op with
-    | None -> operand
-    | Some op -> let op_prec = precedence_of_postfix_op op in
-      if (op_prec < min_precedence) then operand else
-        let _,start_span = operand in
-        Stream.junk stream;
-        let expr = (Ast.Postfix_Operator (op,operand), Span.span_over start_span op_span) in
-        parse_postfix_ops expr op_prec stream
-  )
+  if precedence_of_postfix_op < min_precedence then
+    operand
+  else match parse_prefix_op_opt stream with
+       | None -> operand
+       | Some (op, op_span) ->
+          let expr = (Ast.Postfix_Operator (op,operand), Span.span_over (Util.scnd operand) op_span) in
+          parse_postfix_ops expr precedence_of_postfix_op stream
 
 and infix_op_of_token_opt = function
   | Token.Class_Access -> Some Ast.Access_Op
@@ -151,7 +150,7 @@ and parse_infix_ops lhs min_precedence stream =
         Stream.junk stream;
         let left_to_right = is_infix_op_left_to_right op in
         let rhs = parse_defables (prec + if left_to_right then 1 else 0) stream in
-        let combined = (Ast.Infix_Operator (op, lhs, rhs), Span.span_over (lhs|>Span.from) rhs|>Span.from) in
+        let combined = (Ast.Infix_Operator (op, lhs, rhs), Span.span_over (lhs|>Util.scnd) rhs|>Util.scnd) in
         parse_infix_ops combined min_precedence stream
       )
 
@@ -161,7 +160,7 @@ and parse_defables min_precedence stream : (Ast.defable)=
     | None -> parse_single_defable stream
     | Some (op, op_span) ->
       let operand = parse_defables (precedence_of_prefix_op op) stream in
-      (Ast.Prefix_Operator (op, operand), Span.span_over op_span (Span.from operand))
+      (Ast.Prefix_Operator (op, operand), Span.span_over op_span (Util.scnd operand))
   in let prepost = parse_postfix_ops pre min_precedence stream
   in let expr_down_to_min_prec = parse_infix_ops prepost min_precedence stream in
   expr_down_to_min_prec
@@ -211,7 +210,7 @@ and parse_packed_statement_or_result_expr stream =
         | [< '(Token.Scope_End,(_,end_loc)) >] -> Result_Expr (expression, end_loc)
         | [< >] ->
           match expression with
-          | (Ast.Scope _, _) -> Statement (Ast.ExpressionStatement expression, Span.from expression)
+          | (Ast.Scope _, _) -> Statement (Ast.ExpressionStatement expression, Util.scnd expression)
           | _ -> let semicolon_span = expect_tok Token.Statement_End stream in
           Statement (Ast.ExpressionStatement expression, Span.span_over start_span semicolon_span)
 
@@ -242,7 +241,7 @@ and parse_parameter_modifier = parser
 and parse_parameter = parser
                     | [< start_span=peek_span; modif=parse_parameter_modifier; name=parse_identifier;
                          _=expect_tok Token.Type_Separator; typ=parse_defable >]
-                      -> (Ast.Value_Param (modif,name,typ), Span.span_over start_span typ|>Span.from)
+                      -> (Ast.Value_Param (modif,name,typ), Span.span_over start_span typ|>Util.scnd)
 
 and after_param_parse = parser
                       | [< '(Token.Right_Paren,_) >] -> []
@@ -280,7 +279,7 @@ and parse_def_body stream = match Stream.peek stream with
 
 and parse_def_literal_values = parser
                       | [< start=peek_span; params=parse_parameter_list; return=parse_return_type; body=parse_def_body >]
-                        -> (Ast.Def_Literal (params, return, body), Span.span_over start body|>Span.from)
+                        -> (Ast.Def_Literal (params, return, body), Span.span_over start body|>Util.scnd)
 
 (*
     ==== All definitions ====

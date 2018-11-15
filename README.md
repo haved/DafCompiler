@@ -14,8 +14,13 @@ Check out my Trello board [here](https://trello.com/b/bXCZLvBz "Daf trello board
 
 ### Building
 #### Dependencies
-As for now I don't know what parts of my OCaml environment are needed,
-but if you want to replicate it, check out the `MyOCamlAdventure.org` file in `docs/`
+- LLVM
+- opam
+
+Use the following command to run an interactive ocaml environment setup:
+```
+./buildScript.py --opam_setup
+```
 
 #### Compiling
 For normal building, use the build script. This will create the binary `OCompiler/dafc_main.native`
