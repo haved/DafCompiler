@@ -104,19 +104,44 @@ and parse_prefix_op_opt =
    | [< '(Token.Sizeof, span) >] -> Some (Ast.Sizeof, span)
    | [< >] -> None
 
-and parse_arg_list = parser
-                   | [< '(Token.Right_End, span) >] -> ([], span)
+and parse_argument_modifier = parser
+                            | [< '(Token.Mut,  span) >] -> (Ast.Arg_Mut,  span)
+                            | [< '(Token.Move, span) >] -> (Ast.Arg_Move, span)
+                            | [< '(Token.Copy, span) >] -> (Ast.Arg_Copy, span)
+                            | [< '(Token.Uncrt, span) >] -> (Ast.Arg_Uncrt, span)
+                            | [< span=peek_span >] -> (Ast.Arg_Normal, span)
 
-and parse_prefix_op_opt = parser
-                        | [< '(Token.Plus_Plusm, span) >] -> Some (Ast.Post_Increase, span)
+and parse_arg stream =
+  (
+    let (modif,start_span) = parse_argument_modifier stream in
+    let (_,end_span)as defable=parse_defable stream in
+    (modif, defable, Span.span_over start_span end_span)
+  )
+
+and parse_arg_then_list stream =
+  (
+    let (_,_,start_span) as arg = parse_arg stream in
+    stream |> parser
+  | [< '(Token.Comma,_); (rest,rest_span)=parse_arg_then_list >] -> (arg::rest, Span.span_over start_span rest_span)
+  | [< '(Token.Right_Paren,end_span) >] -> ([arg], Span.span_over start_span end_span)
+  | [< err=error_expected ") or ," >] -> raise err
+  )
+
+and parse_arg_list = parser
+                   | [< '(Token.Right_Paren, span) >] -> ([], span)
+                   | [< args = parse_arg_then_list >] -> args
+
+and parse_postfix_op_opt = parser
+                        | [< '(Token.Plus_Plus,   span) >] -> Some (Ast.Post_Increase, span)
                         | [< '(Token.Minus_Minus, span) >] -> Some (Ast.Post_Decrease, span)
-                        | [< '(Token.Left_Paren, start_span); (arg_list,end_span)=parse_arg_list >] -> Some (Ast.Function_Call arg_list, Span.span_over start_span end_span)
+                        | [< '(Token.Left_Paren, start_span); (arg_list,end_span)=parse_arg_list >]
+                          -> Some (Ast.Function_Call arg_list, Span.span_over start_span end_span)
                         | [< >] -> None
 
 and parse_postfix_ops operand min_precedence stream =
   if precedence_of_postfix_op < min_precedence then
     operand
-  else match parse_prefix_op_opt stream with
+  else match parse_postfix_op_opt stream with
        | None -> operand
        | Some (op, op_span) ->
           let expr = (Ast.Postfix_Operator (op,operand), Span.span_over (Util.scnd operand) op_span) in

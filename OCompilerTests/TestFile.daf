@@ -20,6 +20,8 @@ pub def main (move a:i32, mut b:i32) {
 		b
     }
 
+	a(4, mut 6, move 6, copy a(b+c), uncrt 7);
+
     if x {}
 	else if y {}
 	else if z {}
