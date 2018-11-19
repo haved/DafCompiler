@@ -94,6 +94,8 @@ open Printf
 
 let tabulate len = Printf.sprintf "  %*s" (len*4) ""
 
+let concat a b = String.concat "" [a ; b]
+
 let rec string_of_defable tab (bare_defable,_) = match bare_defable with
   | Identifier id -> id
   | Integer_Literal int -> Printf.sprintf "%d" int
@@ -115,8 +117,15 @@ and string_of_prefix_operator = function
   | Not -> "!" | Bitwise_Not -> "~" | Pre_Increase -> "++" | Pre_Decrease -> "--"
   | Ref -> "&" | MutRef -> "&mut " | Dereference -> "@" | Sizeof -> "sizeof"
 
-and string_of_argument tab arg =
-  "arg"
+and string_of_arg_modifier = function
+  | Arg_Normal -> ""
+  | Arg_Mut -> "mut "
+  | Arg_Move -> "move "
+  | Arg_Copy -> "copy "
+  | Arg_Uncrt -> "uncrt "
+
+and string_of_argument tab (modif,defable,_) =
+  concat (string_of_arg_modifier modif) (string_of_defable tab defable)
 
 and string_of_argument_list tab list =
   String.concat ", " (List.map (string_of_argument tab) list)
