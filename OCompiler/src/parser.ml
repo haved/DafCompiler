@@ -136,6 +136,9 @@ and parse_postfix_op_opt = parser
                         | [< '(Token.Minus_Minus, span) >] -> Some (Ast.Post_Decrease, span)
                         | [< '(Token.Left_Paren, start_span); (arg_list,end_span)=parse_arg_list >]
                           -> Some (Ast.Function_Call arg_list, Span.span_over start_span end_span)
+                        | [< '(Token.Left_Bracket, start_span); index=parse_defable;
+                           end_span=expect_tok Token.Right_Bracket >] ->
+                           Some(Ast.Array_Access index, Span.span_over start_span end_span)
                         | [< >] -> None
 
 and parse_postfix_ops operand min_precedence stream =
