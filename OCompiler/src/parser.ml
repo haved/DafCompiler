@@ -184,14 +184,16 @@ and parse_infix_ops lhs min_precedence stream =
 
 
 and parse_defables min_precedence stream : (Ast.defable)=
-  let pre = match parse_prefix_op_opt stream with
-    | None -> parse_single_defable stream
-    | Some (op, op_span) ->
-      let operand = parse_defables (precedence_of_prefix_op op) stream in
-      (Ast.Prefix_Operator (op, operand), Span.span_over op_span (Util.scnd operand))
-  in let prepost = parse_postfix_ops pre min_precedence stream
-  in let expr_down_to_min_prec = parse_infix_ops prepost min_precedence stream in
-  expr_down_to_min_prec
+  (let pre = match parse_prefix_op_opt stream with
+     | None -> parse_single_defable stream
+     | Some (op, op_span) ->
+        let operand = parse_defables (precedence_of_prefix_op op) stream in
+        (Ast.Prefix_Operator (op, operand), Span.span_over op_span (Util.scnd operand))
+   in let pre_in = parse_infix_ops pre min_precedence stream
+   in let pre_in_post = parse_postfix_ops pre_in min_precedence stream
+   in pre_in_post
+  )
+
 
 and parse_defable stream = parse_defables 0 stream
 
