@@ -5,7 +5,7 @@ Once those are finished I may detail the grammar here
 
 ** Expressions, statements, types, namespaces and definitions
 
-We merge expressions, types and namespaces into one unit known as /deffable/.
+We merge expressions, types and namespaces into one unit known as /defable/.
 This is because they are what's parsed after a =def= or =typedef= or =namedef=
 
 Both parsing an expression and parsing a type invokes the same function.

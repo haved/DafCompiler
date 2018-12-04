@@ -33,11 +33,19 @@ pub def main (move a:i32, mut b:i32) {
     b
 };
 
+def pet_ptr(let x:i32):&i32 {
+	&x
+};
+
+def test() {
+	(def(a:i32):=a*2)(6)
+};
+
 def otherMain(x:i32):mut i32= {
 	let mut a := 4+x+y*c-d*4*3-2-2*5;
 	let a_ptr := &mut a;
 	def average(mut b:i32):i32 {
-// 		b += a;
+//		b += a;
 //		a -= b;
 		(a + b)/2
 	};

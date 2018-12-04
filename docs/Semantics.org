@@ -1,0 +1,10 @@
+* Def
+A def is a function. Even if you say =def a:=5;=, it's still a function.
+A function can have side effects, or take parameters.
+A possible parameter can be another def, or a typedef or namedef.
+This allows for meta-programming.
+
+* Typedef
+Give a name to a type, can also take parameters.
+These parameters are different to the ones a def can take.
+That's because a types are a compile-time concept.
