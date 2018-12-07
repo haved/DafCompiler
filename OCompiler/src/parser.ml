@@ -275,17 +275,16 @@ and parse_parameter = parser
                          _=expect_tok Token.Type_Separator; typ=parse_defable >]
                       -> (Ast.Value_Param (modif,name,typ), Span.span_over start_span typ|>Util.scnd)
 
-and after_param_parse = parser
-                      | [< '(Token.Right_Paren,_) >] -> []
-                      | [< '(Token.Comma,_); params=parse_parameter_rec >] -> params
-                      | [< err=error_expected "',' or ')'" >] -> raise err
-
-and parse_parameter_rec = parser
-                        | [< param=parse_parameter; params=after_param_parse >] -> param :: params
+and parse_param_then_list stream =
+  let param = parse_parameter stream in
+  stream |> parser
+| [< '(Token.Right_Paren,_) >] -> []
+| [< '(Token.Comma,_); params=parse_param_then_list >] -> [param ; params]
+| [< err=error_expected "',' or ')'" >] -> raise err
 
 and parse_first_parameter = parser
                           | [< '(Token.Right_Paren,_) >] -> []
-                          | [< params=parse_parameter_rec >] -> params
+                          | [< params=parse_param_then_list >] -> params
 
 and parse_parameter_list = parser
                          | [< '(Token.Left_Paren,_); params=parse_first_parameter >] -> params
