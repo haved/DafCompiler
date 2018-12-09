@@ -2,6 +2,8 @@
 
 def a : i32 = 5;
 
+def map_int(in:i32, def func(in:i32):i32):=func(in);
+
 pub def main (move a:i32, mut b:i32) {
 	let a := 5;
 	let mut b : i32 = 7;

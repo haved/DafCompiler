@@ -1,8 +1,9 @@
 open Printf
+open Span
 module Ast=Daf_ast
 
 (*
-    ==== Error handeling ====
+    ==== Error handling ====
 *)
 
 exception UnexpectedToken of Token.token_with_span * string
@@ -118,24 +119,23 @@ and parse_arg stream =
     (modif, defable, Span.span_over start_span end_span)
   )
 
-and parse_arg_then_list stream =
-  (
-    let (_,_,start_span) as arg = parse_arg stream in
-    stream |> parser
-  | [< '(Token.Comma,_); (rest,rest_span)=parse_arg_then_list >] -> (arg::rest, Span.span_over start_span rest_span)
-  | [< '(Token.Right_Paren,end_span) >] -> ([arg], Span.span_over start_span end_span)
-  | [< err=error_expected ") or ," >] -> raise err
-  )
+and parse_post_arg_in_list = parser
+  | [< '(Token.Comma,_); args=parse_arg_then_list >] -> args
+  | [< '(Token.Right_Paren,(_,end_loc)) >] -> ([], end_loc)
+  | [< err=error_expected ") or ," >] -> raise err (* TODO: Don't have string literals for error messages spread about *)
+
+and parse_arg_then_list = parser
+  [< arg = parse_arg ; (rest,end_loc) = parse_post_arg_in_list >] -> (arg::rest, end_loc)
 
 and parse_arg_list = parser
-                   | [< '(Token.Right_Paren, span) >] -> ([], span)
+                   | [< '(Token.Right_Paren, (_,end_loc)) >] -> ([],end_loc)
                    | [< args = parse_arg_then_list >] -> args
 
 and parse_postfix_op_opt = parser
                         | [< '(Token.Plus_Plus,   span) >] -> Some (Ast.Post_Increase, span)
                         | [< '(Token.Minus_Minus, span) >] -> Some (Ast.Post_Decrease, span)
-                        | [< '(Token.Left_Paren, start_span); (arg_list,end_span)=parse_arg_list >]
-                          -> Some (Ast.Function_Call arg_list, Span.span_over start_span end_span)
+                        | [< '(Token.Left_Paren, (start_loc,_)); (arg_list,end_loc)=parse_arg_list >]
+                          -> Some (Ast.Function_Call arg_list, Span.span start_loc end_loc)
                         | [< '(Token.Left_Bracket, start_span); index=parse_defable;
                            end_span=expect_tok Token.Right_Bracket >] ->
                            Some(Ast.Array_Access index, Span.span_over start_span end_span)
@@ -270,37 +270,40 @@ and parse_parameter_modifier = parser
                              | [< '(Token.Dtor,_) >] -> Ast.Dtor_Param
                              | [< >] -> Ast.Normal_Param
 
-and parse_parameter = parser
-                    | [< start_span=peek_span; modif=parse_parameter_modifier; name=parse_identifier;
-                         _=expect_tok Token.Type_Separator; typ=parse_defable >]
-                      -> (Ast.Value_Param (modif,name,typ), Span.span_over start_span typ|>Util.scnd)
+and parse_def_parameter = parser
+                        | [< '(Token.Def,start_span); (def_param,end_span) = parse_parameter_def_values >]
+                          -> (def_param, span_over start_span end_span)
+                        | [< start_span=peek_span; modif=parse_parameter_modifier; name=parse_identifier;
+                           _=expect_tok Token.Type_Separator; typ=parse_defable >]
+                          -> (Ast.Value_Param (modif,name,typ), Span.span_over start_span typ|>Util.scnd)
 
-and parse_param_then_list stream =
-  let param = parse_parameter stream in
-  stream |> parser
-| [< '(Token.Right_Paren,_) >] -> []
-| [< '(Token.Comma,_); params=parse_param_then_list >] -> [param ; params]
-| [< err=error_expected "',' or ')'" >] -> raise err
+and parse_post_def_param_in_list = parser
+  | [< '(Token.Right_Paren,_) >] -> []
+  | [< '(Token.Comma,_); params=parse_def_param_then_list >] -> params
+  | [< err=error_expected "',' or ')'" >] -> raise err
 
-and parse_first_parameter = parser
+and parse_def_param_then_list = parser
+  [< param = parse_def_parameter; rest = parse_post_def_param_in_list >] -> param::rest
+
+and parse_first_def_parameter = parser
                           | [< '(Token.Right_Paren,_) >] -> []
-                          | [< params=parse_param_then_list >] -> params
+                          | [< params=parse_def_param_then_list >] -> params
 
-and parse_parameter_list = parser
-                         | [< '(Token.Left_Paren,_); params=parse_first_parameter >] -> params
+and parse_def_parameter_list = parser
+                         | [< '(Token.Left_Paren,_); params=parse_first_def_parameter >] -> params
                          | [< >] -> [] (*No paramater list*)
 
-and parse_return_modifier = parser
+and parse_def_return_modifier = parser
                           | [< '(Token.Let,_) >] -> Ast.Ref_Ret
                           | [< '(Token.Mut,_) >] -> Ast.Mut_Ref_Ret
                           | [< >] -> Ast.Value_Ret
 
 and parse_type_or_inferred stream = match Stream.peek stream with
-  | Some (Token.Assign,_) -> None
+  | Some (Token.Assign,_) -> None (*We don't eat this, as it is part of def body parsing*)
   | _ -> Some (parse_defable stream)
 
-and parse_return_type = parser
-                      | [< '(Token.Type_Separator,_); modif=parse_return_modifier; typ=parse_type_or_inferred >]
+and parse_def_return_type = parser
+                      | [< '(Token.Type_Separator,_); modif=parse_def_return_modifier; typ=parse_type_or_inferred >]
                         -> Some (modif,typ)
                       | [< >] -> None
 
@@ -309,8 +312,15 @@ and parse_def_body stream = match Stream.peek stream with
   | _ -> parse_scope stream (* If there is no '=', we only allow a scope body *)
 
 and parse_def_literal_values = parser
-                      | [< start=peek_span; params=parse_parameter_list; return=parse_return_type; body=parse_def_body >]
+                      | [< start=peek_span; params=parse_def_parameter_list; return=parse_def_return_type; body=parse_def_body >]
                         -> (Ast.Def_Literal (params, return, body), Span.span_over start body|>Util.scnd)
+
+and parse_def_values = parser
+              | [< name=parse_identifier; params=parse_def_parameter_list; return=parse_def_return_type; body=parse_optional_def_body >]
+                -> Ast.Def (name, params, return, body)
+
+and parse_parameter_def_values = parser
+                               | [< name=parse_identifier; params=parse_def_parameter_list; return=parse_def_return_type >] -> (Ast.Def_Param (name, params, return), span (0,0) (0,0)) (*TODO Correct span*)
 
 (*
     ==== All definitions ====
@@ -320,10 +330,6 @@ and parse_def_literal_values = parser
 and parse_optional_def_body stream = match Stream.peek stream with
   | Some (Token.Statement_End,_) -> None
   | _ -> Some (parse_def_body stream)
-
-and parse_def_values = parser
-              | [< name=parse_identifier; params=parse_parameter_list; return=parse_return_type; body=parse_optional_def_body >]
-                -> Ast.Def (name, params, return, body)
 
 and parse_let_modifiers = parser
                         | [< '(Token.Mut,_) >] -> Ast.Mut_Let
@@ -376,10 +382,10 @@ let definition_list_of_file file_name =
     with
     | UnexpectedToken ((token, span), expected) ->
       Log.log_from_file_span file_name span Log.Fatal_Error
-        (Printf.sprintf "expected %s before %s" expected (Token.token_to_string token));
+        (sprintf "expected %s before %s" expected (Token.token_to_string token));
       []
     | UnexpectedEOF expected ->
-      Log.log_from_file file_name Log.Fatal_Error (Printf.sprintf "expected %s before EOF" expected);
+      Log.log_from_file file_name Log.Fatal_Error (sprintf "expected %s before EOF" expected);
       []
   with e ->
     close_in_noerr ic;
