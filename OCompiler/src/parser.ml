@@ -31,8 +31,8 @@ and peek_span stream =
   | None -> ((-1,0),(-1,0))
 
 and parse_identifier = parser
-                     | [< '(Token.Identifier ident,_) >] -> ident
-                     | [< err=error_expected "an identifier" >] -> raise err
+                     | [< '(Token.Identifier ident,span) >] -> (ident,span)
+                     | [< err=error_expected "an identifier" >] -> raise err (*TODO No langauge in error messages*)
 
 (*
     ==== The defable, either an expression, a type or a namespace ====
@@ -43,7 +43,7 @@ and parse_single_defable = parser
 
                          | [< '(Token.Integer_Literal num,span) >] -> (Ast.Integer_Literal num,span)
                          | [< '(Token.Def,start_span); (def_literal,end_span)=parse_def_literal_values >]
-                           -> (def_literal, Span.span_over start_span end_span)
+                           -> (def_literal, start_span<>end_span)
                          | [< '(Token.Scope_Start,(start_loc,_)); (stmts,result,end_loc)=parse_scope_contents >]
                            -> (Ast.Scope (stmts,result), Span.span start_loc end_loc)
 
@@ -91,7 +91,7 @@ and is_infix_op_left_to_right = function
 
 and parse_prefix_op_opt =
   let parse_ref_augment span = parser
-                           | [< '(Token.Mut, span2) >] -> (Ast.MutRef, Span.span_over span span2)
+                           | [< '(Token.Mut, span2) >] -> (Ast.MutRef, span<>span2)
                            | [< >] -> (Ast.Ref, span)
   in parser
    | [< '(Token.Ref, span); result=parse_ref_augment span >] -> Some result
@@ -116,7 +116,7 @@ and parse_arg stream =
   (
     let (modif,start_span) = parse_argument_modifier stream in
     let (_,end_span)as defable=parse_defable stream in
-    (modif, defable, Span.span_over start_span end_span)
+    (modif, defable, start_span<>end_span)
   )
 
 and parse_post_arg_in_list = parser
@@ -138,7 +138,7 @@ and parse_postfix_op_opt = parser
                           -> Some (Ast.Function_Call arg_list, Span.span start_loc end_loc)
                         | [< '(Token.Left_Bracket, start_span); index=parse_defable;
                            end_span=expect_tok Token.Right_Bracket >] ->
-                           Some(Ast.Array_Access index, Span.span_over start_span end_span)
+                           Some(Ast.Array_Access index, start_span<>end_span)
                         | [< >] -> None
 
 and parse_postfix_ops operand min_precedence stream =
@@ -147,7 +147,7 @@ and parse_postfix_ops operand min_precedence stream =
   else match parse_postfix_op_opt stream with
        | None -> operand
        | Some (op, op_span) ->
-          let expr = (Ast.Postfix_Operator (op,operand), Span.span_over (Util.scnd operand) op_span) in
+          let expr = (Ast.Postfix_Operator (op,operand), (Util.scnd operand)<>op_span) in
           parse_postfix_ops expr precedence_of_postfix_op stream
 
 and infix_op_of_token_opt = function
@@ -178,7 +178,7 @@ and parse_infix_ops lhs min_precedence stream =
         Stream.junk stream;
         let left_to_right = is_infix_op_left_to_right op in
         let rhs = parse_defables (prec + if left_to_right then 1 else 0) stream in
-        let combined = (Ast.Infix_Operator (op, lhs, rhs), Span.span_over (lhs|>Util.scnd) rhs|>Util.scnd) in
+        let combined = (Ast.Infix_Operator (op, lhs, rhs), (lhs|>Util.scnd)<>(rhs|>Util.scnd)) in
         parse_infix_ops combined min_precedence stream
       )
 
@@ -188,7 +188,7 @@ and parse_defables min_precedence stream : (Ast.defable)=
      | None -> parse_single_defable stream
      | Some (op, op_span) ->
         let operand = parse_defables (precedence_of_prefix_op op) stream in
-        (Ast.Prefix_Operator (op, operand), Span.span_over op_span (Util.scnd operand))
+        (Ast.Prefix_Operator (op, operand), op_span<>(Util.scnd operand))
    in let pre_in = parse_infix_ops pre min_precedence stream
    in let pre_in_post = parse_postfix_ops pre_in min_precedence stream
    in pre_in_post
@@ -236,7 +236,7 @@ and parse_packed_statement_or_result_expr stream =
     | Token.Def | Token.Let | Token.Typedef ->
       let defin = parse_bare_definition stream in
       let end_span = expect_tok Token.Statement_End stream in
-      Statement (Ast.DefinitionStatement defin, Span.span_over start_span end_span)
+      Statement (Ast.DefinitionStatement defin, start_span<>end_span)
     | _ -> let expression = parse_defable stream in
       stream |> parser
         | [< '(Token.Scope_End,(_,end_loc)) >] -> Result_Expr (expression, end_loc)
@@ -244,13 +244,13 @@ and parse_packed_statement_or_result_expr stream =
           match expression with
           | (Ast.Scope _, _) -> Statement (Ast.ExpressionStatement expression, Util.scnd expression)
           | _ -> let semicolon_span = expect_tok Token.Statement_End stream in
-          Statement (Ast.ExpressionStatement expression, Span.span_over start_span semicolon_span)
+          Statement (Ast.ExpressionStatement expression, start_span<>semicolon_span)
 
 and parse_statement_or_result_expr =
   parser
 | [< '(Token.If, start); cond=parse_defable; (_,body_end) as body=parse_statement; else_opt=parse_else_opt >]
   -> let end_span = (match else_opt with Some (_,e)->e | None -> body_end) in
-  Statement (Ast.If (cond, body, else_opt), Span.span_over start end_span)
+  Statement (Ast.If (cond, body, else_opt), start<>end_span)
 | [< stmt_or_re = parse_packed_statement_or_result_expr >] -> stmt_or_re
 
 and parse_statement stream = match parse_statement_or_result_expr stream with
@@ -273,38 +273,41 @@ and parse_parameter_modifier = parser
 and parse_def_parameter = parser
                         | [< '(Token.Def,start_span); (def_param,end_span) = parse_parameter_def_values >]
                           -> (def_param, span_over start_span end_span)
-                        | [< start_span=peek_span; modif=parse_parameter_modifier; name=parse_identifier;
+                        | [< start_span=peek_span; modif=parse_parameter_modifier; (name,_)=parse_identifier;
                            _=expect_tok Token.Type_Separator; typ=parse_defable >]
-                          -> (Ast.Value_Param (modif,name,typ), Span.span_over start_span typ|>Util.scnd)
+                          -> (Ast.Value_Param (modif,name,typ), start_span<>(typ|>Util.scnd))
 
 and parse_post_def_param_in_list = parser
-  | [< '(Token.Right_Paren,_) >] -> []
+  | [< '(Token.Right_Paren,end_span) >] -> ([],end_span)
   | [< '(Token.Comma,_); params=parse_def_param_then_list >] -> params
   | [< err=error_expected "',' or ')'" >] -> raise err
 
 and parse_def_param_then_list = parser
-  [< param = parse_def_parameter; rest = parse_post_def_param_in_list >] -> param::rest
+                              | [< param = parse_def_parameter; (rest,end_span) = parse_post_def_param_in_list >]
+                                -> (param::rest, end_span)
 
 and parse_first_def_parameter = parser
-                          | [< '(Token.Right_Paren,_) >] -> []
+                          | [< '(Token.Right_Paren,end_span) >] -> ([],end_span)
                           | [< params=parse_def_param_then_list >] -> params
 
 and parse_def_parameter_list = parser
-                         | [< '(Token.Left_Paren,_); params=parse_first_def_parameter >] -> params
-                         | [< >] -> [] (*No paramater list*)
+                             | [< '(Token.Left_Paren,start_span); (params,end_span)=parse_first_def_parameter >]
+                               -> (params, Some(start_span<>end_span))
+                             | [< >] -> ([], None) (*empty paramater list, no span*)
 
 and parse_def_return_modifier = parser
-                          | [< '(Token.Let,_) >] -> Ast.Ref_Ret
-                          | [< '(Token.Mut,_) >] -> Ast.Mut_Ref_Ret
-                          | [< >] -> Ast.Value_Ret
+                          | [< '(Token.Let,span) >] -> (Ast.Ref_Ret,Some span)
+                          | [< '(Token.Mut,span) >] -> (Ast.Mut_Ref_Ret,Some span)
+                          | [< >] -> (Ast.Value_Ret,None)
 
 and parse_type_or_inferred stream = match Stream.peek stream with
   | Some (Token.Assign,_) -> None (*We don't eat this, as it is part of def body parsing*)
   | _ -> Some (parse_defable stream)
 
 and parse_def_return_type = parser
-                      | [< '(Token.Type_Separator,_); modif=parse_def_return_modifier; typ=parse_type_or_inferred >]
-                        -> Some (modif,typ)
+                          | [< '(Token.Type_Separator,start_span);
+                             (modif,modif_s)=parse_def_return_modifier; (typ,typ_s)=parse_type_or_inferred >]
+                        -> Some (modif,typ,start_span<>(Util.first_some [typ_s ; modif_s] start_span))
                       | [< >] -> None
 
 and parse_def_body stream = match Stream.peek stream with
@@ -312,15 +315,18 @@ and parse_def_body stream = match Stream.peek stream with
   | _ -> parse_scope stream (* If there is no '=', we only allow a scope body *)
 
 and parse_def_literal_values = parser
-                      | [< start=peek_span; params=parse_def_parameter_list; return=parse_def_return_type; body=parse_def_body >]
-                        -> (Ast.Def_Literal (params, return, body), Span.span_over start body|>Util.scnd)
+                      | [< start=peek_span; (params,_)=parse_def_parameter_list; return=parse_def_return_type; body=parse_def_body >]
+                        -> (Ast.Def_Literal (params, return, body), start<>(Util.scnd body))
 
 and parse_def_values = parser
-              | [< name=parse_identifier; params=parse_def_parameter_list; return=parse_def_return_type; body=parse_optional_def_body >]
+              | [< (name,_)=parse_identifier; (params,_)=parse_def_parameter_list; (return,_)=parse_def_return_type; body=parse_optional_def_body >]
                 -> Ast.Def (name, params, return, body)
 
 and parse_parameter_def_values = parser
-                               | [< name=parse_identifier; params=parse_def_parameter_list; return=parse_def_return_type >] -> (Ast.Def_Param (name, params, return), span (0,0) (0,0)) (*TODO Correct span*)
+                               | [< (name,n_span)=parse_identifier; (params,p_span)=parse_def_parameter_list;
+                                  return=parse_def_return_type >]
+                                 -> (Ast.Def_Param (name, params, return),
+                                     n_span<>Util.first_some [Option.map Util.thrd return ; p_span] n_span)
 
 (*
     ==== All definitions ====
@@ -344,7 +350,7 @@ and parse_optional_let_type_and_assignment =
    | [< typ=parse_defable; body=parse_optional_body >] -> (Some typ,body)
 
 and parse_let_values = parser
-                     | [< modif=parse_let_modifiers; name=parse_identifier; '(Token.Type_Separator,_); (typ,assign)=parse_optional_let_type_and_assignment >] -> Ast.Let (modif, name, typ, assign)
+                     | [< modif=parse_let_modifiers; (name,_)=parse_identifier; '(Token.Type_Separator,_); (typ,assign)=parse_optional_let_type_and_assignment >] -> Ast.Let (modif, name, typ, assign)
 
 and parse_bare_definition = parser
                           | [< '(Token.Def,_); def=parse_def_values; >] -> def
@@ -359,7 +365,7 @@ and parse_is_pub = parser
 
 and parse_definition = parser
                      | [< (pub, start_span)=parse_is_pub; bare_defin=parse_bare_definition; end_span=expect_tok Token.Statement_End >]
-                       -> (pub, bare_defin, Span.span_over start_span end_span)
+                       -> (pub, bare_defin, start_span<>end_span)
 
 (*
    ==== File parsing code ====
