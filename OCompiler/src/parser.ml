@@ -178,7 +178,7 @@ and parse_infix_ops lhs min_precedence stream =
         Stream.junk stream;
         let left_to_right = is_infix_op_left_to_right op in
         let rhs = parse_defables (prec + if left_to_right then 1 else 0) stream in
-        let combined = (Ast.Infix_Operator (op, lhs, rhs), (lhs|>Util.scnd)<>(rhs|>Util.scnd)) in
+        let combined = (Ast.Infix_Operator (op, lhs, rhs), (Util.scnd lhs)<>(Util.scnd rhs)) in
         parse_infix_ops combined min_precedence stream
       )
 
@@ -275,7 +275,7 @@ and parse_def_parameter = parser
                           -> (def_param, span_over start_span end_span)
                         | [< start_span=peek_span; modif=parse_parameter_modifier; (name,_)=parse_identifier;
                            _=expect_tok Token.Type_Separator; typ=parse_defable >]
-                          -> (Ast.Value_Param (modif,name,typ), start_span<>(typ|>Util.scnd))
+                          -> (Ast.Value_Param (modif,name,typ), start_span<>(Util.scnd typ))
 
 and parse_post_def_param_in_list = parser
   | [< '(Token.Right_Paren,end_span) >] -> ([],end_span)
@@ -306,9 +306,9 @@ and parse_type_or_inferred stream = match Stream.peek stream with
 
 and parse_def_return_type = parser
                           | [< '(Token.Type_Separator,start_span);
-                             (modif,modif_s)=parse_def_return_modifier; (typ,typ_s)=parse_type_or_inferred >]
-                        -> Some (modif,typ,start_span<>(Util.first_some [typ_s ; modif_s] start_span))
-                      | [< >] -> None
+                             (modif,modif_s)=parse_def_return_modifier; typ=parse_type_or_inferred >]
+                            -> Some (modif,typ,start_span<>(Util.first_some [Util.map Util.scnd typ ; modif_s] start_span))
+                          | [< >] -> None
 
 and parse_def_body stream = match Stream.peek stream with
   | Some (Token.Assign,_) -> Stream.junk stream; parse_defable stream
@@ -319,14 +319,14 @@ and parse_def_literal_values = parser
                         -> (Ast.Def_Literal (params, return, body), start<>(Util.scnd body))
 
 and parse_def_values = parser
-              | [< (name,_)=parse_identifier; (params,_)=parse_def_parameter_list; (return,_)=parse_def_return_type; body=parse_optional_def_body >]
+              | [< (name,_)=parse_identifier; (params,_)=parse_def_parameter_list; return=parse_def_return_type; body=parse_optional_def_body >]
                 -> Ast.Def (name, params, return, body)
 
 and parse_parameter_def_values = parser
                                | [< (name,n_span)=parse_identifier; (params,p_span)=parse_def_parameter_list;
                                   return=parse_def_return_type >]
                                  -> (Ast.Def_Param (name, params, return),
-                                     n_span<>Util.first_some [Option.map Util.thrd return ; p_span] n_span)
+                                     n_span<>Util.first_some [Util.map Util.thrd return ; p_span] n_span)
 
 (*
     ==== All definitions ====

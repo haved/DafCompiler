@@ -1,10 +1,14 @@
 
-let first_some list final =
+let rec first_some list final =
   match list with
   | [] -> final
   | head :: rest -> match head with
                     | Some x -> x
                     | None -> first_some rest final
+
+let map func = function
+  | Some x -> Some (func x)
+  | None -> None
 
 let scnd (_,x) = x
 

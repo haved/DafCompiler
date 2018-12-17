@@ -1,4 +1,6 @@
 
+open Span
+
 (* ==== Defables ==== *)
 
 type bare_defable =
@@ -15,13 +17,13 @@ type bare_defable =
   | Prefix_Operator of prefix_operator * defable
   | Postfix_Operator of postfix_operator * defable
 
-and defable = bare_defable * Span.span_t
+and defable = bare_defable * span_t
 
 (* ==== Operators ==== *)
 
 and argument_modifier = Arg_Normal | Arg_Mut | Arg_Move | Arg_Copy | Arg_Uncrt
 
-and argument = argument_modifier * defable * Span.span_t
+and argument = argument_modifier * defable * span_t
 
 and postfix_operator =
   | Post_Increase | Post_Decrease | Array_Access of defable | Function_Call of argument list
@@ -52,7 +54,7 @@ and primitive_type =
 
 (* ==== Scopes and statements ==== *)
 
-and statement = bare_statement * Span.span_t
+and statement = bare_statement * span_t
 
 and bare_statement =
   | NopStatement
@@ -66,7 +68,7 @@ and bare_statement =
 and return_modifier =
   | Value_Ret | Ref_Ret | Mut_Ref_Ret
 
-and return_type = (return_modifier * defable option) option
+and return_type = (return_modifier * defable option * span_t) option
 
 and parameter_modifier =
   | Normal_Param | Let_Param | Mut_Param | Move_Param | Copy_Param | Uncrt_Param | Dtor_Param
@@ -76,7 +78,7 @@ and bare_parameter =
   | Type_Inferred_Value_Param of parameter_modifier * string * string
   | Def_Param of string * parameter list * return_type
 
-and parameter = bare_parameter * Span.span_t
+and parameter = bare_parameter * span_t
 
 (* ==== Definitions ==== *)
 
@@ -86,30 +88,30 @@ and bare_definition =
   | Def of string * parameter list * return_type * defable option
   | Let of let_modifier * string * defable option * defable option
 
-and definition = bool * bare_definition * Span.span_t
+and definition = bool * bare_definition * span_t
 
 (* ==== Ast printing ==== *)
 
 open Printf
 
-let tabulate len = Printf.sprintf "  %*s" (len*4) ""
+let tabulate len = sprintf "  %*s" (len*4) ""
 
 let concat a b = String.concat "" [a ; b]
 
 let rec string_of_defable tab (bare_defable,_) = match bare_defable with
   | Identifier id -> id
-  | Integer_Literal int -> Printf.sprintf "%d" int
-  | Real_Literal float -> Printf.sprintf "%f" float
+  | Integer_Literal int -> sprintf "%d" int
+  | Real_Literal float -> sprintf "%f" float
   | Scope (statement_list, result) ->
-    Printf.sprintf "{\n%s%s%s}" (string_of_statement_list (tab+1) statement_list)
+    sprintf "{\n%s%s%s}" (string_of_statement_list (tab+1) statement_list)
       (string_of_opt_result_expr (tab+1) result) (tabulate tab)
   | Primitive_Type_Literal primitive_type -> string_of_primitive_type primitive_type
   | Infix_Operator (op, lhs, rhs) ->
-    Printf.sprintf "(%s%s%s)" (string_of_defable (tab+1) lhs) (string_of_infix_operator op) (string_of_defable (tab+1) rhs)
+    sprintf "(%s%s%s)" (string_of_defable (tab+1) lhs) (string_of_infix_operator op) (string_of_defable (tab+1) rhs)
   | Prefix_Operator (op, rhs) ->
-    Printf.sprintf "(%s%s)" (string_of_prefix_operator op) (string_of_defable (tab+1) rhs)
+    sprintf "(%s%s)" (string_of_prefix_operator op) (string_of_defable (tab+1) rhs)
   | Postfix_Operator (op, lhs) ->
-    Printf.sprintf "(%s%s)" (string_of_defable (tab+1) lhs) (string_of_postfix_operator tab op)
+    sprintf "(%s%s)" (string_of_defable (tab+1) lhs) (string_of_postfix_operator tab op)
   | _ -> "defable"
 
 and string_of_prefix_operator = function
@@ -133,8 +135,8 @@ and string_of_argument_list tab list =
 and string_of_postfix_operator tab = function
   | Post_Increase -> "++"
   | Post_Decrease -> "--"
-  | Array_Access index -> Printf.sprintf "[ %s ]" (string_of_defable (tab+1) index)
-  | Function_Call arg_list -> Printf.sprintf "(%s)" (string_of_argument_list (tab+1) arg_list)
+  | Array_Access index -> sprintf "[ %s ]" (string_of_defable (tab+1) index)
+  | Function_Call arg_list -> sprintf "(%s)" (string_of_argument_list (tab+1) arg_list)
 
 
 and string_of_infix_operator defin = match defin with
@@ -162,24 +164,24 @@ and string_of_primitive_type = function
 
 and string_of_statement tab (bare_stmt, _) = match bare_stmt with
   | NopStatement -> ";"
-  | ExpressionStatement defable -> Printf.sprintf "%s;" (string_of_defable tab defable)
+  | ExpressionStatement defable -> sprintf "%s;" (string_of_defable tab defable)
   | DefinitionStatement bare_def -> (string_of_bare_definition tab bare_def)
   | If (cond,body,else_opt) -> (match else_opt with
-      | Some else_body -> Printf.sprintf "if %s %s\n%selse %s"
+      | Some else_body -> sprintf "if %s %s\n%selse %s"
                             (string_of_defable tab cond) (string_of_statement tab body)
                             (tabulate tab) (string_of_statement tab else_body)
-      | None -> Printf.sprintf "if %s %s" (string_of_defable tab cond) (string_of_statement tab body)
+      | None -> sprintf "if %s %s" (string_of_defable tab cond) (string_of_statement tab body)
     )
   | _ -> "statement" (*TODO*)
 
 and string_of_statement_list tab list =
   match list with
-  | head :: rest -> Printf.sprintf "%s%s\n%s"
+  | head :: rest -> sprintf "%s%s\n%s"
                       (tabulate tab) (string_of_statement tab head) (string_of_statement_list tab rest)
   | [] -> ""
 
 and string_of_opt_result_expr tab = function
-  | Some expr -> Printf.sprintf "%s%s\n" (tabulate tab) (string_of_defable tab expr)
+  | Some expr -> sprintf "%s%s\n" (tabulate tab) (string_of_defable tab expr)
   | None -> ""
 
 and string_of_parameter_modifier = function
@@ -193,12 +195,12 @@ and string_of_parameter_modifier = function
 
 and string_of_param tab (bare_param, _) = match bare_param with
   | Value_Param (param_modif, name, typ) ->
-    Printf.sprintf "%s%s:%s" (string_of_parameter_modifier param_modif) name (string_of_defable tab typ)
+    sprintf "%s%s:%s" (string_of_parameter_modifier param_modif) name (string_of_defable tab typ)
   | _ -> "param" (*TODO*)
 
 and string_of_param_list tab = function
   | [] -> ""
-  | params -> Printf.sprintf "(%s)" (String.concat ", " (List.map (string_of_param tab) params))
+  | params -> sprintf "(%s)" (String.concat ", " (List.map (string_of_param tab) params))
 
 and string_of_return_modifier = function
   | Value_Ret -> ""
@@ -207,8 +209,8 @@ and string_of_return_modifier = function
 
 and string_of_return_type tab = function
   | None -> ""
-  | Some (ret_modif, opt_typ) ->
-    Printf.sprintf ":%s%s" (string_of_return_modifier ret_modif)
+  | Some (ret_modif, opt_typ, _) ->
+    sprintf ":%s%s" (string_of_return_modifier ret_modif)
       (match opt_typ with None -> "" | Some typ -> string_of_defable (tab+1) typ)
 
 and string_of_let_modifier = function
@@ -217,16 +219,16 @@ and string_of_let_modifier = function
 
 and string_of_opt_body tab = function
   | None -> ""
-  | Some body -> Printf.sprintf " = %s" (string_of_defable tab body)
+  | Some body -> sprintf " = %s" (string_of_defable tab body)
 
 and string_of_bare_definition tab = function
   | Def (name, param_list, ret_type, opt_body) ->
-    Printf.sprintf "def %s%s%s%s" name (string_of_param_list tab param_list)
+    sprintf "def %s%s%s%s" name (string_of_param_list tab param_list)
       (string_of_return_type tab ret_type) (string_of_opt_body tab opt_body)
   | Let (let_modif, name, opt_typ, opt_body) ->
-    Printf.sprintf "let %s%s:%s%s" (string_of_let_modifier let_modif) name
+    sprintf "let %s%s:%s%s" (string_of_let_modifier let_modif) name
       (match opt_typ with None -> "" | Some typ -> (string_of_defable tab typ))
       (string_of_opt_body tab opt_body)
 
 and string_of_definition tab (pub,bare_defin,span) =
-  (Printf.sprintf "%s%s%s" (tabulate tab) (if pub then "pub " else "") (string_of_bare_definition tab bare_defin))
+  (sprintf "%s%s%s" (tabulate tab) (if pub then "pub " else "") (string_of_bare_definition tab bare_defin))
