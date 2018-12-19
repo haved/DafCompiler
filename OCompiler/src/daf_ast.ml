@@ -80,6 +80,7 @@ and bare_parameter =
 
 and parameter = bare_parameter * span_t
 
+
 (* ==== Definitions ==== *)
 
 and let_modifier = Normal_Let | Mut_Let
@@ -196,6 +197,8 @@ and string_of_parameter_modifier = function
 and string_of_param tab (bare_param, _) = match bare_param with
   | Value_Param (param_modif, name, typ) ->
     sprintf "%s%s:%s" (string_of_parameter_modifier param_modif) name (string_of_defable tab typ)
+  | Def_Param (name, param_list, ret_type) ->
+     sprintf "def %s%s%s" name (string_of_param_list tab param_list) (string_of_return_type tab ret_type)
   | _ -> "param" (*TODO*)
 
 and string_of_param_list tab = function
@@ -231,4 +234,4 @@ and string_of_bare_definition tab = function
       (string_of_opt_body tab opt_body)
 
 and string_of_definition tab (pub,bare_defin,span) =
-  (sprintf "%s%s%s" (tabulate tab) (if pub then "pub " else "") (string_of_bare_definition tab bare_defin))
+  (sprintf "%s%s%s;" (tabulate tab) (if pub then "pub " else "") (string_of_bare_definition tab bare_defin))
