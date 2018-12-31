@@ -1,0 +1,31 @@
+
+typedef ThreadSafe := trait {
+	prot mutex : Mutex;
+	prot cv : ConditionVariable;
+
+	pub def _(def func) := {
+		let lk := Lock(mutex);
+		func(lk)
+	}
+};
+
+typedef SyncQueue(E) := class with ThreadSafe {
+	queue : Queue(E);
+
+	pub def push(mut this, elm:E) {
+		let lk := Lock(mutex);
+		queue.push(move elm);
+		cv.notify();
+	};
+
+	pub def pop(mut this):= {
+		let lk := Lock(mutex);
+		while(queue.empty()) cv.wait(lk);
+		queue.pop()
+	}
+
+	pub def empty(mut this):= {
+		let lk := Lock(mutex);
+		queue.empty()
+	}
+};

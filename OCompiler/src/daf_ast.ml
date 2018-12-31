@@ -77,17 +77,20 @@ and bare_parameter =
   | Value_Param of parameter_modifier * string * defable
   | Type_Inferred_Value_Param of parameter_modifier * string * string
   | Def_Param of string * parameter list * return_type
+  | Typedef_Param of string * typedef_parameter list * 
 
 and parameter = bare_parameter * span_t
 
+(* ==== Typedef stuff ==== *)
 
 (* ==== Definitions ==== *)
 
 and let_modifier = Normal_Let | Mut_Let
 
 and bare_definition =
-  | Def of string * parameter list * return_type * defable option
   | Let of let_modifier * string * defable option * defable option
+  | Def of string * parameter list * return_type * defable option
+  | Typedef of string * typedef_parameter list * defable option
 
 and definition = bool * bare_definition * span_t
 
