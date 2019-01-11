@@ -1,31 +1,106 @@
 
-typedef ThreadSafe := trait {
-	prot mutex : Mutex;
-	prot cv : ConditionVariable;
-
-	pub def _(def func) := {
-		let lk := Lock(mutex);
-		func(lk)
-	}
+with str as {
+	pub def indexof(needle:str) {
+		
+	};
 };
 
-typedef SyncQueue(E) := class with ThreadSafe {
-	queue : Queue(E);
+typedef RegEx := class {
+	regex:str;
+	tree:ReNode;
+	state_machine:StateMachine;
 
-	pub def push(mut this, elm:E) {
-		let lk := Lock(mutex);
-		queue.push(move elm);
-		cv.notify();
+	pub def _ :=(regex:str):ctor This {
+		this.regex = regex;
+	};
+};
+
+def gen_regex_tree(regex:str):Pool(ReNode)*Pooled(ReNode) {
+	
+};
+
+typedef Pool(T:Zeroable):=class {
+	mut pool:Vec(T);
+	mut free:Stack(usize);
+
+	pub def _(size:usize=100):ctor This {
+		pool.=(size);
+	};
+	pub def __dtor__(dtor this) {
+		assert(pool.size == free.size);
+	};
+	pub def new(mut this, def src:T) := {
+		let index:usize;
+		if free.empty
+			index = pool.add(src);
+		else {
+			index = free.pop();
+		}
+		return Pooled(T)(index, this);
+	}
+	pub def remove_at(mut this, index:usize) {
+		if index == pool.last_index
+			pool.pop_back();
+		else {
+			pool[index] = T.zero;
+			free.push(index);
+		}
+	};
+	pub def remove(mut this, move pooled:Pooled(T)) {
+		pooled.remove(this);
+	};
+};
+
+typedef Pooled(T):=class {
+	pool:&mut Pool(T);
+	index:usize;
+	def _(pool:&mut Pool(T), index:usize):ctor {
+		
+	};
+	def _(this):=this.pool.at(index);
+	def remove(dtor this, let pool:Pool(T)) {
+		assert(&pool == this.pool);
+		pool.remove_at(index);
+	};
+	def remove_unsafe(dtor this, ) {
+		
+	};
+	def __dtor__(dtor this) delete;
+};
+
+typedef ReNode := enum {
+	Char {
+		c : char;
+		def to_string(this):="%c".format(c);
 	};
 
-	pub def pop(mut this):= {
-		let lk := Lock(mutex);
-		while(queue.empty()) cv.wait(lk);
-		queue.pop()
-	}
+	Concat {
+		left: Pooled(ReNode);
+		right:Pooled(ReNode);
+		def to_string(this):="(%s)(%s)".format(left.to_string, right.to_string);
+	};
 
-	pub def empty(mut this):= {
-		let lk := Lock(mutex);
-		queue.empty()
-	}
+	Repeat {
+		left:Pooled(ReNode);
+		def to_string(this):="(%s)*".format(left.to_string);
+	};
+
+	Maybe {
+		left:Pooled(ReNode);
+		def to_string(this):="(%s)?".format(left.to_string);
+	};
+
+	Range {
+		start: char;
+		end: char;
+		def to_string(this):="[%c-%c]".format(start, end);
+	};
+
+	Or {
+		left :Pooled(ReNode);
+		right:Pooled(ReNode);
+		def to_string(this):="(%s)|(%s)".format(left.to_string, right.to_string);
+	};
+
+	def virt to_string(this);
 };

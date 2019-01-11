@@ -1,5 +1,4 @@
 ;; The mode for the daf programming language
-;; So far just syntax highlighting
 
 (setq daf-keywords '("pub" "prot" "let" "def" "mut" "typedef" "with" "as" "move" "copy" "uncrt" "class" "trait" "enum" "namespace" "virt" "ctor" "dtor" "extern" "once"))
 (setq daf-control '("if" "else" "for" "while" "break" "continue" "retry" "return" "instof" "match" "case"))
