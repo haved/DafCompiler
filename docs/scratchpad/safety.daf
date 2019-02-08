@@ -1,7 +1,22 @@
 
 with str as {
-	pub def indexof(needle:str) {
-		
+	pub def indexof(this, needle:str):Opt(usize) {
+
+		//The i32 tells us how much we move start forward if we miss after having matched [x]
+		//It is at least 1
+		let skipList := Vec(i32, needle.len);
+
+		for skipList.
+
+		let mut start :usize= 0;
+		let mut matched :usize= 0;
+		while 1 {
+			if this.at(start+matched) == needle.at(matched)
+				matched++;
+			else
+				start += skipList.at(matched);
+				matched -= skipList.at(matched);
+		};
 	};
 };
 
