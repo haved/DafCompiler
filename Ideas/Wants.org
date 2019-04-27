@@ -1,0 +1,34 @@
+* Things I want
+** Language
+*** Easy to construct objects without writing constructors and stuff
+*** More advanced objects with RAII, still easy constructors
+*** Any type, with a TypeInfo pointer
+*** Pattern matching
+*** Tuples
+*** Arrow operators
+*** Traits
+*** Monade-ish
+*** Optional types (included references)
+*** Sum types / enums
+*** Dynamic dispatch
+*** Way of adding implementation
+*** _
+*** with
+*** Difference between func(a) and a.func()
+*** Operator overlaoding
+*** Infix functions
+*** Objects with zero size
+*** Uncertain
+*** Nice semaphores
+*** Lambdas
+*** Blocks
+*** Default parameters
+*** Named parameters
+** Tooling
+*** Emacs mode
+*** LLVM debugging
+** Docs
+* Things I don't need
+** Language
+*** Inline assembly
+*** Volatile

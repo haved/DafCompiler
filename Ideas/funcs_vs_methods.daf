@@ -1,0 +1,12 @@
+
+//Idea: a.func() <==> func(a)
+//Idea, global virt functions. How?
+
+typedef Allocator := trait {
+	def alloc() //TODO: Can be static
+};
+
+typedef mallocer := class with Allocator {
+	
+};
+
