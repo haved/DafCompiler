@@ -1,12 +1,26 @@
 
-//Idea: a.func() <==> func(a)
-//Idea, global virt functions. How?
+//We destinguish between a.foo() and foo(a)
+//If there is a default implementation, we need to supply override
+//Difference between inheritance and a field?
+//We need to avoid diamond inheritance!!
+//A namespace can implement a trait, but no vtable
+//We should have to explicitly define what traits are attributed to a type, using with
 
 typedef Allocator := trait {
-	def alloc() //TODO: Can be static
+	def virt alloc(size:usize):&mut u8;
+	def virt free(&mut u8);
+	let virt name:string;
 };
 
-typedef mallocer := class with Allocator {
-	
+typedef stdmalloc := namespace {
+	def 
 };
 
+typedef Mallocator := class {
+	def _(:This) := stdmalloc;
+};
+
+//A virt funtion has to be kind of liberal in wheather or not it takes a self
+//Normally when doing field.func(), it is the same as field.type.func(field), isn't it?
+//This means you can't call static funtions using field.func()
+//With virt stuff that isnt so cool
