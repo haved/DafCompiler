@@ -13,14 +13,46 @@ typedef Allocator := trait {
 };
 
 typedef stdmalloc := namespace {
-	def 
+	def alloc(size:usize):&mut u8;
+	//etc...
 };
 
-typedef Mallocator := class {
-	def _(:This) := stdmalloc;
+typedef Mallocator := class with Allocator {
+	typedef _ := stdmalloc;
 };
+
+//Alternative
+typedef Mallocator := class with stdmalloc with Allocator;
 
 //A virt funtion has to be kind of liberal in wheather or not it takes a self
 //Normally when doing field.func(), it is the same as field.type.func(field), isn't it?
 //This means you can't call static funtions using field.func()
 //With virt stuff that isnt so cool
+
+//What about when we don't want a vtable? (Or can't have it due to namespace)
+
+typedef ToString := trait {
+	def to_string(:Impl):String; //The Impl type is the thing implementing the trait. When doing this, the default function is compiled for each implementation of the trait
+	def to_big_string(_:Impl):=to_string.to_uppercase; //Using Impl here means we have access to the implementers other methods
+};
+
+typedef Lib := namespace with ToString {
+	def to_string:="My lib";
+};
+
+typedef global := _; //Everything avaliable here
+
+with Number as ToString with {
+	def to_string := global.to_string;
+};
+
+def test {
+	5.to_string; //Works
+	Number.to_string; //Doesn't work
+	Lib.to_string; //Works
+};
+
+//You can add a trait to a class later, and it will modify the vtable if needed
+
+//You can override stuff, but we try to avoid ambiguity
+//Can namespaces have static dispatch? The _ namespace can, so why not everything else?
