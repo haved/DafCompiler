@@ -1,0 +1,4 @@
+
+typedef IsLessThan(T) := trait {
+	def __lt__(other:T);
+};

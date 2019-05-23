@@ -19,6 +19,7 @@
         (,daf-keywords-regexp . font-lock-keyword-face)
 		(,"\\b[0-9]+\\.?[0-9]*" . font-lock-constant-face)
 		(,":=" . font-lock-function-name-face)
+		(,"\".*?\"" . font-lock-constant-face)
 				))
 
 ;;;###autoload
