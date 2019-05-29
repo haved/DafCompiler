@@ -1,11 +1,11 @@
 
 def value_params(num:i32, let val:i32, mut var:i32, copy cp:i32, move mv:i32, dtor dt:i32, uncrt uct:i32) {
 
-}
+};
 
-def type_params(def func:i32, T, U with Iterator, val:$T with Number, typedef thing() with) {
+def type_params(def func:i32, T, U with Iterator, val:$T with Number, typedef thing() with Class) {
 
-}
+};
 
 def constrained(a:$T) := with i32 as T {
 	

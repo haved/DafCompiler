@@ -6,3 +6,18 @@
 //Traits
 //Namespaces
 //Enums
+
+typedef int := i32;
+
+//A typedef only takes type parameters or def parameters
+typedef Point(T with Number) := class {
+	x:T;
+	y:T;
+};
+
+typedef FullComp := Eq+LessThan+GreaterThan;
+
+with Point as Eq + {
+	//Here we can reference the fields of Point
+};
+
