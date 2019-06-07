@@ -11,3 +11,5 @@ def constrained(a:$T) := with i32 as T {
 	
 };
 
+typedef Array(T, size:i32) := class{}; //We can take value parameters, but they must be evaluated compile time
+

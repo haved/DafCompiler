@@ -3,7 +3,7 @@
 (setq daf-keywords '("pub" "prot" "let" "def" "mut" "typedef" "with" "as" "move" "copy" "uncrt" "class" "trait" "enum" "namespace" "virt" "ctor" "dtor" "extern" "once"))
 (setq daf-control '("if" "else" "for" "while" "break" "continue" "retry" "return" "instof" "match" "case"))
 (setq daf-literals '("null" "this" "true" "false"))
-(setq daf-types '("This" "Impl" "u8" "i8" "u16" "i16" "u32" "i32" "u64" "i64" "f32" "f64" "char" "usize" "isize" "bool"))
+(setq daf-types '("This" "Trait" "u8" "i8" "u16" "i16" "u32" "i32" "u64" "i64" "f32" "f64" "char" "usize" "isize" "bool"))
 
 (setq daf-keywords-regexp (regexp-opt daf-keywords 'words))
 (setq daf-control-regexp (regexp-opt daf-control 'words))
