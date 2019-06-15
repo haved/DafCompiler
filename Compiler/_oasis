@@ -1,0 +1,30 @@
+# Made following http://ocaml.org/learn/tutorials/setting_up_with_oasis.html
+# To turn this file into a makefile and stuff: `oasis setup -setup-update dynamic`
+# The `dynamic` parameter makes the makefile automatically detect changes to this file
+
+Name: Dafc
+Version: 0.1
+Synopsis: The compiler for the daf programming language
+Authors: Haved <havard.postkasse@gmail.com>
+License: 
+
+Description: The compiler for the daf programming language, using LLVM.
+Homepage: https://github.com/haved/DafCompiler
+
+OASISFormat: 0.4
+OCamlVersion: >= 4.08.0
+BuildTools: ocamlbuild
+Plugins: META (0.4), DevFiles (0.4)
+
+Executable "dafc"
+  Path: src
+  MainIs: dafc.ml
+  CompiledObject: best
+  BuildDepends:
+    llvm
+
+SourceRepository master
+  Type: git
+  Location: https://github.com/haved/DafCompiler.git
+  Branch: master
+  Browser: https://github.com/haved/DafCompiler

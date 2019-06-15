@@ -10,7 +10,19 @@ A systems programming language for me to sink too much time into.
 Check out my Trello board [here](https://trello.com/b/bXCZLvBz "Daf trello board").
 
 ### Building
-N/A
+#### Dependencies
+
+ - Install [opam](https://opam.ocaml.org/ "Opam website")
+ - Run `opam init`
+ - Run `opam install oasis`
+#### Building
+ In the `/Compiler` folder:
+ ```
+ oasis
+ ```
+ 
+ 
+ 
 
 ### Testing
 N/A
