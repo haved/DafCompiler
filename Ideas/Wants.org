@@ -11,10 +11,7 @@
 *** Optional types (included references)
 *** Sum types / enums
 *** Dynamic dispatch
-*** Way of adding implementation
 *** _
-*** with
-*** Difference between func(a) and a.func()
 *** Operator overlaoding
 *** Infix functions
 *** Objects with zero size
@@ -32,3 +29,7 @@
 ** Language
 *** Inline assembly
 *** Volatile
+* Uncertain
+** with
+** Difference between func(a) and a.func()
+** Way of adding implementation

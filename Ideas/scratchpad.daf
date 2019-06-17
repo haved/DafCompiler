@@ -1,0 +1,10 @@
+
+// The problem with list literals is that one can't really assign arrays
+let mut buffer :[10]i32 = []
+
+// A function without parameters is called when evaluated
+// When sending the function to another function, add a tick
+
+Stream.of(buffer).map('addTwo).foreach('print);
+Stream.of(buffer).foreach(' addTwo .> print);
+
