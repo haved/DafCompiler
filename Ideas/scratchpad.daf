@@ -1,10 +1,11 @@
 
-// The problem with list literals is that one can't really assign arrays
-let mut buffer :[10]i32 = []
+// Things are comming together!
+// The with behaviour defined in one file is spread to other files if:
+// - It's in the same scope as the type being expanded
+// - It's in the same scope as a trait being added
+// - In the last case, one must say:
+require i32 as Number;
+// or just
+require Number;
 
-// A function without parameters is called when evaluated
-// When sending the function to another function, add a tick
-
-Stream.of(buffer).map('addTwo).foreach('print);
-Stream.of(buffer).foreach(' addTwo .> print);
-
+// Using with is also allowed
