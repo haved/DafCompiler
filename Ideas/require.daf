@@ -1,0 +1,52 @@
+
+// Noen traits har ingen implementasjon
+typedef ThreadSafe := trait;
+
+// Hvis jeg bruker with, og typen ikke har traitet, vil den få det
+with SomeType as ThreadSafe;
+
+// Med require krever den at typen allerede har traitet
+// Det betyr at typen må ha hatt en "with" et sted,
+// f.eks. i en annen fil.
+require SomeType as ThreadSafe;
+
+
+
+
+
+
+
+
+
+
+
+// I mange språk brukes require for å hente oppførsel
+// fra en annen fil eller modul (f.eks. i Emacs Lisp)
+
+// I daf kan man gjøre følgende:
+
+// ==== I filen ByteStreamer.daf ====
+
+// Et trait for typer som kan skrives til en byte-strøm
+typedef ByteStreamable := trait {
+	def write(this:This, mut stream:ByteStream):usize;
+};
+
+// Her definerer vi hvordan en i32 er ByteStreamable
+with i32 as ByteStreamable {
+	def write(this:This, mut stream:ByteStream) :=
+		stream.write(&this as &u8, This.sizeof)
+};
+
+
+// ==== I en annen fil: ====
+
+//Importere den andre filen (namespaces er typer, let it be)
+typedef BS := import("ByteStreamer.daf");
+
+// Siden i32 har fått dette traitet,
+// kan vi hente oppførselen, siden selve
+// with-blokken er i samme scope som trait-definisjonen
+require i32 as BT.ByteStreamable {
+	5.write(my_byte_stream);
+};

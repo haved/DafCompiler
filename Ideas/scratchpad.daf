@@ -14,7 +14,7 @@ require Number;
 // You have to provide a _copy function
 // If you have a _copy function, you can implicitly copy
 
-typedef CopyCounter := class {
+typedef CopyCounter := struct {
 	pubget count:i32 = 0;
 	def _:=This{};
 	def _copy(_:This) := This{count+1};
@@ -22,7 +22,7 @@ typedef CopyCounter := class {
 
 // Types can always be moved, a default _move function is provided as just a memory copy
 
-typedef PointedTo := class {
+typedef PointedTo := struct {
 	pointer_to_this := &mut &mut This;
 	def _(ptt: &mut &mut This):ctor This {
 		pointer_to_this = ptt;
@@ -47,4 +47,14 @@ def usage {
 	let pt2 := move pt; //Move
 	pt = pt2; //also Move
 	//pt2 = pt; //Illegal, pt2 is not mutable
+};
+
+typedef Box(T, Alloc:Allocator=Stdalloc) := struct {
+
+	ptr: &mut T;
+	pub def _:=@ptr;
+
+	pub _(move thing:T):ctor This {
+		ptr = Alloc.alloc(T.sizeof) as &mut T;
+	};
 };
