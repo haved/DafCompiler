@@ -7,5 +7,44 @@
 require i32 as Number;
 // or just
 require Number;
-
 // Using with is also allowed
+
+
+// By default you can't just copy types
+// You have to provide a _copy function
+// If you have a _copy function, you can implicitly copy
+
+typedef CopyCounter := class {
+	pubget count:i32 = 0;
+	def _:=This{};
+	def _copy(_:This) := This{count+1};
+};
+
+// Types can always be moved, a default _move function is provided as just a memory copy
+
+typedef PointedTo := class {
+	pointer_to_this := &mut &mut This;
+	def _(ptt: &mut &mut This):ctor This {
+		pointer_to_this = ptt;
+		@ptt = &mut this;
+	}
+
+	def _move(move other:This):ctor This {
+		pointer_to_this = other.pointer_to_this;
+		@pointer_to_this = &mut this;
+	}
+};
+
+def usage {
+	let cc := CopyCounter;
+	cc = move cc; // Moves
+	cc = copy cc; // Copies
+	cc = cc; // Copies
+	printf("{}", cc.count);
+
+	let mut pointer_to_pt : &mut PointedTo;
+	mut pt := PointedTo(pointer_to_pt);
+	let pt2 := move pt; //Move
+	pt = pt2; //also Move
+	//pt2 = pt; //Illegal, pt2 is not mutable
+};

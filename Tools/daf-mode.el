@@ -1,6 +1,6 @@
 ;; The mode for the daf programming language
 
-(setq daf-keywords '("pub" "prot" "let" "def" "mut" "typedef" "with" "as" "move" "copy" "uncrt" "class" "trait" "enum" "namespace" "virt" "ctor" "dtor" "extern" "once"))
+(setq daf-keywords '("pub" "pubget" "let" "def" "mut" "typedef" "with" "require" "as" "move" "copy" "uncrt" "class" "trait" "enum" "namespace" "virt" "ctor" "dtor" "extern" "once"))
 (setq daf-control '("if" "else" "for" "while" "break" "continue" "retry" "return" "instof" "match" "case"))
 (setq daf-literals '("null" "this" "true" "false"))
 (setq daf-types '("This" "Trait" "u8" "i8" "u16" "i16" "u32" "i32" "u64" "i64" "f32" "f64" "char" "usize" "isize" "bool"))
@@ -20,6 +20,7 @@
 		(,"\\b[0-9]+\\.?[0-9]*" . font-lock-constant-face)
 		(,":=" . font-lock-function-name-face)
 		(,"\".*?\"" . font-lock-constant-face)
+		(,"'" . font-lock-type-face)
 				))
 
 ;;;###autoload
