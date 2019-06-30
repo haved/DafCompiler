@@ -1,0 +1,27 @@
+
+
+def takeReference(mut name:String) {
+	name.append("Hei");
+}
+
+def takeCopy(copy name:String) {
+	name.append("Hei");
+}
+
+def takeMove(move name:String) {
+	name.append("Hei");
+}
+
+def main {
+	let mut a := String("Hallo, ");
+	let mut b := copy a; //Uses copy
+	let mut c := move a; //Uses move
+
+	//Using move means invoking the _move(move:This):This function
+	//Using copy means invoking the _copy(:This):This function
+
+	//If they arent manually implemented, they both default to just copying every field using their repspective functions
+
+	let mut x := String("Halla, ");
+	let mut y := x; //Is a move by default, unless the Copy trait is implemented
+};

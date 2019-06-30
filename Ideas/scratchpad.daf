@@ -50,11 +50,11 @@ def usage {
 };
 
 typedef Box(T, Alloc:Allocator=Stdalloc) := struct {
-
 	ptr: &mut T;
 	pub def _:=@ptr;
 
 	pub _(move thing:T):ctor This {
 		ptr = Alloc.alloc(T.sizeof) as &mut T;
+		@ptr = move thing;
 	};
 };
