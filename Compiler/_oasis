@@ -6,7 +6,7 @@ Name: Dafc
 Version: 0.1
 Synopsis: The compiler for the daf programming language
 Authors: Haved <havard.postkasse@gmail.com>
-License: 
+License: MIT
 
 Description: The compiler for the daf programming language, using LLVM.
 Homepage: https://github.com/haved/DafCompiler

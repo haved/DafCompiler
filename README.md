@@ -18,10 +18,18 @@ Check out my Trello board [here](https://trello.com/b/bXCZLvBz "Daf trello board
 #### Building
  In the `/Compiler` folder:
  ```
- oasis
+ oasis setup -setup-update dynamic
  ```
- 
- 
+ This creates the following files:
+ - ./configure/
+ - Makefile
+ - setup.ml 
+  
+  
+ Now to build:
+ ```
+ make
+ ```
  
 
 ### Testing

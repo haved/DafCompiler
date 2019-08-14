@@ -5,3 +5,8 @@ _build
 
 setup.data
 setup.log
+
+#These could be checked in
+Makefile
+configure/
+setup.ml
