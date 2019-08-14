@@ -8,5 +8,5 @@ setup.log
 
 #These could be checked in
 Makefile
-configure/
+/configure
 setup.ml
