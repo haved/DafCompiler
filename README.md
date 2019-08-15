@@ -31,6 +31,7 @@ Check out my Trello board [here](https://trello.com/b/bXCZLvBz "Daf trello board
  make
  ```
  
+ You should now have a `dafc.native` self contained binary
 
 ### Testing
 N/A
