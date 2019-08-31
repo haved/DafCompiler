@@ -13,25 +13,31 @@ Check out my Trello board [here](https://trello.com/b/bXCZLvBz "Daf trello board
 #### Dependencies
 
  - Install [opam](https://opam.ocaml.org/ "Opam website")
- - Run `opam init`
- - Run `opam install oasis`
-#### Building
- In the `/Compiler` folder:
+ - `$ opam init && opam install oasis`
+ 
+#### Compiling
+
+In the `/Compiler` folder:
  ```
  oasis setup -setup-update dynamic
- ```
- This creates the following files:
- - ./configure/
- - Makefile
- - setup.ml 
-  
-  
- Now to build:
- ```
  make
  ```
  
- You should now have a `dafc.native` self contained binary
+You should now have a symlink called `dafc.native`, which is a self contained binary
+
+#### Cleaning up
+After running oasis and make, you will have the following files in `./Compiler`:
+```
+ - configure
+ - Makefile
+ - setup.ml
+ - setup.data
+ - setup.log
+ - _build/
+ - dafc.native
+```
+Remove them, and everything should be clean
+Remeber that `dafc.native` is a symlink to the actual binary in `_build/`
 
 ### Testing
 N/A
