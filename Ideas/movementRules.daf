@@ -1,27 +1,32 @@
 
+// a type has a copy(:This) function if all its members have a copy-function, and it isn't deleted
+// a type with a copy() is implicit copy if all its members are implicit copy, or it's given the ImplicitCopy trait
 
-def takeReference(mut name:String) {
-	name.append("Hei");
-}
+typedef _ := import("other");
 
-def takeCopy(copy name:String) {
-	name.append("Hei");
-}
-
-def takeMove(move name:String) {
-	name.append("Hei");
-}
+require Printable;
 
 def main {
-	let mut a := String("Hallo, ");
-	let mut b := copy a; //Uses copy
-	let mut c := move a; //Uses move
-
-	//Using move means invoking the _move(move:This):This function
-	//Using copy means invoking the _copy(:This):This function
-
-	//If they arent manually implemented, they both default to just copying every field using their repspective functions
-
-	let mut x := String("Halla, ");
-	let mut y := x; //Is a move by default, unless the Copy trait is implemented
+	5.print();
 };
+
+typedef Node := struct {
+	pub left, right: &mut Node;
+};
+
+def main {
+	let a := Node{};
+	let b := &mut Node;
+};
+
+typedef ImplcitCopy := trait{};
+
+def get_copy(a:$T):T {
+	require T as ImplicitCopy {
+		let copy:T = a;
+	} else require T as Copy {
+		let copy:T = a.copy();
+	}
+}
+
+

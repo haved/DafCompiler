@@ -21,6 +21,9 @@
 *** Blocks
 *** Default parameters
 *** Named parameters
+*** Capturing lambdas
+*** Compile-time handeling of "annotations"
+*** Piping operators, function chaining
 ** Tooling
 *** Emacs mode
 *** LLVM debugging
